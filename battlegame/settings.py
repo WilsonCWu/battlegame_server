@@ -26,7 +26,7 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['161.35.0.134', 'localhost']
+ALLOWED_HOSTS = ['salutationstudio.com', 'www.salutationstudio.com', 'localhost']
 
 
 # Application definition
