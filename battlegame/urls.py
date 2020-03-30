@@ -17,9 +17,11 @@ from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
 from playerdata import views
+
 urlpatterns = [
+    path('playerdata/', views.HelloView.as_view()),
+    path('login/', views.ObtainAuthToken.as_view()),
     path('chat/', include('chat.urls')),
-    path('', views.test_view),
     path('admin/', admin.site.urls),
 ]
 

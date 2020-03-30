@@ -38,9 +38,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-   
-    'chat',
+    
     'channels',
+    'rest_framework',
+    'rest_framework.authtoken',
+
+    'chat',
     'playerdata',    
 ]
 
@@ -135,4 +138,11 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATIC_ROOT = '/home/battlegame/staticfiles/' 
+STATIC_ROOT = '/home/battlegame/staticfiles/'
+
+# Rest framework files
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}
