@@ -16,11 +16,11 @@ Including another URLconf
 from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
-from playerdata import views
+from playerdata import login
 
 urlpatterns = [
-    path('playerdata/', views.HelloView.as_view()),
-    path('login/', views.ObtainAuthToken.as_view()),
+    path('playerdata/', login.HelloView.as_view()),
+    path('login/', login.ObtainAuthToken.as_view()),
     path('chat/', include('chat.urls')),
     path('admin/', admin.site.urls),
 ]
