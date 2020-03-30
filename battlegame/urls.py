@@ -21,6 +21,7 @@ from playerdata import login
 urlpatterns = [
     path('playerdata/', login.HelloView.as_view()),
     path('login/', login.ObtainAuthToken.as_view()),
+    path('createnewuser', login.CreateNewUser.as_view()),
     path('chat/', include('chat.urls')),
     path('admin/', admin.site.urls),
 ]
