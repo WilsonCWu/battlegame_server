@@ -15,7 +15,7 @@ from django.contrib.auth import get_user_model
 from decouple import config
 
 from .serializers import AuthTokenSerializer
-from .serializers import TokenSerializer
+from .serializers import CreateNewUserSerializer
 
 class HelloView(APIView):
     
@@ -31,7 +31,7 @@ class CreateNewUser(APIView):
     permission_classes = ()
 
     def post(self, request):
-        serializer = TokenSerializer(data=request.data)
+        serializer = CreateNewUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         token = serializer.validated_data['token']
         
@@ -40,10 +40,11 @@ class CreateNewUser(APIView):
 
         latestId = get_user_model().objects.latest('id').id+1
         password = secrets.token_urlsafe(35)
-        
-        user = get_user_model().objects.create_user(username=latestId, password=password)
+        name = serializer.validated_data['name']
 
-        content = {'username':str(latestId), 'password':password}
+        user = get_user_model().objects.create_user(username=latestId, password=password,first_name=name)
+
+        content = {'username':str(latestId), 'password':password, 'name':name}
         return Response(content)
 
 class ObtainAuthToken(APIView):

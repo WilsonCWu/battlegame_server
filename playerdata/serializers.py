@@ -6,3 +6,7 @@ class AuthTokenSerializer(serializers.Serializer):
 
 class TokenSerializer(serializers.Serializer):
     token = serializers.CharField(required = True)
+
+class CreateNewUserSerializer(serializers.Serializer):
+    token = serializers.CharField(required = True)
+    name = serializers.CharField(required = True)
