@@ -16,3 +16,15 @@ class BaseCharacter(models.Model):
 
     def __str__(self):
         return self.name
+
+class BaseItem(models.Model):
+    item_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=30, unique=True)
+    attack = models.IntegerField()
+    penetration = models.IntegerField()
+    attack_speed = models.IntegerField()
+    rarity = models.IntegerField()
+    cost = models.IntegerField()
+
+    def __str__(self):
+        return self.name

@@ -14,6 +14,7 @@ from django.http import JsonResponse
 from rest_marshmallow import Schema, fields
 
 from playerdata.models import BaseCharacter
+from playerdata.models import BaseItem
 
 class BaseCharacterSchema(Schema):
     char_id = fields.Int() 
@@ -28,10 +29,21 @@ class BaseCharacterSchema(Schema):
     rarity = fields.Int()
     crit_chance = fields.Int()
 
+class BaseItemSchema(Schema):
+    item_id = fields.Int()
+    name = fields.Str()
+    attack = fields.Int()
+    penetration = fields.Int()
+    attack_speed = fields.Int()
+    rarity = fields.Int()
+    cost = fields.Int()
+
 class BaseInfoView(APIView):
 
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        serializer = BaseCharacterSchema(BaseCharacter.objects.all(), many=True)
-        return Response(serializer.data)
+        charSerializer = BaseCharacterSchema(BaseCharacter.objects.all(), many=True)
+        itemSerializer = BaseItemSchema(BaseItem.objects.all(), many=True)
+        return Response({'characters':charSerializer.data, 'items':itemSerializer.data})
+
