@@ -17,8 +17,10 @@ from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
 from playerdata import login
+from playerdata import datagetter
 
 urlpatterns = [
+    path('baseinfo/', datagetter.BaseInfoView.as_view()),
     path('playerdata/', login.HelloView.as_view()),
     path('login/', login.ObtainAuthToken.as_view()),
     path('createnewuser/', login.CreateNewUser.as_view()),
