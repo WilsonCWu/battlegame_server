@@ -28,3 +28,22 @@ class BaseItem(models.Model):
 
     def __str__(self):
         return self.name
+
+class Item(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    item_id = models.ForeignKey(BaseItem, on_delete=models.CASCADE)
+    exp = models.IntegerField()
+
+    def __str__(self):
+        return str(self.user) + ": " + str(self.item_id)
+
+class Character(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    char_id = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE)
+    exp = models.IntegerField()
+    prestige = models.IntegerField()
+    weapon = models.ForeignKey(Item, null=True, on_delete=models.SET_NULL)
+
+    def __str__(self):
+        return str(self.user) + ": " + str(self.char_id)
+
