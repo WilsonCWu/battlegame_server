@@ -65,8 +65,8 @@ class InventoryView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        charSerializer = CharacterSchema(Character.objects.all(), many=True)
-        itemSerializer = ItemSchema(Item.objects.all(), many=True)
+        charSerializer = CharacterSchema(Character.objects.filter(user=request.user), many=True)
+        itemSerializer = ItemSchema(Item.objects.filter(user=request.user), many=True)
         return Response({'characters':charSerializer.data, 'items':itemSerializer.data})
 
 class BaseInfoView(APIView):

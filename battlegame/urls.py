@@ -22,7 +22,7 @@ from playerdata import datagetter
 urlpatterns = [
     path('inventoryinfo/', datagetter.InventoryView.as_view()),
     path('baseinfo/', datagetter.BaseInfoView.as_view()),
-    path('playerdata/', login.HelloView.as_view()),
+    path('test/', login.HelloView.as_view()),
     path('login/', login.ObtainAuthToken.as_view()),
     path('createnewuser/', login.CreateNewUser.as_view()),
     path('chat/', include('chat.urls')),
