@@ -15,9 +15,15 @@ from rest_marshmallow import Schema, fields
 
 from playerdata.models import BaseCharacter
 from playerdata.models import BaseItem
+from playerdata.models import Character
+from playerdata.models import Item
+
+class UserSchema(Schema):
+    user_id = fields.Int(attribute='id')
+    first_name = fields.Str()
 
 class BaseCharacterSchema(Schema):
-    char_id = fields.Int() 
+    char_type = fields.Int() 
     name = fields.Str()
     health = fields.Int()
     mana = fields.Int()
@@ -30,13 +36,38 @@ class BaseCharacterSchema(Schema):
     crit_chance = fields.Int()
 
 class BaseItemSchema(Schema):
-    item_id = fields.Int()
+    item_type = fields.Int()
     name = fields.Str()
     attack = fields.Int()
     penetration = fields.Int()
     attack_speed = fields.Int()
     rarity = fields.Int()
     cost = fields.Int()
+
+class ItemSchema(Schema):
+    include_fk = True
+    item_id = fields.Int()
+    user = fields.Pluck(UserSchema, 'user_id')
+    item_type = fields.Pluck(BaseItemSchema, 'item_type')
+    exp = fields.Int()
+
+class CharacterSchema(Schema):
+    include_fk = True
+    char_id = fields.Int()
+    user = fields.Pluck(UserSchema, 'user_id')
+    char_type = fields.Pluck(BaseCharacterSchema, 'char_type')
+    exp = fields.Int()
+    prestige = fields.Int()
+    weapon = fields.Pluck(ItemSchema, 'item_id')
+
+class InventoryView(APIView):
+
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        charSerializer = CharacterSchema(Character.objects.all(), many=True)
+        itemSerializer = ItemSchema(Item.objects.all(), many=True)
+        return Response({'characters':charSerializer.data, 'items':itemSerializer.data})
 
 class BaseInfoView(APIView):
 
