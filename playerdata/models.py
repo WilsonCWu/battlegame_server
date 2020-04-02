@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class BaseCharacter(models.Model):
-    char_type = models.AutoField(primary_key=True)
+    char_type = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=30, unique=True)
     health = models.IntegerField()
     mana = models.IntegerField()
@@ -18,7 +18,7 @@ class BaseCharacter(models.Model):
         return self.name
 
 class BaseItem(models.Model):
-    item_type = models.AutoField(primary_key=True)
+    item_type = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=30, unique=True)
     attack = models.IntegerField()
     penetration = models.IntegerField()
