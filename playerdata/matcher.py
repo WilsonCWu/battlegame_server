@@ -62,5 +62,11 @@ class GetUserView(APIView):
         serializer = GetUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         target_user = serializer.validated_data['target_user']
-        target_user_info = UserInfoSchema(UserInfo.objects.select_related('default_placement__char_1').get(user_id=target_user))
+        query = UserInfo.objects.select_related('default_placement__char_1__weapon') \
+                                .select_related('default_placement__char_2__weapon') \
+                                .select_related('default_placement__char_3__weapon') \
+                                .select_related('default_placement__char_4__weapon') \
+                                .select_related('default_placement__char_5__weapon') \
+                                .get(user_id=target_user)
+        target_user_info = UserInfoSchema(query)
         return Response(target_user_info.data)
