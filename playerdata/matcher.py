@@ -13,9 +13,21 @@ from django.http import JsonResponse
 
 from rest_marshmallow import Schema, fields
 
+from .serializers import GetUserSerializer
+
 class MatcherView(APIView):
 
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
         return Response({'test':'value'})
+
+class GetUserView(APIView):
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = GetUserSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        target_user = serializer.validated_data['target_user']
+        return Response()

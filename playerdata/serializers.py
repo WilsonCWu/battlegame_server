@@ -10,3 +10,6 @@ class TokenSerializer(serializers.Serializer):
 class CreateNewUserSerializer(serializers.Serializer):
     token = serializers.CharField(required = True)
     name = serializers.CharField(required = True)
+
+class GetUserSerializer(serializers.Serializer):
+    target_user = serializers.CharField(required = True)
