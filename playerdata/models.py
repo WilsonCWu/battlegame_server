@@ -34,6 +34,11 @@ class Item(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     item_type = models.ForeignKey(BaseItem, on_delete=models.CASCADE)
     exp = models.IntegerField()
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['user',]),
+        ]
 
     def __str__(self):
         return str(self.user) + ": " + str(self.item_type)
@@ -45,6 +50,11 @@ class Character(models.Model):
     exp = models.IntegerField()
     prestige = models.IntegerField()
     weapon = models.ForeignKey(Item, null=True, on_delete=models.SET_NULL)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['user',]),
+        ]
 
     def __str__(self):
         return str(self.user) + ": " + str(self.char_type)
