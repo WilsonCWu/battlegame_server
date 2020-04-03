@@ -18,8 +18,10 @@ from django.contrib import admin
 from django.urls import path
 from playerdata import login
 from playerdata import datagetter
+from playerdata import matcher
 
 urlpatterns = [
+    path('matcher/', matcher.MatcherView.as_view()),
     path('inventoryinfo/', datagetter.InventoryView.as_view()),
     path('baseinfo/', datagetter.BaseInfoView.as_view()),
     path('test/', login.HelloView.as_view()),
