@@ -75,7 +75,8 @@ class Placement(models.Model):
     char_5 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='char_5')
 
     def __str__(self):
-        return str(self.userinfo.user) + ": " + str(self.placement_id)
+        return str(self.placement_id)
+        #return str(self.userinfo.user) + ": " + str(self.placement_id)
 
 class UserInfo(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)

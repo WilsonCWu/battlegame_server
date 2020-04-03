@@ -12,4 +12,4 @@ class CreateNewUserSerializer(serializers.Serializer):
     name = serializers.CharField(required = True)
 
 class GetUserSerializer(serializers.Serializer):
-    target_user = serializers.CharField(required = True)
+    target_user = serializers.IntegerField(required = True)

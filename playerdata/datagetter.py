@@ -45,14 +45,12 @@ class BaseItemSchema(Schema):
     cost = fields.Int()
 
 class ItemSchema(Schema):
-    include_fk = True
     item_id = fields.Int()
     user_id = fields.Int(attribute='user_id')
     item_type = fields.Int(attribute='item_type_id')
     exp = fields.Int()
 
 class CharacterSchema(Schema):
-    include_fk = True
     char_id = fields.Int()
     user_id = fields.Int(attribute='user_id')
     char_type = fields.Int(attribute='char_type_id')
