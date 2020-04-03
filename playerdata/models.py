@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class BaseCharacter(models.Model):
     char_type = models.IntegerField(primary_key=True)
@@ -58,4 +60,43 @@ class Character(models.Model):
 
     def __str__(self):
         return str(self.user) + ": " + str(self.char_type)
+
+class Placement(models.Model):
+    placement_id = models.AutoField(primary_key=True)
+    pos_1 = models.IntegerField(default=-1)
+    char_1 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='char_1')
+    pos_2 = models.IntegerField(default=-1)
+    char_2 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='char_2')
+    pos_3 = models.IntegerField(default=-1)
+    char_3 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='char_3')
+    pos_4 = models.IntegerField(default=-1)
+    char_4 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='char_4')
+    pos_5 = models.IntegerField(default=-1)
+    char_5 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='char_5')
+
+    def __str__(self):
+        return str(self.userinfo.user) + ": " + str(self.placement_id)
+
+class UserInfo(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    elo = models.IntegerField(default=0)
+    name = models.CharField(max_length=20, default='new player')
+    default_placement = models.OneToOneField(Placement, null=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['elo',]),
+        ]
+
+    def __str__(self):
+        return str(self.user)
+
+@receiver(post_save, sender=User)
+def create_user_info(sender, instance, created, **kwargs):
+    if created:
+        UserInfo.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_info(sender, instance, **kwargs):
+    instance.userinfo.save()
 
