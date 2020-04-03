@@ -47,18 +47,18 @@ class BaseItemSchema(Schema):
 class ItemSchema(Schema):
     include_fk = True
     item_id = fields.Int()
-    user = fields.Pluck(UserSchema, 'user_id')
-    item_type = fields.Pluck(BaseItemSchema, 'item_type')
+    user_id = fields.Int(attribute='user_id')
+    item_type = fields.Int(attribute='item_type_id')
     exp = fields.Int()
 
 class CharacterSchema(Schema):
     include_fk = True
     char_id = fields.Int()
-    user = fields.Pluck(UserSchema, 'user_id')
-    char_type = fields.Pluck(BaseCharacterSchema, 'char_type')
+    user_id = fields.Int(attribute='user_id')
+    char_type = fields.Int(attribute='char_type_id')
     exp = fields.Int()
     prestige = fields.Int()
-    weapon = fields.Pluck(ItemSchema, 'item_id')
+    weapon = fields.Int(attribute='weapon_id')
 
 class InventoryView(APIView):
 
