@@ -41,11 +41,21 @@ class PlacementSchema(Schema):
     pos_5 = fields.Int() 
     char_5 = fields.Nested(FullCharacterSchema)
 
+class TeamSchema(Schema):
+    team_id = fields.Int() 
+    char_1 = fields.Nested(FullCharacterSchema)
+    char_2 = fields.Nested(FullCharacterSchema)
+    char_3 = fields.Nested(FullCharacterSchema)
+    char_4 = fields.Nested(FullCharacterSchema)
+    char_5 = fields.Nested(FullCharacterSchema)
+    char_6 = fields.Nested(FullCharacterSchema)
+
 class UserInfoSchema(Schema):
     user_id = fields.Int(attribute='user_id')
     elo = fields.Int()
     name = fields.Str() 
     default_placement = fields.Nested(PlacementSchema) 
+    team = fields.Nested(TeamSchema)
 
 class MatcherView(APIView):
 
@@ -68,5 +78,5 @@ class GetUserView(APIView):
                                 .select_related('default_placement__char_4__weapon') \
                                 .select_related('default_placement__char_5__weapon') \
                                 .get(user_id=target_user)
-        target_user_info = UserInfoSchema(query)
+        target_user_info = UserInfoSchema(query, exclude=('team',))
         return Response(target_user_info.data)

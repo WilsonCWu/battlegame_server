@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.contrib.postgres.fields import ArrayField
 
 class BaseCharacter(models.Model):
     char_type = models.IntegerField(primary_key=True)
@@ -78,11 +79,24 @@ class Placement(models.Model):
         return str(self.placement_id)
         #return str(self.userinfo.user) + ": " + str(self.placement_id)
 
+class Team(models.Model):
+    team_id = models.AutoField(primary_key=True)
+    char_1 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_1')
+    char_2 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_2')
+    char_3 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_3')
+    char_4 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_4')
+    char_5 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_5')
+    char_6 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_6')
+
+    def __str__(self):
+        return str(self.team_id)
+
 class UserInfo(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     elo = models.IntegerField(default=0)
     name = models.CharField(max_length=20, default='new player')
     default_placement = models.OneToOneField(Placement, null=True, on_delete=models.SET_NULL)
+    team = models.OneToOneField(Team, null=True, on_delete=models.SET_NULL)
 
     class Meta:
         indexes = [
