@@ -21,6 +21,7 @@ from playerdata import datagetter
 from playerdata import matcher
 
 urlpatterns = [
+    path('opponents/', matcher.GetOpponentsView.as_view()),
     path('user/', matcher.GetUserView.as_view()),
     path('matcher/', matcher.MatcherView.as_view()),
     path('inventoryinfo/', datagetter.InventoryView.as_view()),

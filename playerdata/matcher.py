@@ -18,6 +18,7 @@ from playerdata.models import UserInfo
 from playerdata.models import Character
 from playerdata.models import Item
 from .serializers import GetUserSerializer
+from .serializers import GetOpponentsSerializer
 from .datagetter import ItemSchema
 
 class FullCharacterSchema(Schema):
@@ -91,4 +92,24 @@ class GetUserView(APIView):
                                 .get(user_id=target_user)
         target_user_info = UserInfoSchema(query, exclude=('team',))
         return Response(target_user_info.data)
+
+class GetOpponentsView(APIView):
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = GetOpponentsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        search_count = serializer.validated_data['search_count']
+        cur_elo = request.user.userinfo.elo
+        query = UserInfo.objects.select_related('default_placement__char_1__weapon') \
+                                .select_related('default_placement__char_2__weapon') \
+                                .select_related('default_placement__char_3__weapon') \
+                                .select_related('default_placement__char_4__weapon') \
+                                .select_related('default_placement__char_5__weapon') \
+                                .filter(elo__gte=cur_elo-200, elo__lte=cur_elo+200) \
+                                [:30]
+        enemies = UserInfoSchema(query, exclude=('team',), many=True)
+        return Response({'users':enemies.data})
+        
 

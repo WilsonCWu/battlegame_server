@@ -13,3 +13,6 @@ class CreateNewUserSerializer(serializers.Serializer):
 
 class GetUserSerializer(serializers.Serializer):
     target_user = serializers.IntegerField(required = True)
+
+class GetOpponentsSerializer(serializers.Serializer):
+    search_count = serializers.IntegerField(required = True)
