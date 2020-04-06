@@ -20,3 +20,4 @@ class GetOpponentsSerializer(serializers.Serializer):
 class UpdateStatusSerializer(serializers.Serializer):
     win = serializers.BooleanField(required = True)
     mode = serializers.IntegerField(required = True)
+    opponent = serializers.BooleanField(required = True)
