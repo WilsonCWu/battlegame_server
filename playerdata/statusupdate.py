@@ -23,7 +23,7 @@ def calculate_elo(r1, r2, s1):
     new_r1 = r1 + k*(s1-E1)
     return new_r1
 
-class StatusUpdateView(APIView):
+class UploadResultView(APIView):
 
     permission_classes = (IsAuthenticated,)
 
