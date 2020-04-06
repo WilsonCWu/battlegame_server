@@ -16,3 +16,7 @@ class GetUserSerializer(serializers.Serializer):
 
 class GetOpponentsSerializer(serializers.Serializer):
     search_count = serializers.IntegerField(required = True)
+
+class UpdateStatusSerializer(serializers.Serializer):
+    win = serializers.BooleanField(required = True)
+    mode = serializers.IntegerField(required = True)

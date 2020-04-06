@@ -19,8 +19,10 @@ from django.urls import path
 from playerdata import login
 from playerdata import datagetter
 from playerdata import matcher
+from playerdata import statusupdate
 
 urlpatterns = [
+    path('statusupdate/', statusupdate.StatusUpdateView.as_view()),
     path('opponents/', matcher.GetOpponentsView.as_view()),
     path('user/', matcher.GetUserView.as_view()),
     path('matcher/', matcher.MatcherView.as_view()),

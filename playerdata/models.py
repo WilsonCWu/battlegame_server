@@ -106,6 +106,11 @@ class UserInfo(models.Model):
     def __str__(self):
         return str(self.user)
 
+class UserStats(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    num_games = models.IntegerField(default=0)
+    num_wins = models.IntegerField(default=0)
+
 @receiver(post_save, sender=User)
 def create_user_info(sender, instance, created, **kwargs):
     if created:
