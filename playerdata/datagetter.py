@@ -34,6 +34,10 @@ class BaseCharacterSchema(Schema):
     attack_range = fields.Int()
     rarity = fields.Int()
     crit_chance = fields.Int()
+    health_scale = fields.Int()
+    attack_scale = fields.Int()
+    ar_scale = fields.Int()
+    mr_scale = fields.Int()
 
 class BaseItemSchema(Schema):
     item_type = fields.Int()

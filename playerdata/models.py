@@ -16,6 +16,10 @@ class BaseCharacter(models.Model):
     attack_range = models.IntegerField()
     rarity = models.IntegerField()
     crit_chance = models.IntegerField()
+    health_scale = models.IntegerField()
+    attack_scale = models.IntegerField()
+    ar_scale = models.IntegerField()
+    mr_scale = models.IntegerField()
 
     def __str__(self):
         return self.name
