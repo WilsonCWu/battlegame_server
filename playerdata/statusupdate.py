@@ -14,6 +14,8 @@ from django.contrib.auth import get_user_model
 
 from rest_marshmallow import Schema, fields
 
+from .serializers import UploadResultSerializer
+
 # r1, r2 ratings of player 1,2. s1 = 1 if win, 0 if loss, 0.5 for tie
 def calculate_elo(r1, r2, s1):
     k = 50 # larger for more volatility
@@ -28,7 +30,7 @@ class UploadResultView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
-        serializer = StatusUpdateSerializer(data=request.data)
+        serializer = UploadResultSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         win = serializer.validated_data['win']
         mode = serializer.validated_data['mode']
