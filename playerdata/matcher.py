@@ -25,7 +25,7 @@ class FullCharacterSchema(Schema):
     char_id = fields.Int()
     user_id = fields.Int(attribute='user_id')
     char_type = fields.Int(attribute='char_type_id')
-    exp = fields.Int()
+    level = fields.Int()
     prestige = fields.Int()
     weapon = fields.Nested(ItemSchema)
 
