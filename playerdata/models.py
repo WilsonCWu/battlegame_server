@@ -54,8 +54,8 @@ class Character(models.Model):
     char_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE)
-    level = models.IntegerField()
-    prestige = models.IntegerField()
+    level = models.IntegerField(default=1)
+    prestige = models.IntegerField(default=0)
     weapon = models.ForeignKey(Item, null=True, on_delete=models.SET_NULL)
     
     class Meta:
