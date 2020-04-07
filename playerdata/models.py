@@ -54,7 +54,7 @@ class Character(models.Model):
     char_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE)
-    exp = models.IntegerField()
+    level = models.IntegerField()
     prestige = models.IntegerField()
     weapon = models.ForeignKey(Item, null=True, on_delete=models.SET_NULL)
     
