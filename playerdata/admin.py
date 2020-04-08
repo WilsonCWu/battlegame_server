@@ -7,6 +7,8 @@ from .models import Item
 from .models import UserInfo
 from .models import Placement
 from .models import Team
+from .models import UserStats
+from .models import Inventory
 
 admin.site.register(BaseCharacter)
 admin.site.register(BaseItem)
@@ -16,3 +18,5 @@ admin.site.register(Item)
 admin.site.register(Placement)
 admin.site.register(Team)
 admin.site.register(UserInfo)
+admin.site.register(UserStats)
+admin.site.register(Inventory)

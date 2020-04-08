@@ -115,6 +115,12 @@ class UserStats(models.Model):
     num_games = models.IntegerField(default=0)
     num_wins = models.IntegerField(default=0)
 
+class Inventory(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    char_limit = models.IntegerField(default=50)
+    coins = models.IntegerField(default=0)
+    hero_exp = models.IntegerField(default=0)
+
 @receiver(post_save, sender=User)
 def create_user_info(sender, instance, created, **kwargs):
     if created:
