@@ -108,12 +108,15 @@ class UserInfo(models.Model):
         ]
 
     def __str__(self):
-        return str(self.user)
+        return self.name + '(' + str(self.user.id) + ')'
 
 class UserStats(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     num_games = models.IntegerField(default=0)
     num_wins = models.IntegerField(default=0)
+
+    def __str__(self):
+        return self.user.userinfo.name + '(' + str(self.user.id) + ')'
 
 class Inventory(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
@@ -121,12 +124,19 @@ class Inventory(models.Model):
     coins = models.IntegerField(default=0)
     hero_exp = models.IntegerField(default=0)
 
+    def __str__(self):
+        return self.user.userinfo.name + '(' + str(self.user.id) + ')'
+
 @receiver(post_save, sender=User)
 def create_user_info(sender, instance, created, **kwargs):
     if created:
         UserInfo.objects.create(user=instance)
+        UserStats.objects.create(user=instance)
+        Inventory.objects.create(user=instance)
 
 @receiver(post_save, sender=User)
 def save_user_info(sender, instance, **kwargs):
     instance.userinfo.save()
+    instance.userstats.save()
+    instance.inventory.save()
 
