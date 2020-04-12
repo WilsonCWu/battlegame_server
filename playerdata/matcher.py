@@ -19,37 +19,29 @@ from playerdata.models import Character
 from playerdata.models import Item
 from .serializers import GetUserSerializer
 from .serializers import GetOpponentsSerializer
-from .datagetter import ItemSchema
-
-class FullCharacterSchema(Schema):
-    char_id = fields.Int()
-    user_id = fields.Int(attribute='user_id')
-    char_type = fields.Int(attribute='char_type_id')
-    level = fields.Int()
-    prestige = fields.Int()
-    weapon = fields.Nested(ItemSchema)
+from .datagetter import CharacterSchema
 
 class PlacementSchema(Schema):
     placement_id = fields.Int() 
     pos_1 = fields.Int() 
-    char_1 = fields.Nested(FullCharacterSchema)
+    char_1 = fields.Nested(CharacterSchema)
     pos_2 = fields.Int() 
-    char_2 = fields.Nested(FullCharacterSchema)
+    char_2 = fields.Nested(CharacterSchema)
     pos_3 = fields.Int() 
-    char_3 = fields.Nested(FullCharacterSchema)
+    char_3 = fields.Nested(CharacterSchema)
     pos_4 = fields.Int() 
-    char_4 = fields.Nested(FullCharacterSchema)
+    char_4 = fields.Nested(CharacterSchema)
     pos_5 = fields.Int() 
-    char_5 = fields.Nested(FullCharacterSchema)
+    char_5 = fields.Nested(CharacterSchema)
 
 class TeamSchema(Schema):
     team_id = fields.Int() 
-    char_1 = fields.Nested(FullCharacterSchema)
-    char_2 = fields.Nested(FullCharacterSchema)
-    char_3 = fields.Nested(FullCharacterSchema)
-    char_4 = fields.Nested(FullCharacterSchema)
-    char_5 = fields.Nested(FullCharacterSchema)
-    char_6 = fields.Nested(FullCharacterSchema)
+    char_1 = fields.Nested(CharacterSchema)
+    char_2 = fields.Nested(CharacterSchema)
+    char_3 = fields.Nested(CharacterSchema)
+    char_4 = fields.Nested(CharacterSchema)
+    char_5 = fields.Nested(CharacterSchema)
+    char_6 = fields.Nested(CharacterSchema)
 
 class UserInfoSchema(Schema):
     user_id = fields.Int(attribute='user_id')

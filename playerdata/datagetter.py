@@ -60,14 +60,15 @@ class CharacterSchema(Schema):
     char_type = fields.Int(attribute='char_type_id')
     level = fields.Int()
     prestige = fields.Int()
-    weapon = fields.Int(attribute='weapon_id')
+    weapon_id = fields.Int(attribute='weapon_id')
+    weapon = fields.Nested(ItemSchema)
 
 class InventoryView(APIView):
 
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        charSerializer = CharacterSchema(Character.objects.filter(user=request.user), many=True)
+        charSerializer = CharacterSchema(Character.objects.filter(user=request.user), exclude=('weapon',), many=True)
         itemSerializer = ItemSchema(Item.objects.filter(user=request.user), many=True)
         return Response({'characters':charSerializer.data, 'items':itemSerializer.data})
 
