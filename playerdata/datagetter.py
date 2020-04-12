@@ -17,6 +17,7 @@ from playerdata.models import BaseCharacter
 from playerdata.models import BaseItem
 from playerdata.models import Character
 from playerdata.models import Item
+from playerdata.models import Inventory
 
 class UserSchema(Schema):
     user_id = fields.Int(attribute='id')
@@ -63,6 +64,12 @@ class CharacterSchema(Schema):
     weapon_id = fields.Int(attribute='weapon_id')
     weapon = fields.Nested(ItemSchema)
 
+class InventorySchema(Schema):
+    user_id = fields.Int(attribute='user_id')
+    char_limit = fields.Int()
+    coins = fields.Int()
+    hero_exp = fields.Int()
+
 class InventoryView(APIView):
 
     permission_classes = (IsAuthenticated,)
@@ -70,7 +77,8 @@ class InventoryView(APIView):
     def get(self, request):
         charSerializer = CharacterSchema(Character.objects.filter(user=request.user), exclude=('weapon',), many=True)
         itemSerializer = ItemSchema(Item.objects.filter(user=request.user), many=True)
-        return Response({'characters':charSerializer.data, 'items':itemSerializer.data})
+        inventorySerializer = InventorySchema(Inventory.objects.get(user=request.user))
+        return Response({'characters':charSerializer.data, 'items':itemSerializer.data, 'details':inventorySerializer.data})
 
 class BaseInfoView(APIView):
 
