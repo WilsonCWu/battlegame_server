@@ -21,3 +21,6 @@ class UploadResultSerializer(serializers.Serializer):
     win = serializers.BooleanField(required = True)
     mode = serializers.IntegerField(required = True)
     opponent = serializers.IntegerField(required = True)
+
+class LevelUpSerializer(serializers.Serializer):
+    target_char_id = serializers.IntegerField(required = True)

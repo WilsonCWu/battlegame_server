@@ -1,3 +1,5 @@
+import math
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -18,6 +20,8 @@ from playerdata.models import BaseItem
 from playerdata.models import Character
 from playerdata.models import Item
 from playerdata.models import Inventory
+
+from .serializers import LevelUpSerializer
 
 class UserSchema(Schema):
     user_id = fields.Int(attribute='id')
@@ -88,4 +92,38 @@ class BaseInfoView(APIView):
         charSerializer = BaseCharacterSchema(BaseCharacter.objects.all(), many=True)
         itemSerializer = BaseItemSchema(BaseItem.objects.all(), many=True)
         return Response({'characters':charSerializer.data, 'items':itemSerializer.data})
+
+def GetTotalExp(level):
+    return math.floor((level-1)*50 + ((level-1)**3.6)/10)
+
+class TryLevelView(APIView):
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        
+        serializer = LevelUpSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        target_char_id = serializer.validated_data['target_char_id']
+        
+        curChar = Character.objects.get(char_id=target_char_id)
+        level = curChar.level
+        curExp = GetTotalExp(level)
+        nextExp = GetTotalExp(level+1)
+        deltaExp = nextExp-curExp
+
+        inventory = request.user.inventory
+        
+        if deltaExp > inventory.coins:
+            return Response({'status': False})
+
+        inventory.coins -= deltaExp
+        curChar.level += 1
+
+        inventory.save()
+        curChar.save()
+
+        return Response({'status':True})
+
+
 
