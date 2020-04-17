@@ -26,5 +26,5 @@ class LevelUpSerializer(serializers.Serializer):
     target_char_id = serializers.IntegerField(required = True)
 
 class PurchaseSerializer(serializers.Serializer):
-    purchase_id = serializers.IntegerField(required = True)
+    purchase_id = serializers.CharField(required = True)
 

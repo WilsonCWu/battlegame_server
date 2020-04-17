@@ -17,6 +17,9 @@ from rest_marshmallow import Schema, fields
 
 from playerdata.models import Inventory
 
+from .serializers import PurchaseSerializer
+
+# TODO: verify these purchases serverside
 class PurchaseView(APIView):
 
     permission_classes = (IsAuthenticated,)
@@ -25,8 +28,18 @@ class PurchaseView(APIView):
         
         serializer = PurchaseSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        product_id = serializer.validated_data['product_id']
+        purchase_id = serializer.validated_data['purchase_id']
+       
+        inventory = Inventory.objects.get(user=request.user)
         
+        if purchase_id == 'com.battlegame.gems300':
+            inventory.gems += 300
+
+        else:
+            return Response({'status':False, 'reason':'invalid id ' + purchase_id})
+
+        inventory.save()
+
         return Response({'status':True})
 
 
