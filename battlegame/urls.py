@@ -20,8 +20,10 @@ from playerdata import login
 from playerdata import datagetter
 from playerdata import matcher
 from playerdata import statusupdate
+from playerdata import purchases
 
 urlpatterns = [
+    path('purchase/', purchases.PurchaseView.as_view()),
     path('levelup/', datagetter.TryLevelView.as_view()),
     path('uploadresult/', statusupdate.UploadResultView.as_view()),
     path('opponents/', matcher.GetOpponentsView.as_view()),
