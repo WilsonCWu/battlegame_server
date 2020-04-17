@@ -72,6 +72,7 @@ class InventorySchema(Schema):
     user_id = fields.Int(attribute='user_id')
     char_limit = fields.Int()
     coins = fields.Int()
+    gems = fields.Int()
     hero_exp = fields.Int()
 
 class InventoryView(APIView):
