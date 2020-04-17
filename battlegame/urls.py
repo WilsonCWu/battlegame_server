@@ -22,6 +22,7 @@ from playerdata import matcher
 from playerdata import statusupdate
 
 urlpatterns = [
+    path('levelup/', datagetter.TryLevelView.as_view()),
     path('uploadresult/', statusupdate.UploadResultView.as_view()),
     path('opponents/', matcher.GetOpponentsView.as_view()),
     path('user/', matcher.GetUserView.as_view()),
