@@ -23,6 +23,7 @@ from playerdata import statusupdate
 from playerdata import purchases
 
 urlpatterns = [
+    path('purchaseitem/', purchases.PurchaseItemView.as_view()),
     path('purchase/', purchases.PurchaseView.as_view()),
     path('levelup/', datagetter.TryLevelView.as_view()),
     path('uploadresult/', statusupdate.UploadResultView.as_view()),

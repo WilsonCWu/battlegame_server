@@ -28,3 +28,6 @@ class LevelUpSerializer(serializers.Serializer):
 class PurchaseSerializer(serializers.Serializer):
     purchase_id = serializers.CharField(required = True)
 
+class PurchaseItemSerializer(serializers.Serializer):
+    purchase_item_id = serializers.CharField(required = True)
+

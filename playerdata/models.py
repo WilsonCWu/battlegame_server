@@ -55,6 +55,7 @@ class Character(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE)
     level = models.IntegerField(default=1)
+    copies = models.IntegerField(default=1)
     prestige = models.IntegerField(default=0)
     weapon = models.ForeignKey(Item, null=True, on_delete=models.SET_NULL)
     
