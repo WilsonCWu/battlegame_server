@@ -87,6 +87,15 @@ class PurchaseItemView(APIView):
 
         if purchase_item_id == "chars10":
             user = request.user
+            
+            # check enough gems
+            inventory = Inventory.objects.get(user=user)
+            if inventory.gems <= 1000:
+                return Response({"status":1, "reason":"not enough gems"})
+
+            inventory.gems -= 1000
+            inventory.save()
+
             newCharTypes = []
 
             for i in range(0,10):
@@ -94,4 +103,4 @@ class PurchaseItemView(APIView):
                 insertCharacter(user, newChar)
                 newCharTypes.append(newChar.char_type)
             
-            return Response({"characters":newCharTypes})
+            return Response({"status":0, "characters":newCharTypes})
