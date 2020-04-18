@@ -90,7 +90,7 @@ class PurchaseItemView(APIView):
             
             # check enough gems
             inventory = Inventory.objects.get(user=user)
-            if inventory.gems <= 1000:
+            if inventory.gems < 1000:
                 return Response({"status":1, "reason":"not enough gems"})
 
             inventory.gems -= 1000
