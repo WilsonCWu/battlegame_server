@@ -9,6 +9,10 @@ from .models import Placement
 from .models import Team
 from .models import UserStats
 from .models import Inventory
+from .models import Chat
+from .models import ChatMessage
+from .models import Friend
+from .models import FriendRequest
 
 admin.site.register(BaseCharacter)
 admin.site.register(BaseItem)
@@ -20,3 +24,8 @@ admin.site.register(Team)
 admin.site.register(UserInfo)
 admin.site.register(UserStats)
 admin.site.register(Inventory)
+
+admin.site.register(Chat)
+admin.site.register(ChatMessage)
+admin.site.register(Friend)
+admin.site.register(FriendRequest)
