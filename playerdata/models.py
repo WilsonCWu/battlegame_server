@@ -129,6 +129,21 @@ class Inventory(models.Model):
     def __str__(self):
         return self.user.userinfo.name + '(' + str(self.user.id) + ')'
 
+class Friend(models.Model):
+    user1 = models.OneToOneField(User, on_delete=models.CASCADE, related_name='friend_user_1')
+    user2 = models.OneToOneField(User, on_delete=models.CASCADE, related_name='friend_user_2')
+
+    def __str__(self):
+        return self.user1.userinfo.name + ',' + self.user2.userinfo.name
+
+
+class FriendRequest(models.Model):
+    user1 = models.OneToOneField(User, on_delete=models.CASCADE, related_name='fr_user_1')
+    user2 = models.OneToOneField(User, on_delete=models.CASCADE, related_name='fr_user_2')
+
+    def __str__(self):
+        return self.user1.userinfo.name + ',' + self.user2.userinfo.name
+
 @receiver(post_save, sender=User)
 def create_user_info(sender, instance, created, **kwargs):
     if created:
