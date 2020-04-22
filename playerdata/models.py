@@ -129,9 +129,19 @@ class Inventory(models.Model):
     def __str__(self):
         return self.user.userinfo.name + '(' + str(self.user.id) + ')'
 
+class Chat(models.Model):
+    pass
+
+class ChatMessage(models.Model):
+    chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
+    message = models.TextField()
+    sender = models.ForeignKey(User, on_delete=models.CASCADE)
+    time_send = models.DateTimeField(auto_now_add=True)
+
 class Friend(models.Model):
     user1 = models.OneToOneField(User, on_delete=models.CASCADE, related_name='friend_user_1')
     user2 = models.OneToOneField(User, on_delete=models.CASCADE, related_name='friend_user_2')
+    chat = models.ForeignKey(Chat, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.user1.userinfo.name + ',' + self.user2.userinfo.name
