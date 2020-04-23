@@ -141,8 +141,13 @@ class ChatMessage(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
     time_send = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['chat','time_send']),
+        ]
+
     def __str__(self):
-        return str(self.chat_id) + ':' + message + '(' + str(self.id) + ')'
+        return str(self.chat_id) + ':' + self.message + '(' + str(self.id) + ')'
 
 class Friend(models.Model):
     user1 = models.OneToOneField(User, on_delete=models.CASCADE, related_name='friend_user_1')
