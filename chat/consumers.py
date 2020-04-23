@@ -9,7 +9,7 @@ from playerdata.models import Chat
 
 class MessageSchema(Schema):
     message = fields.Str()
-    sender = fields.Str(attribute='sender__userinfo__name')
+    sender = fields.Str(attribute='sender.userinfo.name')
     sender_id = fields.Int(attribute='sender_id')
     time_send = fields.Str()
 
