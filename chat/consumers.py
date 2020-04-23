@@ -2,8 +2,16 @@
 import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
+from rest_marshmallow import Schema, fields
+
 from playerdata.models import ChatMessage
 from playerdata.models import Chat
+
+class MessageSchema(Schema):
+    message = fields.Str()
+    sender = fields.Str(attribute='sender__userinfo__name')
+    sender_id = fields.Int(attribute='sender_id')
+    time_send = fields.Str()
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
@@ -39,22 +47,39 @@ class ChatConsumer(WebsocketConsumer):
     # Receive message from WebSocket
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        message = text_data_json['message']
+        message_type = text_data_json['message_type']
 
-        # Send message to room group
-        async_to_sync(self.channel_layer.group_send)(
-            self.room_group_name,
-            {
-                'type': 'chat_message',
-                'message': message,
-                'sender_id': self.user.id,
-                'sender': self.user.userinfo.name
+        if message_type == 'msg':
+            message = text_data_json['message']
 
-            }
-        )
+            # Send message to room group
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': message,
+                    'sender_id': self.user.id,
+                    'sender': self.user.userinfo.name
+                }
+            )
 
-        # save to db
-        ChatMessage.objects.create(chat=self.chat, message=message, sender=self.user)
+            # save to db
+            ChatMessage.objects.create(chat=self.chat, message=message, sender=self.user)
+        
+        elif message_type == 'req':
+            latest_timestamp = text_data_json['latest_timestamp']
+
+            if not latest_timestamp:
+                oldMessageSetPartial = ChatMessage.objects.filter(chat=self.chat)
+            else:
+                oldMessageSetPartial = ChatMessage.objects.filter(chat=self.chat, time_send__lt=latest_timestamp)
+
+            oldMessageSet = oldMessageSetPartial.order_by('time_send').select_related('sender__userinfo')[:30]
+            oldMessageJson = MessageSchema(oldMessageSet, many=True)
+            self.send(text_data=json.dumps({
+                'message_type': 'msgs',
+                'msgs': oldMessageJson.data
+            }))
 
     # Receive message from room group
     def chat_message(self, event):
