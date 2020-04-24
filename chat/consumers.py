@@ -74,7 +74,7 @@ class ChatConsumer(WebsocketConsumer):
             else:
                 oldMessageSetPartial = ChatMessage.objects.filter(chat=self.chat, time_send__lt=latest_timestamp)
 
-            oldMessageSet = oldMessageSetPartial.order_by('time_send').select_related('sender__userinfo')[:30]
+            oldMessageSet = oldMessageSetPartial.order_by('-time_send').select_related('sender__userinfo')[:30]
             oldMessageJson = MessageSchema(oldMessageSet, many=True)
             self.send(text_data=json.dumps({
                 'message_type': 'msgs',
