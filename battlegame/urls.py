@@ -21,8 +21,10 @@ from playerdata import datagetter
 from playerdata import matcher
 from playerdata import statusupdate
 from playerdata import purchases
+from playerdata import social
 
 urlpatterns = [
+    path('friends/', social.FriendsView.as_view()),
     path('purchaseitem/', purchases.PurchaseItemView.as_view()),
     path('purchase/', purchases.PurchaseView.as_view()),
     path('levelup/', datagetter.TryLevelView.as_view()),
