@@ -150,8 +150,8 @@ class ChatMessage(models.Model):
         return str(self.chat_id) + ':' + self.message + '(' + str(self.id) + ')'
 
 class Friend(models.Model):
-    user1 = models.OneToOneField(User, on_delete=models.CASCADE, related_name='friend_user_1')
-    user2 = models.OneToOneField(User, on_delete=models.CASCADE, related_name='friend_user_2')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='friend_user')
+    friend = models.OneToOneField(User, on_delete=models.CASCADE, related_name='friend_friend')
     chat = models.ForeignKey(Chat, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
@@ -159,8 +159,8 @@ class Friend(models.Model):
 
 
 class FriendRequest(models.Model):
-    user1 = models.OneToOneField(User, on_delete=models.CASCADE, related_name='fr_user_1')
-    user2 = models.OneToOneField(User, on_delete=models.CASCADE, related_name='fr_user_2')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='fr_user')
+    target = models.OneToOneField(User, on_delete=models.CASCADE, related_name='fr_target')
 
     def __str__(self):
         return self.user1.userinfo.name + ',' + self.user2.userinfo.name
