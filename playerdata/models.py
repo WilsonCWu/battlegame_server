@@ -155,7 +155,7 @@ class Friend(models.Model):
     chat = models.ForeignKey(Chat, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
-        return self.user1.userinfo.name + ',' + self.user2.userinfo.name
+        return self.user.userinfo.name + ',' + self.friend.userinfo.name
 
 
 class FriendRequest(models.Model):
@@ -163,7 +163,7 @@ class FriendRequest(models.Model):
     target = models.OneToOneField(User, on_delete=models.CASCADE, related_name='fr_target')
 
     def __str__(self):
-        return self.user1.userinfo.name + ',' + self.user2.userinfo.name
+        return self.user.userinfo.name + ',' + self.target.userinfo.name
 
 @receiver(post_save, sender=User)
 def create_user_info(sender, instance, created, **kwargs):
