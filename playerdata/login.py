@@ -66,4 +66,4 @@ class ObtainAuthToken(APIView):
         Token.objects.filter(user=user).delete()
         token = Token.objects.create(user=user)
 
-        return Response({'token': token.key})
+        return Response({'token': token.key,'user_id':user.id})

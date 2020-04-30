@@ -149,13 +149,14 @@ class ChatMessage(models.Model):
     def __str__(self):
         return str(self.chat_id) + ':' + self.message + '(' + str(self.id) + ')'
 
+#sorted order. User1<User2
 class Friend(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='friend_user')
-    friend = models.OneToOneField(User, on_delete=models.CASCADE, related_name='friend_friend')
+    user_1 = models.OneToOneField(User, on_delete=models.CASCADE, related_name='friend_user_1')
+    user_2 = models.OneToOneField(User, on_delete=models.CASCADE, related_name='friend_user_2')
     chat = models.ForeignKey(Chat, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
-        return self.user.userinfo.name + ',' + self.friend.userinfo.name
+        return self.user_1.userinfo.name + ',' + self.user_2.userinfo.name
 
 
 class FriendRequest(models.Model):
