@@ -31,3 +31,5 @@ class PurchaseSerializer(serializers.Serializer):
 class PurchaseItemSerializer(serializers.Serializer):
     purchase_item_id = serializers.CharField(required = True)
 
+class ValueSerializer(serializers.Serializer):
+    value = serializers.CharField(required = True)

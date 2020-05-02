@@ -17,8 +17,10 @@ from django.contrib.auth import get_user_model
 from playerdata.models import Friend
 from playerdata.models import FriendRequest
 from playerdata.models import Chat
+from playerdata.models import UserInfo
 from .matcher import UserInfoSchema
 from .serializers import GetUserSerializer
+from .serializers import ValueSerializer
 
 def sortUsers(user1, user2):
     if user1.id < user2.id:
@@ -73,3 +75,18 @@ class GetChatIdView(APIView):
         return Response({'chat_id':friendObject.chat.id})
 
     
+class GetLeaderboardView(APIView):
+    
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = ValueSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        leaderboard_type = serializer.validated_data['value']
+        
+        if leaderboard_type == 'solo_top_100':
+            top_player_set = UserInfo.objects.all().order_by('-elo')[:100]
+            players = UserInfoSchema(top_player_set, many=True, exclude=('default_placement','team',))
+            return Response({'players':players.data})
+        else:
+            return Response({'detail': 'leaderboard ' + leaderboard_type + ' does not exist'}, status=HTTP_404_NOT_FOUND)

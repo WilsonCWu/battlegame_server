@@ -25,6 +25,7 @@ from playerdata import social
 
 urlpatterns = [
     path('friends/', social.FriendsView.as_view()),
+    path('leaderboards/', social.GetLeaderboardView.as_view()),
     path('getchatid/', social.GetChatIdView.as_view()),
     path('purchaseitem/', purchases.PurchaseItemView.as_view()),
     path('purchase/', purchases.PurchaseView.as_view()),
