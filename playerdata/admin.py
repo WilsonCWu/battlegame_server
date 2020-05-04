@@ -13,6 +13,8 @@ from .models import Chat
 from .models import ChatMessage
 from .models import Friend
 from .models import FriendRequest
+from .models import Clan
+from .models import ClanMember
 
 admin.site.register(BaseCharacter)
 admin.site.register(BaseItem)
@@ -29,3 +31,5 @@ admin.site.register(Chat)
 admin.site.register(ChatMessage)
 admin.site.register(Friend)
 admin.site.register(FriendRequest)
+admin.site.register(Clan)
+admin.site.register(ClanMember)

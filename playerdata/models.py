@@ -166,6 +166,17 @@ class FriendRequest(models.Model):
     def __str__(self):
         return self.user.userinfo.name + ',' + self.target.userinfo.name
 
+class Clan(models.Model):
+    name = models.TextField(primary_key=True)
+    description = models.TextField(default = 'A description has not been set.')
+    chat = models.ForeignKey(Chat, null=True, on_delete=models.SET_NULL)  
+
+class ClanMember(models.Model):
+    userinfo = models.ForeignKey(UserInfo, on_delete=models.CASCADE)
+    clan = models.ForeignKey(Clan, on_delete=models.CASCADE)
+    is_admin = models.BooleanField(default=False)
+    is_owner = models.BooleanField(default=False)
+
 @receiver(post_save, sender=User)
 def create_user_info(sender, instance, created, **kwargs):
     if created:
