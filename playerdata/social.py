@@ -18,9 +18,12 @@ from playerdata.models import Friend
 from playerdata.models import FriendRequest
 from playerdata.models import Chat
 from playerdata.models import UserInfo
+from playerdata.models import Clan
+from playerdata.models import ClanMember
 from .matcher import UserInfoSchema
 from .serializers import GetUserSerializer
 from .serializers import ValueSerializer
+from .serializers import NewClanSerializer
 
 def sortUsers(user1, user2):
     if user1.id < user2.id:
@@ -90,3 +93,27 @@ class GetLeaderboardView(APIView):
             return Response({'players':players.data})
         else:
             return Response({'detail': 'leaderboard ' + leaderboard_type + ' does not exist'}, status=HTTP_404_NOT_FOUND)
+
+class NewClanView(APIView):
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = NewClanSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        clan_name = serializer.validated_data['clan_name']
+        clan_description = serializer.validated_data['clan_description']
+
+        if Clan.objects.filter(name=clan_name): # if exists already
+            return Response({'status': False, 'detail': 'clan name ' + clan_name + ' already taken'}, status=HTTP_404_NOT_FOUND) 
+
+        clan_chat = Chat.objects.create(chat_name=clan_name)
+        
+        if clan_description:
+            clan = Clan.objects.create(name=clan_name, chat = clan_chat, description=clan_description)
+        else:
+            clan = Clan.objects.create(name=clan_name, chat = clan_chat)
+
+        clan_owner = ClanMember.objects.create(userinfo=request.user.userinfo, clan=clan, is_admin=True, is_owner=True)
+
+        return Response({'status': True})
