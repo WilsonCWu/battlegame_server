@@ -115,6 +115,7 @@ class UserStats(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     num_games = models.IntegerField(default=0)
     num_wins = models.IntegerField(default=0)
+    time_started = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.user.userinfo.name + '(' + str(self.user.id) + ')'
@@ -170,6 +171,7 @@ class Clan(models.Model):
     name = models.TextField(primary_key=True)
     description = models.TextField(default = 'A description has not been set.')
     chat = models.ForeignKey(Chat, null=True, on_delete=models.SET_NULL)  
+    time_started = models.DateTimeField(auto_now_add=True)
 
 class ClanMember(models.Model):
     userinfo = models.ForeignKey(UserInfo, on_delete=models.CASCADE)
