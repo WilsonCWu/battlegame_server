@@ -174,21 +174,23 @@ class Clan(models.Model):
     time_started = models.DateTimeField(auto_now_add=True)
 
 class ClanMember(models.Model):
-    userinfo = models.ForeignKey(UserInfo, on_delete=models.CASCADE)
-    clan = models.ForeignKey(Clan, on_delete=models.CASCADE)
+    userinfo = models.OneToOneField(UserInfo, on_delete=models.CASCADE, primary_key=True)
+    clan = models.ForeignKey(Clan, on_delete=models.CASCADE, null=True, default=None)
     is_admin = models.BooleanField(default=False)
     is_owner = models.BooleanField(default=False)
 
 @receiver(post_save, sender=User)
 def create_user_info(sender, instance, created, **kwargs):
     if created:
-        UserInfo.objects.create(user=instance)
+        userinfo = UserInfo.objects.create(user=instance)
         UserStats.objects.create(user=instance)
         Inventory.objects.create(user=instance)
+        ClanMember.objects.create(userinfo=userinfo)
 
 @receiver(post_save, sender=User)
 def save_user_info(sender, instance, **kwargs):
     instance.userinfo.save()
     instance.userstats.save()
     instance.inventory.save()
+    instance.userinfo.clanmember.save()
 

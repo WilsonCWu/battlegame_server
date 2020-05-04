@@ -49,6 +49,7 @@ class UserInfoSchema(Schema):
     name = fields.Str() 
     default_placement = fields.Nested(PlacementSchema) 
     team = fields.Nested(TeamSchema)
+    clan = fields.Str(attribute='clanmember.clan_id')
 
 class MatcherView(APIView):
 
@@ -68,6 +69,7 @@ class GetUserView(APIView):
                                 .select_related('team__char_4__weapon') \
                                 .select_related('team__char_5__weapon') \
                                 .select_related('team__char_6__weapon') \
+                                .select_related('clanmember') \
                                 .get(user_id=request.user.id)
         user_info = UserInfoSchema(query, exclude=('default_placement',))
         return Response(user_info.data)

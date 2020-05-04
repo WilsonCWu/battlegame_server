@@ -46,8 +46,8 @@ class FriendsView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        query1 = Friend.objects.filter(user_1=request.user).select_related('user_1__userinfo').select_related('user_2__userinfo')
-        query2 = Friend.objects.filter(user_2=request.user).select_related('user_1__userinfo').select_related('user_2__userinfo')
+        query1 = Friend.objects.filter(user_1=request.user).select_related('user_1__userinfo__clanmember').select_related('user_2__userinfo__clanmember')
+        query2 = Friend.objects.filter(user_2=request.user).select_related('user_1__userinfo__clanmember').select_related('user_2__userinfo__clanmember')
         query = query1 | query2
         friends = FriendSchema(query, many=True)
         return Response({'friends':friends.data})
@@ -113,7 +113,11 @@ class NewClanView(APIView):
             clan = Clan.objects.create(name=clan_name, chat = clan_chat, description=clan_description)
         else:
             clan = Clan.objects.create(name=clan_name, chat = clan_chat)
-
-        clan_owner = ClanMember.objects.create(userinfo=request.user.userinfo, clan=clan, is_admin=True, is_owner=True)
+        
+        clan_owner = request.user.userinfo.clanmember
+        clan_owner.clan = clan
+        clan_owner.is_admin=True
+        clan_owner.is_owner=True
+        clan_owner.save()
 
         return Response({'status': True})
