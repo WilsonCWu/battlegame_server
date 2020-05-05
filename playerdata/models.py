@@ -170,8 +170,15 @@ class FriendRequest(models.Model):
 class Clan(models.Model):
     name = models.TextField(primary_key=True)
     description = models.TextField(default = 'A description has not been set.')
-    chat = models.ForeignKey(Chat, null=True, on_delete=models.SET_NULL)  
+    chat = models.ForeignKey(Chat, null=True, on_delete=models.SET_NULL) 
     time_started = models.DateTimeField(auto_now_add=True)
+    elo = models.IntegerField(default=0)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['elo',]),
+        ]
+
 
 class ClanMember(models.Model):
     userinfo = models.OneToOneField(UserInfo, on_delete=models.CASCADE, primary_key=True)

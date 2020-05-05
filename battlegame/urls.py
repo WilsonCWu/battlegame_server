@@ -24,6 +24,7 @@ from playerdata import purchases
 from playerdata import social
 
 urlpatterns = [
+    path('getclan/', social.GetClanView.as_view()),
     path('newclan/', social.NewClanView.as_view()),
     path('friends/', social.FriendsView.as_view()),
     path('leaderboards/', social.GetLeaderboardView.as_view()),

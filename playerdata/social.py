@@ -121,3 +121,27 @@ class NewClanView(APIView):
         clan_owner.save()
 
         return Response({'status': True})
+
+class ClanSchema(Schema):
+    name = fields.Str()
+    description = fields.Str()
+    chat_id = fields.Int()
+    time_started = fields.DateTime()
+    elo = fields.Int()
+
+class GetClanView(APIView):
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+
+        serializer = ValueSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        clanName = serializer.validated_data['value']
+        clanQuery = Clan.objects.filter(name=clanName)
+        
+        if not clanQuery:
+            return Response({'status':True})
+
+        clanSchema = ClanSchema(clanQuery[0])
+        return Response({'status':True, 'clan':clanSchema.data})
