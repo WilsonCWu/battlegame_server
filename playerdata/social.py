@@ -122,7 +122,7 @@ class NewClanView(APIView):
 
         return Response({'status': True})
 
-class ClanMember(Schema):
+class ClanMemberSchema(Schema):
     userinfo = fields.Nested(UserInfoSchema, exclude=('default_placement','team',))
     clan_id = fields.Str()
     is_admin = fields.Bool()
@@ -134,7 +134,7 @@ class ClanSchema(Schema):
     chat_id = fields.Int()
     time_started = fields.DateTime()
     elo = fields.Int()
-    clan_members = fields.Nested(ClanMember, attribute='clan_members', many=True)
+    clan_members = fields.Nested(ClanMemberSchema, attribute='clan_members', many=True)
 
 class GetClanView(APIView):
 
@@ -145,7 +145,8 @@ class GetClanView(APIView):
         serializer = ValueSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         clanName = serializer.validated_data['value']
-        clanQuery = Clan.objects.filter(name=clanName).prefetch_related(Prefetch('clanmember_set', to_attr='clan_members'))   
+        clanQuery = Clan.objects.filter(name=clanName).prefetch_related(Prefetch(\
+            'clanmember_set', to_attr='clan_members', queryset=ClanMember.objects.select_related('userinfo').order_by('-userinfo__elo')))   
         
         if not clanQuery:
             return Response({'status':False})
