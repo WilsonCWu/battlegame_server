@@ -12,7 +12,7 @@ from django.contrib.auth import authenticate
 from django.http import JsonResponse
 
 from rest_marshmallow import Schema, fields
-
+from django.db.models import Prefetch
 from django.contrib.auth import get_user_model
 from playerdata.models import Friend
 from playerdata.models import FriendRequest
@@ -122,12 +122,19 @@ class NewClanView(APIView):
 
         return Response({'status': True})
 
+class ClanMember(Schema):
+    userinfo = fields.Nested(UserInfoSchema, exclude=('default_placement','team',))
+    clan_id = fields.Str()
+    is_admin = fields.Bool()
+    is_owner = fields.Bool() 
+
 class ClanSchema(Schema):
     name = fields.Str()
     description = fields.Str()
     chat_id = fields.Int()
     time_started = fields.DateTime()
     elo = fields.Int()
+    clan_members = fields.Nested(ClanMember, attribute='clan_members', many=True)
 
 class GetClanView(APIView):
 
@@ -138,10 +145,10 @@ class GetClanView(APIView):
         serializer = ValueSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         clanName = serializer.validated_data['value']
-        clanQuery = Clan.objects.filter(name=clanName)
+        clanQuery = Clan.objects.filter(name=clanName).prefetch_related(Prefetch('clanmember_set', to_attr='clan_members'))   
         
         if not clanQuery:
-            return Response({'status':True})
+            return Response({'status':False})
 
         clanSchema = ClanSchema(clanQuery[0])
         return Response({'status':True, 'clan':clanSchema.data})
