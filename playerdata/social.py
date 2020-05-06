@@ -38,8 +38,20 @@ class FriendSchema(Schema):
     chat_id = fields.Int(attribute='chat_id')
 
 class FriendRequestSchema(Schema):
+    request_id = fields.Int(attribute='id')
+    userinfo = fields.Nested(UserInfoSchema, attribute='user.userinfo')
     user_id = fields.Int(attribute='user_id')
     target_id = fields.Int(attribute='target_id')
+
+class FriendRequestView(APIView):
+
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        requestQuery = FriendRequest.objects.filter(target=request.user).select_related('user__userinfo')
+        requestSchema = FriendRequestSchema(requestQuery, many=True)
+
+        return Response({'friend_requests':requestSchema.data})
 
 class FriendsView(APIView):
 
