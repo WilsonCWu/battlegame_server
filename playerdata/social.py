@@ -53,6 +53,28 @@ class FriendRequestView(APIView):
 
         return Response({'friend_requests':requestSchema.data})
 
+class CreateFriendRequestView(APIView):
+    
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = ValueSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        target_user_id = serializer.validated_data['value']
+        
+        target_user = get_user_model().objects.get(id=target_user_id)
+
+        oldRequestSet1 = FriendRequest.objects.filter(user=request.user, target=target_user)
+        oldRequestSet2 = FriendRequest.objects.filter(user=target_user, target=request.user)
+        oldRequestSet = oldRequestSet1 | oldRequestSet2
+
+        if oldRequestSet:
+            return Response({'status':False, 'reason':"friend request already exists"})    
+
+        FriendRequest.objects.create(user=request.user, target=target_user)
+
+        return Response({'status':True})
+
 class FriendsView(APIView):
 
     permission_classes = (IsAuthenticated,)
