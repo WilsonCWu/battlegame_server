@@ -24,6 +24,7 @@ from .matcher import UserInfoSchema
 from .serializers import GetUserSerializer
 from .serializers import ValueSerializer
 from .serializers import NewClanSerializer
+from .serializers import AcceptFriendRequestSerializer
 
 def sortUsers(user1, user2):
     if user1.id < user2.id:
@@ -52,6 +53,31 @@ class FriendRequestView(APIView):
         requestSchema = FriendRequestSchema(requestQuery, many=True)
 
         return Response({'friend_requests':requestSchema.data})
+
+
+class AcceptFriendRequestView(APIView):
+    
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = AcceptFriendRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        target_fr_id = serializer.validated_data['target_id']
+        accept = serializer.validated_data['accept']
+
+        friend_request = FriendRequest.objects.get(id=target_fr_id)
+
+        if friend_request.target != request.user:
+            return Response({'status':False, 'reason':"friend request not for target user"})
+
+        if not accept:
+            friend_request.delete()
+            return Response({'status':True})
+
+        Friend.objects.create(user_1=friend_request.user, user_2=friend_request.target)
+        friend_request.delete()
+
+        return Response({'status':True})
 
 class CreateFriendRequestView(APIView):
     

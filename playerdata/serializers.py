@@ -37,3 +37,7 @@ class ValueSerializer(serializers.Serializer):
 class NewClanSerializer(serializers.Serializer):
     clan_name = serializers.CharField(required = True)
     clan_description = serializers.CharField(required = True)
+
+class AcceptFriendRequestSerializer(serializers.Serializer):
+    accept = serializers.BooleanField(required = True)
+    target_id = serializers.IntegerField(required = True)

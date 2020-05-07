@@ -154,7 +154,7 @@ class ChatMessage(models.Model):
 class Friend(models.Model):
     user_1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend_user_1')
     user_2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend_user_2')
-    chat = models.ForeignKey(Chat, null=True, on_delete=models.SET_NULL)
+    chat = models.ForeignKey(Chat, null=True, on_delete=models.SET_NULL, default=None)
 
     def __str__(self):
         return self.user_1.userinfo.name + ',' + self.user_2.userinfo.name
