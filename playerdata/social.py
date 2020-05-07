@@ -101,6 +101,24 @@ class CreateFriendRequestView(APIView):
 
         return Response({'status':True})
 
+class DeleteFriendView(APIView):
+    
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = ValueSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        target_user_id = serializer.validated_data['value']
+        
+        target_user = get_user_model().objects.get(id=target_user_id)
+
+        query1 = Friend.objects.filter(user_1=request.user, user_2 = target_user)
+        query2 = Friend.objects.filter(user_2=request.user, user_1 = target_user)
+        query = query1 | query2
+
+        query.delete()
+        return Response({'status':True})
+
 class FriendsView(APIView):
 
     permission_classes = (IsAuthenticated,)
