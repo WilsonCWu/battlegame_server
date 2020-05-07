@@ -73,8 +73,10 @@ class AcceptFriendRequestView(APIView):
         if not accept:
             friend_request.delete()
             return Response({'status':True})
-
-        Friend.objects.create(user_1=friend_request.user, user_2=friend_request.target)
+        
+        chat = Chat.objects.create()
+        friend = Friend.objects.create(user_1=friend_request.user, user_2=friend_request.target, chat=chat)
+        
         friend_request.delete()
 
         return Response({'status':True})
@@ -115,6 +117,10 @@ class DeleteFriendView(APIView):
         query1 = Friend.objects.filter(user_1=request.user, user_2 = target_user)
         query2 = Friend.objects.filter(user_2=request.user, user_1 = target_user)
         query = query1 | query2
+
+        chat = query[0].chat
+        if chat:
+            chat.delete()
 
         query.delete()
         return Response({'status':True})
