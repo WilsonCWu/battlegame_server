@@ -175,6 +175,10 @@ class GetLeaderboardView(APIView):
             top_player_set = UserInfo.objects.all().order_by('-elo')[:100]
             players = UserInfoSchema(top_player_set, many=True, exclude=('default_placement','team',))
             return Response({'players':players.data})
+        if leaderboard_type == 'clan_top_100':
+            top_clan_set = Clan.objects.all().order_by('-elo')[:100]
+            clans = ClanSchema(top_clan_set, many=True)
+            return Response({'clans':clans.data})
         else:
             return Response({'detail': 'leaderboard ' + leaderboard_type + ' does not exist'}, status=HTTP_404_NOT_FOUND)
 
