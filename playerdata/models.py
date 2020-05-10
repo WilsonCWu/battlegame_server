@@ -173,6 +173,7 @@ class Clan(models.Model):
     chat = models.ForeignKey(Chat, null=True, on_delete=models.SET_NULL) 
     time_started = models.DateTimeField(auto_now_add=True)
     elo = models.IntegerField(default=0)
+    num_members = models.IntegerField(default=0)
 
     class Meta:
         indexes = [

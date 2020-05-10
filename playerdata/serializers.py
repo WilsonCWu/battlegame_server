@@ -34,6 +34,9 @@ class PurchaseItemSerializer(serializers.Serializer):
 class ValueSerializer(serializers.Serializer):
     value = serializers.CharField(required = True)
 
+class NullableValueSerializer(serializers.Serializer):
+    value = serializers.CharField(required = True, allow_blank=True)
+
 class NewClanSerializer(serializers.Serializer):
     clan_name = serializers.CharField(required = True)
     clan_description = serializers.CharField(required = True)

@@ -23,6 +23,7 @@ from playerdata.models import ClanMember
 from .matcher import UserInfoSchema
 from .serializers import GetUserSerializer
 from .serializers import ValueSerializer
+from .serializers import NullableValueSerializer
 from .serializers import NewClanSerializer
 from .serializers import AcceptFriendRequestSerializer
 
@@ -181,6 +182,24 @@ class GetLeaderboardView(APIView):
             return Response({'clans':clans.data})
         else:
             return Response({'detail': 'leaderboard ' + leaderboard_type + ' does not exist'}, status=HTTP_404_NOT_FOUND)
+
+class GetClanSearchResultsView(APIView):
+    
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = NullableValueSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        search_name = serializer.validated_data['value']
+        
+        if not search_name:
+            clan_set = Clan.objects.filter(num_members__lte=29)[:10]
+            clans = ClanSchema(clan_set, many=True)
+            return Response({'clans':clans.data})
+        else:    
+            clan_set = Clan.objects.filter(name=search_name)
+            clans = ClanSchema(clan_set, many=True)
+            return Response({'clans':clans.data})
 
 class NewClanView(APIView):
 
