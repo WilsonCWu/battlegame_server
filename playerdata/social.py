@@ -26,6 +26,7 @@ from .serializers import ValueSerializer
 from .serializers import NullableValueSerializer
 from .serializers import NewClanSerializer
 from .serializers import AcceptFriendRequestSerializer
+from .serializers import UpdateClanMemberStatusSerializer
 
 def sortUsers(user1, user2):
     if user1.id < user2.id:
@@ -285,4 +286,35 @@ class EditClanDescriptionView(APIView):
         return Response({'status':True})
 
         
+class ChangeMemberStatusView(APIView):
 
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+
+        serializer = UpdateClanMemberStatusSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        member_id = serializer.validated_data['member_id']
+        member_status = serializer.validated_data['member_status']
+    
+        target_clanmember = ClanMember.objects.get(userinfo_id=member_id)
+        clanmember = request.user.userinfo.clanmember
+        
+        if not (clanmember.clan and clanmember.is_admin and clanmember.clan == target_clanmember.clan and not target_clanmember.is_owner):
+            return Response({'status':False, 'reason':'invalid clan permissions'})
+
+        if member_status == 'promote':
+            target_clanmember.is_admin = true
+        elif member_status == 'demote':
+            target_clanmember.is_admin = false
+        elif member_status == 'kick':
+            clan = target_clanmember.clan
+            target_clanmember.clan = None
+            clan.num_members -= 1
+            clan.save()
+        else:
+            return Response({'status':False, 'reason':'member status ' + member_status + 'invalid.'})
+
+        target_clanmember.save()
+
+        return Response({'status':True})
