@@ -187,6 +187,10 @@ class ClanMember(models.Model):
     is_admin = models.BooleanField(default=False)
     is_owner = models.BooleanField(default=False)
 
+class ClanRequest(models.Model):
+    userinfo = models.OneToOneField(UserInfo, on_delete=models.CASCADE)
+    clan = models.ForeignKey(Clan, on_delete=models.CASCADE)
+
 @receiver(post_save, sender=User)
 def create_user_info(sender, instance, created, **kwargs):
     if created:
