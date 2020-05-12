@@ -261,3 +261,28 @@ class GetClanView(APIView):
 
         clanSchema = ClanSchema(clanQuery[0])
         return Response({'status':True, 'clan':clanSchema.data})
+
+class EditClanDescriptionView(APIView):
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+
+        serializer = ValueSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        new_description = serializer.validated_data['value']
+        
+        clanmember = request.user.userinfo.clanmember
+        
+        if not clanmember.clan or not clanmember.is_admin:
+            return Response({'status':False, 'reason':'invalid clan permissions'})
+
+        clan = clanmember.clan
+
+        clan.description = new_description
+        clan.save()
+
+        return Response({'status':True})
+
+        
+
