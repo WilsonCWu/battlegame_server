@@ -15,6 +15,7 @@ from .models import Friend
 from .models import FriendRequest
 from .models import Clan
 from .models import ClanMember
+from .models import ClanRequest
 
 admin.site.register(BaseCharacter)
 admin.site.register(BaseItem)
@@ -33,3 +34,4 @@ admin.site.register(Friend)
 admin.site.register(FriendRequest)
 admin.site.register(Clan)
 admin.site.register(ClanMember)
+admin.site.register(ClanRequest)

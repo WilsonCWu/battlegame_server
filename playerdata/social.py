@@ -20,6 +20,7 @@ from playerdata.models import Chat
 from playerdata.models import UserInfo
 from playerdata.models import Clan
 from playerdata.models import ClanMember
+from playerdata.models import ClanRequest
 from .matcher import UserInfoSchema
 from .serializers import GetUserSerializer
 from .serializers import ValueSerializer
@@ -284,7 +285,6 @@ class EditClanDescriptionView(APIView):
         clan.save()
 
         return Response({'status':True})
-
         
 class ChangeMemberStatusView(APIView):
 
@@ -318,3 +318,44 @@ class ChangeMemberStatusView(APIView):
         target_clanmember.save()
 
         return Response({'status':True})
+
+class ClanRequestSchema(Schema):
+    request_id = fields.Int(attribute='id')
+    userinfo = fields.Nested(UserInfoSchema, exclude=('default_placement','team',))
+    clan_id = fields.Str()
+
+class CreateClanRequestView(APIView):
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+
+        serializer = ValueSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        target_clan_id = serializer.validated_data['value']
+        target_clan = Clan.objects.get(name=target_clan_id)
+
+        userinfo = request.user.userinfo
+
+        if userinfo.clanmember.clan or ClanRequest.objects.filter(clan=target_clan, userinfo=userinfo):
+            return Response({'status':False, 'reason':'Clan request already exists'})
+
+        ClanRequest.objects.create(userinfo=userinfo, clan=target_clan)
+
+        return Response({'status':True})
+
+class GetClanRequestsView(APIView):
+
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        
+        clanmember = request.user.userinfo.clanmember
+        
+        if not clanmember.clan or not clanmember.is_admin:
+            return Response({'status':False, 'reason':'invalid clan permissions'})
+        
+        requestSet = ClanRequest.objects.filter(clan=clanmember.clan)
+        requests = ClanRequestSchema(requestSet, many=True)
+
+        return Response({'requests':requests.data})
