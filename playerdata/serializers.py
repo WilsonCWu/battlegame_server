@@ -48,3 +48,7 @@ class AcceptFriendRequestSerializer(serializers.Serializer):
 class UpdateClanMemberStatusSerializer(serializers.Serializer):
     member_id = serializers.IntegerField(required = True)
     member_status = serializers.CharField(required = True)
+
+class UpdateClanRequestSerializer(serializers.Serializer):
+    target_user_id = serializers.IntegerField(required = True)
+    accept = serializers.BooleanField(required = True)

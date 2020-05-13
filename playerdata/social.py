@@ -28,6 +28,7 @@ from .serializers import NullableValueSerializer
 from .serializers import NewClanSerializer
 from .serializers import AcceptFriendRequestSerializer
 from .serializers import UpdateClanMemberStatusSerializer
+from .serializers import UpdateClanRequestSerializer
 
 def sortUsers(user1, user2):
     if user1.id < user2.id:
@@ -359,3 +360,41 @@ class GetClanRequestsView(APIView):
         requests = ClanRequestSchema(requestSet, many=True)
 
         return Response({'requests':requests.data})
+
+class UpdateClanRequestView(APIView):
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        
+        serializer = UpdateClanRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        target_user_id = serializer.validated_data['target_user_id']
+        accept = serializer.validated_data['accept']
+        
+        clanmember = request.user.userinfo.clanmember
+        clan = clanmember.clan
+        if not clan or not clanmember.is_admin:
+            return Response({'status':False, 'reason':'invalid clan permissions'})
+        
+        target_clanmember = ClanMember.objects.get(userinfo_id=target_user_id)
+
+        if target_clanmember.clan:
+            ClanRequest.objects.filter(userinfo=target_clanmember.userinfo).delete()
+            return Response({'status':True, 'reason':'already in clan ' + target_clanmember.clan.name})
+        
+        if not accept:
+            ClanRequest.objects.get(userinfo=target_clanmember.userinfo, clan=clan).delete()
+            return Response({'status':True})
+        
+        target_clanmember.clan = clan
+        target_clanmember.is_admin = False
+        target_clanmember.is_owner = False
+        target_clanmember.save()
+
+        clan.num_members+=1
+        clan.save()
+
+        ClanRequest.objects.filter(userinfo=target_clanmember.userinfo).delete()
+
+        return Response({'status':True})
