@@ -46,7 +46,8 @@ class TeamSchema(Schema):
 class UserInfoSchema(Schema):
     user_id = fields.Int(attribute='user_id')
     elo = fields.Int()
-    name = fields.Str() 
+    name = fields.Str()
+    profile_picture = fields.Int()
     default_placement = fields.Nested(PlacementSchema) 
     team = fields.Nested(TeamSchema)
     clan = fields.Str(attribute='clanmember.clan_id')

@@ -25,6 +25,7 @@ from playerdata import social
 
 urlpatterns = [
     path('friendrequest/accept/', social.AcceptFriendRequestView.as_view()),
+    path('profilepicture/update/', social.UpdateProfilePictureView.as_view()),
     path('friendrequest/create/', social.CreateFriendRequestView.as_view()),
     path('friendrequest/get/', social.FriendRequestView.as_view()),
     path('clan/search/', social.GetClanSearchResultsView.as_view()),

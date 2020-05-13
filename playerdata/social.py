@@ -398,3 +398,19 @@ class UpdateClanRequestView(APIView):
         ClanRequest.objects.filter(userinfo=target_clanmember.userinfo).delete()
 
         return Response({'status':True})
+
+class UpdateProfilePictureView(APIView):
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+
+        serializer = ValueSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        profile_picture = serializer.validated_data['value']
+
+        request.user.userinfo.profile_picture = profile_picture
+        request.user.userinfo.save()
+
+        return Response({'status':True})
+
