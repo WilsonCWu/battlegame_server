@@ -243,6 +243,7 @@ class ClanSchema(Schema):
     description = fields.Str()
     chat_id = fields.Int()
     num_members = fields.Int()
+    profile_picture = fields.Int()
     time_started = fields.DateTime()
     elo = fields.Int()
     clan_members = fields.Nested(ClanMemberSchema, attribute='clan_members', many=True)
