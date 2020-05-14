@@ -415,3 +415,23 @@ class UpdateProfilePictureView(APIView):
 
         return Response({'status':True})
 
+class UpdateClanProfilePictureView(APIView):
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+
+        serializer = ValueSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        profile_picture = serializer.validated_data['value']
+        
+        clanmember = request.user.userinfo.clanmember
+        clan = clanmember.clan
+        if not clan or not clanmember.is_admin:
+            return Response({'status':False, 'reason':'invalid clan permissions'})
+        
+        clan.profile_picture = profile_picture
+        clan.save()
+        
+        return Response({'status':True})
+
