@@ -61,6 +61,7 @@ cover/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+db.json
 
 # Flask stuff:
 instance/
@@ -82,6 +83,9 @@ target/
 # IPython
 profile_default/
 ipython_config.py
+
+# Intellij
+.idea/
 
 # pyenv
 #   For a library or package, you might want to ignore these files since the code is
