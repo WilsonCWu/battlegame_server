@@ -24,6 +24,6 @@ Set up Postgres
 Migrate:
 `python manage.py migrate`
 
-Loading existing data, ssh into server `./manage.py loaddata db.json`
+Load existing data, ssh into server `./manage.py loaddata db.json`
 
 `scp` it locally, then run `./manage.py loaddata db.json`
