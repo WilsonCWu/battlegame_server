@@ -151,6 +151,15 @@ class ChatMessage(models.Model):
     def __str__(self):
         return str(self.chat_id) + ':' + self.message + '(' + str(self.id) + ')'
 
+class ChatLastReadMessage(models.Model):
+    chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    time_send = models.DateTimeField()
+
+    def __str__(self):
+        return str(self.chat_id) + ': user,' + str(self.user) + ' ' + str(self.time_send)
+
+
 #sorted order. User1<User2
 class Friend(models.Model):
     user_1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend_user_1')

@@ -6,6 +6,7 @@ from rest_marshmallow import Schema, fields
 
 from playerdata.models import ChatMessage
 from playerdata.models import Chat
+from playerdata.models import ChatLastReadMessage
 
 class MessageSchema(Schema):
     message = fields.Str()
@@ -64,22 +65,43 @@ class ChatConsumer(WebsocketConsumer):
             )
 
             # save to db
-            ChatMessage.objects.create(chat=self.chat, message=message, sender=self.user)
+            chat_message = ChatMessage.objects.create(chat=self.chat, message=message, sender=self.user)
+            ChatLastReadMessage.objects.update_or_create(chat=self.chat,
+                                                         user=self.user,
+                                                         defaults={"time_send": chat_message.time_send}
+                                                         )
         
         elif message_type == 'req':
             latest_timestamp = text_data_json['latest_timestamp']
 
             if not latest_timestamp:
-                oldMessageSetPartial = ChatMessage.objects.filter(chat=self.chat)
+                old_message_set_partial = ChatMessage.objects.filter(chat=self.chat)
             else:
-                oldMessageSetPartial = ChatMessage.objects.filter(chat=self.chat, time_send__lt=latest_timestamp)
+                old_message_set_partial = ChatMessage.objects.filter(chat=self.chat, time_send__lt=latest_timestamp)
 
-            oldMessageSet = oldMessageSetPartial.order_by('-time_send').select_related('sender__userinfo')[:30]
-            oldMessageJson = MessageSchema(oldMessageSet, many=True)
+            old_message_set = old_message_set_partial.order_by('-time_send').select_related('sender__userinfo')[:30]
+            old_message_json = MessageSchema(old_message_set, many=True)
+
+            last_read_msg = ChatLastReadMessage.objects.filter(chat=self.chat, user=self.user).first()
+            latest_msg = old_message_set.first()
+
+            if not last_read_msg or not latest_msg:
+                show_badge = 'true'
+            else:
+                show_badge = not latest_timestamp and (latest_msg.time_send > last_read_msg.time_send)
+
             self.send(text_data=json.dumps({
                 'message_type': 'msgs',
-                'msgs': oldMessageJson.data
+                'msgs': old_message_json.data,
+                'show_badge': show_badge
             }))
+
+        elif message_type == 'last_read':
+            latest_timestamp = text_data_json['latest_timestamp']
+            ChatLastReadMessage.objects.update_or_create(chat=self.chat,
+                                                         user=self.user,
+                                                         defaults={"time_send": latest_timestamp}
+                                                         )
 
     # Receive message from room group
     def chat_message(self, event):
