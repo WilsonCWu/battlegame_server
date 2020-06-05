@@ -41,6 +41,7 @@ urlpatterns = [
     path('friends/get/', social.FriendsView.as_view()),
     path('leaderboards/', social.GetLeaderboardView.as_view()),
     path('getchatid/', social.GetChatIdView.as_view()),
+    path('getallchats/', social.GetAllChatsView.as_view()),
     path('purchaseitem/', purchases.PurchaseItemView.as_view()),
     path('purchase/', purchases.PurchaseView.as_view()),
     path('levelup/', datagetter.TryLevelView.as_view()),
