@@ -85,8 +85,10 @@ class ChatConsumer(WebsocketConsumer):
             last_read_msg = ChatLastReadMessage.objects.filter(chat=self.chat, user=self.user).first()
             latest_msg = old_message_set.first()
 
-            if not last_read_msg or not latest_msg:
+            if not last_read_msg:
                 show_badge = 'true'
+            elif not latest_msg:
+                show_badge = 'false'
             else:
                 show_badge = not latest_timestamp and (latest_msg.time_send > last_read_msg.time_send)
 

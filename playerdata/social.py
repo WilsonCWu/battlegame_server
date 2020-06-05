@@ -37,6 +37,19 @@ def sortUsers(user1, user2):
     return user2, user1
 
 
+def getGlobalChats():
+    global1 = {
+        'chat_id': 1,
+        'chat_name': 'Global'
+    }
+    global2 = {
+        'chat_id': 2,
+        'chat_name': 'Global 2'
+    }
+
+    return [global1, global2]
+
+
 class FriendSchema(Schema):
     user_1_id = fields.Int(attribute='user_1_id')
     user_2_id = fields.Int(attribute='user_2_id')
@@ -50,6 +63,11 @@ class FriendRequestSchema(Schema):
     userinfo = fields.Nested(UserInfoSchema, attribute='user.userinfo')
     user_id = fields.Int(attribute='user_id')
     target_id = fields.Int(attribute='target_id')
+
+
+class ChatListSchema(Schema):
+    chat_id = fields.Int(attribute='chat_id')
+    chat_name = fields.Str(attribute='chat_name')
 
 
 class FriendRequestView(APIView):
@@ -159,7 +177,7 @@ class GetChatIdView(APIView):
         friendSet = Friend.objects.filter(user_1=user1, user_2=user2)
         if not friendSet:
             return Response(
-                {'detail': 'Friend set with ' + str(user_1.id) + ' and ' + str(user_2.id) + ' does not exist'},
+                {'detail': 'Friend set with ' + str(user1.id) + ' and ' + str(user2.id) + ' does not exist'},
                 status=HTTP_404_NOT_FOUND)
 
         friendObject = friendSet[0]
@@ -170,6 +188,45 @@ class GetChatIdView(APIView):
             friendObject.save()
 
         return Response({'chat_id': friendObject.chat.id})
+
+
+class GetAllChatsView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        query1 = Friend.objects.filter(user_1=request.user).select_related(
+            'user_2__userinfo')
+        query2 = Friend.objects.filter(user_2=request.user).select_related(
+            'user_1__userinfo')
+
+        chat_list = []
+        chat_list.extend(getGlobalChats())
+
+        for friend_query in query1:
+            friend_chat = {
+                'chat_id': friend_query.chat.id,
+                'chat_name': friend_query.user_2.userinfo.name
+            }
+            chat_list.append(friend_chat)
+
+        for friend_query in query2:
+            friend_chat = {
+                'chat_id': friend_query.chat.id,
+                'chat_name': friend_query.user_1.userinfo.name
+            }
+            chat_list.append(friend_chat)
+
+        # Get clan chat
+        clan_member = ClanMember.objects.filter(userinfo=request.user.userinfo).select_related('clan__chat').first()
+        if clan_member.clan:
+            clan_chat = {
+                'chat_id': clan_member.clan.chat.id,
+                'chat_name': clan_member.clan.name
+            }
+            chat_list.append(clan_chat)
+
+        chat_list_schema = ChatListSchema(many=True)
+        return Response({'chats': chat_list_schema.dump(chat_list)})
 
 
 class GetLeaderboardView(APIView):
@@ -265,7 +322,7 @@ class GetClanView(APIView):
         serializer = ValueSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         clanName = serializer.validated_data['value']
-        clanQuery = Clan.objects.filter(name=clanName).prefetch_related(Prefetch( \
+        clanQuery = Clan.objects.filter(name=clanName).prefetch_related(Prefetch(
             'clanmember_set', to_attr='clan_members',
             queryset=ClanMember.objects.select_related('userinfo').order_by('-userinfo__elo')))
 
@@ -301,7 +358,6 @@ class ChangeMemberStatusView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
-
         serializer = UpdateClanMemberStatusSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         member_id = serializer.validated_data['member_id']
@@ -311,13 +367,16 @@ class ChangeMemberStatusView(APIView):
         clanmember = request.user.userinfo.clanmember
 
         if not (
-                clanmember.clan and clanmember.is_admin and clanmember.clan == target_clanmember.clan and not target_clanmember.is_owner):
+                clanmember.clan and
+                clanmember.is_admin and
+                clanmember.clan == target_clanmember.clan and
+                not target_clanmember.is_owner):
             return Response({'status': False, 'reason': 'invalid clan permissions'})
 
         if member_status == 'promote':
-            target_clanmember.is_admin = true
+            target_clanmember.is_admin = True
         elif member_status == 'demote':
-            target_clanmember.is_admin = false
+            target_clanmember.is_admin = False
         elif member_status == 'kick':
             clan = target_clanmember.clan
             target_clanmember.clan = None
