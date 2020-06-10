@@ -24,15 +24,17 @@ class UploadResultView(APIView):
     def post(self, request):
         serializer = UploadResultSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        win = serializer.validated_data['win'] == 'true'
-        mode = serializer.validated_data['mode']
-        opponent = serializer.validated_data['opponent']
-        stats = serializer.validated_data['stats']
+        valid_data = serializer.validated_data['result']
+
+        win = valid_data['win']
+        mode = valid_data['mode']
+        opponent = valid_data['opponent_id']
+        stats = valid_data['stats']
 
         # Update stats per hero
         for stat in stats:
             char_id = stat['id']
-            hero = Character.objects.get(char_id)
+            hero = Character.objects.get(char_id=char_id)
             hero.total_damage_dealt += stat['damage_dealt']
             hero.total_damage_taken += stat['damage_taken']
             hero.total_health_healed += stat['health_healed']
