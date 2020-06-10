@@ -21,21 +21,23 @@ from .serializers import GetUserSerializer
 from .serializers import GetOpponentsSerializer
 from .datagetter import CharacterSchema
 
+
 class PlacementSchema(Schema):
-    placement_id = fields.Int() 
-    pos_1 = fields.Int() 
+    placement_id = fields.Int()
+    pos_1 = fields.Int()
     char_1 = fields.Nested(CharacterSchema)
-    pos_2 = fields.Int() 
+    pos_2 = fields.Int()
     char_2 = fields.Nested(CharacterSchema)
-    pos_3 = fields.Int() 
+    pos_3 = fields.Int()
     char_3 = fields.Nested(CharacterSchema)
-    pos_4 = fields.Int() 
+    pos_4 = fields.Int()
     char_4 = fields.Nested(CharacterSchema)
-    pos_5 = fields.Int() 
+    pos_5 = fields.Int()
     char_5 = fields.Nested(CharacterSchema)
 
+
 class TeamSchema(Schema):
-    team_id = fields.Int() 
+    team_id = fields.Int()
     char_1 = fields.Nested(CharacterSchema)
     char_2 = fields.Nested(CharacterSchema)
     char_3 = fields.Nested(CharacterSchema)
@@ -43,35 +45,36 @@ class TeamSchema(Schema):
     char_5 = fields.Nested(CharacterSchema)
     char_6 = fields.Nested(CharacterSchema)
 
+
 class UserInfoSchema(Schema):
     user_id = fields.Int(attribute='user_id')
     elo = fields.Int()
     name = fields.Str()
     profile_picture = fields.Int()
-    default_placement = fields.Nested(PlacementSchema) 
+    default_placement = fields.Nested(PlacementSchema)
     team = fields.Nested(TeamSchema)
     clan = fields.Str(attribute='clanmember.clan_id')
 
-class MatcherView(APIView):
 
+class MatcherView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
-        return Response({'test':'value'})
+        return Response({'test': 'value'})
+
 
 class GetUserView(APIView):
-
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
         query = UserInfo.objects.select_related('team__char_1__weapon') \
-                                .select_related('team__char_2__weapon') \
-                                .select_related('team__char_3__weapon') \
-                                .select_related('team__char_4__weapon') \
-                                .select_related('team__char_5__weapon') \
-                                .select_related('team__char_6__weapon') \
-                                .select_related('clanmember') \
-                                .get(user_id=request.user.id)
+            .select_related('team__char_2__weapon') \
+            .select_related('team__char_3__weapon') \
+            .select_related('team__char_4__weapon') \
+            .select_related('team__char_5__weapon') \
+            .select_related('team__char_6__weapon') \
+            .select_related('clanmember') \
+            .get(user_id=request.user.id)
         user_info = UserInfoSchema(query, exclude=('default_placement',))
         return Response(user_info.data)
 
@@ -80,16 +83,16 @@ class GetUserView(APIView):
         serializer.is_valid(raise_exception=True)
         target_user = serializer.validated_data['target_user']
         query = UserInfo.objects.select_related('default_placement__char_1__weapon') \
-                                .select_related('default_placement__char_2__weapon') \
-                                .select_related('default_placement__char_3__weapon') \
-                                .select_related('default_placement__char_4__weapon') \
-                                .select_related('default_placement__char_5__weapon') \
-                                .get(user_id=target_user)
+            .select_related('default_placement__char_2__weapon') \
+            .select_related('default_placement__char_3__weapon') \
+            .select_related('default_placement__char_4__weapon') \
+            .select_related('default_placement__char_5__weapon') \
+            .get(user_id=target_user)
         target_user_info = UserInfoSchema(query, exclude=('team',))
         return Response(target_user_info.data)
 
-class GetOpponentsView(APIView):
 
+class GetOpponentsView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
@@ -98,13 +101,11 @@ class GetOpponentsView(APIView):
         search_count = serializer.validated_data['search_count']
         cur_elo = request.user.userinfo.elo
         query = UserInfo.objects.select_related('default_placement__char_1__weapon') \
-                                .select_related('default_placement__char_2__weapon') \
-                                .select_related('default_placement__char_3__weapon') \
-                                .select_related('default_placement__char_4__weapon') \
-                                .select_related('default_placement__char_5__weapon') \
-                                .filter(elo__gte=cur_elo-200, elo__lte=cur_elo+200) \
-                                [:30]
+                    .select_related('default_placement__char_2__weapon') \
+                    .select_related('default_placement__char_3__weapon') \
+                    .select_related('default_placement__char_4__weapon') \
+                    .select_related('default_placement__char_5__weapon') \
+                    .filter(elo__gte=cur_elo - 200, elo__lte=cur_elo + 200) \
+            [:30]
         enemies = UserInfoSchema(query, exclude=('team',), many=True)
-        return Response({'users':enemies.data})
-        
-
+        return Response({'users': enemies.data})
