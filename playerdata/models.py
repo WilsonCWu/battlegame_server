@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.contrib.postgres.fields import ArrayField
 
 
 class BaseCharacter(models.Model):
@@ -24,6 +23,15 @@ class BaseCharacter(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class BaseCharacterUsage(models.Model):
+    char_type = models.OneToOneField(BaseCharacter, on_delete=models.CASCADE, primary_key=True)
+    num_games = models.IntegerField()
+    num_wins = models.IntegerField()
+
+    def __str__(self):
+        return self.char_type
 
 
 class BaseItem(models.Model):
@@ -65,6 +73,8 @@ class Character(models.Model):
     total_damage_dealt = models.IntegerField(default=0)
     total_damage_taken = models.IntegerField(default=0)
     total_health_healed = models.IntegerField(default=0)
+    num_games = models.IntegerField(default=0)
+    num_wins = models.IntegerField(default=0)
 
     class Meta:
         indexes = [
