@@ -4,6 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.postgres.fields import ArrayField
 
+
 class BaseCharacter(models.Model):
     char_type = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=30, unique=True)
@@ -24,6 +25,7 @@ class BaseCharacter(models.Model):
     def __str__(self):
         return self.name
 
+
 class BaseItem(models.Model):
     item_type = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=30, unique=True)
@@ -36,19 +38,21 @@ class BaseItem(models.Model):
     def __str__(self):
         return self.name
 
+
 class Item(models.Model):
     item_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     item_type = models.ForeignKey(BaseItem, on_delete=models.CASCADE)
     exp = models.IntegerField()
-    
+
     class Meta:
         indexes = [
-            models.Index(fields=['user',]),
+            models.Index(fields=['user', ]),
         ]
 
     def __str__(self):
         return str(self.user) + ": " + str(self.item_type)
+
 
 class Character(models.Model):
     char_id = models.AutoField(primary_key=True)
@@ -58,14 +62,18 @@ class Character(models.Model):
     copies = models.IntegerField(default=1)
     prestige = models.IntegerField(default=0)
     weapon = models.ForeignKey(Item, null=True, on_delete=models.SET_NULL)
-    
+    total_damage_dealt = models.IntegerField(default=0)
+    total_damage_taken = models.IntegerField(default=0)
+    total_health_healed = models.IntegerField(default=0)
+
     class Meta:
         indexes = [
-            models.Index(fields=['user',]),
+            models.Index(fields=['user', ]),
         ]
 
     def __str__(self):
         return str(self.user) + ": " + str(self.char_type)
+
 
 class Placement(models.Model):
     placement_id = models.AutoField(primary_key=True)
@@ -82,7 +90,8 @@ class Placement(models.Model):
 
     def __str__(self):
         return str(self.placement_id)
-        #return str(self.userinfo.user) + ": " + str(self.placement_id)
+        # return str(self.userinfo.user) + ": " + str(self.placement_id)
+
 
 class Team(models.Model):
     team_id = models.AutoField(primary_key=True)
@@ -96,6 +105,7 @@ class Team(models.Model):
     def __str__(self):
         return str(self.team_id)
 
+
 class UserInfo(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     elo = models.IntegerField(default=0)
@@ -106,11 +116,12 @@ class UserInfo(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['elo',]),
+            models.Index(fields=['elo', ]),
         ]
 
     def __str__(self):
         return self.name + '(' + str(self.user.id) + ')'
+
 
 class UserStats(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
@@ -120,6 +131,7 @@ class UserStats(models.Model):
 
     def __str__(self):
         return self.user.userinfo.name + '(' + str(self.user.id) + ')'
+
 
 class Inventory(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
@@ -131,11 +143,13 @@ class Inventory(models.Model):
     def __str__(self):
         return self.user.userinfo.name + '(' + str(self.user.id) + ')'
 
+
 class Chat(models.Model):
     chat_name = models.TextField(default='')
 
     def __str__(self):
         return self.chat_name + '(' + str(self.id) + ')'
+
 
 class ChatMessage(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
@@ -145,11 +159,12 @@ class ChatMessage(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['chat','time_send']),
+            models.Index(fields=['chat', 'time_send']),
         ]
 
     def __str__(self):
         return str(self.chat_id) + ':' + self.message + '(' + str(self.id) + ')'
+
 
 class ChatLastReadMessage(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
@@ -160,7 +175,7 @@ class ChatLastReadMessage(models.Model):
         return str(self.chat_id) + ': user,' + str(self.user) + ' ' + str(self.time_send)
 
 
-#sorted order. User1<User2
+# sorted order. User1<User2
 class Friend(models.Model):
     user_1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend_user_1')
     user_2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend_user_2')
@@ -177,10 +192,11 @@ class FriendRequest(models.Model):
     def __str__(self):
         return self.user.userinfo.name + ',' + self.target.userinfo.name
 
+
 class Clan(models.Model):
     name = models.TextField(primary_key=True)
-    description = models.TextField(default = 'A description has not been set.')
-    chat = models.ForeignKey(Chat, null=True, on_delete=models.SET_NULL) 
+    description = models.TextField(default='A description has not been set.')
+    chat = models.ForeignKey(Chat, null=True, on_delete=models.SET_NULL)
     time_started = models.DateTimeField(auto_now_add=True)
     elo = models.IntegerField(default=0)
     profile_picture = models.IntegerField(default=0)
@@ -188,7 +204,7 @@ class Clan(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['elo',]),
+            models.Index(fields=['elo', ]),
         ]
 
 
@@ -198,9 +214,11 @@ class ClanMember(models.Model):
     is_admin = models.BooleanField(default=False)
     is_owner = models.BooleanField(default=False)
 
+
 class ClanRequest(models.Model):
     userinfo = models.OneToOneField(UserInfo, on_delete=models.CASCADE)
     clan = models.ForeignKey(Clan, on_delete=models.CASCADE)
+
 
 @receiver(post_save, sender=User)
 def create_user_info(sender, instance, created, **kwargs):
@@ -210,10 +228,10 @@ def create_user_info(sender, instance, created, **kwargs):
         Inventory.objects.create(user=instance)
         ClanMember.objects.create(userinfo=userinfo)
 
+
 @receiver(post_save, sender=User)
 def save_user_info(sender, instance, **kwargs):
     instance.userinfo.save()
     instance.userstats.save()
     instance.inventory.save()
     instance.userinfo.clanmember.save()
-
