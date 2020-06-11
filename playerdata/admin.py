@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models import BaseCharacter
+from .models import BaseCharacterUsage
 from .models import BaseItem
 from .models import Character
 from .models import Item
@@ -18,6 +19,7 @@ from .models import ClanMember
 from .models import ClanRequest
 
 admin.site.register(BaseCharacter)
+admin.site.register(BaseCharacterUsage)
 admin.site.register(BaseItem)
 admin.site.register(Character)
 admin.site.register(Item)

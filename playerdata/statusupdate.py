@@ -36,7 +36,7 @@ class UploadResultView(APIView):
         # Update stats per hero
         for stat in stats:
             char_id = stat['id']
-            hero = Character.objects.get(char_id=char_id)
+            hero = Character.objects.select_related('char_type__basecharacterusage').get(char_id=char_id)
             hero.total_damage_dealt += stat['damage_dealt']
             hero.total_damage_taken += stat['damage_taken']
             hero.total_health_healed += stat['health_healed']
@@ -44,10 +44,9 @@ class UploadResultView(APIView):
             hero.num_wins += 1 if win else 0
             hero.save()
 
-            base_char = BaseCharacter.objects.get(char_type=hero.char_type_id)
-            base_char.num_games += 1
-            base_char.num_wins += 1 if win else 0
-            base_char.save()
+            hero.char_type.basecharacterusage.num_games += 1
+            hero.char_type.basecharacterusage.num_wins += 1 if win else 0
+            hero.char_type.basecharacterusage.save()
 
         user_stats = UserStats.objects.get(user=request.user)
         opponent_stats = UserStats.objects.get(user_id=opponent)

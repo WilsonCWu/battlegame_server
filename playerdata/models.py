@@ -27,11 +27,11 @@ class BaseCharacter(models.Model):
 
 class BaseCharacterUsage(models.Model):
     char_type = models.OneToOneField(BaseCharacter, on_delete=models.CASCADE, primary_key=True)
-    num_games = models.IntegerField()
-    num_wins = models.IntegerField()
+    num_games = models.IntegerField(default=0)
+    num_wins = models.IntegerField(default=0)
 
     def __str__(self):
-        return self.char_type
+        return self.char_type.name
 
 
 class BaseItem(models.Model):
