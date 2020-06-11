@@ -1,34 +1,28 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.authtoken.models import Token
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.status import (
-    HTTP_400_BAD_REQUEST,
-    HTTP_404_NOT_FOUND,
-    HTTP_200_OK,
-)
-from django.contrib.auth import authenticate
-from django.http import JsonResponse
-
-from rest_marshmallow import Schema, fields
-from django.db.models import Prefetch
 from django.contrib.auth import get_user_model
-from playerdata.models import Friend
-from playerdata.models import FriendRequest
+from django.db.models import Prefetch
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.status import (
+    HTTP_404_NOT_FOUND,
+)
+from rest_framework.views import APIView
+from rest_marshmallow import Schema, fields
+
 from playerdata.models import Chat
-from playerdata.models import UserInfo
 from playerdata.models import Clan
 from playerdata.models import ClanMember
 from playerdata.models import ClanRequest
+from playerdata.models import Friend
+from playerdata.models import FriendRequest
+from playerdata.models import UserInfo
 from .matcher import UserInfoSchema
-from .serializers import GetUserSerializer
-from .serializers import ValueSerializer
-from .serializers import NullableValueSerializer
-from .serializers import NewClanSerializer
 from .serializers import AcceptFriendRequestSerializer
+from .serializers import GetUserSerializer
+from .serializers import NewClanSerializer
+from .serializers import NullableValueSerializer
 from .serializers import UpdateClanMemberStatusSerializer
 from .serializers import UpdateClanRequestSerializer
+from .serializers import ValueSerializer
 
 
 def sortUsers(user1, user2):
