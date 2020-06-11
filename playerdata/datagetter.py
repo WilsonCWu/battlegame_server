@@ -67,6 +67,10 @@ class CharacterSchema(Schema):
     prestige = fields.Int()
     weapon_id = fields.Int(attribute='weapon_id')
     weapon = fields.Nested(ItemSchema)
+    total_damage_dealt = fields.Int()
+    total_damage_taken = fields.Int()
+    total_health_healed = fields.Int()
+
 
 class InventorySchema(Schema):
     user_id = fields.Int(attribute='user_id')
