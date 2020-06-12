@@ -5,7 +5,9 @@ from rest_framework.views import APIView
 
 from .serializers import UploadResultSerializer
 
+from playerdata.models import BaseCharacter
 from playerdata.models import Character
+from playerdata.models import UserStats
 
 
 # r1, r2 ratings of player 1,2. s1 = 1 if win, 0 if loss, 0.5 for tie
@@ -34,11 +36,31 @@ class UploadResultView(APIView):
         # Update stats per hero
         for stat in stats:
             char_id = stat['id']
-            hero = Character.objects.get(char_id=char_id)
+            hero = Character.objects.select_related('char_type__basecharacterusage').get(char_id=char_id)
             hero.total_damage_dealt += stat['damage_dealt']
             hero.total_damage_taken += stat['damage_taken']
             hero.total_health_healed += stat['health_healed']
+            hero.num_games += 1
+            hero.num_wins += 1 if win else 0
             hero.save()
+
+            hero.char_type.basecharacterusage.num_games += 1
+            hero.char_type.basecharacterusage.num_wins += 1 if win else 0
+            hero.char_type.basecharacterusage.save()
+
+        user_stats = UserStats.objects.get(user=request.user)
+        opponent_stats = UserStats.objects.get(user_id=opponent)
+
+        user_stats.num_games += 1
+        opponent_stats.num_games += 1
+
+        if win:
+            user_stats.num_wins += 1
+        else:
+            opponent_stats.num_wins += 1
+
+        user_stats.save()
+        opponent_stats.save()
 
         response = {}
 

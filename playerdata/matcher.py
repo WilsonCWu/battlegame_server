@@ -51,6 +51,9 @@ class UserInfoSchema(Schema):
     elo = fields.Int()
     name = fields.Str()
     profile_picture = fields.Int()
+    num_wins = fields.Int(attribute='user.userstats.num_wins')
+    num_games = fields.Int(attribute='user.userstats.num_games')
+    time_started = fields.Str(attribute='user.userstats.time_started')
     default_placement = fields.Nested(PlacementSchema)
     team = fields.Nested(TeamSchema)
     clan = fields.Str(attribute='clanmember.clan_id')
@@ -74,6 +77,7 @@ class GetUserView(APIView):
             .select_related('team__char_5__weapon') \
             .select_related('team__char_6__weapon') \
             .select_related('clanmember') \
+            .select_related('user__userstats') \
             .get(user_id=request.user.id)
         user_info = UserInfoSchema(query, exclude=('default_placement',))
         return Response(user_info.data)
@@ -87,6 +91,7 @@ class GetUserView(APIView):
             .select_related('default_placement__char_3__weapon') \
             .select_related('default_placement__char_4__weapon') \
             .select_related('default_placement__char_5__weapon') \
+            .select_related('user__userstats') \
             .get(user_id=target_user)
         target_user_info = UserInfoSchema(query, exclude=('team',))
         return Response(target_user_info.data)

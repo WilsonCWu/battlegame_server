@@ -70,6 +70,8 @@ class CharacterSchema(Schema):
     total_damage_dealt = fields.Int()
     total_damage_taken = fields.Int()
     total_health_healed = fields.Int()
+    num_games = fields.Int()
+    num_wins = fields.Int()
 
 
 class InventorySchema(Schema):
