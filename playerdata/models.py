@@ -239,7 +239,7 @@ class Dungeon(models.Model):
 
 class DungeonStage(models.Model):
     dungeon = models.ForeignKey(Dungeon, on_delete=models.CASCADE)
-    enemy = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE)
+    enemy = models.ForeignKey(Placement, on_delete=models.CASCADE)
     stage_num = models.IntegerField()
     exp = models.IntegerField()
     coins = models.IntegerField()

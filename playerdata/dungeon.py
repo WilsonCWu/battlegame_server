@@ -11,6 +11,8 @@ from playerdata.models import DungeonStage
 from .serializers import GetDungeonProgressSerializer
 from .serializers import GetDungeonStageSerializer
 
+from .matcher import PlacementSchema
+
 
 class DungeonStageSchema(Schema):
     stage_id = fields.Int()
@@ -33,7 +35,12 @@ class DungeonProgressSchema(Schema):
     stage_id = fields.Int()
 
 
+class StagePlacement(Schema):
+    enemy = fields.Nested(PlacementSchema)
+
+
 class DungeonView(APIView):
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request):
         # For each dungeon, get all the stages
@@ -49,7 +56,7 @@ class DungeonView(APIView):
 class DungeonProgressView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request):
+    def get(self, request):
         serializer = GetDungeonProgressSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         target_user = serializer.validated_data['target_user']
@@ -57,14 +64,32 @@ class DungeonProgressView(APIView):
         dungeon_progress_schema = DungeonProgressSchema(dungeon_progress)
         return Response(dungeon_progress_schema.data)
 
+    def post(self, request):
+        serializer = GetDungeonProgressSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        target_user = serializer.validated_data['target_user']
+        dungeon_id = serializer.validated_data['dungeon_id']
+        stage_id = serializer.validated_data['stage_id']
+
+        DungeonProgress.objects.update_or_create(user_id=target_user,
+                                                 defaults={"dungeon_id": dungeon_id,
+                                                           "stage_id": stage_id})
+
+        return Response({'status': True})
+
 
 class DungeonStageView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request):
+    def get(self, request):
         serializer = GetDungeonStageSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         stage_id = serializer.validated_data['stage_id']
-        dungeon_stage = DungeonStage.objects.get(dungeonstage_id=stage_id)
-        dungeon_stage_schema = DungeonStageSchema(dungeon_stage)
+        dungeon_stage = DungeonStage.objects.select_related('enemy__char_1__weapon') \
+            .select_related('enemy__char_2__weapon') \
+            .select_related('enemy__char_3__weapon') \
+            .select_related('enemy__char_4__weapon') \
+            .select_related('enemy__char_5__weapon') \
+            .get(id=stage_id)
+        dungeon_stage_schema = StagePlacement(dungeon_stage)
         return Response(dungeon_stage_schema.data)
