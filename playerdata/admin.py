@@ -17,6 +17,13 @@ from .models import FriendRequest
 from .models import Clan
 from .models import ClanMember
 from .models import ClanRequest
+from .models import Dungeon
+from .models import DungeonStage
+from .models import DungeonProgress
+
+admin.site.register(Dungeon)
+admin.site.register(DungeonStage)
+admin.site.register(DungeonProgress)
 
 admin.site.register(BaseCharacter)
 admin.site.register(BaseCharacterUsage)

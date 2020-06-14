@@ -22,6 +22,7 @@ from playerdata import matcher
 from playerdata import statusupdate
 from playerdata import purchases
 from playerdata import social
+from playerdata import dungeon
 
 urlpatterns = [
     path('friendrequest/accept/', social.AcceptFriendRequestView.as_view()),
@@ -54,6 +55,9 @@ urlpatterns = [
     path('test/', login.HelloView.as_view()),
     path('login/', login.ObtainAuthToken.as_view()),
     path('createnewuser/', login.CreateNewUser.as_view()),
+    path('dungeon/get', dungeon.DungeonView.as_view()),
+    path('dungeon/progress', dungeon.DungeonProgressView.as_view()),
+    path('dungeon/stage', dungeon.DungeonStageView.as_view()),
     path('chat/', include('chat.urls')),
     path('admin/', admin.site.urls),
 ]
