@@ -65,3 +65,7 @@ class UpdateClanMemberStatusSerializer(serializers.Serializer):
 class UpdateClanRequestSerializer(serializers.Serializer):
     target_user_id = serializers.IntegerField(required=True)
     accept = serializers.BooleanField(required=True)
+
+
+class DungeonStageSerializer(serializers.Serializer):
+    stage_id = serializers.IntegerField(required=True)
