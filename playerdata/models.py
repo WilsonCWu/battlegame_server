@@ -230,6 +230,24 @@ class ClanRequest(models.Model):
     clan = models.ForeignKey(Clan, on_delete=models.CASCADE)
 
 
+class DungeonStage(models.Model):
+    mob = models.ForeignKey(Placement, on_delete=models.CASCADE)
+    exp = models.IntegerField()
+    coins = models.IntegerField()
+    gems = models.IntegerField()
+
+    def __str__(self):
+        return "Stage " + str(self.id)
+
+
+class DungeonProgress(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    stage_id = models.IntegerField()
+
+    def __str__(self):
+        return "user " + str(self.user.id) + ": stage " + str(self.stage_id)
+
+
 @receiver(post_save, sender=User)
 def create_user_info(sender, instance, created, **kwargs):
     if created:
@@ -237,6 +255,7 @@ def create_user_info(sender, instance, created, **kwargs):
         UserStats.objects.create(user=instance)
         Inventory.objects.create(user=instance)
         ClanMember.objects.create(userinfo=userinfo)
+        DungeonProgress.objects.create(user=instance, stage_id=1)
 
 
 @receiver(post_save, sender=User)
