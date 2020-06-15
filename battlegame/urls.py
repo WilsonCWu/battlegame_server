@@ -56,7 +56,7 @@ urlpatterns = [
     path('login/', login.ObtainAuthToken.as_view()),
     path('createnewuser/', login.CreateNewUser.as_view()),
     path('dungeon/stage', dungeon.DungeonStageView.as_view()),
-    path('dungeon/progress', dungeon.DungeonCompleteView.as_view()),
+    path('dungeon/setprogress', dungeon.DungeonSetProgressView.as_view()),
     path('chat/', include('chat.urls')),
     path('admin/', admin.site.urls),
 ]

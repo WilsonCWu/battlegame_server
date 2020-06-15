@@ -24,7 +24,7 @@ class DungeonStageSchema(Schema):
     mob = fields.Nested(PlacementSchema)
 
 
-class DungeonCompleteView(APIView):
+class DungeonSetProgressView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
