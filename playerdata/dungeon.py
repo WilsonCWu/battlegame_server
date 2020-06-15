@@ -9,6 +9,8 @@ from playerdata.models import DungeonStage
 
 from .matcher import PlacementSchema
 
+from .serializers import ValueSerializer
+
 
 class DungeonProgressSchema(Schema):
     stage_id = fields.Int()
@@ -22,7 +24,7 @@ class DungeonStageSchema(Schema):
     mob = fields.Nested(PlacementSchema)
 
 
-class DungeonProgressView(APIView):
+class DungeonCompleteView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
@@ -46,5 +48,19 @@ class DungeonStageView(APIView):
             .select_related('mob__char_4__weapon') \
             .select_related('mob__char_5__weapon') \
             .get(id=dungeon_progress.stage_id)
+        dungeon_stage_schema = DungeonStageSchema(dungeon_stage)
+        return Response(dungeon_stage_schema.data)
+
+    def post(self, request):
+        serializer = ValueSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        stage_id = serializer.validated_data['value']
+
+        dungeon_stage = DungeonStage.objects.select_related('mob__char_1__weapon') \
+            .select_related('mob__char_2__weapon') \
+            .select_related('mob__char_3__weapon') \
+            .select_related('mob__char_4__weapon') \
+            .select_related('mob__char_5__weapon') \
+            .get(id=stage_id)
         dungeon_stage_schema = DungeonStageSchema(dungeon_stage)
         return Response(dungeon_stage_schema.data)
