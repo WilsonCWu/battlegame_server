@@ -230,32 +230,22 @@ class ClanRequest(models.Model):
     clan = models.ForeignKey(Clan, on_delete=models.CASCADE)
 
 
-class Dungeon(models.Model):
-    name = models.TextField()
-
-    def __str__(self):
-        return self.name + " (" + str(self.id) + ")"
-
-
 class DungeonStage(models.Model):
-    dungeon = models.ForeignKey(Dungeon, on_delete=models.CASCADE)
-    enemy = models.ForeignKey(Placement, on_delete=models.CASCADE)
-    stage_num = models.IntegerField()
+    mob = models.ForeignKey(Placement, on_delete=models.CASCADE)
     exp = models.IntegerField()
     coins = models.IntegerField()
     gems = models.IntegerField()
 
     def __str__(self):
-        return self.dungeon.name + ": stage " + str(self.stage_num) + " (" + str(self.id) + ")"
+        return "Stage " + str(self.id)
 
 
 class DungeonProgress(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    dungeon = models.ForeignKey(Dungeon, on_delete=models.CASCADE)
-    stage = models.ForeignKey(DungeonStage, on_delete=models.CASCADE)
+    stage_id = models.IntegerField()
 
     def __str__(self):
-        return str(self.user.id) + ": dungeon " + str(self.dungeon.id) + ", stage " + str(self.stage.stage_num)
+        return "user " + str(self.user.id) + ": stage " + str(self.stage_id)
 
 
 @receiver(post_save, sender=User)
@@ -265,6 +255,7 @@ def create_user_info(sender, instance, created, **kwargs):
         UserStats.objects.create(user=instance)
         Inventory.objects.create(user=instance)
         ClanMember.objects.create(userinfo=userinfo)
+        DungeonProgress.objects.create(user=instance, stage_id=1)
 
 
 @receiver(post_save, sender=User)
