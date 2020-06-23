@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -7,8 +8,11 @@ from playerdata.models import PlayerQuestCumulative
 from playerdata.models import PlayerQuestWeekly
 from playerdata.models import PlayerQuestDaily
 
+from .serializers import ClaimQuestSerializer
+
 
 class QuestSchema(Schema):
+    id = fields.Int()
     title = fields.Str(attribute='base_quest.title')
     total = fields.Int(attribute='base_quest.total')
     gems = fields.Int(attribute='base_quest.gems')
@@ -24,17 +28,27 @@ class QuestSchema(Schema):
     expiration_date = fields.DateTime()
 
 
+def award_quest(user_inventory, quest_base, quest):
+    user_inventory.coins += quest_base.coins
+    user_inventory.gems += quest_base.gems
+    # TODO: items and characters
+    user_inventory.save()
+
+    quest.claimed = True
+    quest.save()
+
+
 class QuestView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        cumulative_quests = PlayerQuestCumulative.objects.filter(user=request.user)\
+        cumulative_quests = PlayerQuestCumulative.objects.filter(user=request.user, claimed=False)\
             .select_related('base_quest__item_type').select_related('base_quest__char_type')
 
-        weekly_quests = PlayerQuestWeekly.objects.filter(user=request.user)\
+        weekly_quests = PlayerQuestWeekly.objects.filter(user=request.user, claimed=False)\
             .select_related('base_quest__item_type').select_related('base_quest__char_type')
 
-        daily_quests = PlayerQuestDaily.objects.filter(user=request.user)\
+        daily_quests = PlayerQuestDaily.objects.filter(user=request.user, claimed=False)\
             .select_related('base_quest__item_type').select_related('base_quest__char_type')
 
         cumulative_schema = QuestSchema(cumulative_quests, many=True)
@@ -44,3 +58,42 @@ class QuestView(APIView):
         return Response({'cumulative_quests': cumulative_schema.data,
                          'weekly_quests': weekly_schema.data,
                          'daily_quests': daily_schema.data})
+
+
+def handle_claim_quest(request, quest_class):
+    serializer = ClaimQuestSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    quest_id = serializer.validated_data['quest_id']
+    user = request.user
+
+    try:
+        quest = quest_class.objects.get(user=request.user, id=quest_id)
+    except ObjectDoesNotExist:
+        return Response({'status': False, 'reason': 'invalid quest_id: ' + quest_id})
+
+    if quest.progress >= quest.base_quest.total:
+        award_quest(user.inventory, quest.base_quest, quest)
+        return Response({'status': True})
+
+    return Response({'status': False, 'reason': 'quest is still in progress'})
+
+
+class ClaimQuestCumulativeView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        handle_claim_quest(request, PlayerQuestCumulative)
+
+
+class ClaimQuestWeeklyView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        handle_claim_quest(request, PlayerQuestWeekly)
+
+
+class ClaimQuestDailyView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        handle_claim_quest(request, PlayerQuestDaily)
