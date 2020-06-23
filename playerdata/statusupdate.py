@@ -3,9 +3,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .questupdater import QuestUpdater
 from .serializers import UploadResultSerializer
 
-from playerdata.models import BaseCharacter
 from playerdata.models import Character
 from playerdata.models import UserStats
 
@@ -33,11 +33,14 @@ class UploadResultView(APIView):
         opponent = valid_data['opponent_id']
         stats = valid_data['stats']
 
+        total_damage_dealt_stat = 0
+
         # Update stats per hero
         for stat in stats:
             char_id = stat['id']
             hero = Character.objects.select_related('char_type__basecharacterusage').get(char_id=char_id)
             hero.total_damage_dealt += stat['damage_dealt']
+            total_damage_dealt_stat += stat['damage_dealt']
             hero.total_damage_taken += stat['damage_taken']
             hero.total_health_healed += stat['health_healed']
             hero.num_games += 1
@@ -47,6 +50,8 @@ class UploadResultView(APIView):
             hero.char_type.basecharacterusage.num_games += 1
             hero.char_type.basecharacterusage.num_wins += 1 if win else 0
             hero.char_type.basecharacterusage.save()
+
+        QuestUpdater.add_update_type(request.user, QuestUpdater.DAMAGE_DEALT, total_damage_dealt_stat)
 
         user_stats = UserStats.objects.get(user=request.user)
         opponent_stats = UserStats.objects.get(user_id=opponent)

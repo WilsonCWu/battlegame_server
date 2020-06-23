@@ -248,6 +248,54 @@ class DungeonProgress(models.Model):
         return "user " + str(self.user.id) + ": stage " + str(self.stage_id)
 
 
+class BaseQuest(models.Model):
+    title = models.TextField()
+    type = models.IntegerField()
+    total = models.IntegerField()
+    gems = models.IntegerField(null=True)
+    coins = models.IntegerField(null=True)
+    item_type = models.ForeignKey(BaseItem, on_delete=models.CASCADE, blank=True, null=True)
+    char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE, blank=True, null=True)
+
+    def __str__(self):
+        return "(" + str(self.id) + ") " + self.title
+
+
+class PlayerQuestCumulative(models.Model):
+    base_quest = models.ForeignKey(BaseQuest, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    progress = models.IntegerField(default=0)
+    completed = models.BooleanField(default=False)
+    claimed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return "user:" + str(self.user_id) + " " + self.base_quest.title
+
+
+class PlayerQuestDaily(models.Model):
+    base_quest = models.ForeignKey(BaseQuest, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    progress = models.IntegerField(default=0)
+    completed = models.BooleanField(default=False)
+    claimed = models.BooleanField(default=False)
+    expiration_date = models.DateTimeField()
+
+    def __str__(self):
+        return "user:" + str(self.user_id) + " " + self.base_quest.title
+
+
+class PlayerQuestWeekly(models.Model):
+    base_quest = models.ForeignKey(BaseQuest, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    progress = models.IntegerField(default=0)
+    completed = models.BooleanField(default=False)
+    claimed = models.BooleanField(default=False)
+    expiration_date = models.DateTimeField()
+
+    def __str__(self):
+        return "user:" + str(self.user_id) + " " + self.base_quest.title
+
+
 @receiver(post_save, sender=User)
 def create_user_info(sender, instance, created, **kwargs):
     if created:

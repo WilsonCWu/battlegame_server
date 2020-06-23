@@ -19,6 +19,10 @@ from .models import ClanMember
 from .models import ClanRequest
 from .models import DungeonStage
 from .models import DungeonProgress
+from .models import BaseQuest
+from .models import PlayerQuestCumulative
+from .models import PlayerQuestDaily
+from .models import PlayerQuestWeekly
 
 admin.site.register(DungeonStage)
 admin.site.register(DungeonProgress)
@@ -42,3 +46,8 @@ admin.site.register(FriendRequest)
 admin.site.register(Clan)
 admin.site.register(ClanMember)
 admin.site.register(ClanRequest)
+
+admin.site.register(BaseQuest)
+admin.site.register(PlayerQuestCumulative)
+admin.site.register(PlayerQuestDaily)
+admin.site.register(PlayerQuestWeekly)
