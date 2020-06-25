@@ -51,7 +51,7 @@ class UploadResultView(APIView):
             hero.char_type.basecharacterusage.num_wins += 1 if win else 0
             hero.char_type.basecharacterusage.save()
 
-        QuestUpdater.add_update_type(request.user, QuestUpdater.DAMAGE_DEALT, total_damage_dealt_stat)
+        QuestUpdater.add_progress_by_type(request.user, QuestUpdater.DAMAGE_DEALT, total_damage_dealt_stat)
 
         user_stats = UserStats.objects.get(user=request.user)
         opponent_stats = UserStats.objects.get(user_id=opponent)
@@ -61,6 +61,7 @@ class UploadResultView(APIView):
 
         if win:
             user_stats.num_wins += 1
+            QuestUpdater.add_progress_by_type(request.user, QuestUpdater.WIN_QUICKPLAY_GAMES, 1)
         else:
             opponent_stats.num_wins += 1
 

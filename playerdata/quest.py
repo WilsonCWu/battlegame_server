@@ -71,7 +71,7 @@ def handle_claim_quest(request, quest_class):
     except ObjectDoesNotExist:
         return Response({'status': False, 'reason': 'invalid quest_id: ' + quest_id})
 
-    if quest.progress >= quest.base_quest.total:
+    if quest.completed and not quest.claimed and quest.progress >= quest.base_quest.total:
         award_quest(user.inventory, quest.base_quest, quest)
         return Response({'status': True})
 
