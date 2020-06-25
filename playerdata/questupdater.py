@@ -25,7 +25,8 @@ def set_progress_to_quest_list(progress, quests):
 
 class QuestUpdater:
 
-    # Generic
+    # Constant Quest types
+    # Comments are for reference of how these quests should track progress / total
     DAMAGE_DEALT = 0  # Tracked / total damage
     COINS_EARNED = 1
     ULTS_USED = 2

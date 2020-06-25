@@ -34,7 +34,7 @@ class DungeonSetProgressView(APIView):
         progress.stage_id += 1
         progress.save()
 
-        QuestUpdater.add_progress_by_type(request.user, QuestUpdater.REACH_DUNGEON_LEVEL, progress.stage_id - 1)
+        QuestUpdater.set_progress_by_type(request.user, QuestUpdater.REACH_DUNGEON_LEVEL, progress.stage_id - 1)
         QuestUpdater.add_progress_by_type(request.user, QuestUpdater.WIN_DUNGEON_GAMES, 1)
 
         return Response({'status': True})
