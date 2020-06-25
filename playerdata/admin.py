@@ -23,6 +23,9 @@ from .models import BaseQuest
 from .models import PlayerQuestCumulative
 from .models import PlayerQuestDaily
 from .models import PlayerQuestWeekly
+from .models import ActiveDailyQuest
+from .models import ActiveWeeklyQuest
+from .models import ActiveCumulativeQuest
 
 admin.site.register(DungeonStage)
 admin.site.register(DungeonProgress)
@@ -51,3 +54,7 @@ admin.site.register(BaseQuest)
 admin.site.register(PlayerQuestCumulative)
 admin.site.register(PlayerQuestDaily)
 admin.site.register(PlayerQuestWeekly)
+
+admin.site.register(ActiveCumulativeQuest)
+admin.site.register(ActiveDailyQuest)
+admin.site.register(ActiveWeeklyQuest)

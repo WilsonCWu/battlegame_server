@@ -27,7 +27,7 @@ class QuestUpdater:
 
     # Generic
     DAMAGE_DEALT = 0  # Tracked / total damage
-    COINS_EARNED = 1  # / total coins
+    COINS_EARNED = 1
     ULTS_USED = 2
     LEVEL_UP_A_HERO = 3
     PURCHASE_ITEM = 4

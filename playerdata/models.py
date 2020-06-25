@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from datetime import datetime, date, time, timedelta
 
 class BaseCharacter(models.Model):
     char_type = models.IntegerField(primary_key=True)
@@ -296,6 +297,27 @@ class PlayerQuestWeekly(models.Model):
         return "user:" + str(self.user_id) + " " + self.base_quest.title
 
 
+class ActiveCumulativeQuest(models.Model):
+    base_quest = models.ForeignKey(BaseQuest, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "(" + str(self.id) + ") " + self.base_quest.title
+
+
+class ActiveWeeklyQuest(models.Model):
+    base_quest = models.ForeignKey(BaseQuest, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "(" + str(self.id) + ") " + self.base_quest.title
+
+
+class ActiveDailyQuest(models.Model):
+    base_quest = models.ForeignKey(BaseQuest, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "(" + str(self.id) + ") " + self.base_quest.title
+
+
 @receiver(post_save, sender=User)
 def create_user_info(sender, instance, created, **kwargs):
     if created:
@@ -304,6 +326,36 @@ def create_user_info(sender, instance, created, **kwargs):
         Inventory.objects.create(user=instance)
         ClanMember.objects.create(userinfo=userinfo)
         DungeonProgress.objects.create(user=instance, stage_id=1)
+        # Add quests
+        expiry_date_weekly = get_expiration_date(7)
+        expiry_date_daily = get_expiration_date(1)
+        create_quests_by_class(instance, ActiveCumulativeQuest.objects.all(), PlayerQuestCumulative, None)
+        create_quests_by_class(instance, ActiveWeeklyQuest.objects.all()[:3], PlayerQuestWeekly, expiry_date_weekly)
+        create_quests_by_class(instance, ActiveDailyQuest.objects.all()[:5], PlayerQuestDaily, expiry_date_daily)
+
+
+def create_quests_by_class(user, active_quests, quest_class, expiry_date):
+    cumulative_quests = []
+    for quest in active_quests:
+        if quest_class is PlayerQuestCumulative:
+            player_quest = quest_class(base_quest=quest.base_quest, user=user)
+        else:
+            player_quest = quest_class(base_quest=quest.base_quest, user=user, expiration_date=expiry_date)
+
+        cumulative_quests.append(player_quest)
+    quest_class.objects.bulk_create(cumulative_quests)
+
+
+# Gets the next expiration date which is just midnight no time zone
+def get_expiration_date(interval):
+    if interval is 1:
+        delta = 1
+    else:
+        delta = (7 - datetime.today().weekday()) % 7
+        if delta is 0:
+            delta = 7
+
+    return datetime.combine(date.today(), time()) + timedelta(days=delta)
 
 
 @receiver(post_save, sender=User)
