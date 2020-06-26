@@ -5,6 +5,9 @@ from django.dispatch import receiver
 
 from datetime import datetime, date, time, timedelta
 
+from playerdata import constants
+
+
 class BaseCharacter(models.Model):
     char_type = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=30, unique=True)
@@ -262,10 +265,19 @@ class BaseQuest(models.Model):
         return "(" + str(self.id) + ") " + self.title
 
 
+class CumulativeTracker(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    progress = models.IntegerField(default=0)
+    type = models.IntegerField()
+
+    def __str__(self):
+        return "user: " + str(self.user.id) + ", type " + str(self.type) + ", progress: " + str(self.progress)
+
+
 class PlayerQuestCumulative(models.Model):
     base_quest = models.ForeignKey(BaseQuest, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    progress = models.IntegerField(default=0)
+    progress = models.ForeignKey(CumulativeTracker, on_delete=models.CASCADE)
     completed = models.BooleanField(default=False)
     claimed = models.BooleanField(default=False)
 
@@ -329,21 +341,30 @@ def create_user_info(sender, instance, created, **kwargs):
         # Add quests
         expiry_date_weekly = get_expiration_date(7)
         expiry_date_daily = get_expiration_date(1)
-        create_quests_by_class(instance, ActiveCumulativeQuest.objects.all(), PlayerQuestCumulative, None)
+        create_cumulative_quests(instance)
         create_quests_by_class(instance, ActiveWeeklyQuest.objects.all()[:3], PlayerQuestWeekly, expiry_date_weekly)
         create_quests_by_class(instance, ActiveDailyQuest.objects.all()[:5], PlayerQuestDaily, expiry_date_daily)
 
 
-def create_quests_by_class(user, active_quests, quest_class, expiry_date):
+def create_cumulative_quests(user):
     cumulative_quests = []
+    active_quests = ActiveCumulativeQuest.objects.all()
     for quest in active_quests:
-        if quest_class is PlayerQuestCumulative:
-            player_quest = quest_class(base_quest=quest.base_quest, user=user)
+        if quest.base_quest.type is constants.REACH_DUNGEON_LEVEL:
+            progress_tracker, _ = CumulativeTracker.objects.get_or_create(user=user, type=quest.base_quest.type, progress=1)
         else:
-            player_quest = quest_class(base_quest=quest.base_quest, user=user, expiration_date=expiry_date)
-
+            progress_tracker, _ = CumulativeTracker.objects.get_or_create(user=user, type=quest.base_quest.type)
+        player_quest = PlayerQuestCumulative(base_quest=quest.base_quest, user=user, progress=progress_tracker)
         cumulative_quests.append(player_quest)
-    quest_class.objects.bulk_create(cumulative_quests)
+    PlayerQuestCumulative.objects.bulk_create(cumulative_quests)
+
+
+def create_quests_by_class(user, active_quests, quest_class, expiry_date):
+    bulk_quests = []
+    for quest in active_quests:
+        player_quest = quest_class(base_quest=quest.base_quest, user=user, expiration_date=expiry_date)
+        bulk_quests.append(player_quest)
+    quest_class.objects.bulk_create(bulk_quests)
 
 
 # Gets the next expiration date which is just midnight no time zone

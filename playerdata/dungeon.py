@@ -6,6 +6,7 @@ from rest_marshmallow import Schema, fields
 
 from playerdata.models import DungeonProgress
 from playerdata.models import DungeonStage
+from . import constants
 
 from .matcher import PlacementSchema
 from .questupdater import QuestUpdater
@@ -34,8 +35,8 @@ class DungeonSetProgressView(APIView):
         progress.stage_id += 1
         progress.save()
 
-        QuestUpdater.set_progress_by_type(request.user, QuestUpdater.REACH_DUNGEON_LEVEL, progress.stage_id - 1)
-        QuestUpdater.add_progress_by_type(request.user, QuestUpdater.WIN_DUNGEON_GAMES, 1)
+        QuestUpdater.add_progress_by_type(request.user, constants.REACH_DUNGEON_LEVEL, 1)
+        QuestUpdater.add_progress_by_type(request.user, constants.WIN_DUNGEON_GAMES, 1)
 
         return Response({'status': True})
 
