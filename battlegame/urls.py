@@ -23,8 +23,13 @@ from playerdata import statusupdate
 from playerdata import purchases
 from playerdata import social
 from playerdata import dungeon
+from playerdata import quest
 
 urlpatterns = [
+    path('quest/get', quest.QuestView.as_view()),
+    path('quest/claim/cumulative', quest.ClaimQuestCumulativeView.as_view()),
+    path('quest/claim/weekly', quest.ClaimQuestWeeklyView.as_view()),
+    path('quest/claim/daily', quest.ClaimQuestDailyView.as_view()),
     path('friendrequest/accept/', social.AcceptFriendRequestView.as_view()),
     path('profilepicture/update/', social.UpdateProfilePictureView.as_view()),
     path('friendrequest/create/', social.CreateFriendRequestView.as_view()),

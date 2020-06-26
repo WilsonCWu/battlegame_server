@@ -15,7 +15,9 @@ from playerdata.models import ClanRequest
 from playerdata.models import Friend
 from playerdata.models import FriendRequest
 from playerdata.models import UserInfo
+from . import constants
 from .matcher import UserInfoSchema
+from .questupdater import QuestUpdater
 from .serializers import AcceptFriendRequestSerializer
 from .serializers import GetUserSerializer
 from .serializers import NewClanSerializer
@@ -96,6 +98,9 @@ class AcceptFriendRequestView(APIView):
         friend = Friend.objects.create(user_1=friend_request.user, user_2=friend_request.target, chat=chat)
 
         friend_request.delete()
+
+        QuestUpdater.add_progress_by_type(request.user, constants.MAKE_A_FRIEND, 1)
+        QuestUpdater.add_progress_by_type(friend_request.user, constants.MAKE_A_FRIEND, 1)
 
         return Response({'status': True})
 
@@ -456,6 +461,8 @@ class UpdateClanRequestView(APIView):
 
         clan.num_members += 1
         clan.save()
+
+        QuestUpdater.add_progress_by_type(target_clanmember.userinfo.user, constants.JOIN_GUILD, 1)
 
         ClanRequest.objects.filter(userinfo=target_clanmember.userinfo).delete()
 

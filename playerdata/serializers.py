@@ -69,3 +69,7 @@ class UpdateClanRequestSerializer(serializers.Serializer):
 
 class DungeonStageSerializer(serializers.Serializer):
     stage_id = serializers.IntegerField(required=True)
+
+
+class ClaimQuestSerializer(serializers.Serializer):
+    quest_id = serializers.IntegerField(required=True)

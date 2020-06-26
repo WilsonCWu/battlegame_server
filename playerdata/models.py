@@ -3,6 +3,10 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from datetime import datetime, date, time, timedelta
+
+from playerdata import constants
+
 
 class BaseCharacter(models.Model):
     char_type = models.IntegerField(primary_key=True)
@@ -248,6 +252,84 @@ class DungeonProgress(models.Model):
         return "user " + str(self.user.id) + ": stage " + str(self.stage_id)
 
 
+class BaseQuest(models.Model):
+    title = models.TextField()
+    type = models.IntegerField()
+    total = models.IntegerField()
+    gems = models.IntegerField(null=True)
+    coins = models.IntegerField(null=True)
+    item_type = models.ForeignKey(BaseItem, on_delete=models.CASCADE, blank=True, null=True)
+    char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE, blank=True, null=True)
+
+    def __str__(self):
+        return "(" + str(self.id) + ") " + self.title
+
+
+class CumulativeTracker(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    progress = models.IntegerField(default=0)
+    type = models.IntegerField()
+
+    def __str__(self):
+        return "user: " + str(self.user.id) + ", type " + str(self.type) + ", progress: " + str(self.progress)
+
+
+class PlayerQuestCumulative(models.Model):
+    base_quest = models.ForeignKey(BaseQuest, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    progress = models.ForeignKey(CumulativeTracker, on_delete=models.CASCADE)
+    completed = models.BooleanField(default=False)
+    claimed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return "user:" + str(self.user_id) + " " + self.base_quest.title
+
+
+class PlayerQuestDaily(models.Model):
+    base_quest = models.ForeignKey(BaseQuest, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    progress = models.IntegerField(default=0)
+    completed = models.BooleanField(default=False)
+    claimed = models.BooleanField(default=False)
+    expiration_date = models.DateTimeField()
+
+    def __str__(self):
+        return "user:" + str(self.user_id) + " " + self.base_quest.title
+
+
+class PlayerQuestWeekly(models.Model):
+    base_quest = models.ForeignKey(BaseQuest, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    progress = models.IntegerField(default=0)
+    completed = models.BooleanField(default=False)
+    claimed = models.BooleanField(default=False)
+    expiration_date = models.DateTimeField()
+
+    def __str__(self):
+        return "user:" + str(self.user_id) + " " + self.base_quest.title
+
+
+class ActiveCumulativeQuest(models.Model):
+    base_quest = models.ForeignKey(BaseQuest, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "(" + str(self.id) + ") " + self.base_quest.title
+
+
+class ActiveWeeklyQuest(models.Model):
+    base_quest = models.ForeignKey(BaseQuest, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "(" + str(self.id) + ") " + self.base_quest.title
+
+
+class ActiveDailyQuest(models.Model):
+    base_quest = models.ForeignKey(BaseQuest, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "(" + str(self.id) + ") " + self.base_quest.title
+
+
 @receiver(post_save, sender=User)
 def create_user_info(sender, instance, created, **kwargs):
     if created:
@@ -256,6 +338,45 @@ def create_user_info(sender, instance, created, **kwargs):
         Inventory.objects.create(user=instance)
         ClanMember.objects.create(userinfo=userinfo)
         DungeonProgress.objects.create(user=instance, stage_id=1)
+        # Add quests
+        expiry_date_weekly = get_expiration_date(7)
+        expiry_date_daily = get_expiration_date(1)
+        create_cumulative_quests(instance)
+        create_quests_by_class(instance, ActiveWeeklyQuest.objects.all()[:3], PlayerQuestWeekly, expiry_date_weekly)
+        create_quests_by_class(instance, ActiveDailyQuest.objects.all()[:5], PlayerQuestDaily, expiry_date_daily)
+
+
+def create_cumulative_quests(user):
+    cumulative_quests = []
+    active_quests = ActiveCumulativeQuest.objects.all()
+    for quest in active_quests:
+        if quest.base_quest.type is constants.REACH_DUNGEON_LEVEL:
+            progress_tracker, _ = CumulativeTracker.objects.get_or_create(user=user, type=quest.base_quest.type, progress=1)
+        else:
+            progress_tracker, _ = CumulativeTracker.objects.get_or_create(user=user, type=quest.base_quest.type)
+        player_quest = PlayerQuestCumulative(base_quest=quest.base_quest, user=user, progress=progress_tracker)
+        cumulative_quests.append(player_quest)
+    PlayerQuestCumulative.objects.bulk_create(cumulative_quests)
+
+
+def create_quests_by_class(user, active_quests, quest_class, expiry_date):
+    bulk_quests = []
+    for quest in active_quests:
+        player_quest = quest_class(base_quest=quest.base_quest, user=user, expiration_date=expiry_date)
+        bulk_quests.append(player_quest)
+    quest_class.objects.bulk_create(bulk_quests)
+
+
+# Gets the next expiration date which is just midnight no time zone
+def get_expiration_date(interval):
+    if interval is 1:
+        delta = 1
+    else:
+        delta = (7 - datetime.today().weekday()) % 7
+        if delta is 0:
+            delta = 7
+
+    return datetime.combine(date.today(), time()) + timedelta(days=delta)
 
 
 @receiver(post_save, sender=User)
