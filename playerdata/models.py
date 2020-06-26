@@ -342,8 +342,8 @@ def create_user_info(sender, instance, created, **kwargs):
         expiry_date_weekly = get_expiration_date(7)
         expiry_date_daily = get_expiration_date(1)
         create_cumulative_quests(instance)
-        create_quests_by_class(instance, ActiveWeeklyQuest.objects.all()[:3], PlayerQuestWeekly, expiry_date_weekly)
-        create_quests_by_class(instance, ActiveDailyQuest.objects.all()[:5], PlayerQuestDaily, expiry_date_daily)
+        create_quests_by_class(instance, ActiveWeeklyQuest.objects.all()[:constants.NUM_DAILY_QUESTS], PlayerQuestWeekly, expiry_date_weekly)
+        create_quests_by_class(instance, ActiveDailyQuest.objects.all()[:constants.NUM_WEEKLY_QUESTS], PlayerQuestDaily, expiry_date_daily)
 
 
 def create_cumulative_quests(user):

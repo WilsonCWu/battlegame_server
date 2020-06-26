@@ -1,3 +1,8 @@
+# Constants
+
+NUM_DAILY_QUESTS = 3
+NUM_WEEKLY_QUESTS = 5
+
 # Constant Quest types
 # Comments are for reference of how these quests should track progress / total
 DAMAGE_DEALT = 0  # Tracked / total damage
