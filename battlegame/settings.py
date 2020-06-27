@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'django_extensions',
+    'django_crontab',
 
     'chat',
     'playerdata',    
@@ -147,3 +148,10 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ],
 }
+
+
+# Cron jobs
+CRONJOBS = [
+    ('0 0 * * *', 'battlegame.cron.daily_quests_cron', '>> /tmp/daily_scheduled_job.log'),
+    ('0 0 * * MON', 'battlegame.cron.weekly_quests_cron', '>> /tmp/weekly_scheduled_job.log')
+]
