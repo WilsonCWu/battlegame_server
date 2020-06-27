@@ -1,3 +1,5 @@
+from django.core.exceptions import ObjectDoesNotExist
+
 from playerdata.models import PlayerQuestCumulative
 from playerdata.models import PlayerQuestWeekly
 from playerdata.models import PlayerQuestDaily
@@ -45,8 +47,11 @@ class QuestUpdater:
         weekly_quests = PlayerQuestWeekly.objects.select_related('base_quest').filter(user=user, base_quest__type=UPDATE_TYPE, completed=False, claimed=False)
         daily_quests = PlayerQuestDaily.objects.select_related('base_quest').filter(user=user, base_quest__type=UPDATE_TYPE, completed=False, claimed=False)
 
-        tracker = CumulativeTracker.objects.get(user=user, type=UPDATE_TYPE)
-        update_cumulative_progress(amount, cumulative_quests, tracker)
+        try:
+            tracker = CumulativeTracker.objects.get(user=user, type=UPDATE_TYPE)
+            update_cumulative_progress(amount, cumulative_quests, tracker)
+        except ObjectDoesNotExist:
+            pass
 
         add_progress_to_quest_list(amount, weekly_quests)
         add_progress_to_quest_list(amount, daily_quests)
