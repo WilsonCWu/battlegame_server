@@ -59,13 +59,16 @@ class QuestView(APIView):
 
     def get(self, request):
         cumulative_quests = PlayerQuestCumulative.objects.filter(user=request.user, claimed=False)\
-            .select_related('base_quest__item_type').select_related('base_quest__char_type')
+            .select_related('base_quest__item_type').select_related('base_quest__char_type')\
+            .order_by('-completed')
 
-        weekly_quests = PlayerQuestWeekly.objects.filter(user=request.user, claimed=False)\
-            .select_related('base_quest__item_type').select_related('base_quest__char_type')
+        weekly_quests = PlayerQuestWeekly.objects.filter(user=request.user)\
+            .select_related('base_quest__item_type').select_related('base_quest__char_type')\
+            .order_by('claimed', '-completed')
 
-        daily_quests = PlayerQuestDaily.objects.filter(user=request.user, claimed=False)\
-            .select_related('base_quest__item_type').select_related('base_quest__char_type')
+        daily_quests = PlayerQuestDaily.objects.filter(user=request.user)\
+            .select_related('base_quest__item_type').select_related('base_quest__char_type')\
+            .order_by('claimed', '-completed')
 
         cumulative_schema = CumulativeQuestSchema(cumulative_quests, many=True)
         weekly_schema = QuestSchema(weekly_quests, many=True)
