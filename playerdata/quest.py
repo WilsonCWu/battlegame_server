@@ -14,6 +14,7 @@ from .serializers import ClaimQuestSerializer
 class CumulativeQuestSchema(Schema):
     id = fields.Int()
     title = fields.Str(attribute='base_quest.title')
+    type = fields.Str(attribute='base_quest.type')
     total = fields.Int(attribute='base_quest.total')
     gems = fields.Int(attribute='base_quest.gems')
     coins = fields.Int(attribute='base_quest.coins')
@@ -30,6 +31,7 @@ class CumulativeQuestSchema(Schema):
 class QuestSchema(Schema):
     id = fields.Int()
     title = fields.Str(attribute='base_quest.title')
+    type = fields.Str(attribute='base_quest.type')
     total = fields.Int(attribute='base_quest.total')
     gems = fields.Int(attribute='base_quest.gems')
     coins = fields.Int(attribute='base_quest.coins')
