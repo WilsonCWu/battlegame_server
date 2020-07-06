@@ -27,6 +27,8 @@ from .models import ActiveDailyQuest
 from .models import ActiveWeeklyQuest
 from .models import ActiveCumulativeQuest
 from .models import CumulativeTracker
+from .models import BaseCode
+from .models import ClaimedCode
 
 admin.site.register(DungeonStage)
 admin.site.register(DungeonProgress)
@@ -60,3 +62,6 @@ admin.site.register(CumulativeTracker)
 admin.site.register(ActiveCumulativeQuest)
 admin.site.register(ActiveDailyQuest)
 admin.site.register(ActiveWeeklyQuest)
+
+admin.site.register(BaseCode)
+admin.site.register(ClaimedCode)

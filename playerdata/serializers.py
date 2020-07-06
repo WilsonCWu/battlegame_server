@@ -73,3 +73,7 @@ class DungeonStageSerializer(serializers.Serializer):
 
 class ClaimQuestSerializer(serializers.Serializer):
     quest_id = serializers.IntegerField(required=True)
+
+
+class RedeemCodeSerializer(serializers.Serializer):
+    code = serializers.CharField(required=True)

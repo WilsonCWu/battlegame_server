@@ -63,17 +63,16 @@ def generateCharacter():
 
     return chosenChar
 
-def insertCharacter(user, chosenChar):
 
-    oldCharSet = Character.objects.filter(user=user,char_type=chosenChar)
+def insert_character(user, chosen_char):
+    old_char = Character.objects.filter(user=user, char_type=chosen_char).first()
 
-    if oldCharSet:
-        oldChar = oldCharSet[0]
-        oldChar.copies += 1
-        oldChar.save()
+    if old_char:
+        old_char.copies += 1
+        old_char.save()
         return
 
-    Character.objects.create(user=user, char_type=chosenChar)
+    Character.objects.create(user=user, char_type=chosen_char)
 
 class PurchaseItemView(APIView):
     
@@ -100,7 +99,7 @@ class PurchaseItemView(APIView):
 
             for i in range(0,10):
                 newChar = generateCharacter()
-                insertCharacter(user, newChar)
+                insert_character(user, newChar)
                 newCharTypes.append(newChar.char_type)
             
             return Response({"status":0, "characters":newCharTypes})
