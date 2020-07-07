@@ -68,16 +68,14 @@ class RedeemCodeView(APIView):
         if ClaimedCode.objects.filter(user=request.user, code__code=code).exists():
             return Response({'status': False, 'reason': 'code has been redeemed already'})
 
-        if BaseCode.objects.filter(code=code).exists():
-            base_code = BaseCode.objects.get(code=code)
+        base_code = BaseCode.objects.filter(code=code).first()
+        if base_code is None:
+            return Response({'status': False, 'reason': 'invalid redemption code'})
 
-            if is_valid_code(base_code):
-                award_code(request.user, base_code)
-                ClaimedCode.objects.create(user=request.user, code=base_code)
-                redeem_code_schema = RedeemCodeSchema(base_code)
-                return Response({'rewards': redeem_code_schema.data})
-
+        if not is_valid_code(base_code):
             return Response({'status': False, 'reason': 'code has expired'})
 
-        return Response({'status': False, 'reason': 'invalid redemption code'})
-
+        award_code(request.user, base_code)
+        ClaimedCode.objects.create(user=request.user, code=base_code)
+        redeem_code_schema = RedeemCodeSchema(base_code)
+        return Response({'rewards': redeem_code_schema.data})
