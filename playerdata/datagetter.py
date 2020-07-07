@@ -51,6 +51,7 @@ class ItemSchema(Schema):
     user_id = fields.Int(attribute='user_id')
     item_type = fields.Int(attribute='item_type_id')
     exp = fields.Int()
+    copies = fields.Int()
 
 
 class CharacterSchema(Schema):

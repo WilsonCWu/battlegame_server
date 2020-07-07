@@ -24,8 +24,10 @@ from playerdata import purchases
 from playerdata import social
 from playerdata import dungeon
 from playerdata import quest
+from playerdata import redemptioncodes
 
 urlpatterns = [
+    path('redeemcode', redemptioncodes.RedeemCodeView.as_view()),
     path('quest/get', quest.QuestView.as_view()),
     path('quest/claim/cumulative', quest.ClaimQuestCumulativeView.as_view()),
     path('quest/claim/weekly', quest.ClaimQuestWeeklyView.as_view()),

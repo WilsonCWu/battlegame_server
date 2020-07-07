@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 
 from .models import BaseCharacter
 from .models import BaseCharacterUsage
@@ -27,6 +28,13 @@ from .models import ActiveDailyQuest
 from .models import ActiveWeeklyQuest
 from .models import ActiveCumulativeQuest
 from .models import CumulativeTracker
+from .models import BaseCode
+from .models import ClaimedCode
+
+
+class BaseCodeAdmin(admin.ModelAdmin, DynamicArrayMixin):
+    pass
+
 
 admin.site.register(DungeonStage)
 admin.site.register(DungeonProgress)
@@ -60,3 +68,6 @@ admin.site.register(CumulativeTracker)
 admin.site.register(ActiveCumulativeQuest)
 admin.site.register(ActiveDailyQuest)
 admin.site.register(ActiveWeeklyQuest)
+
+admin.site.register(BaseCode, BaseCodeAdmin)
+admin.site.register(ClaimedCode)
