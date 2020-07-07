@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.postgres.fields import ArrayField
+from django_better_admin_arrayfield.models.fields import ArrayField
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -57,6 +57,7 @@ class Item(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     item_type = models.ForeignKey(BaseItem, on_delete=models.CASCADE)
     exp = models.IntegerField()
+    copies = models.IntegerField(default=1)
 
     class Meta:
         indexes = [
@@ -336,9 +337,11 @@ class BaseCode(models.Model):
     gems = models.IntegerField(default=0)
     coins = models.IntegerField(default=0)
     items = ArrayField(models.IntegerField(), blank=True, null=True)
+    item_amount = ArrayField(models.IntegerField(), blank=True, null=True)
     char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE, blank=True, null=True)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
+    num_left = models.IntegerField(default=-1)  # -1 infinite
 
     def __str__(self):
         return str(self.code)

@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'django_extensions',
     'django_crontab',
+    'django_better_admin_arrayfield',
 
     'chat',
     'playerdata',    

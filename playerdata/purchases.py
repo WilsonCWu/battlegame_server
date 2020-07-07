@@ -46,6 +46,7 @@ class PurchaseView(APIView):
 
         return Response({'status':True})
 
+
 def generateCharacter():
     
     odds = [5,15,30,100]
@@ -73,6 +74,7 @@ def insert_character(user, chosen_char):
         return
 
     Character.objects.create(user=user, char_type=chosen_char)
+
 
 class PurchaseItemView(APIView):
     

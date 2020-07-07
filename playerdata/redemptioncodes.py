@@ -19,7 +19,8 @@ class RedeemCodeSchema(Schema):
     code = fields.Str()
     gems = fields.Int()
     coins = fields.Int()
-    items = fields.List(fields.Str())
+    items = fields.List(fields.Int())
+    item_amount = fields.List(fields.Int())
     char_id = fields.Int(attribute='char_type.char_type')
     char_description = fields.Str(attribute='char_type.name')  # Replace with actual description
 
@@ -29,17 +30,31 @@ def award_code(user, base_code):
     user.inventory.gems += base_code.gems
 
     items_list = []
-    for item in base_code.items:
+    for item, quantity in zip(base_code.items, base_code.item_amount):
         # if item is not owned already
-        if not Item.objects.filter(user=user, item_type_id=item).exists():
-            items_list.append(Item(user=user, item_type_id=item))
+        existing_item = Item.objects.filter(user=user, item_type_id=item).first()
+        if existing_item is None:
+            items_list.append(Item(user=user, item_type_id=item, copies=quantity))
+        else:
+            existing_item.copies += quantity
+            existing_item.save()
 
     Item.objects.bulk_create(items_list)
 
     if base_code.char_type:
         insert_character(user, base_code.char_type)
 
+    if base_code.num_left is not -1:
+        base_code.num_left -= 1
+        base_code.save()
+
     user.inventory.save()
+
+
+def is_valid_code(base_code):
+    curr_time = timezone.now()
+    # check expiration and amount left
+    return base_code.start_time < curr_time < base_code.end_time and (base_code.num_left > 0 or base_code.num_left is -1)
 
 
 class RedeemCodeView(APIView):
@@ -52,18 +67,17 @@ class RedeemCodeView(APIView):
 
         if ClaimedCode.objects.filter(user=request.user, code__code=code).exists():
             return Response({'status': False, 'reason': 'code has been redeemed already'})
-        else:
-            if BaseCode.objects.filter(code=code).exists():
-                base_code = BaseCode.objects.get(code=code)
-                curr_time = timezone.now()
 
-                # check expiration
-                if base_code.start_time < curr_time < base_code.end_time:
-                    award_code(request.user, base_code)
-                    ClaimedCode.objects.create(user=request.user, code=base_code)
-                    redeem_code_schema = RedeemCodeSchema(base_code)
-                    return Response({'rewards': redeem_code_schema.data})
-                else:
-                    return Response({'status': False, 'reason': 'code has expired'})
-            else:
-                return Response({'status': False, 'reason': 'invalid redemption code'})
+        if BaseCode.objects.filter(code=code).exists():
+            base_code = BaseCode.objects.get(code=code)
+
+            if is_valid_code(base_code):
+                award_code(request.user, base_code)
+                ClaimedCode.objects.create(user=request.user, code=base_code)
+                redeem_code_schema = RedeemCodeSchema(base_code)
+                return Response({'rewards': redeem_code_schema.data})
+
+            return Response({'status': False, 'reason': 'code has expired'})
+
+        return Response({'status': False, 'reason': 'invalid redemption code'})
+
