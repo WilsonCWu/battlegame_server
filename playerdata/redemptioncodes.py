@@ -30,14 +30,15 @@ def award_code(user, base_code):
     user.inventory.gems += base_code.gems
 
     items_list = []
-    for item, quantity in zip(base_code.items, base_code.item_amount):
-        # if item is not owned already
-        existing_item = Item.objects.filter(user=user, item_type_id=item).first()
-        if existing_item is None:
-            items_list.append(Item(user=user, item_type_id=item, copies=quantity))
-        else:
-            existing_item.copies += quantity
-            existing_item.save()
+    if base_code.items:
+        for item, quantity in zip(base_code.items, base_code.item_amount):
+            # if item is not owned already
+            existing_item = Item.objects.filter(user=user, item_type_id=item).first()
+            if existing_item is None:
+                items_list.append(Item(user=user, item_type_id=item, copies=quantity))
+            else:
+                existing_item.copies += quantity
+                existing_item.save()
 
     Item.objects.bulk_create(items_list)
 
@@ -78,4 +79,4 @@ class RedeemCodeView(APIView):
         award_code(request.user, base_code)
         ClaimedCode.objects.create(user=request.user, code=base_code)
         redeem_code_schema = RedeemCodeSchema(base_code)
-        return Response({'rewards': redeem_code_schema.data})
+        return Response(redeem_code_schema.data)
