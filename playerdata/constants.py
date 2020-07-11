@@ -3,6 +3,8 @@
 NUM_DAILY_QUESTS = 3
 NUM_WEEKLY_QUESTS = 5
 
+DUNGEON_REFERRAL_CONVERSION_STAGE = 40
+
 # Constant Quest types
 # Comments are for reference of how these quests should track progress / total
 DAMAGE_DEALT = 0  # Tracked / total damage
@@ -21,3 +23,4 @@ WIN_DUNGEON_GAMES = 12  # Tracked / total games
 OWN_HEROES = 13
 REACH_PLAYER_LEVEL = 14
 REACH_DUNGEON_LEVEL = 15  # Tracked / total dungeon level
+REFERRAL = 16  # Tracked / total referrals

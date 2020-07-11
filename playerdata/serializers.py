@@ -77,3 +77,8 @@ class ClaimQuestSerializer(serializers.Serializer):
 
 class RedeemCodeSerializer(serializers.Serializer):
     code = serializers.CharField(required=True)
+
+
+class ClaimReferralSerializer(serializers.Serializer):
+    referral_code = serializers.CharField(required=True)
+    device_id = serializers.CharField(required=True)

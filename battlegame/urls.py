@@ -25,8 +25,10 @@ from playerdata import social
 from playerdata import dungeon
 from playerdata import quest
 from playerdata import redemptioncodes
+from playerdata import referral
 
 urlpatterns = [
+    path('referral', referral.ReferralView.as_view()),
     path('redeemcode', redemptioncodes.RedeemCodeView.as_view()),
     path('quest/get', quest.QuestView.as_view()),
     path('quest/claim/cumulative', quest.ClaimQuestCumulativeView.as_view()),

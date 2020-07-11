@@ -6,10 +6,12 @@ from rest_marshmallow import Schema, fields
 
 from playerdata.models import DungeonProgress
 from playerdata.models import DungeonStage
+from playerdata.models import ReferralTracker
 from . import constants
 
 from .matcher import PlacementSchema
 from .questupdater import QuestUpdater
+from .referral import award_referral
 
 from .serializers import DungeonStageSerializer
 
@@ -26,12 +28,25 @@ class DungeonStageSchema(Schema):
     mob = fields.Nested(PlacementSchema)
 
 
+def complete_referral_conversion(user):
+    referral_tracker = ReferralTracker.objects.filter(user=user).first()
+    if referral_tracker is not None and not referral_tracker.converted:
+        award_referral(referral_tracker.referral.user)
+        QuestUpdater.add_progress_by_type(referral_tracker.referral.user, constants.REFERRAL, 1)
+        referral_tracker.converted = True
+        referral_tracker.save()
+
+
 class DungeonSetProgressView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
         # Increment Dungeon progress
         progress = DungeonProgress.objects.get(user=request.user)
+
+        if progress.stage_id == constants.DUNGEON_REFERRAL_CONVERSION_STAGE:
+            complete_referral_conversion(request.user)
+
         progress.stage_id += 1
         progress.save()
 

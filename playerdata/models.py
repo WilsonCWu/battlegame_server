@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+import random, string
 from datetime import datetime, date, time, timedelta
 
 from playerdata import constants
@@ -355,6 +356,24 @@ class ClaimedCode(models.Model):
         return str(self.user) + ": " + str(self.code)
 
 
+class UserReferral(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    referral_code = models.TextField()
+
+    def __str__(self):
+        return str(self.user) + ": " + str(self.referral_code)
+
+
+class ReferralTracker(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    referral = models.ForeignKey(UserReferral, on_delete=models.CASCADE)
+    device_id = models.TextField()
+    converted = models.BooleanField(default=False)
+
+    def __str__(self):
+        return str(self.user) + ": " + str(self.referral.referral_code)
+
+
 @receiver(post_save, sender=User)
 def create_user_info(sender, instance, created, **kwargs):
     if created:
@@ -363,6 +382,7 @@ def create_user_info(sender, instance, created, **kwargs):
         Inventory.objects.create(user=instance)
         ClanMember.objects.create(userinfo=userinfo)
         DungeonProgress.objects.create(user=instance, stage_id=1)
+        UserReferral.objects.create(user=instance, referral_code=generate_referral_code())
         # Add quests
         expiry_date_weekly = get_expiration_date(7)
         expiry_date_daily = get_expiration_date(1)
@@ -402,6 +422,13 @@ def get_expiration_date(interval):
             delta = 7
 
     return datetime.combine(date.today(), time()) + timedelta(days=delta)
+
+
+# Generates a random 8 digit alphanumeric string
+# Collision rate is 1/2.1834011e+14
+# https://stackoverflow.com/questions/2511222/efficiently-generate-a-16-character-alphanumeric-string
+def generate_referral_code():
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=8))
 
 
 @receiver(post_save, sender=User)
