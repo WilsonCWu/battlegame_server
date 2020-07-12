@@ -30,7 +30,8 @@ from .models import ActiveCumulativeQuest
 from .models import CumulativeTracker
 from .models import BaseCode
 from .models import ClaimedCode
-
+from .models import UserReferral
+from .models import ReferralTracker
 
 class BaseCodeAdmin(admin.ModelAdmin, DynamicArrayMixin):
     pass
@@ -71,3 +72,6 @@ admin.site.register(ActiveWeeklyQuest)
 
 admin.site.register(BaseCode, BaseCodeAdmin)
 admin.site.register(ClaimedCode)
+
+admin.site.register(UserReferral)
+admin.site.register(ReferralTracker)
