@@ -9,7 +9,7 @@ from .serializers import ClaimReferralSerializer
 
 
 def award_referral(user):
-    user.inventory.gems += 500
+    user.inventory.gems += 5000
     user.inventory.save()
 
 

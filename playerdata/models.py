@@ -1,4 +1,5 @@
 from django.db import models
+from django.db import IntegrityError
 from django_better_admin_arrayfield.models.fields import ArrayField
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
@@ -358,7 +359,7 @@ class ClaimedCode(models.Model):
 
 class UserReferral(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    referral_code = models.TextField()
+    referral_code = models.TextField(unique=True)
 
     def __str__(self):
         return str(self.user) + ": " + str(self.referral_code)
@@ -374,6 +375,13 @@ class ReferralTracker(models.Model):
         return str(self.user) + ": " + str(self.referral.referral_code)
 
 
+def create_user_referral(user):
+    try:
+        UserReferral.objects.create(user=user, referral_code=generate_referral_code())
+    except IntegrityError:
+        create_user_referral(user)
+
+
 @receiver(post_save, sender=User)
 def create_user_info(sender, instance, created, **kwargs):
     if created:
@@ -382,7 +390,8 @@ def create_user_info(sender, instance, created, **kwargs):
         Inventory.objects.create(user=instance)
         ClanMember.objects.create(userinfo=userinfo)
         DungeonProgress.objects.create(user=instance, stage_id=1)
-        UserReferral.objects.create(user=instance, referral_code=generate_referral_code())
+        create_user_referral(instance)
+
         # Add quests
         expiry_date_weekly = get_expiration_date(7)
         expiry_date_daily = get_expiration_date(1)
@@ -424,11 +433,10 @@ def get_expiration_date(interval):
     return datetime.combine(date.today(), time()) + timedelta(days=delta)
 
 
-# Generates a random 8 digit alphanumeric string
-# Collision rate is 1/2.1834011e+14
+# Generates a random 12 letter uppercase string
 # https://stackoverflow.com/questions/2511222/efficiently-generate-a-16-character-alphanumeric-string
 def generate_referral_code():
-    return ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+    return ''.join(random.choices(string.ascii_uppercase, k=12))
 
 
 @receiver(post_save, sender=User)
