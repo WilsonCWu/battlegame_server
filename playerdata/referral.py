@@ -1,11 +1,16 @@
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_marshmallow import Schema, fields
 
 from playerdata.models import UserReferral
 from playerdata.models import ReferralTracker
 
 from .serializers import ClaimReferralSerializer
+
+
+class ReferralSchema(Schema):
+    referral_code = fields.Str()
 
 
 def award_referral(user):
@@ -15,6 +20,12 @@ def award_referral(user):
 
 class ReferralView(APIView):
     permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        user_ref = UserReferral.objects.get(user=request.user)
+        referral_schema = ReferralSchema(user_ref)
+        return Response(referral_schema.data)
+
 
     def post(self, request):
         serializer = ClaimReferralSerializer(data=request.data)
