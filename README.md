@@ -26,14 +26,14 @@ Migrate:
 
 Load existing data:
 1. ssh into server
-1. `./manage.py loaddata db.json`
+1. `./manage.py dumpdata --exclude auth.permission > db.json`
 1. `scp` it locally, then run `./manage.py loaddata db.json`
 
 ## Quests
 #### Creating new Cumulative Quest
 1. Create a `BaseQuest` with one of the types in `playerdata/constants.py` or create a new one
-    1. If it's a new type, add a new `CumulativeTracker` for each user with that type
-1. Create a `PlayerQuestCumulative` instance for each user for new `BaseQuest`
+1. Select the quest on the BaseQuest Admin Panel, and perform the
+"Propagate cumulative BaseQuest to all Users" action
 
 #### Queueing Daily/Weekly Quests
 Cron jobs update and remove the first n quests from each table at expiration time
