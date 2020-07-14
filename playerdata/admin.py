@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.contrib import messages
+from django.utils.translation import ngettext
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 
 from .models import BaseCharacter
@@ -6,6 +8,7 @@ from .models import BaseCharacterUsage
 from .models import BaseItem
 from .models import Character
 from .models import Item
+from .models import User
 from .models import UserInfo
 from .models import Placement
 from .models import Team
@@ -33,8 +36,30 @@ from .models import ClaimedCode
 from .models import UserReferral
 from .models import ReferralTracker
 
+
 class BaseCodeAdmin(admin.ModelAdmin, DynamicArrayMixin):
     pass
+
+
+class BaseQuestAdmin(admin.ModelAdmin):
+    actions = ['propagate_quests']
+
+    def propagate_quests(self, request, queryset):
+        bulk_quests = []
+        users = User.objects.all()
+        for quest in queryset:
+            for user in users:
+                progress_tracker, _ = CumulativeTracker.objects.get_or_create(user=user, type=quest.type)
+                player_quest = PlayerQuestCumulative(base_quest=quest, user=user, progress=progress_tracker)
+                bulk_quests.append(player_quest)
+
+        PlayerQuestCumulative.objects.bulk_create(bulk_quests)
+        self.message_user(request, ngettext(
+            '%d cumulative BaseQuest successfully propagated.',
+            '%d cumulative BaseQuests successfully propagated.',
+            len(queryset),
+        ) % len(queryset), messages.SUCCESS)
+    propagate_quests.short_description = "Propagate cumulative BaseQuest to all Users"
 
 
 admin.site.register(DungeonStage)
@@ -60,7 +85,7 @@ admin.site.register(Clan)
 admin.site.register(ClanMember)
 admin.site.register(ClanRequest)
 
-admin.site.register(BaseQuest)
+admin.site.register(BaseQuest, BaseQuestAdmin)
 admin.site.register(PlayerQuestCumulative)
 admin.site.register(PlayerQuestDaily)
 admin.site.register(PlayerQuestWeekly)
