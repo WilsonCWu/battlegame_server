@@ -26,8 +26,12 @@ from playerdata import dungeon
 from playerdata import quest
 from playerdata import redemptioncodes
 from playerdata import referral
+from playerdata import tournament
 
 urlpatterns = [
+    path('tournament/setdefense', tournament.SetDefense.as_view()),
+    path('tournament/selectcards', tournament.SelectCardsView.as_view()),
+    path('tournament/getcards', tournament.GetCardsView.as_view()),
     path('referral', referral.ReferralView.as_view()),
     path('redeemcode', redemptioncodes.RedeemCodeView.as_view()),
     path('quest/get', quest.QuestView.as_view()),

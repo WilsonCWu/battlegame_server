@@ -35,6 +35,8 @@ from .models import BaseCode
 from .models import ClaimedCode
 from .models import UserReferral
 from .models import ReferralTracker
+from .models import Tournament
+from .models import TournamentTeam
 
 
 class BaseCodeAdmin(admin.ModelAdmin, DynamicArrayMixin):
@@ -100,3 +102,6 @@ admin.site.register(ClaimedCode)
 
 admin.site.register(UserReferral)
 admin.site.register(ReferralTracker)
+
+admin.site.register(Tournament)
+admin.site.register(TournamentTeam)

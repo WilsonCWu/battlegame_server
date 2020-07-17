@@ -375,6 +375,22 @@ class ReferralTracker(models.Model):
         return str(self.user) + ": " + str(self.referral.referral_code)
 
 
+class Tournament(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    group_id = models.IntegerField()
+    defence_placement = models.ForeignKey(Placement, on_delete=models.CASCADE)
+    num_wins = models.IntegerField(default=0)
+    num_loses = models.IntegerField(default=0)
+    round = models.IntegerField(default=1)
+    has_picked = models.BooleanField(default=False)
+    rewards_left = models.IntegerField(default=0)
+
+
+class TournamentTeam(models.Model):
+    character = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
 def create_user_referral(user):
     try:
         UserReferral.objects.create(user=user, referral_code=generate_referral_code())
