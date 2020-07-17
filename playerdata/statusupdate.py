@@ -9,6 +9,8 @@ from .serializers import UploadResultSerializer
 
 from playerdata.models import Character
 from playerdata.models import UserStats
+from playerdata.models import Tournament
+from playerdata.models import TournamentMatch
 
 
 # r1, r2 ratings of player 1,2. s1 = 1 if win, 0 if loss, 0.5 for tie
@@ -54,26 +56,37 @@ class UploadResultView(APIView):
 
         QuestUpdater.add_progress_by_type(request.user, constants.DAMAGE_DEALT, total_damage_dealt_stat)
 
-        user_stats = UserStats.objects.get(user=request.user)
-        opponent_stats = UserStats.objects.get(user_id=opponent)
-
-        user_stats.num_games += 1
-        opponent_stats.num_games += 1
-
-        if win:
-            user_stats.num_wins += 1
-            QuestUpdater.add_progress_by_type(request.user, constants.WIN_QUICKPLAY_GAMES, 1)
-        else:
-            opponent_stats.num_wins += 1
-
-        user_stats.save()
-        opponent_stats.save()
-
         response = {}
 
         if mode == 0:  # quickplay
+            user_stats = UserStats.objects.get(user=request.user)
+            opponent_stats = UserStats.objects.get(user_id=opponent)
+
+            user_stats.num_games += 1
+            opponent_stats.num_games += 1
+
+            if win:
+                user_stats.num_wins += 1
+                QuestUpdater.add_progress_by_type(request.user, constants.WIN_QUICKPLAY_GAMES, 1)
+            else:
+                opponent_stats.num_wins += 1
+
+            user_stats.save()
+            opponent_stats.save()
+
             other_user = get_user_model().objects.select_related('userinfo').get(id=opponent)
             updated_rating = calculate_elo(request.user.userinfo.elo, other_user.userinfo.elo, win)
             response = {"rating": updated_rating}
+
+        elif mode == 1:  # tournament
+            tournament = Tournament.objects.filter(user=request.user).first()
+            if tournament is None:
+                return Response({'status': False, 'reason': 'not competing in current tournament'})
+            if tournament.fights_left <= 0:
+                return Response({'status': False, 'reason': 'no fights left'})
+            TournamentMatch.objects.create(user=request.user, opponent_id=opponent,
+                                           is_win=win, tournament=tournament, round=tournament.round)
+            tournament.fights_left -= 1
+            tournament.save()
 
         return Response(response)

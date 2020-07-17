@@ -384,6 +384,16 @@ class Tournament(models.Model):
     round = models.IntegerField(default=1)
     has_picked = models.BooleanField(default=False)
     rewards_left = models.IntegerField(default=0)
+    fights_left = models.IntegerField(default=0)
+
+
+class TournamentMatch(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    opponent = models.ForeignKey(User, on_delete=models.CASCADE)
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+    is_win = models.BooleanField()
+    round = models.IntegerField()
+    # TODO: reference to replay when it's implemented
 
 
 class TournamentTeam(models.Model):

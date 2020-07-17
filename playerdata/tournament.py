@@ -25,6 +25,7 @@ class TournamentSchema(Schema):
     round = fields.Int()
     has_picked = fields.Bool()
     rewards_left = fields.Int()
+    fights_left = fields.Int()
 
 
 # https://books.agiliq.com/projects/django-orm-cookbook/en/latest/random.html
