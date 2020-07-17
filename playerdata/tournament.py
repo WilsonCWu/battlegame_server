@@ -17,6 +17,16 @@ from .serializers import SetDefenceSerializer
 import random
 
 
+class TournamentSchema(Schema):
+    group_id = fields.Int()
+    defence_placement = fields.Int()
+    num_wins = fields.Int()
+    num_loses = fields.Int()
+    round = fields.Int()
+    has_picked = fields.Bool()
+    rewards_left = fields.Int()
+
+
 # https://books.agiliq.com/projects/django-orm-cookbook/en/latest/random.html
 def get_random_from_queryset(model, num, id='id'):
     max_id = model.objects.all().aggregate(max_id=Max(id))['max_id']
@@ -108,3 +118,14 @@ class SetDefense(APIView):
         tournament.defence_placement.save()
 
         return Response({'status': True})
+
+
+class TournamentView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        tournament = Tournament.objects.filter(user=request.user).first()
+        if tournament is None:
+            return Response({'status': False, 'reason': 'not competing in current tournament'})
+        tournament_schema = TournamentSchema(tournament)
+        return Response(tournament_schema.data)
