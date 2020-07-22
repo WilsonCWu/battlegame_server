@@ -8,8 +8,9 @@ virtualenv venv -p python3
 source venv/bin/activate
 pip install -r requirements.txt
 ```
+* This might result fail on `psycopg2` if you don't already have postgres `apt` installed(I installed way too many postgres things to know which one was needed)
 
-Make an `.env` with the following:
+Make an `.env` in the root git folder with the following:
 ```
 SECRET_KEY=<type something here>
 POSTGRES_PASSWORD=postgres
@@ -26,8 +27,17 @@ Migrate:
 
 Load existing data:
 1. ssh into server
-1. `./manage.py dumpdata --exclude auth.permission > db.json`
+1. `./manage.py dumpdata --exclude auth.permission --exclude contenttypes > db.json`
 1. `scp` it locally, then run `./manage.py loaddata db.json`
+1. `./manage.py dumpdata --exclude auth.permission > db.json` to export data for future iterations (untested)
+
+Run:
+python manage.py runserver
+
+Run on local server (eg: seperate computer, same internet):
+1. Install ufw, and open up port 8000
+1. In battlegame/settings.py, add the server machine's ip (check with `ifconfig`) to ALLOWED_HOSTS. Dont commit this!
+1. run with `python manage.py runserver 0.0.0.0:8000`
 
 ## Quests
 #### Creating new Cumulative Quest
