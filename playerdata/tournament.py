@@ -8,6 +8,7 @@ from playerdata.datagetter import BaseCharacterSchema
 from playerdata.models import BaseCharacter
 from playerdata.models import Tournament
 from playerdata.models import TournamentTeam
+from playerdata.models import TournamentRegistration
 from playerdata.models import User
 
 from .serializers import SelectCardSerializer
@@ -15,6 +16,21 @@ from .serializers import GetCardSerializer
 from .serializers import SetDefenceSerializer
 
 import random
+from datetime import datetime, date, time, timedelta
+
+
+# Tournaments start every week on Tuesday
+def get_next_tournament_start_time():
+    delta = (2 - datetime.today().weekday()) % 7
+    if delta is 0:
+        delta = 7
+
+    return datetime.combine(date.today(), time()) + timedelta(days=delta)
+
+
+# Rounds start everyday at 00:00 UTC
+def get_next_round_time():
+    return datetime.combine(date.today(), time()) + timedelta(days=1)
 
 
 class TournamentSchema(Schema):
@@ -26,6 +42,7 @@ class TournamentSchema(Schema):
     has_picked = fields.Bool()
     rewards_left = fields.Int()
     fights_left = fields.Int()
+    round_expiration = fields.DateTime()
 
 
 # https://books.agiliq.com/projects/django-orm-cookbook/en/latest/random.html
@@ -127,6 +144,46 @@ class TournamentView(APIView):
     def get(self, request):
         tournament = Tournament.objects.filter(user=request.user).first()
         if tournament is None:
-            return Response({'status': False, 'reason': 'not competing in current tournament'})
+            tournament_reg = TournamentRegistration.objects.filter(user=request.user).first()
+            start_time = get_next_tournament_start_time()
+            if tournament_reg is None:
+                # Not registered
+                return Response({'status': False,
+                                 'reason': 'not registered for next tournament',
+                                 'round': -1,
+                                 'next_tourney_start_time': start_time
+                                 })
+            else:
+                return Response({'status': False,
+                                 'reason': 'waiting for tournament to start',
+                                 'round': 0,
+                                 'next_tourney_start_time': start_time
+                                 })
+
         tournament_schema = TournamentSchema(tournament)
         return Response(tournament_schema.data)
+
+
+class TournamentRegView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    # registration
+    def post(self, request):
+        tournament_reg = TournamentRegistration.objects.filter(user=request.user).first()
+        if tournament_reg is not None:
+            return Response({'status': False, 'reason': 'already registered for next tournament'})
+        TournamentRegistration.objects.create(user=request.user)
+        return Response({'status': True})
+
+
+class TournamentGroupListView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        tournament = Tournament.objects.filter(user=request.user).first()
+        if tournament is None:
+            return Response({'status': False, 'reason': 'not competing in current tournament'})
+
+        group_list = Tournament.objects.filter(group_id=tournament.group_id)
+        group_list_schema = TournamentSchema(group_list, many=True)
+        return Response(group_list_schema.data)
