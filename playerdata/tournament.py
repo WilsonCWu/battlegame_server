@@ -19,6 +19,10 @@ import random
 from datetime import datetime, date, time, timedelta
 
 
+# hardcoded list of "bot" user ids
+TOURNAMENT_BOTS = [27, 28, 29, 30, 31, 32, 33]
+
+
 # Tournaments start every week on Tuesday
 def get_next_tournament_start_time():
     delta = (2 - datetime.today().weekday()) % 7

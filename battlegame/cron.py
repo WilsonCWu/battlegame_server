@@ -4,6 +4,10 @@ from playerdata.models import ActiveDailyQuest, get_expiration_date
 from playerdata.models import ActiveWeeklyQuest
 from playerdata.models import PlayerQuestDaily
 from playerdata.models import PlayerQuestWeekly
+from playerdata.models import Tournament
+from playerdata.models import TournamentRegistration
+from playerdata.models import Placement
+from playerdata.tournament import get_next_round_time, TOURNAMENT_BOTS
 
 """
 For reference:
@@ -61,3 +65,40 @@ def weekly_quests_cron():
 
     PlayerQuestWeekly.objects.bulk_create(bulk_quests)
     print("weekly quest cronjob complete!")
+
+
+# Take all registered users
+# Sort by elo
+# Create groups id (increment) groups of 8
+def setup_tournament():
+    # TODO: use tourney elo once that gets added
+    reg_users = TournamentRegistration.objects.order_by('-user__userinfo__elo')
+    group_id = 0
+    group_member_count = 0
+    round_expiration = get_next_round_time()
+    tournament_list = []
+
+    for reg_user in reg_users:
+        if group_member_count > 7:
+            group_id += 1
+            group_member_count = 0
+
+        placement = Placement.objects.create()
+        tourney = Tournament(user=reg_user.user, group_id=group_id,
+                             defence_placement=placement, round_expiration=round_expiration)
+        tournament_list.append(tourney)
+        group_member_count += 1
+
+    # make last group with bots to pad empty spots
+    num_bots_needed = 8 - group_member_count
+    while num_bots_needed > 0:
+        placement = Placement.objects.create()
+        tourney = Tournament(user_id=TOURNAMENT_BOTS[num_bots_needed - 1], group_id=group_id,
+                             defence_placement=placement, round_expiration=round_expiration)
+        tournament_list.append(tourney)
+        num_bots_needed -= 1
+
+    Tournament.objects.bulk_create(tournament_list)
+
+    # clean up
+    TournamentRegistration.objects.all().delete()
