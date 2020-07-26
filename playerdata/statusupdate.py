@@ -84,8 +84,8 @@ class UploadResultView(APIView):
                 return Response({'status': False, 'reason': 'not competing in current tournament'})
             if tournament.fights_left <= 0:
                 return Response({'status': False, 'reason': 'no fights left'})
-            TournamentMatch.objects.create(user=request.user, opponent_id=opponent,
-                                           is_win=win, tournament=tournament, round=tournament.round)
+            TournamentMatch.objects.update(user=request.user, defender=opponent,
+                                           is_win=win, tournament=tournament, round=tournament.round, has_played=True)
             tournament.fights_left -= 1
             tournament.save()
 

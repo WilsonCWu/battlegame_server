@@ -47,6 +47,7 @@ class TournamentSchema(Schema):
     rewards_left = fields.Int()
     fights_left = fields.Int()
     round_expiration = fields.DateTime()
+    is_eliminated = fields.Bool()
 
 
 # https://books.agiliq.com/projects/django-orm-cookbook/en/latest/random.html

@@ -381,12 +381,13 @@ class Tournament(models.Model):
     group_id = models.IntegerField()
     defence_placement = models.ForeignKey(Placement, on_delete=models.CASCADE)
     num_wins = models.IntegerField(default=0)
-    num_loses = models.IntegerField(default=0)
+    num_losses = models.IntegerField(default=0)
     round = models.IntegerField(default=1)
     has_picked = models.BooleanField(default=False)
     rewards_left = models.IntegerField(default=0)
     fights_left = models.IntegerField(default=0)
     round_expiration = models.DateTimeField()
+    is_eliminated = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.group_id) + ": user(" + str(self.user_id) + ")"
@@ -400,10 +401,11 @@ class TournamentRegistration(models.Model):
 
 
 class TournamentMatch(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    opponent = models.ForeignKey(User, on_delete=models.CASCADE, related_name='opponent')
+    attacker = models.ForeignKey(User, on_delete=models.CASCADE)
+    defender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='opponent')
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
     is_win = models.BooleanField()
+    has_played = models.BooleanField(default=False)
     round = models.IntegerField()
     # TODO: reference to replay when it's implemented
 
