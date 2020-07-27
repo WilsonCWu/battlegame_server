@@ -1,4 +1,5 @@
 from playerdata import constants
+from playerdata.constants import TOURNEY_SIZE
 from playerdata.models import User
 from playerdata.models import ActiveDailyQuest, get_expiration_date
 from playerdata.models import ActiveWeeklyQuest
@@ -82,7 +83,7 @@ def setup_tournament():
     tourney = Tournament.objects.create(round_expiration=round_expiration)
 
     for reg_user in reg_users:
-        if group_member_count > 7:
+        if group_member_count >= TOURNEY_SIZE:
             group_id += 1
             group_member_count = 0
 
@@ -93,7 +94,7 @@ def setup_tournament():
         group_member_count += 1
 
     # make last group with bots to pad empty spots
-    num_bots_needed = 8 - group_member_count
+    num_bots_needed = TOURNEY_SIZE - group_member_count
     while num_bots_needed > 0:
         placement = Placement.objects.create()
         tournament_member = TournamentMember(user_id=TOURNAMENT_BOTS[num_bots_needed - 1], tournament=tourney,

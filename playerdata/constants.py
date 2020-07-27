@@ -24,3 +24,7 @@ OWN_HEROES = 13
 REACH_PLAYER_LEVEL = 14
 REACH_DUNGEON_LEVEL = 15  # Tracked / total dungeon level
 REFERRAL = 16  # Tracked / total referrals
+
+
+# Tournament constants
+TOURNEY_SIZE = 8

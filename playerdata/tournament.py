@@ -10,6 +10,7 @@ from playerdata.models import TournamentMember
 from playerdata.models import TournamentTeam
 from playerdata.models import TournamentRegistration
 from playerdata.models import User
+from .purchases import generate_character
 
 from .serializers import SelectCardSerializer
 from .serializers import GetCardSerializer
@@ -55,14 +56,10 @@ class TournamentMemberSchema(Schema):
 
 
 # https://books.agiliq.com/projects/django-orm-cookbook/en/latest/random.html
-def get_random_from_queryset(model, num, id='id'):
-    max_id = model.objects.all().aggregate(max_id=Max(id))['max_id']
+def get_random_from_queryset(num, rarity_odds=None):
     object_set = []
     while len(object_set) < num:
-        pk = random.randint(1, max_id)
-        instance = model.objects.filter(pk=pk).first()
-        if instance:
-            object_set.append(instance)
+        object_set.append(generate_character(rarity_odds))
     return object_set
 
 
@@ -77,7 +74,8 @@ class GetCardsView(APIView):
         if num_selection != 5 and num_selection != 3:
             return Response({'status': False, 'reason': 'invalid number of cards requested'})
 
-        card_set = get_random_from_queryset(BaseCharacter, num_selection, 'char_type')
+        # TODO: pass `rarity_odds` as arg to improve the odds of getting rarer Chars near later tourney stages
+        card_set = get_random_from_queryset(num_selection)
         card_schema = BaseCharacterSchema(card_set, many=True)
         return Response(card_schema.data)
 
