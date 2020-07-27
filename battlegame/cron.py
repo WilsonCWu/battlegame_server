@@ -71,11 +71,10 @@ def weekly_quests_cron():
 
 # Take all registered users
 # Sort by elo
-# Create groups id (increment) groups of 8
+# Create tourney groups of 8
 def setup_tournament():
     # TODO: use tourney elo once that gets added
     reg_users = TournamentRegistration.objects.order_by('-user__userinfo__elo')
-    group_id = 0
     group_member_count = 0
     round_expiration = get_next_round_time()
     tournament_list = []
@@ -84,12 +83,11 @@ def setup_tournament():
 
     for reg_user in reg_users:
         if group_member_count >= TOURNEY_SIZE:
-            group_id += 1
+            tourney = Tournament.objects.create(round_expiration=round_expiration)
             group_member_count = 0
 
         placement = Placement.objects.create()
-        tournament_member = TournamentMember(user=reg_user.user, tournament=tourney,
-                                             group_id=group_id, defence_placement=placement)
+        tournament_member = TournamentMember(user=reg_user.user, tournament=tourney, defence_placement=placement)
         tournament_list.append(tournament_member)
         group_member_count += 1
 
@@ -97,8 +95,8 @@ def setup_tournament():
     num_bots_needed = TOURNEY_SIZE - group_member_count
     while num_bots_needed > 0:
         placement = Placement.objects.create()
-        tournament_member = TournamentMember(user_id=TOURNAMENT_BOTS[num_bots_needed - 1], tournament=tourney,
-                                             group_id=group_id, defence_placement=placement)
+        tournament_member = TournamentMember(user_id=TOURNAMENT_BOTS[num_bots_needed - 1],
+                                             tournament=tourney, defence_placement=placement)
         tournament_list.append(tournament_member)
         num_bots_needed -= 1
 

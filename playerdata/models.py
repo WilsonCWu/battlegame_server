@@ -387,7 +387,6 @@ class Tournament(models.Model):
 class TournamentMember(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
-    group_id = models.IntegerField()
     defence_placement = models.ForeignKey(Placement, on_delete=models.CASCADE)
     num_wins = models.IntegerField(default=0)
     num_losses = models.IntegerField(default=0)
@@ -397,7 +396,7 @@ class TournamentMember(models.Model):
     is_eliminated = models.BooleanField(default=False)
 
     def __str__(self):
-        return str(self.group_id) + ": user(" + str(self.user_id) + ")"
+        return str(self.tournament.id) + ": user(" + str(self.user_id) + ")"
 
 
 class TournamentRegistration(models.Model):

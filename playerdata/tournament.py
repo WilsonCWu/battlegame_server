@@ -1,24 +1,18 @@
-from django.db.models import Max
-from rest_framework.views import APIView
+from datetime import datetime, date, time, timedelta
+
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from playerdata.datagetter import BaseCharacterSchema
-from playerdata.models import BaseCharacter
 from playerdata.models import TournamentMember
-from playerdata.models import TournamentTeam
 from playerdata.models import TournamentRegistration
-from playerdata.models import User
+from playerdata.models import TournamentTeam
 from .purchases import generate_character
-
-from .serializers import SelectCardSerializer
 from .serializers import GetCardSerializer
+from .serializers import SelectCardSerializer
 from .serializers import SetDefenceSerializer
-
-import random
-from datetime import datetime, date, time, timedelta
-
 
 # hardcoded list of "bot" user ids
 TOURNAMENT_BOTS = [27, 28, 29, 30, 31, 32, 33]
@@ -39,12 +33,12 @@ def get_next_round_time():
 
 
 class TournamentSchema(Schema):
+    id = fields.Int()
     round = fields.Int()
     round_expiration = fields.DateTime()
 
 
 class TournamentMemberSchema(Schema):
-    group_id = fields.Int()
     tournament = fields.Nested(TournamentSchema)
     defence_placement = fields.Int()
     num_wins = fields.Int()
@@ -195,6 +189,6 @@ class TournamentGroupListView(APIView):
         if tournament_member is None:
             return Response({'status': False, 'reason': 'not competing in current tournament'})
 
-        group_list = TournamentMember.objects.filter(group_id=tournament_member.group_id)
+        group_list = TournamentMember.objects.filter(tournament_id=tournament_member.tournament.id)
         group_list_schema = TournamentMemberSchema(group_list, many=True)
         return Response(group_list_schema.data)
