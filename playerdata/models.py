@@ -1,12 +1,13 @@
-from django.db import models
-from django.db import IntegrityError
-from django_better_admin_arrayfield.models.fields import ArrayField
+import random
+import string
+from datetime import datetime, date, time, timedelta
+
 from django.contrib.auth.models import User
+from django.db import IntegrityError
+from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
-import random, string
-from datetime import datetime, date, time, timedelta
+from django_better_admin_arrayfield.models.fields import ArrayField
 
 from playerdata import constants
 
@@ -373,6 +374,54 @@ class ReferralTracker(models.Model):
 
     def __str__(self):
         return str(self.user) + ": " + str(self.referral.referral_code)
+
+
+class Tournament(models.Model):
+    round = models.IntegerField(default=1)
+    round_expiration = models.DateTimeField()
+
+    def __str__(self):
+        return str(self.id) + ": expires on " + str(self.round_expiration)
+
+
+class TournamentMember(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+    defence_placement = models.ForeignKey(Placement, on_delete=models.CASCADE)
+    num_wins = models.IntegerField(default=0)
+    num_losses = models.IntegerField(default=0)
+    has_picked = models.BooleanField(default=False)
+    rewards_left = models.IntegerField(default=0)
+    fights_left = models.IntegerField(default=0)
+    is_eliminated = models.BooleanField(default=False)
+
+    def __str__(self):
+        return str(self.tournament.id) + ": user(" + str(self.user_id) + ")"
+
+
+class TournamentRegistration(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.user.username + '(' + str(self.user.id) + ')'
+
+
+class TournamentMatch(models.Model):
+    attacker = models.ForeignKey(User, on_delete=models.CASCADE)
+    defender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='opponent')
+    tournament_member = models.ForeignKey(TournamentMember, on_delete=models.CASCADE)
+    is_win = models.BooleanField()
+    has_played = models.BooleanField(default=False)
+    round = models.IntegerField()
+    # TODO: reference to replay when it's implemented
+
+    def __str__(self):
+        return str(self.tournament_member.group_id) + ": user(" + str(self.user_id) + ")"
+
+
+class TournamentTeam(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    character = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE)
 
 
 def create_user_referral(user):

@@ -82,3 +82,24 @@ class RedeemCodeSerializer(serializers.Serializer):
 class ClaimReferralSerializer(serializers.Serializer):
     referral_code = serializers.CharField(required=True)
     device_id = serializers.CharField(required=True)
+
+
+class SelectCardSerializer(serializers.Serializer):
+    selection = serializers.ListField(child=serializers.IntegerField(), required=True)
+
+
+class GetCardSerializer(serializers.Serializer):
+    num_cards = serializers.IntegerField(required=True)
+
+
+class SetDefenceSerializer(serializers.Serializer):
+    pos_1 = serializers.IntegerField(required=True)
+    char_1 = serializers.IntegerField(required=True)
+    pos_2 = serializers.IntegerField(required=True)
+    char_2 = serializers.IntegerField(required=True)
+    pos_3 = serializers.IntegerField(required=True)
+    char_3 = serializers.IntegerField(required=True)
+    pos_4 = serializers.IntegerField(required=True)
+    char_4 = serializers.IntegerField(required=True)
+    pos_5 = serializers.IntegerField(required=True)
+    char_5 = serializers.IntegerField(required=True)
