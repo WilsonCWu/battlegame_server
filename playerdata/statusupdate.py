@@ -9,7 +9,7 @@ from .serializers import UploadResultSerializer
 
 from playerdata.models import Character
 from playerdata.models import UserStats
-from playerdata.models import Tournament
+from playerdata.models import TournamentMember
 from playerdata.models import TournamentMatch
 
 
@@ -79,14 +79,15 @@ class UploadResultView(APIView):
             response = {"rating": updated_rating}
 
         elif mode == 1:  # tournament
-            tournament = Tournament.objects.filter(user=request.user).first()
-            if tournament is None:
+            tournament_member = TournamentMember.objects.filter(user=request.user).first()
+            if tournament_member is None:
                 return Response({'status': False, 'reason': 'not competing in current tournament'})
-            if tournament.fights_left <= 0:
+            if tournament_member.fights_left <= 0:
                 return Response({'status': False, 'reason': 'no fights left'})
             TournamentMatch.objects.update(user=request.user, defender=opponent,
-                                           is_win=win, tournament=tournament, round=tournament.round, has_played=True)
-            tournament.fights_left -= 1
-            tournament.save()
+                                           is_win=win, tournament=tournament_member,
+                                           round=tournament_member.round, has_played=True)
+            tournament_member.fights_left -= 1
+            tournament_member.save()
 
         return Response(response)

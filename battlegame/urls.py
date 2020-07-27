@@ -34,7 +34,7 @@ urlpatterns = [
     path('tournament/getcards', tournament.GetCardsView.as_view()),
     path('tournament/grouplist', tournament.TournamentGroupListView.as_view()),
     path('tournament/register', tournament.TournamentRegView.as_view()),
-    path('tournament/get', tournament.TournamentView.as_view()),
+    path('tournament/get', tournament.TournamentMemberView.as_view()),
     path('referral', referral.ReferralView.as_view()),
     path('redeemcode', redemptioncodes.RedeemCodeView.as_view()),
     path('quest/get', quest.QuestView.as_view()),
