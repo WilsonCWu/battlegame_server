@@ -9,6 +9,7 @@ from playerdata.datagetter import BaseCharacterSchema
 from playerdata.models import TournamentMember
 from playerdata.models import TournamentRegistration
 from playerdata.models import TournamentTeam
+from .matcher import UserInfoSchema
 from .purchases import generate_character
 from .serializers import GetCardSerializer
 from .serializers import SelectCardSerializer
@@ -39,13 +40,20 @@ class TournamentSchema(Schema):
 
 
 class TournamentMemberSchema(Schema):
-    tournament = fields.Nested(TournamentSchema)
-    defence_placement = fields.Int()
+    defence_placement_id = fields.Int()
     num_wins = fields.Int()
-    num_loses = fields.Int()
+    num_losses = fields.Int()
     has_picked = fields.Bool()
     rewards_left = fields.Int()
     fights_left = fields.Int()
+    is_eliminated = fields.Bool()
+
+
+class GroupListSchema(Schema):
+    userinfo = fields.Nested(UserInfoSchema, attribute='user.userinfo')
+    name = fields.Str(attribute='user.username')
+    num_wins = fields.Int()
+    num_losses = fields.Int()
     is_eliminated = fields.Bool()
 
 
@@ -139,7 +147,7 @@ class SetDefense(APIView):
         return Response({'status': True})
 
 
-class TournamentMemberView(APIView):
+class TournamentView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
@@ -151,22 +159,21 @@ class TournamentMemberView(APIView):
                 # Not registered
                 return Response({'status': False,
                                  'reason': 'not registered for next tournament',
-                                 'tournament': {
-                                     'round': -1,
-                                     'next_tourney_start_time': start_time
-                                 }
+                                 'has_joined': False,
+                                 'next_tourney_start_time': start_time
                                  })
             else:
                 return Response({'status': False,
                                  'reason': 'waiting for tournament to start',
-                                 'tournament': {
-                                     'round': 0,
-                                     'next_tourney_start_time': start_time
-                                 }
+                                 'has_joined': True,
+                                 'next_tourney_start_time': start_time
                                  })
 
-        tournament_schema = TournamentMemberSchema(tournament_member)
-        return Response(tournament_schema.data)
+        group_list = TournamentMember.objects.filter(tournament=tournament_member.tournament).order_by('-is_eliminated', '-num_wins')
+        group_list_schema = GroupListSchema(group_list, many=True)
+        me = TournamentMemberSchema(tournament_member)
+        tourney = TournamentSchema(tournament_member.tournament)
+        return Response({'group_list': group_list_schema.data, 'tournament': tourney.data, 'me': me.data})
 
 
 class TournamentRegView(APIView):
@@ -179,16 +186,3 @@ class TournamentRegView(APIView):
             return Response({'status': False, 'reason': 'already registered for next tournament'})
         TournamentRegistration.objects.create(user=request.user)
         return Response({'status': True})
-
-
-class TournamentGroupListView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request):
-        tournament_member = TournamentMember.objects.filter(user=request.user).first()
-        if tournament_member is None:
-            return Response({'status': False, 'reason': 'not competing in current tournament'})
-
-        group_list = TournamentMember.objects.filter(tournament_id=tournament_member.tournament.id)
-        group_list_schema = TournamentMemberSchema(group_list, many=True)
-        return Response(group_list_schema.data)
