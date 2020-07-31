@@ -381,7 +381,7 @@ class Tournament(models.Model):
     round_expiration = models.DateTimeField()
 
     def __str__(self):
-        return str(self.id) + ": expires on " + str(self.round_expiration)
+        return str(self.id)
 
 
 class TournamentMember(models.Model):
@@ -396,27 +396,27 @@ class TournamentMember(models.Model):
     is_eliminated = models.BooleanField(default=False)
 
     def __str__(self):
-        return str(self.tournament.id) + ": user(" + str(self.user_id) + ")"
+        return str(self.tournament.id) + ": user(" + str(self.user) + ")"
 
 
 class TournamentRegistration(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.user.username + '(' + str(self.user.id) + ')'
+        return self.user.userinfo.name + '(' + str(self.user.id) + ')'
 
 
 class TournamentMatch(models.Model):
     attacker = models.ForeignKey(User, on_delete=models.CASCADE)
     defender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='opponent')
     tournament_member = models.ForeignKey(TournamentMember, on_delete=models.CASCADE)
-    is_win = models.BooleanField()
+    is_win = models.BooleanField(blank=True, null=True)
     has_played = models.BooleanField(default=False)
     round = models.IntegerField()
     # TODO: reference to replay when it's implemented
 
     def __str__(self):
-        return str(self.tournament_member.group_id) + ": user(" + str(self.user_id) + ")"
+        return str(self.id) + ": tourney(" + str(self.tournament_member.tournament) +"): attacker(" + str(self.attacker) + ") defender(" + str(self.defender) +")"
 
 
 class TournamentTeam(models.Model):
