@@ -5,7 +5,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from playerdata.datagetter import BaseCharacterSchema
 from playerdata.models import TournamentMember
 from playerdata.models import TournamentRegistration
 from playerdata.models import TournamentTeam
@@ -61,7 +60,8 @@ class GroupListSchema(Schema):
 def get_random_from_queryset(num, rarity_odds=None):
     object_set = []
     while len(object_set) < num:
-        object_set.append(generate_character(rarity_odds))
+        new_char = generate_character(rarity_odds)
+        object_set.append(new_char.char_type)
     return object_set
 
 
@@ -78,8 +78,7 @@ class GetCardsView(APIView):
 
         # TODO: pass `rarity_odds` as arg to improve the odds of getting rarer Chars near later tourney stages
         card_set = get_random_from_queryset(num_selection)
-        card_schema = BaseCharacterSchema(card_set, many=True)
-        return Response(card_schema.data)
+        return Response({'cards': card_set})
 
 
 class SelectCardsView(APIView):
