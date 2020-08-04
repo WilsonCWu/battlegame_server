@@ -111,6 +111,13 @@ class SelectCardsView(APIView):
             tournament_member.rewards_left -= 1
         tournament_member.save()
 
+        card_set = TournamentSelectionCards.objects.filter(user=request.user).first()
+        for card in cards_selection:
+            if card in card_set.cards:
+                card_set.cards.remove(card)
+            else:
+                return Response({'status': False, 'reason': 'invalid card selection'})
+
         for card in cards_selection:
             TournamentTeam.objects.create(user=request.user, character_id=card)
 
