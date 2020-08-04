@@ -424,6 +424,11 @@ class TournamentTeam(models.Model):
     character = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE)
 
 
+class TournamentSelectionCards(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    cards = ArrayField(models.IntegerField())
+
+
 def create_user_referral(user):
     try:
         UserReferral.objects.create(user=user, referral_code=generate_referral_code())

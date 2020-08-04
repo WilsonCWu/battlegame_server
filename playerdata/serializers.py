@@ -85,7 +85,7 @@ class ClaimReferralSerializer(serializers.Serializer):
 
 
 class SelectCardSerializer(serializers.Serializer):
-    selection = serializers.ListField(child=serializers.IntegerField(), required=True)
+    selection = serializers.JSONField(required=True)
 
 
 class GetCardSerializer(serializers.Serializer):
