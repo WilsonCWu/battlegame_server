@@ -5,10 +5,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from playerdata.datagetter import BaseCharacterSchema
 from playerdata.models import TournamentMember
 from playerdata.models import TournamentRegistration
 from playerdata.models import TournamentTeam
+from playerdata.models import TournamentSelectionCards
 from .matcher import UserInfoSchema
 from .purchases import generate_character
 from .serializers import GetCardSerializer
@@ -61,7 +61,8 @@ class GroupListSchema(Schema):
 def get_random_from_queryset(num, rarity_odds=None):
     object_set = []
     while len(object_set) < num:
-        object_set.append(generate_character(rarity_odds))
+        new_char = generate_character(rarity_odds)
+        object_set.append(new_char.char_type)
     return object_set
 
 
@@ -77,9 +78,13 @@ class GetCardsView(APIView):
             return Response({'status': False, 'reason': 'invalid number of cards requested'})
 
         # TODO: pass `rarity_odds` as arg to improve the odds of getting rarer Chars near later tourney stages
-        card_set = get_random_from_queryset(num_selection)
-        card_schema = BaseCharacterSchema(card_set, many=True)
-        return Response(card_schema.data)
+        card_set = TournamentSelectionCards.objects.filter(user=request.user).first()
+        if card_set is None:
+            card_set = get_random_from_queryset(num_selection)
+            TournamentSelectionCards.objects.create(user=request.user, cards=card_set)
+        else:
+            card_set = card_set.cards
+        return Response({'cards': card_set})
 
 
 class SelectCardsView(APIView):
@@ -88,24 +93,35 @@ class SelectCardsView(APIView):
     def post(self, request):
         serializer = SelectCardSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        cards_selection = serializer.validated_data['selection']
+        cards_selection = serializer.validated_data['selection']['cards']
 
         tournament_member = TournamentMember.objects.filter(user=request.user).first()
         if tournament_member is None:
             return Response({'status': False, 'reason': 'not competing in current tournament'})
-        if tournament_member.round <= 2 and len(cards_selection) != 2 or tournament_member.round > 2 and len(cards_selection) != 1:
-            return Response({'status': False, 'reason': 'invalid number of selected cards'})
         if tournament_member.has_picked and tournament_member.rewards_left <= 0:
             return Response({'status': False, 'reason': 'already picked cards'})
+
+        if not tournament_member.has_picked:
+            if tournament_member.tournament.round <= 2 and len(cards_selection) != 2 or tournament_member.tournament.round > 2 and len(cards_selection) != 1:
+                return Response({'status': False, 'reason': 'invalid number of selected cards'})
+            tournament_member.has_picked = True
+        else:
+            if len(cards_selection) != 1:
+                return Response({'status': False, 'reason': 'invalid number of selected cards'})
+            tournament_member.rewards_left -= 1
+        tournament_member.save()
+
+        card_set = TournamentSelectionCards.objects.filter(user=request.user).first()
+        for card in cards_selection:
+            if card in card_set.cards:
+                card_set.cards.remove(card)
+            else:
+                return Response({'status': False, 'reason': 'invalid card selection'})
 
         for card in cards_selection:
             TournamentTeam.objects.create(user=request.user, character_id=card)
 
-        if not tournament_member.has_picked:
-            tournament_member.has_picked = True
-        else:
-            tournament_member.rewards_left -= 1
-        tournament_member.save()
+        TournamentSelectionCards.objects.get(user=request.user).delete()
 
         return Response({'status': True})
 
