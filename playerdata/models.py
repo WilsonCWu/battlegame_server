@@ -407,16 +407,15 @@ class TournamentRegistration(models.Model):
 
 
 class TournamentMatch(models.Model):
-    attacker = models.ForeignKey(User, on_delete=models.CASCADE)
-    defender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='opponent')
-    tournament_member = models.ForeignKey(TournamentMember, on_delete=models.CASCADE)
+    attacker = models.ForeignKey(TournamentMember, on_delete=models.CASCADE)
+    defender = models.ForeignKey(TournamentMember, on_delete=models.CASCADE, related_name='opponent')
     is_win = models.BooleanField(blank=True, null=True)
     has_played = models.BooleanField(default=False)
     round = models.IntegerField()
     # TODO: reference to replay when it's implemented
 
     def __str__(self):
-        return str(self.id) + ": tourney(" + str(self.tournament_member.tournament) +"): attacker(" + str(self.attacker) + ") defender(" + str(self.defender) +")"
+        return str(self.id) + ": tourney(" + str(self.attacker.tournament) +"): attacker(" + str(self.attacker) + ") defender(" + str(self.defender) +")"
 
 
 class TournamentTeam(models.Model):

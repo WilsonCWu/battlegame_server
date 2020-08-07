@@ -9,7 +9,8 @@ from playerdata.models import TournamentMember
 from playerdata.models import TournamentRegistration
 from playerdata.models import TournamentTeam
 from playerdata.models import TournamentSelectionCards
-from .matcher import UserInfoSchema
+from playerdata.models import TournamentMatch
+from .matcher import UserInfoSchema, PlacementSchema
 from .purchases import generate_character
 from .serializers import GetCardSerializer
 from .serializers import SelectCardSerializer
@@ -55,6 +56,11 @@ class GroupListSchema(Schema):
     num_wins = fields.Int()
     num_losses = fields.Int()
     is_eliminated = fields.Bool()
+
+
+class TournamentMatchSchema(Schema):
+    defender = fields.Nested(GroupListSchema)
+    placement = fields.Nested(PlacementSchema, attribute='defender.defence_placement')
 
 
 # https://books.agiliq.com/projects/django-orm-cookbook/en/latest/random.html
@@ -202,3 +208,18 @@ class TournamentRegView(APIView):
             return Response({'status': False, 'reason': 'already registered for next tournament'})
         TournamentRegistration.objects.create(user=request.user)
         return Response({'status': True})
+
+
+class TournamentFightsView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        tournament_member = TournamentMember.objects.filter(user=request.user).first()
+        if tournament_member is None:
+            return Response({'status': False, 'reason': 'not competing in current tournament'})
+
+        round_num = tournament_member.tournament.round - 1
+        matches = TournamentMatch.objects.filter(attacker=tournament_member, round=round_num)
+        matches_schema = TournamentMatchSchema(matches, many=True)
+
+        return Response({"matches": matches_schema.data})

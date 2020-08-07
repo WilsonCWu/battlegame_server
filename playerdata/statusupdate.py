@@ -33,7 +33,7 @@ class UploadResultView(APIView):
 
         win = valid_data['win']
         mode = valid_data['mode']
-        opponent = valid_data['opponent_id']
+        opponent = valid_data['opponent_id']  # assume opponent's TournamentMember id if tourney mode
         stats = valid_data['stats']
 
         total_damage_dealt_stat = 0
@@ -84,9 +84,9 @@ class UploadResultView(APIView):
                 return Response({'status': False, 'reason': 'not competing in current tournament'})
             if tournament_member.fights_left <= 0:
                 return Response({'status': False, 'reason': 'no fights left'})
-            TournamentMatch.objects.update(user=request.user, defender=opponent,
-                                           is_win=win, tournament=tournament_member,
-                                           round=tournament_member.round, has_played=True)
+            opponent_member = TournamentMember.objects.filter(user_id=opponent)
+            TournamentMatch.objects.update(attacker=tournament_member, defender=opponent_member,
+                                           is_win=win, round=tournament_member.round, has_played=True)
             tournament_member.fights_left -= 1
             tournament_member.save()
 
