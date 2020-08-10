@@ -223,3 +223,17 @@ class TournamentFightsView(APIView):
         matches_schema = TournamentMatchSchema(matches, many=True)
 
         return Response({"matches": matches_schema.data})
+
+
+class TournamentSelfView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        tournament_member = TournamentMember.objects.filter(user=request.user).first()
+        if tournament_member is None:
+            return Response({'status': False, 'reason': 'not competing in current tournament'})
+
+        placement_schema = PlacementSchema(tournament_member.defence_placement)
+
+        # TODO: add elo
+        return Response({"name": request.user.username, "elo": 1300, "team": placement_schema.data})
