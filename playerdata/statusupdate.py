@@ -78,15 +78,15 @@ class UploadResultView(APIView):
             updated_rating = calculate_elo(request.user.userinfo.elo, other_user.userinfo.elo, win)
             response = {"rating": updated_rating}
 
-        elif mode == 1:  # tournament
+        elif mode == 2:  # tournament
             tournament_member = TournamentMember.objects.filter(user=request.user).first()
             if tournament_member is None:
                 return Response({'status': False, 'reason': 'not competing in current tournament'})
             if tournament_member.fights_left <= 0:
                 return Response({'status': False, 'reason': 'no fights left'})
             opponent_member = TournamentMember.objects.filter(user_id=opponent)
-            TournamentMatch.objects.update(attacker=tournament_member, defender=opponent_member,
-                                           is_win=win, round=tournament_member.round, has_played=True)
+            TournamentMatch.objects.filter(attacker=tournament_member, defender=opponent_member,
+                                           round=tournament_member.round).update(is_win=win, has_played=True)
             tournament_member.fights_left -= 1
             tournament_member.save()
 
