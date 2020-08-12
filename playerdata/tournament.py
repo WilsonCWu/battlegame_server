@@ -219,7 +219,7 @@ class TournamentFightsView(APIView):
             return Response({'status': False, 'reason': 'not competing in current tournament'})
 
         round_num = tournament_member.tournament.round - 1
-        matches = TournamentMatch.objects.filter(attacker=tournament_member, round=round_num)
+        matches = TournamentMatch.objects.filter(attacker=tournament_member, round=round_num, has_played=False)
         matches_schema = TournamentMatchSchema(matches, many=True)
 
         return Response({"matches": matches_schema.data})

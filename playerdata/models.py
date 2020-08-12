@@ -97,15 +97,15 @@ class Character(models.Model):
 class Placement(models.Model):
     placement_id = models.AutoField(primary_key=True)
     pos_1 = models.IntegerField(default=-1)
-    char_1 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='char_1')
+    char_1 = models.ForeignKey(Character, blank=True, null=True, on_delete=models.SET_NULL, related_name='char_1')
     pos_2 = models.IntegerField(default=-1)
-    char_2 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='char_2')
+    char_2 = models.ForeignKey(Character, blank=True, null=True, on_delete=models.SET_NULL, related_name='char_2')
     pos_3 = models.IntegerField(default=-1)
-    char_3 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='char_3')
+    char_3 = models.ForeignKey(Character, blank=True, null=True, on_delete=models.SET_NULL, related_name='char_3')
     pos_4 = models.IntegerField(default=-1)
-    char_4 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='char_4')
+    char_4 = models.ForeignKey(Character, blank=True, null=True, on_delete=models.SET_NULL, related_name='char_4')
     pos_5 = models.IntegerField(default=-1)
-    char_5 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='char_5')
+    char_5 = models.ForeignKey(Character, blank=True, null=True, on_delete=models.SET_NULL, related_name='char_5')
 
     def __str__(self):
         return str(self.placement_id)

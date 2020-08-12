@@ -36,29 +36,30 @@ class UploadResultView(APIView):
         opponent = valid_data['opponent_id']  # assume opponent's TournamentMember id if tourney mode
         stats = valid_data['stats']
 
-        total_damage_dealt_stat = 0
+        if mode == constants.QUICKPLAY:
+            total_damage_dealt_stat = 0
 
-        # Update stats per hero
-        for stat in stats:
-            char_id = stat['id']
-            hero = Character.objects.select_related('char_type__basecharacterusage').get(char_id=char_id)
-            hero.total_damage_dealt += stat['damage_dealt']
-            total_damage_dealt_stat += stat['damage_dealt']
-            hero.total_damage_taken += stat['damage_taken']
-            hero.total_health_healed += stat['health_healed']
-            hero.num_games += 1
-            hero.num_wins += 1 if win else 0
-            hero.save()
+            # Update stats per hero
+            for stat in stats:
+                char_id = stat['id']
+                hero = Character.objects.select_related('char_type__basecharacterusage').get(char_id=char_id)
+                hero.total_damage_dealt += stat['damage_dealt']
+                total_damage_dealt_stat += stat['damage_dealt']
+                hero.total_damage_taken += stat['damage_taken']
+                hero.total_health_healed += stat['health_healed']
+                hero.num_games += 1
+                hero.num_wins += 1 if win else 0
+                hero.save()
 
-            hero.char_type.basecharacterusage.num_games += 1
-            hero.char_type.basecharacterusage.num_wins += 1 if win else 0
-            hero.char_type.basecharacterusage.save()
+                hero.char_type.basecharacterusage.num_games += 1
+                hero.char_type.basecharacterusage.num_wins += 1 if win else 0
+                hero.char_type.basecharacterusage.save()
 
-        QuestUpdater.add_progress_by_type(request.user, constants.DAMAGE_DEALT, total_damage_dealt_stat)
+            QuestUpdater.add_progress_by_type(request.user, constants.DAMAGE_DEALT, total_damage_dealt_stat)
 
         response = {}
 
-        if mode == 0:  # quickplay
+        if mode == constants.QUICKPLAY:  # quickplay
             user_stats = UserStats.objects.get(user=request.user)
             opponent_stats = UserStats.objects.get(user_id=opponent)
 
@@ -78,15 +79,16 @@ class UploadResultView(APIView):
             updated_rating = calculate_elo(request.user.userinfo.elo, other_user.userinfo.elo, win)
             response = {"rating": updated_rating}
 
-        elif mode == 2:  # tournament
+        elif mode == constants.TOURNAMENT:  # tournament
             tournament_member = TournamentMember.objects.filter(user=request.user).first()
             if tournament_member is None:
                 return Response({'status': False, 'reason': 'not competing in current tournament'})
             if tournament_member.fights_left <= 0:
                 return Response({'status': False, 'reason': 'no fights left'})
-            opponent_member = TournamentMember.objects.filter(user_id=opponent)
+            opponent_member = TournamentMember.objects.get(user_id=opponent)
+            match_round = tournament_member.tournament.round - 1
             TournamentMatch.objects.filter(attacker=tournament_member, defender=opponent_member,
-                                           round=tournament_member.round).update(is_win=win, has_played=True)
+                                           round=match_round).update(is_win=win, has_played=True)
             tournament_member.fights_left -= 1
             tournament_member.save()
 
