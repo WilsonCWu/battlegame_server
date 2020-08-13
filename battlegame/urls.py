@@ -29,6 +29,7 @@ from playerdata import referral
 from playerdata import tournament
 
 urlpatterns = [
+    path('tournament/self', tournament.TournamentSelfView.as_view()),
     path('tournament/getfights', tournament.TournamentFightsView.as_view()),
     path('tournament/setdefense', tournament.SetDefense.as_view()),
     path('tournament/selectcards', tournament.SelectCardsView.as_view()),

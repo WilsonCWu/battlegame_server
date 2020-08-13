@@ -219,7 +219,20 @@ class TournamentFightsView(APIView):
             return Response({'status': False, 'reason': 'not competing in current tournament'})
 
         round_num = tournament_member.tournament.round - 1
-        matches = TournamentMatch.objects.filter(attacker=tournament_member, round=round_num)
+        matches = TournamentMatch.objects.filter(attacker=tournament_member, round=round_num, has_played=False)
         matches_schema = TournamentMatchSchema(matches, many=True)
 
         return Response({"matches": matches_schema.data})
+
+
+class TournamentSelfView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        tournament_member = TournamentMember.objects.filter(user=request.user).first()
+        if tournament_member is None:
+            return Response({'status': False, 'reason': 'not competing in current tournament'})
+
+        placement_schema = PlacementSchema(tournament_member.defence_placement)
+
+        return Response({"name": request.user.username, "elo": request.user.userinfo.elo, "team": placement_schema.data})
