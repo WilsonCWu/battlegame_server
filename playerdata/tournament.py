@@ -235,5 +235,4 @@ class TournamentSelfView(APIView):
 
         placement_schema = PlacementSchema(tournament_member.defence_placement)
 
-        # TODO: add elo
-        return Response({"name": request.user.username, "elo": 1300, "team": placement_schema.data})
+        return Response({"name": request.user.username, "elo": request.user.userinfo.elo, "team": placement_schema.data})

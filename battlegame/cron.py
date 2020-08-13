@@ -6,6 +6,7 @@ from playerdata.models import ActiveWeeklyQuest
 from playerdata.models import PlayerQuestDaily
 from playerdata.models import PlayerQuestWeekly
 from playerdata.models import Tournament
+from playerdata.models import TournamentMatch
 from playerdata.models import TournamentMember
 from playerdata.models import TournamentRegistration
 from playerdata.models import Placement
@@ -73,7 +74,6 @@ def weekly_quests_cron():
 # Sort by elo
 # Create tourney groups of 8
 def setup_tournament():
-    # TODO: use tourney elo once that gets added
     reg_users = TournamentRegistration.objects.order_by('-user__userinfo__elo')
     group_member_count = 0
     round_expiration = get_next_round_time()
