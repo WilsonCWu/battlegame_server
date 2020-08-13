@@ -93,8 +93,11 @@ class UploadResultView(APIView):
             if win:
                 tournament_member.num_wins += 1
                 tournament_member.rewards_left += 1
+                opponent_member.num_losses += 1
             else:
                 tournament_member.num_losses += 1
+                opponent_member.num_wins += 1
             tournament_member.save()
+            opponent_member.save()
 
         return Response(response)
