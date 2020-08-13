@@ -90,6 +90,11 @@ class UploadResultView(APIView):
             TournamentMatch.objects.filter(attacker=tournament_member, defender=opponent_member,
                                            round=match_round).update(is_win=win, has_played=True)
             tournament_member.fights_left -= 1
+            if win:
+                tournament_member.num_wins += 1
+                tournament_member.rewards_left += 1
+            else:
+                tournament_member.num_losses += 1
             tournament_member.save()
 
         return Response(response)
