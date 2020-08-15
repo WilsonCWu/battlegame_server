@@ -63,6 +63,13 @@ class TournamentMatchSchema(Schema):
     placement = fields.Nested(PlacementSchema, attribute='defender.defence_placement')
 
 
+class TournamentMatchHistorySchema(Schema):
+    opponent = fields.Nested(UserInfoSchema)
+    is_attacker = fields.Bool()
+    is_win = fields.Bool()
+    name = fields.Str()
+
+
 # https://books.agiliq.com/projects/django-orm-cookbook/en/latest/random.html
 def get_random_from_queryset(num, rarity_odds=None):
     object_set = []
@@ -222,6 +229,38 @@ class TournamentFightsView(APIView):
         matches = TournamentMatch.objects.filter(attacker=tournament_member, round=round_num, has_played=False)
         matches_schema = TournamentMatchSchema(matches, many=True)
 
+        return Response({"matches": matches_schema.data})
+
+
+class TournamentMatchHistory(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        tournament_member = TournamentMember.objects.filter(user=request.user).first()
+        if tournament_member is None:
+            return Response({'status': False, 'reason': 'not competing in current tournament'})
+
+        attacking_matches = TournamentMatch.objects.filter(attacker=tournament_member, has_played=True)
+        defending_matches = TournamentMatch.objects.filter(defender=tournament_member, has_played=True)
+        merged_matches = (attacking_matches | defending_matches).order_by('-round')
+        matches = []
+
+        for match_query in merged_matches:
+            match = {
+                'is_attacker': match_query.attacker == tournament_member,
+                'is_win': match_query.is_win
+            }
+
+            if match_query.attacker == tournament_member:
+                match['opponent'] = match_query.defender.user.userinfo
+                match['name'] = match_query.defender.user.username
+            else:
+                match['opponent'] = match_query.attacker.user.userinfo
+                match['name'] = match_query.attacker.user.username
+
+            matches.append(match)
+
+        matches_schema = TournamentMatchHistorySchema(matches, many=True)
         return Response({"matches": matches_schema.data})
 
 
