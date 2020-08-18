@@ -128,6 +128,7 @@ class Team(models.Model):
 class UserInfo(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     elo = models.IntegerField(default=0)
+    tourney_elo = models.IntegerField(default=0)
     name = models.CharField(max_length=20, default='new player')
     profile_picture = models.IntegerField(default=0)
     default_placement = models.OneToOneField(Placement, null=True, on_delete=models.SET_NULL)
