@@ -208,7 +208,7 @@ def next_round(self, request, queryset):
     tournaments = Tournament.objects.all()
     members_to_update = []
     tournies_to_update = []
-    matches_list = []
+    matches_to_update = []
 
     # for each tournament
     # eliminate players, make new matches, update tournament info
@@ -227,12 +227,12 @@ def next_round(self, request, queryset):
         # in each group, 8: 4/4, 6:special one, 4 again
         if tourney_round <= 2:
             # split into groups of 4 and battle it out
-            matches_list.extend(_make_matches(group_members[4:]))
-            matches_list.extend(_make_matches(group_members[:4]))
+            matches_to_update.extend(_make_matches(group_members[4:]))
+            matches_to_update.extend(_make_matches(group_members[:4]))
         elif tourney_round == 3:
-            matches_list.extend(_make_matches(group_members[2:]))
+            matches_to_update.extend(_make_matches(group_members[2:]))
         elif tourney_round == 4:
-            matches_list.extend(_make_matches(group_members[2:]))
+            matches_to_update.extend(_make_matches(group_members[2:]))
             pass
         elif tourney_round == 5:
             # end of the tournament!
@@ -251,4 +251,4 @@ def next_round(self, request, queryset):
     # bulk update
     Tournament.objects.bulk_update(tournies_to_update, ['round', 'round_expiration'])
     TournamentMember.objects.bulk_update(members_to_update, ['has_picked'])
-    TournamentMatch.objects.bulk_create(matches_list)
+    TournamentMatch.objects.bulk_create(matches_to_update)
