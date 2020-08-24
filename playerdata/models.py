@@ -84,6 +84,7 @@ class Character(models.Model):
     total_health_healed = models.IntegerField(default=0)
     num_games = models.IntegerField(default=0)
     num_wins = models.IntegerField(default=0)
+    is_tourney = models.BooleanField(default=False)
 
     class Meta:
         indexes = [
@@ -378,7 +379,7 @@ class ReferralTracker(models.Model):
 
 
 class Tournament(models.Model):
-    round = models.IntegerField(default=1)
+    round = models.IntegerField(default=0)
     round_expiration = models.DateTimeField()
 
     def __str__(self):
@@ -421,7 +422,7 @@ class TournamentMatch(models.Model):
 
 class TournamentTeam(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    character = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE)
+    character = models.ForeignKey(Character, on_delete=models.CASCADE)
 
 
 class TournamentSelectionCards(models.Model):
