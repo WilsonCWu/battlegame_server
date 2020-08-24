@@ -183,6 +183,7 @@ def _make_matches(tourney_members):
 
     return matches_list
 
+
 def next_round(self, request, queryset):
     _play_bot_moves()
 
@@ -229,9 +230,9 @@ def next_round(self, request, queryset):
             matches_list.extend(_make_matches(group_members[4:]))
             matches_list.extend(_make_matches(group_members[:4]))
         elif tourney_round == 3:
-            matches_list.extend(_make_matches(group_members))
+            matches_list.extend(_make_matches(group_members[2:]))
         elif tourney_round == 4:
-            matches_list.extend(_make_matches(group_members))
+            matches_list.extend(_make_matches(group_members[2:]))
             pass
         elif tourney_round == 5:
             # end of the tournament!
