@@ -1,5 +1,9 @@
 # Battlegame
-
+# Aliases
+Aliases used for convenience
+```
+alias vact='source /home/battlegame/venv/bin/activate'                                                                             alias dmm='python /home/battlegame/battlegame/manage.py makemigrations'                                                           alias dm='python /home/battlegame/battlegame/manage.py migrate'                                                                   alias sr='sudo supervisorctl restart all'                                                                                         alias ss='sudo supervisorctl status'                                                                                               alias shell='python /home/battlegame/battlegame/manage.py shell'
+```
 ## Setup
 
 Python installation
