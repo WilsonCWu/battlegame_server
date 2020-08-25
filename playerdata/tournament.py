@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
+from playerdata.models import Character
 from playerdata.models import TournamentMember
 from playerdata.models import TournamentRegistration
 from playerdata.models import TournamentTeam
@@ -71,7 +72,7 @@ class TournamentMatchHistorySchema(Schema):
 
 
 # https://books.agiliq.com/projects/django-orm-cookbook/en/latest/random.html
-def get_random_from_queryset(num, rarity_odds=None):
+def get_random_char_set(num, rarity_odds=None):
     object_set = []
     while len(object_set) < num:
         new_char = generate_character(rarity_odds)
@@ -93,7 +94,7 @@ class GetCardsView(APIView):
         # TODO: pass `rarity_odds` as arg to improve the odds of getting rarer Chars near later tourney stages
         card_set = TournamentSelectionCards.objects.filter(user=request.user).first()
         if card_set is None:
-            card_set = get_random_from_queryset(num_selection)
+            card_set = get_random_char_set(num_selection)
             TournamentSelectionCards.objects.create(user=request.user, cards=card_set)
         else:
             card_set = card_set.cards
@@ -132,7 +133,8 @@ class SelectCardsView(APIView):
                 return Response({'status': False, 'reason': 'invalid card selection'})
 
         for card in cards_selection:
-            TournamentTeam.objects.create(user=request.user, character_id=card)
+            new_char = Character.objects.create(user=request.user, char_type_id=card, is_tourney=True)
+            TournamentTeam.objects.create(user=request.user, character=new_char)
 
         TournamentSelectionCards.objects.get(user=request.user).delete()
 
