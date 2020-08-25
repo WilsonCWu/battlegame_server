@@ -48,8 +48,7 @@ class BaseItem(models.Model):
         ('A', 'Armor'),
         ('B', 'Boots'),
         ('W', 'Weapon'),
-        ('T1', 'Tricket 1'),
-        ('T2', 'Tricket 2'),
+        ('T', 'Tricket'),
         # Items that are not to be equipped, but consumed (e.g. tickets needed
         # for an event).
         ('C', 'Consumables'),
@@ -58,7 +57,7 @@ class BaseItem(models.Model):
     item_type = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=30, unique=True)
     description = models.CharField(max_length=250, default='')
-    gear_slot = models.CharField(max_length=2, choices=GEAR_SLOT_CHOICES)
+    gear_slot = models.CharField(max_length=1, choices=GEAR_SLOT_CHOICES)
 
     rarity = models.IntegerField()
     cost = models.IntegerField()

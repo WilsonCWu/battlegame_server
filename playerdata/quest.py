@@ -19,7 +19,7 @@ class CumulativeQuestSchema(Schema):
     gems = fields.Int(attribute='base_quest.gems')
     coins = fields.Int(attribute='base_quest.coins')
     item_id = fields.Int(attribute='base_quest.item_type.id')
-    item_description = fields.Str(attribute='base_quest.item_type.name')  # Replace with actual description
+    item_description = fields.Str(attribute='base_quest.item_type.description')
     char_id = fields.Int(attribute='base_quest.char_type.id')
     char_description = fields.Str(attribute='base_quest.char_type.name')  # Replace with actual description
 
@@ -36,7 +36,7 @@ class QuestSchema(Schema):
     gems = fields.Int(attribute='base_quest.gems')
     coins = fields.Int(attribute='base_quest.coins')
     item_id = fields.Int(attribute='base_quest.item_type.id')
-    item_description = fields.Str(attribute='base_quest.item_type.name')  # Replace with actual description
+    item_description = fields.Str(attribute='base_quest.item_type.description')
     char_id = fields.Int(attribute='base_quest.char_type.id')
     char_description = fields.Str(attribute='base_quest.char_type.name')  # Replace with actual description
 
