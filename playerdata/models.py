@@ -43,13 +43,41 @@ class BaseCharacterUsage(models.Model):
 
 
 class BaseItem(models.Model):
+    GEAR_SLOT_CHOICES = (
+        ('H', 'Hat'),
+        ('A', 'Armor'),
+        ('B', 'Boots'),
+        ('W', 'Weapon'),
+        ('T1', 'Tricket 1'),
+        ('T2', 'Tricket 2'),
+        # Items that are not to be equipped, but consumed (e.g. tickets needed
+        # for an event).
+        ('C', 'Consumables'),
+    )
+
     item_type = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=30, unique=True)
-    attack = models.IntegerField()
-    penetration = models.IntegerField()
-    attack_speed = models.IntegerField()
+    description = models.CharField(max_length=250, default='')
+    gear_slot = models.CharField(max_length=2, choices=GEAR_SLOT_CHOICES)
+
     rarity = models.IntegerField()
     cost = models.IntegerField()
+
+    # For now items are just stat boosters. In the future they may carry
+    # special effects (e.g. GA) that can be coded on the client side.
+    attack_flat = models.IntegerField(null=True)
+    attack_mult = models.FloatField(null=True)
+    ar_flat = models.IntegerField(null=True)
+    ar_mult = models.FloatField(null=True)
+    mr_flat = models.IntegerField(null=True)
+    mr_mult = models.FloatField(null=True)
+    speed_flat = models.IntegerField(null=True)
+    speed_mult = models.FloatField(null=True)
+    crit_flat = models.IntegerField(null=True)
+    crit_mult = models.FloatField(null=True)
+    mana_tick_flat = models.IntegerField(null=True)
+    mana_tick_mult = models.FloatField(null=True)
+    range_flat = models.IntegerField(null=True)
 
     def __str__(self):
         return self.name
@@ -60,7 +88,6 @@ class Item(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     item_type = models.ForeignKey(BaseItem, on_delete=models.CASCADE)
     exp = models.IntegerField()
-    copies = models.IntegerField(default=1)
 
     class Meta:
         indexes = [
@@ -78,12 +105,19 @@ class Character(models.Model):
     level = models.IntegerField(default=1)
     copies = models.IntegerField(default=1)
     prestige = models.IntegerField(default=0)
-    weapon = models.ForeignKey(Item, null=True, on_delete=models.SET_NULL)
     total_damage_dealt = models.IntegerField(default=0)
     total_damage_taken = models.IntegerField(default=0)
     total_health_healed = models.IntegerField(default=0)
     num_games = models.IntegerField(default=0)
     num_wins = models.IntegerField(default=0)
+
+    # Character equipments (hat, armor, weapon, boots, tricket 1/2).
+    hat = models.OneToOneField(Item, null=True, on_delete=models.SET_NULL, related_name='hat')
+    armor = models.OneToOneField(Item, null=True, on_delete=models.SET_NULL, related_name='armor')
+    weapon = models.OneToOneField(Item, null=True, on_delete=models.SET_NULL, related_name='weapon')
+    boots = models.OneToOneField(Item, null=True, on_delete=models.SET_NULL, related_name='boots')
+    trinket_1 = models.OneToOneField(Item, null=True, on_delete=models.SET_NULL, related_name='trinket_1')
+    trinket_2 = models.OneToOneField(Item, null=True, on_delete=models.SET_NULL, related_name='trinket_2')
 
     class Meta:
         indexes = [

@@ -39,11 +39,25 @@ class BaseCharacterSchema(Schema):
 class BaseItemSchema(Schema):
     item_type = fields.Int()
     name = fields.Str()
-    attack = fields.Int()
-    penetration = fields.Int()
-    attack_speed = fields.Int()
+    description = fields.Str()
+    gear_slot = fields.String()
+
     rarity = fields.Int()
     cost = fields.Int()
+
+    attack_flat = fields.Int()
+    attack_mult = fields.Float()
+    ar_flat = fields.Int()
+    ar_mult = fields.Float()
+    mr_flat = fields.Int()
+    mr_mult = fields.Float()
+    speed_flat = fields.Int()
+    speed_mult = fields.Float()
+    crit_flat = fields.Int()
+    crit_mult = fields.Float()
+    mana_tick_flat = fields.Int()
+    mana_tick_mult = fields.Float()
+    range_flat = fields.Int()
 
 
 class ItemSchema(Schema):
@@ -51,7 +65,6 @@ class ItemSchema(Schema):
     user_id = fields.Int(attribute='user_id')
     item_type = fields.Int(attribute='item_type_id')
     exp = fields.Int()
-    copies = fields.Int()
 
 
 class CharacterSchema(Schema):
@@ -60,13 +73,18 @@ class CharacterSchema(Schema):
     char_type = fields.Int(attribute='char_type_id')
     level = fields.Int()
     prestige = fields.Int()
-    weapon_id = fields.Int(attribute='weapon_id')
-    weapon = fields.Nested(ItemSchema)
     total_damage_dealt = fields.Int()
     total_damage_taken = fields.Int()
     total_health_healed = fields.Int()
     num_games = fields.Int()
     num_wins = fields.Int()
+
+    hat = fields.Nested(ItemSchema)
+    armor = fields.Nested(ItemSchema)
+    weapon = fields.Nested(ItemSchema)
+    boots = fields.Nested(ItemSchema)
+    trinket_1 = fields.Nested(ItemSchema)
+    trinket_2 = fields.Nested(ItemSchema)
 
 
 class InventorySchema(Schema):
