@@ -169,15 +169,10 @@ def _make_matches(tourney_members):
         # so player 0 plays [1, 2, 3], player 3 plays [0, 4, 5]
         matches_for_6 = [[1, 2, 3], [0, 2, 4], [0, 1, 5], [0, 4, 5], [1, 3, 5], [2, 3, 4]]
         for i, matches in enumerate(matches_for_6):
-            match1 = TournamentMatch(attacker=tourney_members[i], defender=tourney_members[matches[0]],
-                                     round=tourney_members[i].tournament.round)
-            match2 = TournamentMatch(attacker=tourney_members[i], defender=tourney_members[matches[1]],
-                                     round=tourney_members[i].tournament.round)
-            match3 = TournamentMatch(attacker=tourney_members[i], defender=tourney_members[matches[2]],
-                                     round=tourney_members[i].tournament.round)
-            matches_list.append(match1)
-            matches_list.append(match2)
-            matches_list.append(match3)
+            for defender in matches:
+                match = TournamentMatch(attacker=tourney_members[i], defender=tourney_members[defender],
+                                        round=tourney_members[i].tournament.round)
+                matches_list.append(match)
     else:
         return
 
