@@ -103,3 +103,16 @@ class SetDefenceSerializer(serializers.Serializer):
     char_4 = serializers.IntegerField(required=True)
     pos_5 = serializers.IntegerField(required=True)
     char_5 = serializers.IntegerField(required=True)
+
+
+class EquipItemSerializer(serializers.Serializer):
+    target_char_id = serializers.IntegerField(required=True)
+    target_item_id = serializers.IntegerField(required=True)
+    target_slot = serializers.ChoiceField((
+        ('H', 'Hat'),
+        ('A', 'Armor'),
+        ('B', 'Boots'),
+        ('W', 'Weapon'),
+        ('T1', 'Tricket 1'),
+        ('T2', 'Tricket 2'),
+    ), required=True)

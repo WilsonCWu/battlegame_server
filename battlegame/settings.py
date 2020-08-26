@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+
     'channels',
     'rest_framework',
     'rest_framework.authtoken',
@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'django_better_admin_arrayfield',
 
     'chat',
-    'playerdata',    
+    'playerdata',
 ]
 
 MIDDLEWARE = [
