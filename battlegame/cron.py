@@ -13,6 +13,7 @@ from playerdata.models import TournamentMatch
 from playerdata.models import TournamentMember
 from playerdata.models import TournamentRegistration
 from playerdata.models import Placement
+from playerdata.statusupdate import calculate_tourney_elo
 from playerdata.tournament import get_next_round_time, TOURNAMENT_BOTS, get_random_char_set
 
 """
@@ -254,13 +255,13 @@ def next_round(self, request, queryset):
 def _update_elo(tourney):
     # update all elo's
     group_members = TournamentMember.objects.filter(tournament=tourney).order_by('-num_wins')
-    ELO_DIFF = [40, 30, 20, 10, -10, -20, -30, -40]
 
     userinfo_list = []
+    avg_elo = sum(member.user.userinfo.tourney_elo for member in group_members) / len(group_members)
 
-    for member, diff in zip(group_members, ELO_DIFF):
+    for standing, member in enumerate(group_members):
         member.user.userinfo.prev_tourney_elo = member.user.userinfo.tourney_elo
-        member.user.userinfo.tourney_elo += ELO_DIFF
+        member.user.userinfo.tourney_elo += calculate_tourney_elo(member.user.userinfo.tourney_elo, avg_elo, standing)
         if member.user.userinfo.tourney_elo < 0:
             member.user.userinfo.tourney_elo = 0
         userinfo_list.append(member.user.userinfo)
