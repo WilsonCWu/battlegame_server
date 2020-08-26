@@ -103,7 +103,6 @@ class EquipItemView(APIView):
         target_item_id = serializer.validated_data['target_item_id']
         target_slot = serializer.validated_data['target_slot']
 
-        # We auto-equip into the appropriate slot.
         char = Character.objects.get(char_id=target_char_id)
         item = Item.objects.select_related('item_type').get(item_id=target_item_id)
 
