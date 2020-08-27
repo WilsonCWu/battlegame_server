@@ -33,3 +33,9 @@ jobs:
       - run:
           command: |
             pipenv run python manage.py test
+
+workflows:
+  version: 2
+  continuous_integration:
+    jobs:
+      - build-and-test
