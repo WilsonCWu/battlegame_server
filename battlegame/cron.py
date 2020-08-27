@@ -1,4 +1,5 @@
 import random
+import statistics
 
 from playerdata import constants
 from playerdata.constants import TOURNEY_SIZE
@@ -257,13 +258,11 @@ def _update_elo(tourney):
     group_members = TournamentMember.objects.filter(tournament=tourney).order_by('-num_wins')
 
     userinfo_list = []
-    avg_elo = sum(member.user.userinfo.tourney_elo for member in group_members) / len(group_members)
+    avg_elo = statistics.mean(member.user.userinfo.tourney_elo for member in group_members)
 
     for standing, member in enumerate(group_members):
         member.user.userinfo.prev_tourney_elo = member.user.userinfo.tourney_elo
-        member.user.userinfo.tourney_elo += calculate_tourney_elo(member.user.userinfo.tourney_elo, avg_elo, standing)
-        if member.user.userinfo.tourney_elo < 0:
-            member.user.userinfo.tourney_elo = 0
+        member.user.userinfo.tourney_elo = max(calculate_tourney_elo(member.user.userinfo.tourney_elo, avg_elo, standing), 0)
         userinfo_list.append(member.user.userinfo)
 
     return userinfo_list

@@ -24,9 +24,10 @@ def calculate_elo(r1, r2, s1, k=50):
 
 
 def calculate_tourney_elo(r1, avg_elo, standing):
-    elo_standing_mult = [1, 0.75, 0.5, 0.25, -0.25, -0.5, -0.75, -1]
-    elo = calculate_elo(r1, avg_elo, 100)
-    return round(elo * elo_standing_mult[standing])
+    elo_standing_mult = [1, 0.75, 0.5, 0.25, 0.25, 0.5, 0.75, 1]
+    delta_elo = calculate_elo(r1, avg_elo, 1, 100) - r1
+    new_r1 = r1 + round(delta_elo * elo_standing_mult[standing])
+    return new_r1
 
 
 class UploadResultView(APIView):
