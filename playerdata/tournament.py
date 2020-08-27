@@ -41,7 +41,8 @@ class TournamentSchema(Schema):
     round_expiration = fields.DateTime()
 
 
-class TournamentMemberSchema(Schema):
+class TournamentSelfSchema(Schema):
+    userinfo = fields.Nested(UserInfoSchema, attribute='user.userinfo')
     defence_placement_id = fields.Int()
     num_wins = fields.Int()
     num_losses = fields.Int()
@@ -202,7 +203,7 @@ class TournamentView(APIView):
 
         group_list = TournamentMember.objects.filter(tournament=tournament_member.tournament).order_by('-is_eliminated', '-num_wins')
         group_list_schema = GroupListSchema(group_list, many=True)
-        me = TournamentMemberSchema(tournament_member)
+        me = TournamentSelfSchema(tournament_member)
         tourney = TournamentSchema(tournament_member.tournament)
         return Response({'group_list': group_list_schema.data, 'tournament': tourney.data, 'me': me.data})
 
