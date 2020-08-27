@@ -19,7 +19,7 @@ from playerdata.models import Character
 from playerdata.models import Item
 from .serializers import GetUserSerializer
 from .serializers import GetOpponentsSerializer
-from .datagetter import CharacterSchema
+from .inventory import CharacterSchema
 
 
 class PlacementSchema(Schema):

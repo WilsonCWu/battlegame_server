@@ -11,39 +11,7 @@ from playerdata.models import Character
 from playerdata.models import Inventory
 from playerdata.models import Item
 from .serializers import LevelUpSerializer
-
-
-class UserSchema(Schema):
-    user_id = fields.Int(attribute='id')
-    first_name = fields.Str()
-
-
-class BaseCharacterSchema(Schema):
-    char_type = fields.Int()
-    name = fields.Str()
-    health = fields.Int()
-    mana = fields.Int()
-    speed = fields.Int()
-    attack = fields.Int()
-    ar = fields.Int()
-    mr = fields.Int()
-    attack_range = fields.Int()
-    rarity = fields.Int()
-    crit_chance = fields.Int()
-    health_scale = fields.Int()
-    attack_scale = fields.Int()
-    ar_scale = fields.Int()
-    mr_scale = fields.Int()
-
-
-class BaseItemSchema(Schema):
-    item_type = fields.Int()
-    name = fields.Str()
-    attack = fields.Int()
-    penetration = fields.Int()
-    attack_speed = fields.Int()
-    rarity = fields.Int()
-    cost = fields.Int()
+from .serializers import EquipItemSerializer
 
 
 class ItemSchema(Schema):
@@ -51,7 +19,6 @@ class ItemSchema(Schema):
     user_id = fields.Int(attribute='user_id')
     item_type = fields.Int(attribute='item_type_id')
     exp = fields.Int()
-    copies = fields.Int()
 
 
 class CharacterSchema(Schema):
@@ -60,13 +27,19 @@ class CharacterSchema(Schema):
     char_type = fields.Int(attribute='char_type_id')
     level = fields.Int()
     prestige = fields.Int()
-    weapon_id = fields.Int(attribute='weapon_id')
-    weapon = fields.Nested(ItemSchema)
     total_damage_dealt = fields.Int()
     total_damage_taken = fields.Int()
     total_health_healed = fields.Int()
     num_games = fields.Int()
     num_wins = fields.Int()
+
+    # TODO: validate item slot + item ownership.
+    hat = fields.Nested(ItemSchema)
+    armor = fields.Nested(ItemSchema)
+    weapon = fields.Nested(ItemSchema)
+    boots = fields.Nested(ItemSchema)
+    trinket_1 = fields.Nested(ItemSchema)
+    trinket_2 = fields.Nested(ItemSchema)
 
 
 class InventorySchema(Schema):
@@ -86,15 +59,6 @@ class InventoryView(APIView):
         inventorySerializer = InventorySchema(Inventory.objects.get(user=request.user))
         return Response(
             {'characters': charSerializer.data, 'items': itemSerializer.data, 'details': inventorySerializer.data})
-
-
-class BaseInfoView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request):
-        charSerializer = BaseCharacterSchema(BaseCharacter.objects.all(), many=True)
-        itemSerializer = BaseItemSchema(BaseItem.objects.all(), many=True)
-        return Response({'characters': charSerializer.data, 'items': itemSerializer.data})
 
 
 def GetTotalExp(level):
@@ -126,4 +90,45 @@ class TryLevelView(APIView):
         inventory.save()
         curChar.save()
 
+        return Response({'status': True})
+
+
+class EquipItemView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = EquipItemSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        target_char_id = serializer.validated_data['target_char_id']
+        target_item_id = serializer.validated_data['target_item_id']
+        target_slot = serializer.validated_data['target_slot']
+
+        char = Character.objects.get(char_id=target_char_id)
+        item = Item.objects.select_related('item_type').get(item_id=target_item_id)
+
+        if char.user != request.user:
+            return Response({'status': False, 'reason': 'user does not own the character'})
+
+        if item.user != request.user:
+            return Response({'status': False, 'reason': 'user does not own the item'})
+
+        if item.item_type.gear_slot != target_slot[0]:
+            return Response({'status': False, 'reason': 'item does not belong in the slot'})
+
+        # Equip the item to the character.
+        # TODO(yanke): we can probably constanize these.
+        if target_slot == 'H':
+            char.hat = item
+        elif target_slot == 'A':
+            char.armor = item
+        elif target_slot == 'B':
+            char.boots = item
+        elif target_slot == 'W':
+            char.weapon = item
+        elif target_slot == 'T1':
+            char.trinket_1 = item
+        elif target_slot == 'T2':
+            char.trinket_2 = item
+
+        char.save()
         return Response({'status': True})

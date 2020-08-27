@@ -17,7 +17,7 @@ from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
 from playerdata import login
-from playerdata import datagetter
+from playerdata import base
 from playerdata import matcher
 from playerdata import statusupdate
 from playerdata import purchases
@@ -27,6 +27,7 @@ from playerdata import quest
 from playerdata import redemptioncodes
 from playerdata import referral
 from playerdata import tournament
+from playerdata import inventory
 
 urlpatterns = [
     path('tournament/matchhistory', tournament.TournamentMatchHistory.as_view()),
@@ -63,13 +64,14 @@ urlpatterns = [
     path('getallchats/', social.GetAllChatsView.as_view()),
     path('purchaseitem/', purchases.PurchaseItemView.as_view()),
     path('purchase/', purchases.PurchaseView.as_view()),
-    path('levelup/', datagetter.TryLevelView.as_view()),
+    path('levelup/', inventory.TryLevelView.as_view()),
     path('uploadresult/', statusupdate.UploadResultView.as_view()),
     path('opponents/', matcher.GetOpponentsView.as_view()),
     path('user/', matcher.GetUserView.as_view()),
     path('matcher/', matcher.MatcherView.as_view()),
-    path('inventoryinfo/', datagetter.InventoryView.as_view()),
-    path('baseinfo/', datagetter.BaseInfoView.as_view()),
+    path('inventoryinfo/', inventory.InventoryView.as_view()),
+    path('equipitem/', inventory.EquipItemView.as_view()),
+    path('baseinfo/', base.BaseInfoView.as_view()),
     path('test/', login.HelloView.as_view()),
     path('login/', login.ObtainAuthToken.as_view()),
     path('createnewuser/', login.CreateNewUser.as_view()),
@@ -78,4 +80,3 @@ urlpatterns = [
     path('chat/', include('chat.urls')),
     path('admin/', admin.site.urls),
 ]
-
