@@ -106,10 +106,10 @@ class EquipItemView(APIView):
         char = Character.objects.get(char_id=target_char_id)
         item = Item.objects.select_related('item_type').get(item_id=target_item_id)
 
-        # TODO(yanke): for our APIs, we need to make sure that the user is
-        # fetching objects that belong to them.
+        if char.user != request.user:
+            return Response({'status': False, 'reason': 'user does not own the character'})
 
-        if item.user != char.user:
+        if item.user != request.user:
             return Response({'status': False, 'reason': 'user does not own the item'})
 
         if item.item_type.gear_slot != target_slot[0]:
