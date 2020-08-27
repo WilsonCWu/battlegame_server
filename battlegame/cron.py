@@ -272,6 +272,5 @@ def _update_elo(tourney):
 def end_tourney():
     # clean up
     TournamentTeam.objects.all().delete()
-    TournamentMatch.objects.all().delete()
     TournamentMember.objects.all().delete()
     Tournament.objects.all().delete()
