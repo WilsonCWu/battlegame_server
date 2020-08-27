@@ -1,7 +1,7 @@
 version: 2
 
 jobs:
-  build:
+  build-and-test:
     working_directory: ~/battlegame_server
     docker:
       - image: circleci/python:3.6.4
@@ -33,3 +33,9 @@ jobs:
       - run:
           command: |
             pipenv run python manage.py test
+
+workflows:
+  version: 2
+  continuous_integration:
+    jobs:
+      - build-and-test
