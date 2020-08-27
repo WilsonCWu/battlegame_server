@@ -262,7 +262,7 @@ def _update_elo(tourney):
 
     for standing, member in enumerate(group_members):
         member.user.userinfo.prev_tourney_elo = member.user.userinfo.tourney_elo
-        member.user.userinfo.tourney_elo = max(calculate_tourney_elo(member.user.userinfo.tourney_elo, avg_elo, standing), 0)
+        member.user.userinfo.tourney_elo = calculate_tourney_elo(member.user.userinfo.tourney_elo, avg_elo, standing)
         userinfo_list.append(member.user.userinfo)
 
     return userinfo_list
