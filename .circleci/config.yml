@@ -27,7 +27,7 @@ jobs:
           paths:
             - "venv"
       - run:
-          name: "set up .env"
+          name: "Set up .env"
           command: |
             echo -e "SECRET_KEY=foo\nPOSTGRES_PASSWORD=postgres" >> .env
       - run:
