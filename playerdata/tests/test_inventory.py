@@ -33,3 +33,6 @@ class EquipItemAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         owned_archer.refresh_from_db()
         self.assertEqual(owned_archer.weapon, owned_bow)
+
+    def test_bad(self):
+        User.objects.get(username='fdslakfjlkdsa')
