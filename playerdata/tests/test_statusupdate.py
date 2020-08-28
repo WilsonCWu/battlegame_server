@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from playerdata.statusupdate import calculate_tourney_elo
+from playerdata.statusupdate import calculate_tourney_elo, calculate_elo
 
 
 class TourneyEloTestCase(TestCase):
@@ -37,5 +37,5 @@ class TourneyEloTestCase(TestCase):
         win_tourney_elo = calculate_tourney_elo(self.r1, self.r2, 0)
         lose_tourney_elo = calculate_tourney_elo(self.r1, self.r2, 7)
 
-        self.assertEqual(win_tourney_elo, 1236)
-        self.assertEqual(lose_tourney_elo, 1136)
+        self.assertEqual(win_tourney_elo, round(calculate_elo(self.r1, self.r2, 1, 100)))
+        self.assertEqual(lose_tourney_elo, round(calculate_elo(self.r1, self.r2, 0, 100)))
