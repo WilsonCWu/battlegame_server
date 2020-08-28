@@ -1,7 +1,9 @@
 import random
+import statistics
 
 from playerdata import constants
 from playerdata.constants import TOURNEY_SIZE
+from playerdata.models import UserInfo
 from playerdata.models import User, Character, TournamentTeam
 from playerdata.models import ActiveDailyQuest, get_expiration_date
 from playerdata.models import ActiveWeeklyQuest
@@ -12,6 +14,7 @@ from playerdata.models import TournamentMatch
 from playerdata.models import TournamentMember
 from playerdata.models import TournamentRegistration
 from playerdata.models import Placement
+from playerdata.statusupdate import calculate_tourney_elo
 from playerdata.tournament import get_next_round_time, TOURNAMENT_BOTS, get_random_char_set
 
 """
@@ -107,6 +110,7 @@ def setup_tournament():
     # clean up
     TournamentRegistration.objects.all().delete()
 
+
 def _play_bot_moves():
     bots = TournamentMember.objects.filter(user_id__in=TOURNAMENT_BOTS)
     bot_matches = TournamentMatch.objects.filter(attacker__user_id__in=TOURNAMENT_BOTS)
@@ -153,6 +157,7 @@ def _play_bot_moves():
         match.attacker.save()
         match.defender.save()
         match.save()
+
 
 # Returns list of matches to be created
 def _make_matches(tourney_members):
@@ -204,6 +209,7 @@ def next_round(self, request, queryset):
     members_to_update = []
     tournies_to_update = []
     matches_to_update = []
+    userinfos_to_update = []
 
     # for each tournament
     # eliminate players, make new matches, update tournament info
@@ -228,11 +234,8 @@ def next_round(self, request, queryset):
             matches_to_update.extend(_make_matches(group_members[2:]))
         elif tourney_round == 4:
             matches_to_update.extend(_make_matches(group_members[2:]))
-            pass
         elif tourney_round == 5:
-            # end of the tournament!
-            # award
-            pass
+            userinfos_to_update.extend(_update_elo(tourney))
 
         for member in group_members:
             member.has_picked = False
@@ -247,3 +250,26 @@ def next_round(self, request, queryset):
     Tournament.objects.bulk_update(tournies_to_update, ['round', 'round_expiration'])
     TournamentMember.objects.bulk_update(members_to_update, ['has_picked'])
     TournamentMatch.objects.bulk_create(matches_to_update)
+    UserInfo.objects.bulk_update(userinfos_to_update, ['tourney_elo'])
+
+
+def _update_elo(tourney):
+    # update all elo's
+    group_members = TournamentMember.objects.filter(tournament=tourney).order_by('-num_wins')
+
+    userinfo_list = []
+    avg_elo = statistics.mean(member.user.userinfo.tourney_elo for member in group_members)
+
+    for standing, member in enumerate(group_members):
+        member.user.userinfo.prev_tourney_elo = member.user.userinfo.tourney_elo
+        member.user.userinfo.tourney_elo = calculate_tourney_elo(member.user.userinfo.tourney_elo, avg_elo, standing)
+        userinfo_list.append(member.user.userinfo)
+
+    return userinfo_list
+
+
+def end_tourney():
+    # clean up
+    TournamentTeam.objects.all().delete()
+    TournamentMember.objects.all().delete()
+    Tournament.objects.all().delete()

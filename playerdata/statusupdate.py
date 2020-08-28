@@ -14,13 +14,23 @@ from playerdata.models import TournamentMatch
 
 
 # r1, r2 ratings of player 1,2. s1 = 1 if win, 0 if loss, 0.5 for tie
-def calculate_elo(r1, r2, s1):
-    k = 50  # larger for more volatility
+# k larger for more volatility
+def calculate_elo(r1, r2, s1, k=50):
     R1 = 10 ** (r1 / 400)
     R2 = 10 ** (r2 / 400)
     E1 = R1 / (R1 + R2)
     new_r1 = r1 + k * (s1 - E1)
-    return new_r1
+    return max(new_r1, 0)
+
+
+# standing is zero-based integer
+def calculate_tourney_elo(r1, avg_elo, standing):
+    elo_standing_mult = [1, 0.75, 0.5, 0.25, 0.25, 0.5, 0.75, 1]
+    # calculate as win if top 4, lose if bottom 4
+    s1 = int(standing < len(elo_standing_mult) / 2)
+    delta_elo = calculate_elo(r1, avg_elo, s1, 100) - r1
+    new_r1 = r1 + round(delta_elo * elo_standing_mult[standing])
+    return max(new_r1, 0)
 
 
 class UploadResultView(APIView):

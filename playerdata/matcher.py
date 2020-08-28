@@ -50,6 +50,7 @@ class UserInfoSchema(Schema):
     user_id = fields.Int(attribute='user_id')
     elo = fields.Int()
     tourney_elo = fields.Int()
+    prev_tourney_elo = fields.Int()
     name = fields.Str()
     profile_picture = fields.Int()
     num_wins = fields.Int(attribute='user.userstats.num_wins')
