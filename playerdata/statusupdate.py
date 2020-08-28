@@ -23,9 +23,12 @@ def calculate_elo(r1, r2, s1, k=50):
     return max(new_r1, 0)
 
 
+# standing is zero-based integer
 def calculate_tourney_elo(r1, avg_elo, standing):
-    elo_standing_mult = [1, 0.75, 0.5, 0.25, -0.25, -0.5, -0.75, -1]
-    delta_elo = calculate_elo(r1, avg_elo, 1, 100) - r1
+    elo_standing_mult = [1, 0.75, 0.5, 0.25, 0.25, 0.5, 0.75, 1]
+    # calculate as win if top 4, lose if bottom 4
+    s1 = int(standing < len(elo_standing_mult) / 2)
+    delta_elo = calculate_elo(r1, avg_elo, s1, 100) - r1
     new_r1 = r1 + round(delta_elo * elo_standing_mult[standing])
     return max(new_r1, 0)
 

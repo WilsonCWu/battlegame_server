@@ -22,13 +22,20 @@ class TourneyEloTestCase(TestCase):
     def test_second_last_place(self):
         """Second last place gets -75% of the elo diff"""
         tourney_elo = calculate_tourney_elo(self.r1, self.r2, 6)
-        self.assertEqual(tourney_elo, 1173)
+        self.assertEqual(tourney_elo, 1152)
 
     def test_last_place(self):
         """Last place gets -75% of the elo diff"""
         tourney_elo = calculate_tourney_elo(self.r1, self.r2, 7)
-        self.assertEqual(tourney_elo, 1164)
+        self.assertEqual(tourney_elo, 1136)
 
     def test_below_zero(self):
-        tourney_elo = calculate_tourney_elo(10, self.r2, 7)
+        tourney_elo = calculate_tourney_elo(10, 2, 7)
         self.assertEqual(tourney_elo, 0)
+
+    def test_elo_delta_consistent(self):
+        win_tourney_elo = calculate_tourney_elo(self.r1, self.r2, 0)
+        lose_tourney_elo = calculate_tourney_elo(self.r1, self.r2, 7)
+
+        self.assertEqual(win_tourney_elo, 1236)
+        self.assertEqual(lose_tourney_elo, 1136)
