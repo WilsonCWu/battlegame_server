@@ -79,5 +79,4 @@ urlpatterns = [
     path('dungeon/setprogress', dungeon.DungeonSetProgressView.as_view()),
     path('chat/', include('chat.urls')),
     path('admin/', admin.site.urls),
-    path('', include('django_prometheus.urls')),
 ]

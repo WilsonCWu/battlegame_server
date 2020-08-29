@@ -162,3 +162,9 @@ CRONJOBS = [
     ('0 16 * * 4-7', 'battlegame.cron.next_round', '>> /tmp/next_round_scheduled_job.log'),
     ('0 16 * * TUE', 'battlegame.cron.end_tourney', '>> /tmp/end_tourney_scheduled_job.log')
 ]
+
+# Monitoring
+# Simply exposing metrics on :8000 gives us an incomplete view as there are 8
+# workers per host (at the moment). See more at
+# https://github.com/korfuri/django-prometheus/blob/master/documentation/exports.md#exporting-metrics-in-a-wsgi-application-with-multiple-processes-per-process.
+PROMETHEUS_METRICS_EXPORT_PORT_RANGE = range(8001, 8009)
