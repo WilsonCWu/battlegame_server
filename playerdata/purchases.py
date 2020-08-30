@@ -59,6 +59,7 @@ def insert_character(user, chosen_char):
         return
 
     Character.objects.create(user=user, char_type=chosen_char)
+    QuestUpdater.add_progress_by_type(user, constants.OWN_HEROES, 1)
 
 
 class PurchaseItemView(APIView):
