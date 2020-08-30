@@ -32,13 +32,8 @@ def award_code(user, base_code):
     items_list = []
     if base_code.items:
         for item, quantity in zip(base_code.items, base_code.item_amount):
-            # if item is not owned already
-            existing_item = Item.objects.filter(user=user, item_type_id=item).first()
-            if existing_item is None:
-                items_list.append(Item(user=user, item_type_id=item, copies=quantity))
-            else:
-                existing_item.copies += quantity
-                existing_item.save()
+            for _ in range(quantity):
+                items_list.append(Item(user=user, item_type_id=item))
 
     Item.objects.bulk_create(items_list)
 
