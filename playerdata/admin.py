@@ -48,6 +48,7 @@ class BaseCodeAdmin(admin.ModelAdmin, DynamicArrayMixin):
 
 class BaseQuestAdmin(admin.ModelAdmin):
     actions = ['propagate_quests']
+    list_display = ('title', 'type', 'total')
 
     def propagate_quests(self, request, queryset):
         bulk_quests = []
