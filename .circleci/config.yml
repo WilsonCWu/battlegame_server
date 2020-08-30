@@ -33,9 +33,27 @@ jobs:
       - run:
           command: |
             pipenv run python manage.py test
+  deploy-prod:
+    docker:
+      - image: circleci/python:3.6.4
+    steps:
+      - checkout
+      - run: ssh -oStrictHostKeyChecking=no -v circleci@salutationstudio.com "./deploy.sh"
 
 workflows:
   version: 2
-  continuous_integration:
+  build-test-deploy:
     jobs:
       - build-and-test
+      # Optionally we can have a manual approval step in the future. For now
+      # let it auto deploy on push to master.
+      # - hold:
+      #     type: approval
+      #     requires:
+      #       - build-and-test
+      - deploy-prod:
+          requires:
+            - build-and-test
+          filters:
+            branches:
+              only: master

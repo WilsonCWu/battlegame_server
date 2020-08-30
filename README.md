@@ -48,6 +48,11 @@ Run on local server (eg: seperate computer, same internet):
 1. In battlegame/settings.py, add the server machine's ip (check with `ifconfig`) to ALLOWED_HOSTS. Dont commit this!
 1. run with `python manage.py runserver 0.0.0.0:8000`
 
+## Deployment
+
+Currently we have auto deployment setup, which installs new dependencies,
+runs migrations, and restarts supervisor.
+
 ## Quests
 #### Creating new Cumulative Quest
 1. Create a `BaseQuest` with one of the types in `playerdata/constants.py` or create a new one
