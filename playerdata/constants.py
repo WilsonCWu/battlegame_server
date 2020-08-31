@@ -28,6 +28,8 @@ REACH_PLAYER_LEVEL = 14
 REACH_DUNGEON_LEVEL = 15  # Tracked / total dungeon level
 REFERRAL = 16  # Tracked / total referrals
 
+WIN_X_GAMES_WITH_CHAR_NAMESPACE = 100
+
 
 # Tournament constants
 TOURNEY_SIZE = 8

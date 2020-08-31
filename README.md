@@ -37,6 +37,7 @@ Migrate:
 Load existing data:
 1. ssh into server
 1. `./manage.py dumpdata --exclude auth.permission --exclude contenttypes > db.json`
+    * Ignore error `Cannot export Prometheus /metrics/ - no available ports in supplied range`
 1. `scp` it locally, then run `./manage.py loaddata db.json`
 1. `./manage.py dumpdata --exclude auth.permission > db.json` to export data for future iterations (untested)
 

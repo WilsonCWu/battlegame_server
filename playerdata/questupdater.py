@@ -1,5 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 
+from playerdata import constants
 from playerdata.models import PlayerQuestCumulative
 from playerdata.models import PlayerQuestWeekly
 from playerdata.models import PlayerQuestDaily
@@ -43,9 +44,16 @@ class QuestUpdater:
             # Error log negative progress
             return
 
-        cumulative_quests = PlayerQuestCumulative.objects.select_related('base_quest').filter(user=user, base_quest__type=UPDATE_TYPE, completed=False, claimed=False)
-        weekly_quests = PlayerQuestWeekly.objects.select_related('base_quest').filter(user=user, base_quest__type=UPDATE_TYPE, completed=False, claimed=False)
-        daily_quests = PlayerQuestDaily.objects.select_related('base_quest').filter(user=user, base_quest__type=UPDATE_TYPE, completed=False, claimed=False)
+        cumulative_quests = PlayerQuestCumulative.objects.select_related('base_quest').filter(user=user,
+                                                                                              base_quest__type=UPDATE_TYPE,
+                                                                                              completed=False,
+                                                                                              claimed=False)
+        weekly_quests = PlayerQuestWeekly.objects.select_related('base_quest').filter(user=user,
+                                                                                      base_quest__type=UPDATE_TYPE,
+                                                                                      completed=False, claimed=False)
+        daily_quests = PlayerQuestDaily.objects.select_related('base_quest').filter(user=user,
+                                                                                    base_quest__type=UPDATE_TYPE,
+                                                                                    completed=False, claimed=False)
 
         try:
             tracker = CumulativeTracker.objects.get(user=user, type=UPDATE_TYPE)
@@ -55,3 +63,8 @@ class QuestUpdater:
 
         add_progress_to_quest_list(amount, weekly_quests)
         add_progress_to_quest_list(amount, daily_quests)
+
+    @staticmethod
+    def game_won_by_char_id(user, char_id):
+        quest_type = constants.WIN_X_GAMES_WITH_CHAR_NAMESPACE + char_id
+        QuestUpdater.add_progress_by_type(user, quest_type, 1)
