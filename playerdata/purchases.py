@@ -7,6 +7,8 @@ from rest_framework.views import APIView
 from playerdata.models import BaseCharacter
 from playerdata.models import Character
 from playerdata.models import Inventory
+from . import constants
+from .questupdater import QuestUpdater
 from .serializers import PurchaseItemSerializer
 from .serializers import PurchaseSerializer
 
@@ -16,7 +18,6 @@ class PurchaseView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
-
         serializer = PurchaseSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         purchase_id = serializer.validated_data['purchase_id']
@@ -58,6 +59,7 @@ def insert_character(user, chosen_char):
         return
 
     Character.objects.create(user=user, char_type=chosen_char)
+    QuestUpdater.add_progress_by_type(user, constants.OWN_HEROES, 1)
 
 
 class PurchaseItemView(APIView):
@@ -79,6 +81,7 @@ class PurchaseItemView(APIView):
 
             inventory.gems -= 1000
             inventory.save()
+            QuestUpdater.add_progress_by_type(request.user, constants.PURCHASE_ITEM, 1)
 
             newCharTypes = []
 
