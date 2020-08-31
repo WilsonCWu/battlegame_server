@@ -86,7 +86,7 @@ class Item(models.Model):
     item_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     item_type = models.ForeignKey(BaseItem, on_delete=models.CASCADE)
-    exp = models.IntegerField()
+    exp = models.IntegerField(default=0)
 
     class Meta:
         indexes = [
