@@ -7,6 +7,8 @@ from rest_marshmallow import Schema, fields
 from playerdata.models import PlayerQuestCumulative
 from playerdata.models import PlayerQuestWeekly
 from playerdata.models import PlayerQuestDaily
+from . import constants
+from .questupdater import QuestUpdater
 
 from .serializers import ClaimQuestSerializer
 
@@ -123,3 +125,15 @@ class ClaimQuestDailyView(APIView):
 
     def post(self, request):
         return handle_claim_quest(request, PlayerQuestDaily)
+
+
+class ClaimDiscordView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        discord_quest = PlayerQuestCumulative.objects.get(base_quest__type=constants.DISCORD, user=request.user)
+        if discord_quest.completed:
+            return Response({'status': False, 'reason': 'already completed discord quest'})
+
+        QuestUpdater.add_progress_by_type(request.user, constants.DISCORD, 1)
+        return Response({'status': True})
