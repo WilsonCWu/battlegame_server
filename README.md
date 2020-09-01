@@ -10,14 +10,17 @@ alias ss='sudo supervisorctl status'
 alias shell='python /home/battlegame/battlegame/manage.py shell'
 ```
 ## Setup
-
+install postgres, virtualenv
+```
+sudo apt-get -y install postgresql postgresql-contrib
+sudo pip3 install virtualenv  
+```
 Python installation
 ```bash
 virtualenv venv -p python3
 source venv/bin/activate
 pip install -r requirements.txt
 ```
-* This might result fail on `psycopg2` if you don't already have postgres `apt` installed(I installed way too many postgres things to know which one was needed)
 
 Make an `.env` in the root git folder with the following:
 ```
@@ -29,8 +32,12 @@ Set up Postgres
 
 1. Create user `u_battlegame` with same password as in `.env`
 1. Create db `battlgame`
-
-
+```
+sudo  su - postgres
+createuser u_battlegame
+createdb battlegame --owner u_battlegame
+psql  -c "ALTER USER u_battlegame WITH PASSWORD 'postgres'"
+```
 Migrate:
 `python manage.py migrate`
 
