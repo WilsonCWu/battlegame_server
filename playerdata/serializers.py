@@ -116,3 +116,15 @@ class EquipItemSerializer(serializers.Serializer):
         ('T1', 'Tricket 1'),
         ('T2', 'Tricket 2'),
     ), required=True)
+
+
+class UnequipItemSerializer(serializers.Serializer):
+    target_char_id = serializers.IntegerField(required=True)
+    target_slot = serializers.ChoiceField((
+        ('H', 'Hat'),
+        ('A', 'Armor'),
+        ('B', 'Boots'),
+        ('W', 'Weapon'),
+        ('T1', 'Tricket 1'),
+        ('T2', 'Tricket 2'),
+    ), required=True)

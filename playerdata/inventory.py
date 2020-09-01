@@ -11,7 +11,7 @@ from playerdata.models import Character
 from playerdata.models import Inventory
 from playerdata.models import Item
 from .serializers import LevelUpSerializer
-from .serializers import EquipItemSerializer
+from .serializers import EquipItemSerializer, UnequipItemSerializer
 
 
 class ItemSchema(Schema):
@@ -129,6 +129,39 @@ class EquipItemView(APIView):
             char.trinket_1 = item
         elif target_slot == 'T2':
             char.trinket_2 = item
+
+        char.save()
+        return Response({'status': True})
+
+
+class UnequipItemView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = UnequipItemSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        target_char_id = serializer.validated_data['target_char_id']
+        target_slot = serializer.validated_data['target_slot']
+
+        char = Character.objects.get(char_id=target_char_id)
+
+        if char.user != request.user:
+            return Response({'status': False, 'reason': 'user does not own the character'})
+
+        # Unequip the item to the character.
+        # TODO(yanke): we can probably constanize these.
+        if target_slot == 'H':
+            char.hat = None
+        elif target_slot == 'A':
+            char.armor = None
+        elif target_slot == 'B':
+            char.boots = None
+        elif target_slot == 'W':
+            char.weapon = None
+        elif target_slot == 'T1':
+            char.trinket_1 = None
+        elif target_slot == 'T2':
+            char.trinket_2 = None
 
         char.save()
         return Response({'status': True})

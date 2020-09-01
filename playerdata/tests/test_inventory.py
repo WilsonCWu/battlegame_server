@@ -24,7 +24,7 @@ class EquipItemAPITestCase(APITestCase):
             char_type = base_archer,
         )
 
-        response = self.client.post('/equipitem/', {
+        response = self.client.post('/inventory/equipitem/', {
             'target_slot': 'W',
             'target_char_id': owned_archer.char_id,
             'target_item_id': owned_bow.item_id,
@@ -33,3 +33,36 @@ class EquipItemAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         owned_archer.refresh_from_db()
         self.assertEqual(owned_archer.weapon, owned_bow)
+
+
+class UnequipItemAPITestCase(APITestCase):
+    fixtures = ['playerdata/tests/fixtures.json']
+
+    def setUp(self):
+        self.u = User.objects.get(username='battlegame')
+        self.client.force_authenticate(user=self.u)
+
+    def test_equipping_item(self):
+        # First create a character with an item.
+        base_bow = BaseItem.objects.get(name="Bow")
+        base_archer = BaseCharacter.objects.get(name="Archer")
+
+        owned_bow = Item.objects.create(
+            user = self.u,
+            item_type = base_bow,
+            exp = 0,
+        )
+        owned_archer = Character.objects.create(
+            user = self.u,
+            char_type = base_archer,
+            weapon = owned_bow,
+        )
+
+        # Unequip the same item.
+        response = self.client.post('/inventory/unequipitem/', {
+            'target_slot': 'W',
+            'target_char_id': owned_archer.char_id,
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        owned_archer.refresh_from_db()
+        self.assertIsNone(owned_archer.weapon)
