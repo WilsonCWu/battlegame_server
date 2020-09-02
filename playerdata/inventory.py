@@ -139,8 +139,12 @@ class EquipItemView(APIView):
             char.trinket_2 = item
 
         try:
-            # clean() validates unique trinkets across slots.
-            char.clean()
+            if target_slot in (SlotType.TRINKET_1.value, SlotType.TRINKET_2.value):
+                # clean() validates unique trinkets across slots.
+                char.clean()
+
+            # We want to handle failures gracefully here -- especially ones
+            # caused by unique key duplication from the 1-1 relationships.
             char.save()
         except Exception as e:
             return Response({'status': False, 'reason': str(e)})
