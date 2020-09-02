@@ -2,9 +2,11 @@ import random
 import string
 from datetime import datetime, date, time, timedelta
 
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.db import models
+from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django_better_admin_arrayfield.models.fields import ArrayField
@@ -111,18 +113,50 @@ class Character(models.Model):
     num_wins = models.IntegerField(default=0)
     is_tourney = models.BooleanField(default=False)
 
+    # These validators are only triggered for form objects, e.g. the admin
+    # interface -- hence it's okay for it to not be perfectly performant.
+    class SlotValidator():
+        """Validates that the item is placed in the appropriate slot."""
+        def __init__(self, slot_type):
+            self.slot_type = slot_type
+        def validate(self, item):
+            if Item.objects.select_related('item_type').get(item_id=item).item_type.gear_slot != self.slot_type:
+                raise ValidationError('item must be of type ' + self.slot_type)
+
     # Character equipments (hat, armor, weapon, boots, tricket 1/2).
-    hat = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='hat')
-    armor = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='armor')
-    weapon = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='weapon')
-    boots = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='boots')
-    trinket_1 = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='trinket_1')
-    trinket_2 = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='trinket_2')
+    hat = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='hat', validators=[SlotValidator('H').validate])
+    armor = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='armor', validators=[SlotValidator('A').validate])
+    weapon = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='weapon', validators=[SlotValidator('W').validate])
+    boots = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='boots', validators=[SlotValidator('B').validate])
+    trinket_1 = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='trinket_1', validators=[SlotValidator('T').validate])
+    trinket_2 = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='trinket_2', validators=[SlotValidator('T').validate])
 
     class Meta:
         indexes = [
             models.Index(fields=['user', ]),
         ]
+
+    def clean(self):
+        # We need to validate that trinkets are unique, as they're not fully
+        # restrained by the one-to-one relation and the slot validation.
+        if not self.trinket_1 and not self.trinket_2:
+            return
+
+        if self.trinket_1 == self.trinket_2:
+            raise ValidationError({'trinket_2': 'Trinket is already in use in slot 1.'})
+
+        # To check items are in use, leverage the user index to reduce the
+        # query set.
+        if self.trinket_1:
+            if Character.objects.exclude(char_id=self.char_id) \
+                .filter(Q(user=self.user) & (Q(trinket_1=self.trinket_1) | Q(trinket_2=self.trinket_1))) \
+                .exists():
+                raise ValidationError({'trinket_1': 'Trinket is already in use by another character.'})
+        if self.trinket_2:
+            if Character.objects.exclude(char_id=self.char_id) \
+                .filter(Q(user=self.user) & (Q(trinket_1=self.trinket_2) | Q(trinket_2=self.trinket_2))) \
+                .exists():
+                raise ValidationError({'trinket_2': 'Trinket is already in use by another character.'})
 
     def __str__(self):
         return str(self.user) + ": " + str(self.char_type) + " " + str(self.char_id)
