@@ -6,7 +6,6 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.db import models
-from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django_better_admin_arrayfield.models.fields import ArrayField
@@ -137,26 +136,12 @@ class Character(models.Model):
         ]
 
     def clean(self):
-        # We need to validate that trinkets are unique, as they're not fully
-        # restrained by the one-to-one relation and the slot validation.
-        if not self.trinket_1 and not self.trinket_2:
-            return
-
-        if self.trinket_1 == self.trinket_2:
-            raise ValidationError({'trinket_2': 'Trinket is already in use in slot 1.'})
-
-        # To check items are in use, leverage the user index to reduce the
-        # query set.
-        if self.trinket_1:
-            if Character.objects.exclude(char_id=self.char_id) \
-                .filter(Q(user=self.user) & (Q(trinket_1=self.trinket_1) | Q(trinket_2=self.trinket_1))) \
-                .exists():
-                raise ValidationError({'trinket_1': 'Trinket is already in use by another character.'})
-        if self.trinket_2:
-            if Character.objects.exclude(char_id=self.char_id) \
-                .filter(Q(user=self.user) & (Q(trinket_1=self.trinket_2) | Q(trinket_2=self.trinket_2))) \
-                .exists():
-                raise ValidationError({'trinket_2': 'Trinket is already in use by another character.'})
+        # Raise if our trinket is equipped by someone else's but on a different
+        # slot.
+        if self.trinket_1 and hasattr(self.trinket_1, 'trinket_2'):
+            raise ValidationError({'trinket_1': 'Trinket is already in use by another character.'})
+        if self.trinket_2 and hasattr(self.trinket_2, 'trinket_1'):
+            raise ValidationError({'trinket_2': 'Trinket is already in use by another character.'})
 
     def __str__(self):
         return str(self.user) + ": " + str(self.char_type) + " " + str(self.char_id)
