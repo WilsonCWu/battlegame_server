@@ -1,3 +1,4 @@
+from enum import Enum
 import math
 
 from rest_framework.permissions import IsAuthenticated
@@ -33,7 +34,6 @@ class CharacterSchema(Schema):
     num_games = fields.Int()
     num_wins = fields.Int()
 
-    # TODO: validate item slot + item ownership.
     hat = fields.Nested(ItemSchema)
     armor = fields.Nested(ItemSchema)
     weapon = fields.Nested(ItemSchema)
@@ -93,6 +93,15 @@ class TryLevelView(APIView):
         return Response({'status': True})
 
 
+class SlotType(Enum):
+    HAT = 'H'
+    ARMOR = 'A'
+    BOOTS = 'B'
+    WEAPON = 'W'
+    TRINKET_1 = 'T1'
+    TRINKET_2 = 'T2'
+
+
 class EquipItemView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -116,21 +125,29 @@ class EquipItemView(APIView):
             return Response({'status': False, 'reason': 'item does not belong in the slot'})
 
         # Equip the item to the character.
-        # TODO(yanke): we can probably constanize these.
-        if target_slot == 'H':
+        if target_slot == SlotType.HAT.value:
             char.hat = item
-        elif target_slot == 'A':
+        elif target_slot == SlotType.ARMOR.value:
             char.armor = item
-        elif target_slot == 'B':
+        elif target_slot == SlotType.BOOTS.value:
             char.boots = item
-        elif target_slot == 'W':
+        elif target_slot == SlotType.WEAPON.value:
             char.weapon = item
-        elif target_slot == 'T1':
+        elif target_slot == SlotType.TRINKET_1.value:
             char.trinket_1 = item
-        elif target_slot == 'T2':
+        elif target_slot == SlotType.TRINKET_2.value:
             char.trinket_2 = item
 
-        char.save()
+        try:
+            if target_slot in (SlotType.TRINKET_1.value, SlotType.TRINKET_2.value):
+                # clean() validates unique trinkets across slots.
+                char.clean()
+
+            # We want to handle failures gracefully here -- especially ones
+            # caused by unique key duplication from the 1-1 relationships.
+            char.save()
+        except Exception as e:
+            return Response({'status': False, 'reason': str(e)})
         return Response({'status': True})
 
 
@@ -149,18 +166,17 @@ class UnequipItemView(APIView):
             return Response({'status': False, 'reason': 'user does not own the character'})
 
         # Unequip the item to the character.
-        # TODO(yanke): we can probably constanize these.
-        if target_slot == 'H':
+        if target_slot == SlotType.HAT.value:
             char.hat = None
-        elif target_slot == 'A':
+        elif target_slot == SlotType.ARMOR.value:
             char.armor = None
-        elif target_slot == 'B':
+        elif target_slot == SlotType.BOOTS.value:
             char.boots = None
-        elif target_slot == 'W':
+        elif target_slot == SlotType.WEAPON.value:
             char.weapon = None
-        elif target_slot == 'T1':
+        elif target_slot == SlotType.TRINKET_1.value:
             char.trinket_1 = None
-        elif target_slot == 'T2':
+        elif target_slot == SlotType.TRINKET_2.value:
             char.trinket_2 = None
 
         char.save()
