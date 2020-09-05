@@ -13,8 +13,6 @@ from .matcher import PlacementSchema
 from .questupdater import QuestUpdater
 from .referral import award_referral
 
-from .serializers import DungeonStageSerializer
-
 
 class DungeonProgressSchema(Schema):
     stage_id = fields.Int()
@@ -68,20 +66,9 @@ class DungeonStageView(APIView):
             .select_related('mob__char_3__weapon') \
             .select_related('mob__char_4__weapon') \
             .select_related('mob__char_5__weapon') \
-            .get(id=dungeon_progress.stage_id)
-        dungeon_stage_schema = DungeonStageSchema(dungeon_stage)
-        return Response(dungeon_stage_schema.data)
+            .filter(id=dungeon_progress.stage_id).first()
 
-    def post(self, request):
-        serializer = DungeonStageSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        stage_id = serializer.validated_data['stage_id']
-
-        dungeon_stage = DungeonStage.objects.select_related('mob__char_1__weapon') \
-            .select_related('mob__char_2__weapon') \
-            .select_related('mob__char_3__weapon') \
-            .select_related('mob__char_4__weapon') \
-            .select_related('mob__char_5__weapon') \
-            .get(id=stage_id)
+        if dungeon_stage is None:
+            return Response({'status': False, 'reason': 'unknown stage id', 'stage_id': dungeon_progress.stage_id})
         dungeon_stage_schema = DungeonStageSchema(dungeon_stage)
         return Response(dungeon_stage_schema.data)
