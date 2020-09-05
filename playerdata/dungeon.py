@@ -68,7 +68,10 @@ class DungeonStageView(APIView):
             .select_related('mob__char_3__weapon') \
             .select_related('mob__char_4__weapon') \
             .select_related('mob__char_5__weapon') \
-            .get(id=dungeon_progress.stage_id)
+            .filter(id=dungeon_progress.stage_id).first()
+
+        if dungeon_stage is None:
+            return Response({'status': False, 'reason': 'unknown stage id', 'stage_id': dungeon_progress.stage_id})
         dungeon_stage_schema = DungeonStageSchema(dungeon_stage)
         return Response(dungeon_stage_schema.data)
 
