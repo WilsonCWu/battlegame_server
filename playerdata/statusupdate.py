@@ -89,8 +89,11 @@ class UploadResultView(APIView):
             opponent_stats.save()
 
             other_user = get_user_model().objects.select_related('userinfo').get(id=opponent)
+
+            request.user.userinfo.prev_elo = request.user.userinfo.elo
             updated_rating = calculate_elo(request.user.userinfo.elo, other_user.userinfo.elo, win)
-            response = {"rating": updated_rating}
+            request.user.userinfo.save()
+            response = {"elo": updated_rating, 'prev_elo': request.user.userinfo.prev_elo}
 
         elif mode == constants.TOURNAMENT:  # tournament
             tournament_member = TournamentMember.objects.filter(user=request.user).first()
