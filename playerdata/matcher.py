@@ -49,7 +49,6 @@ class TeamSchema(Schema):
 class UserInfoSchema(Schema):
     user_id = fields.Int(attribute='user_id')
     elo = fields.Int()
-    prev_elo = fields.Int()
     tourney_elo = fields.Int()
     prev_tourney_elo = fields.Int()
     name = fields.Str()
