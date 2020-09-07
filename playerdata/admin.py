@@ -46,6 +46,10 @@ class BaseCodeAdmin(admin.ModelAdmin, DynamicArrayMixin):
     pass
 
 
+class BaseItemAdmin(admin.ModelAdmin, DynamicArrayMixin):
+    pass
+
+
 class BaseQuestAdmin(admin.ModelAdmin):
     actions = ['propagate_quests']
     list_display = ('title', 'type', 'total')
@@ -74,7 +78,7 @@ admin.site.register(DungeonProgress)
 
 admin.site.register(BaseCharacter)
 admin.site.register(BaseCharacterUsage)
-admin.site.register(BaseItem)
+admin.site.register(BaseItem, BaseItemAdmin)
 admin.site.register(Character)
 admin.site.register(Item)
 
