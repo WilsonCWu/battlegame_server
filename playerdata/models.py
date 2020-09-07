@@ -8,6 +8,7 @@ from django.db import IntegrityError
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils.deconstruct import deconstructible
 from django_better_admin_arrayfield.models.fields import ArrayField
 
 from playerdata import constants
@@ -63,8 +64,7 @@ class BaseItem(models.Model):
     rarity = models.IntegerField()
     cost = models.IntegerField()
 
-    # For now items are just stat boosters. In the future they may carry
-    # special effects (e.g. GA) that can be coded on the client side.
+    # Stat changes from items.
     attack_flat = models.IntegerField(blank=True, null=True)
     attack_mult = models.FloatField(blank=True, null=True)
     ar_flat = models.IntegerField(blank=True, null=True)
@@ -78,6 +78,10 @@ class BaseItem(models.Model):
     mana_tick_flat = models.IntegerField(blank=True, null=True)
     mana_tick_mult = models.FloatField(blank=True, null=True)
     range_flat = models.IntegerField(blank=True, null=True)
+
+    # Effects from items. These are recognized by the client and its effects
+    # are encoded there.
+    effect_ids = ArrayField(models.IntegerField(), blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -98,6 +102,20 @@ class Item(models.Model):
         return str(self.user) + ": " + str(self.item_type) + " " + str(self.item_id)
 
 
+@deconstructible
+class SlotValidator():
+    """Validates that the item is placed in the appropriate slot."""
+    def __init__(self, slot_type):
+        self.slot_type = slot_type
+    def __eq__(self, other):
+        return self.slot_type == other.slot_type
+    def __call__(self, item):
+        # These validators are only triggered for form objects, e.g. the admin
+        # interface -- hence it's okay for it to not be perfectly performant.
+        if Item.objects.select_related('item_type').get(item_id=item).item_type.gear_slot != self.slot_type:
+            raise ValidationError('item must be of type ' + self.slot_type)
+
+
 class Character(models.Model):
     char_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -112,23 +130,13 @@ class Character(models.Model):
     num_wins = models.IntegerField(default=0)
     is_tourney = models.BooleanField(default=False)
 
-    # These validators are only triggered for form objects, e.g. the admin
-    # interface -- hence it's okay for it to not be perfectly performant.
-    class SlotValidator():
-        """Validates that the item is placed in the appropriate slot."""
-        def __init__(self, slot_type):
-            self.slot_type = slot_type
-        def validate(self, item):
-            if Item.objects.select_related('item_type').get(item_id=item).item_type.gear_slot != self.slot_type:
-                raise ValidationError('item must be of type ' + self.slot_type)
-
     # Character equipments (hat, armor, weapon, boots, tricket 1/2).
-    hat = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='hat', validators=[SlotValidator('H').validate])
-    armor = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='armor', validators=[SlotValidator('A').validate])
-    weapon = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='weapon', validators=[SlotValidator('W').validate])
-    boots = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='boots', validators=[SlotValidator('B').validate])
-    trinket_1 = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='trinket_1', validators=[SlotValidator('T').validate])
-    trinket_2 = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='trinket_2', validators=[SlotValidator('T').validate])
+    hat = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='hat', validators=[SlotValidator('H')])
+    armor = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='armor', validators=[SlotValidator('A')])
+    weapon = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='weapon', validators=[SlotValidator('W')])
+    boots = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='boots', validators=[SlotValidator('B')])
+    trinket_1 = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='trinket_1', validators=[SlotValidator('T')])
+    trinket_2 = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='trinket_2', validators=[SlotValidator('T')])
 
     class Meta:
         indexes = [
