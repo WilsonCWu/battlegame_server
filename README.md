@@ -69,6 +69,8 @@ To run on local server (eg: separate computer, same internet):
 1. run with `python manage.py runserver 0.0.0.0:8000`
 
 ### Chat
+Tutorial reference: https://channels.readthedocs.io/en/latest/tutorial/
+
 For chat, you will need to start redis using Docker.
 Make sure you have the following dependencies:
 - Python `channels` package
