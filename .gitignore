@@ -145,7 +145,3 @@ cython_debug/
 # static files generated from Django application using `collectstatic`
 media
 static
-
-# Google Drive auth files
-client_secrets.json
-.gdrive_auth
