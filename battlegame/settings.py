@@ -26,8 +26,11 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['salutationstudio.com', 'www.salutationstudio.com', 'localhost']
+DEVELOPMENT = config('DEVELOPMENT', False)
 
+ALLOWED_HOSTS = ['salutationstudio.com', 'www.salutationstudio.com', 'localhost']
+if DEVELOPMENT:
+    ALLOWED_HOSTS += ['*']
 
 # Application definition
 
@@ -167,4 +170,5 @@ CRONJOBS = [
 # Simply exposing metrics on :8000 gives us an incomplete view as there are 8
 # workers per host (at the moment). See more at
 # https://github.com/korfuri/django-prometheus/blob/master/documentation/exports.md#exporting-metrics-in-a-wsgi-application-with-multiple-processes-per-process.
-PROMETHEUS_METRICS_EXPORT_PORT_RANGE = range(8001, 8009)
+if not DEVELOPMENT:
+    PROMETHEUS_METRICS_EXPORT_PORT_RANGE = range(8001, 8009)
