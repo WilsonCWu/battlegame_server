@@ -38,26 +38,55 @@ createuser u_battlegame
 createdb battlegame --owner u_battlegame
 psql  -c "ALTER USER u_battlegame WITH PASSWORD 'postgres'"
 ```
+Check which port Postgres is running on with:
+```
+cat /etc/postgresql/10/main/postgresql.conf
+```
+Look for `port = XXXX`. In most cases, this should be 5432. If it is not 5432, you will need to change battlegame/settings.py to match your port.
+
 Migrate:
 `python manage.py migrate`
 
 Load existing data:
 1. ssh into server
-1. `./manage.py dumpdata --exclude auth.permission --exclude contenttypes > db.json`
+2. Make sure to activate venv (`source venv/bin/activate`)
+3. `./manage.py dumpdata --exclude auth.permission --exclude contenttypes > ~/db.json`
     * Ignore error `Cannot export Prometheus /metrics/ - no available ports in supplied range`
-1. `scp battlegame@salutationstudio.com:/home/battlegame/db.json  ./` it locally, then run `./manage.py loaddata db.json` (or scp -r to move it to remote)
-1. `./manage.py dumpdata --exclude auth.permission > db.json` to export data for future iterations (untested)
+4. Run `scp {INSERT_USERNAME}@salutationstudio.com:/home/{INSERT_USERNAME}/db.json {INSERT_LOCAL_DIRECTORY}` locally to copy `db.json` to your local workstation.
+5. Run `./manage.py loaddata db.json` locally to load the data.
 
-Run:
+To export data:
+`./manage.py dumpdata --exclude auth.permission > db.json` to export data for future iterations (untested)
+
+To run on same computer as Unity instance:
+```
 python manage.py runserver
+```
 
-Run on local server (eg: seperate computer, same internet):
+To run on local server (eg: separate computer, same internet):
 1. Install ufw, and open up port 8000
-1. In battlegame/settings.py, add the server machine's ip (check with `ifconfig`) to ALLOWED_HOSTS. Dont commit this!
+1. In battlegame/settings.py, add the server machine's ip (check with `ifconfig`) to ALLOWED_HOSTS. Don't commit this!
 1. run with `python manage.py runserver 0.0.0.0:8000`
 
-## Deployment
+### Chat
+Tutorial reference: https://channels.readthedocs.io/en/latest/tutorial/
 
+For chat, you will need to start redis using Docker.
+Make sure you have the following dependencies:
+- Python `channels` package
+- Python `channels_redis` package
+- `docker` is installed
+
+Then run the following command to start redis, with a pre-built Docker image:
+```
+docker run -p 6379:6379 -d redis:5
+```
+
+Finally, restart the Django server.
+
+See https://channels.readthedocs.io/en/latest/tutorial/part_2.html#enable-a-channel-layer for more details.
+
+## Deployment
 Currently we have auto deployment setup, which installs new dependencies,
 runs migrations, and restarts supervisor.
 
