@@ -19,7 +19,6 @@ class BaseCharacter(models.Model):
     name = models.CharField(max_length=30, unique=True)
     health = models.IntegerField()
     mana = models.IntegerField()
-    test = models.IntegerField()
     speed = models.IntegerField()
     attack = models.IntegerField()
     ar = models.IntegerField()
