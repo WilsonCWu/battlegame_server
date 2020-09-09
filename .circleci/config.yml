@@ -32,6 +32,11 @@ jobs:
           command: |
             echo -e "SECRET_KEY=foo\nPOSTGRES_PASSWORD=postgres" >> .env
       - run:
+          name: "No pending migrations"
+          command: |
+            . venv/bin/activate
+            python manage.py makemigrations --check --dry-run
+      - run:
           command: |
             . venv/bin/activate
             python manage.py test
