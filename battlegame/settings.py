@@ -26,7 +26,7 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-SERVICE_ACCOUNT_FILE = '/home/battlegame/battlegame/google-service-account.json'
+SERVICE_ACCOUNT_FILE = '/home/battlegame/battlegame/.google-service-account.json'
 
 DEVELOPMENT = config('DEVELOPMENT', False)
 
