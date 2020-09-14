@@ -147,4 +147,4 @@ media
 static
 
 # Google service account
-google-service-account.json
+.google-service-account.json
