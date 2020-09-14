@@ -63,6 +63,7 @@ urlpatterns = [
     path('leaderboards/', social.GetLeaderboardView.as_view()),
     path('getchatid/', social.GetChatIdView.as_view()),
     path('getallchats/', social.GetAllChatsView.as_view()),
+    path('validate/', purchases.ValidateView.as_view()),
     path('purchaseitem/', purchases.PurchaseItemView.as_view()),
     path('purchase/', purchases.PurchaseView.as_view()),
     path('levelup/', inventory.TryLevelView.as_view()),

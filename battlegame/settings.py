@@ -26,6 +26,8 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+SERVICE_ACCOUNT_FILE = '/home/battlegame/google-service-account.json'
+
 DEVELOPMENT = config('DEVELOPMENT', False)
 
 ALLOWED_HOSTS = ['salutationstudio.com', 'www.salutationstudio.com', 'localhost']
