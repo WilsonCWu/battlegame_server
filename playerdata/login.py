@@ -17,6 +17,11 @@ from decouple import config
 from .serializers import AuthTokenSerializer
 from .serializers import CreateNewUserSerializer
 
+from playerdata.models import Chat, ChatMessage, Friend
+
+import json
+import random
+
 class HelloView(APIView):
     
     permission_classes = (IsAuthenticated,) 
@@ -45,6 +50,15 @@ class CreateNewUser(APIView):
         user = get_user_model().objects.create_user(username=latestId, password=password,first_name=name)
 
         content = {'username':str(latestId), 'password':password, 'name':name}
+
+        # TODO(advait): create prod accounts and modify env
+        devAccountCredentials = random.choice(json.loads(config('DEV_ACCOUNTS'))["data"])
+        devUser = authenticate(username=devAccountCredentials["username"], password=devAccountCredentials["password"])
+        chat = Chat.objects.create(chat_name="dm(%s)" % (devUser.get_username()))
+        # TODO(advait): add db-level constraint to prevent duplicate friend pairs
+        Friend.objects.create(user_1=user, user_2=devUser, chat=chat)
+        chat_message = ChatMessage.objects.create(chat=chat, message="Welcome to Tiny Heroes %s!" % (user.first_name), sender=devUser)
+
         return Response(content)
 
 class ObtainAuthToken(APIView):
