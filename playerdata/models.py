@@ -155,6 +155,7 @@ class Character(models.Model):
         return str(self.user) + ": " + str(self.char_type) + " " + str(self.char_id)
 
 
+# TODO(yanke): delete this model once teams overtake the idea of a placement.
 class Placement(models.Model):
     placement_id = models.AutoField(primary_key=True)
     pos_1 = models.IntegerField(default=-1)
@@ -175,15 +176,20 @@ class Placement(models.Model):
 
 class Team(models.Model):
     team_id = models.AutoField(primary_key=True)
+    # TODO(yanke): remove null=True.
+    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
     char_1 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_1')
     char_2 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_2')
     char_3 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_3')
     char_4 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_4')
     char_5 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_5')
-    char_6 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_6')
+
+    def default_placements():
+        return [-1] * 5
+    placements = ArrayField(models.IntegerField(), size=5, default=default_placements)
 
     def __str__(self):
-        return str(self.team_id)
+        return str(self.user) + ": team " + str(self.team_id)
 
 
 class UserInfo(models.Model):
@@ -194,7 +200,10 @@ class UserInfo(models.Model):
     name = models.CharField(max_length=20, default='new player')
     profile_picture = models.IntegerField(default=0)
     default_placement = models.OneToOneField(Placement, null=True, on_delete=models.SET_NULL)
-    team = models.OneToOneField(Team, null=True, on_delete=models.SET_NULL)
+    # TODO(yanske): let's name this to default_team later, as we'll have the
+    # concept of a team we show to friends (e.g. PAD), and other team slots
+    # that we use (team slots can be a P2W concept as well).
+    team = models.ForeignKey(Team, null=True, on_delete=models.SET_NULL)
 
     class Meta:
         indexes = [
@@ -508,6 +517,8 @@ def create_user_referral(user):
 @receiver(post_save, sender=User)
 def create_user_info(sender, instance, created, **kwargs):
     if created:
+        # TODO(yanke): when users are created, we need to give them common
+        # characters, and a default team.
         userinfo = UserInfo.objects.create(user=instance)
         UserStats.objects.create(user=instance)
         Inventory.objects.create(user=instance)

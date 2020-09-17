@@ -17,6 +17,8 @@ from playerdata.models import Placement
 from playerdata.models import UserInfo
 from playerdata.models import Character
 from playerdata.models import Item
+from playerdata.models import Team
+
 from .serializers import GetUserSerializer
 from .serializers import GetOpponentsSerializer
 from .inventory import CharacterSchema
@@ -43,7 +45,7 @@ class TeamSchema(Schema):
     char_3 = fields.Nested(CharacterSchema)
     char_4 = fields.Nested(CharacterSchema)
     char_5 = fields.Nested(CharacterSchema)
-    char_6 = fields.Nested(CharacterSchema)
+    placements = fields.List(fields.Int())
 
 
 class UserInfoSchema(Schema):
@@ -56,6 +58,7 @@ class UserInfoSchema(Schema):
     num_wins = fields.Int(attribute='user.userstats.num_wins')
     num_games = fields.Int(attribute='user.userstats.num_games')
     time_started = fields.Str(attribute='user.userstats.time_started')
+    # TODO(yanke): we need to remove the default placement.
     default_placement = fields.Nested(PlacementSchema)
     team = fields.Nested(TeamSchema)
     clan = fields.Str(attribute='clanmember.clan_id')
@@ -71,13 +74,13 @@ class MatcherView(APIView):
 class GetUserView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    # TODO(yanke): do we need equippables for these queries?
     def get(self, request):
         query = UserInfo.objects.select_related('team__char_1__weapon') \
             .select_related('team__char_2__weapon') \
             .select_related('team__char_3__weapon') \
             .select_related('team__char_4__weapon') \
             .select_related('team__char_5__weapon') \
-            .select_related('team__char_6__weapon') \
             .select_related('clanmember') \
             .select_related('user__userstats') \
             .get(user_id=request.user.id)
@@ -85,9 +88,11 @@ class GetUserView(APIView):
         return Response(user_info.data)
 
     def post(self, request):
+        """Post returns the user view of another user."""
         serializer = GetUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         target_user = serializer.validated_data['target_user']
+        # TODO(yanke): this query is about to get ugly with the item preloads.
         query = UserInfo.objects.select_related('default_placement__char_1__weapon') \
             .select_related('default_placement__char_2__weapon') \
             .select_related('default_placement__char_3__weapon') \
@@ -95,7 +100,7 @@ class GetUserView(APIView):
             .select_related('default_placement__char_5__weapon') \
             .select_related('user__userstats') \
             .get(user_id=target_user)
-        target_user_info = UserInfoSchema(query, exclude=('team',))
+        target_user_info = UserInfoSchema(query)
         return Response(target_user_info.data)
 
 
@@ -113,6 +118,6 @@ class GetOpponentsView(APIView):
                     .select_related('default_placement__char_4__weapon') \
                     .select_related('default_placement__char_5__weapon') \
                     .filter(elo__gte=cur_elo - 200, elo__lte=cur_elo + 200) \
-            [:30]
-        enemies = UserInfoSchema(query, exclude=('team',), many=True)
+            [:search_count]
+        enemies = UserInfoSchema(query, many=True)
         return Response({'users': enemies.data})

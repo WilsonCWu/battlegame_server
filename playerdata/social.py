@@ -49,8 +49,8 @@ def getGlobalChats():
 class FriendSchema(Schema):
     user_1_id = fields.Int(attribute='user_1_id')
     user_2_id = fields.Int(attribute='user_2_id')
-    user_1_info = fields.Nested(UserInfoSchema, attribute='user_1.userinfo', exclude=('team',))
-    user_2_info = fields.Nested(UserInfoSchema, attribute='user_2.userinfo', exclude=('team',))
+    user_1_info = fields.Nested(UserInfoSchema, attribute='user_1.userinfo')
+    user_2_info = fields.Nested(UserInfoSchema, attribute='user_2.userinfo')
     chat_id = fields.Int(attribute='chat_id')
 
 
