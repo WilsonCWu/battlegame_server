@@ -76,15 +76,15 @@ class GetUserView(APIView):
 
     # TODO(yanke): do we need equippables for these queries?
     def get(self, request):
-        query = UserInfo.objects.select_related('team__char_1__weapon') \
-            .select_related('team__char_2__weapon') \
-            .select_related('team__char_3__weapon') \
-            .select_related('team__char_4__weapon') \
-            .select_related('team__char_5__weapon') \
+        query = UserInfo.objects.select_related('default_placement__char_1__weapon') \
+            .select_related('default_placement__char_2__weapon') \
+            .select_related('default_placement__char_3__weapon') \
+            .select_related('default_placement__char_4__weapon') \
+            .select_related('default_placement__char_5__weapon') \
             .select_related('clanmember') \
             .select_related('user__userstats') \
             .get(user_id=request.user.id)
-        user_info = UserInfoSchema(query, exclude=('default_placement',))
+        user_info = UserInfoSchema(query)
         return Response(user_info.data)
 
     def post(self, request):
