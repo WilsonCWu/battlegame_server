@@ -174,24 +174,6 @@ class Placement(models.Model):
         return str(self.user) + ": " + str(self.placement_id)
 
 
-# TODO(yanke): delete this after placement takes over.
-class Team(models.Model):
-    team_id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
-    char_1 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_1')
-    char_2 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_2')
-    char_3 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_3')
-    char_4 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_4')
-    char_5 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_5')
-
-    def default_placements():
-        return [-1] * 5
-    placements = ArrayField(models.IntegerField(), size=5, default=default_placements)
-
-    def __str__(self):
-        return str(self.user) + ": team " + str(self.team_id)
-
-
 class UserInfo(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     elo = models.IntegerField(default=0)
@@ -200,7 +182,6 @@ class UserInfo(models.Model):
     name = models.CharField(max_length=20, default='new player')
     profile_picture = models.IntegerField(default=0)
     default_placement = models.ForeignKey(Placement, null=True, on_delete=models.SET_NULL)
-    team = models.ForeignKey(Team, null=True, on_delete=models.SET_NULL)
 
     class Meta:
         indexes = [

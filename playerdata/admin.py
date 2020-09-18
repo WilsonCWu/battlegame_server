@@ -11,7 +11,6 @@ from .models import Item
 from .models import User
 from .models import UserInfo
 from .models import Placement
-from .models import Team
 from .models import UserStats
 from .models import Inventory
 from .models import Chat
@@ -49,9 +48,6 @@ class BaseCodeAdmin(admin.ModelAdmin, DynamicArrayMixin):
 class BaseItemAdmin(admin.ModelAdmin, DynamicArrayMixin):
     pass
 
-class TeamAdmin(admin.ModelAdmin, DynamicArrayMixin):
-    pass
-
 
 class BaseQuestAdmin(admin.ModelAdmin):
     actions = ['propagate_quests']
@@ -86,7 +82,6 @@ admin.site.register(Character)
 admin.site.register(Item)
 
 admin.site.register(Placement)
-admin.site.register(Team, TeamAdmin)
 admin.site.register(UserInfo)
 admin.site.register(UserStats)
 admin.site.register(Inventory)

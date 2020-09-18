@@ -238,7 +238,7 @@ class GetLeaderboardView(APIView):
 
         if leaderboard_type == 'solo_top_100':
             top_player_set = UserInfo.objects.all().order_by('-elo')[:100]
-            players = UserInfoSchema(top_player_set, many=True, exclude=('default_placement', 'team',))
+            players = UserInfoSchema(top_player_set, many=True, exclude=('default_placement',))
             return Response({'players': players.data})
         if leaderboard_type == 'clan_top_100':
             top_clan_set = Clan.objects.all().order_by('-elo')[:100]
@@ -297,7 +297,7 @@ class NewClanView(APIView):
 
 
 class ClanMemberSchema(Schema):
-    userinfo = fields.Nested(UserInfoSchema, exclude=('default_placement', 'team',))
+    userinfo = fields.Nested(UserInfoSchema, exclude=('default_placement',))
     clan_id = fields.Str()
     is_admin = fields.Bool()
     is_owner = fields.Bool()
@@ -391,7 +391,7 @@ class ChangeMemberStatusView(APIView):
 
 class ClanRequestSchema(Schema):
     request_id = fields.Int(attribute='id')
-    userinfo = fields.Nested(UserInfoSchema, exclude=('default_placement', 'team',))
+    userinfo = fields.Nested(UserInfoSchema, exclude=('default_placement',))
     clan_id = fields.Str()
 
 
