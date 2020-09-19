@@ -56,6 +56,7 @@ class PlacementsAPITestCase(APITestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
+        self.assertIsNotNone(response.data['placement_id'])
         self.assertEqual(Placement.objects.filter(user=self.u).count(), 1)
 
         # Give u:battlegame the max amount of placements.
@@ -75,7 +76,6 @@ class PlacementsAPITestCase(APITestCase):
         # we should refactor this later when we get a chance.
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data['status'])
-
 
     def test_updating_placement(self):
         placement = self._create_placement(

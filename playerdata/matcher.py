@@ -137,8 +137,8 @@ class PlacementsView(APIView):
             if Placement.objects.filter(user=request.user).count() >= 3:
                 return Response({'status': False, 'reason': 'user already has the max 3 placement'})
 
-            self._new_placement(request.user, serializer)
-            return Response({'status': True})
+            placement = self._new_placement(request.user, serializer)
+            return Response({'status': True, 'placement_id': placement.placement_id})
 
     def _update_placement(self, placement, serializer):
         characters = serializer.validated_data['characters']
@@ -162,7 +162,7 @@ class PlacementsView(APIView):
         characters = [cid if cid != -1 else None for cid in characters]
         positions = serializer.validated_data['positions']
 
-        Placement.objects.create(
+        return Placement.objects.create(
             user=user,
             char_1_id=characters[0],
             char_2_id=characters[1],
