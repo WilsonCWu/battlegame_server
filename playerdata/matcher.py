@@ -17,9 +17,11 @@ from playerdata.models import Placement
 from playerdata.models import UserInfo
 from playerdata.models import Character
 from playerdata.models import Item
+from playerdata.models import Placement
 
 from .serializers import GetUserSerializer
 from .serializers import GetOpponentsSerializer
+from .serializers import UpdatePlacementSerializer
 from .inventory import CharacterSchema
 
 
@@ -108,3 +110,68 @@ class GetOpponentsView(APIView):
             [:search_count]
         enemies = UserInfoSchema(query, many=True)
         return Response({'users': enemies.data})
+
+
+class PlacementsView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        placements = Placement.objects.filter(user=request.user)
+        return Response({'placements': [PlacementSchema(p).data for p in placements]})
+
+    def post(self, request):
+        serializer = UpdatePlacementSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        if 'placement_id' in serializer.validated_data:
+            id = serializer.validated_data['placement_id']
+            placement = Placement.objects.get(placement_id=id)
+            if placement.user != request.user:
+                return Response({'status': False, 'reason': 'user does not own the placement'})
+
+            self._update_placement(placement, serializer)
+            return Response({'status': True})
+        else:
+            # TODO(yanke): currently limit the user to 3 placements. In the
+            # future we can expand slots like rune pages for P2W players.
+            if Placement.objects.filter(user=request.user).count() >= 3:
+                return Response({'status': False, 'reason': 'user already has the max 3 placement'})
+
+            self._new_placement(request.user, serializer)
+            return Response({'status': True})
+
+    def _update_placement(self, placement, serializer):
+        characters = serializer.validated_data['characters']
+        characters = [cid if cid != -1 else None for cid in characters]
+        positions = serializer.validated_data['positions']
+
+        placement.char_1_id=characters[0]
+        placement.char_2_id=characters[1]
+        placement.char_3_id=characters[2]
+        placement.char_4_id=characters[3]
+        placement.char_5_id=characters[4]
+        placement.pos_1=positions[0]
+        placement.pos_2=positions[1]
+        placement.pos_3=positions[2]
+        placement.pos_4=positions[3]
+        placement.pos_5=positions[4]
+        placement.save()
+
+    def _new_placement(self, user, serializer):
+        characters = serializer.validated_data['characters']
+        characters = [cid if cid != -1 else None for cid in characters]
+        positions = serializer.validated_data['positions']
+
+        Placement.objects.create(
+            user=user,
+            char_1_id=characters[0],
+            char_2_id=characters[1],
+            char_3_id=characters[2],
+            char_4_id=characters[3],
+            char_5_id=characters[4],
+            pos_1=positions[0],
+            pos_2=positions[1],
+            pos_3=positions[2],
+            pos_4=positions[3],
+            pos_5=positions[4],
+        )
