@@ -17,7 +17,6 @@ from playerdata.models import Placement
 from playerdata.models import UserInfo
 from playerdata.models import Character
 from playerdata.models import Item
-from playerdata.models import Team
 
 from .serializers import GetUserSerializer
 from .serializers import GetOpponentsSerializer
@@ -38,16 +37,6 @@ class PlacementSchema(Schema):
     char_5 = fields.Nested(CharacterSchema)
 
 
-class TeamSchema(Schema):
-    team_id = fields.Int()
-    char_1 = fields.Nested(CharacterSchema)
-    char_2 = fields.Nested(CharacterSchema)
-    char_3 = fields.Nested(CharacterSchema)
-    char_4 = fields.Nested(CharacterSchema)
-    char_5 = fields.Nested(CharacterSchema)
-    placements = fields.List(fields.Int())
-
-
 class UserInfoSchema(Schema):
     user_id = fields.Int(attribute='user_id')
     elo = fields.Int()
@@ -58,9 +47,7 @@ class UserInfoSchema(Schema):
     num_wins = fields.Int(attribute='user.userstats.num_wins')
     num_games = fields.Int(attribute='user.userstats.num_games')
     time_started = fields.Str(attribute='user.userstats.time_started')
-    # TODO(yanke): we need to remove the default placement.
     default_placement = fields.Nested(PlacementSchema)
-    team = fields.Nested(TeamSchema)
     clan = fields.Str(attribute='clanmember.clan_id')
 
 

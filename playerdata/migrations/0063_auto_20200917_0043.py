@@ -15,20 +15,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='team',
-            name='char_6',
-        ),
-        migrations.AddField(
-            model_name='team',
-            name='placements',
-            field=django_better_admin_arrayfield.models.fields.ArrayField(base_field=models.IntegerField(), default=playerdata.models.Team.default_placements, size=5),
-        ),
-        migrations.AddField(
-            model_name='team',
-            name='user',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
-        ),
         migrations.AlterField(
             model_name='userinfo',
             name='team',
