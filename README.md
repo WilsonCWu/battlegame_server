@@ -26,6 +26,7 @@ Make an `.env` in the root git folder with the following:
 ```
 SECRET_KEY=<type something here>
 POSTGRES_PASSWORD=postgres
+CREATEUSER_TOKEN=<ask someone for this>
 ```
 
 Set up Postgres
