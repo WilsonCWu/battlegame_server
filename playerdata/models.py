@@ -157,6 +157,8 @@ class Character(models.Model):
 
 class Placement(models.Model):
     placement_id = models.AutoField(primary_key=True)
+    # TODO(yanke): delete null on user.
+    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
     pos_1 = models.IntegerField(default=-1)
     char_1 = models.ForeignKey(Character, blank=True, null=True, on_delete=models.SET_NULL, related_name='char_1')
     pos_2 = models.IntegerField(default=-1)
@@ -169,21 +171,7 @@ class Placement(models.Model):
     char_5 = models.ForeignKey(Character, blank=True, null=True, on_delete=models.SET_NULL, related_name='char_5')
 
     def __str__(self):
-        return str(self.placement_id)
-        # return str(self.userinfo.user) + ": " + str(self.placement_id)
-
-
-class Team(models.Model):
-    team_id = models.AutoField(primary_key=True)
-    char_1 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_1')
-    char_2 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_2')
-    char_3 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_3')
-    char_4 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_4')
-    char_5 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_5')
-    char_6 = models.ForeignKey(Character, null=True, on_delete=models.SET_NULL, related_name='tchar_6')
-
-    def __str__(self):
-        return str(self.team_id)
+        return str(self.user) + ": " + str(self.placement_id)
 
 
 class UserInfo(models.Model):
@@ -193,8 +181,7 @@ class UserInfo(models.Model):
     prev_tourney_elo = models.IntegerField(default=0)
     name = models.CharField(max_length=20, default='new player')
     profile_picture = models.IntegerField(default=0)
-    default_placement = models.OneToOneField(Placement, null=True, on_delete=models.SET_NULL)
-    team = models.OneToOneField(Team, null=True, on_delete=models.SET_NULL)
+    default_placement = models.ForeignKey(Placement, null=True, on_delete=models.SET_NULL)
 
     class Meta:
         indexes = [
@@ -508,6 +495,8 @@ def create_user_referral(user):
 @receiver(post_save, sender=User)
 def create_user_info(sender, instance, created, **kwargs):
     if created:
+        # TODO(yanke): when users are created, we need to give them common
+        # characters, and a default team.
         userinfo = UserInfo.objects.create(user=instance)
         UserStats.objects.create(user=instance)
         Inventory.objects.create(user=instance)

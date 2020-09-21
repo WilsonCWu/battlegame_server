@@ -23,6 +23,14 @@ class GetOpponentsSerializer(serializers.Serializer):
     search_count = serializers.IntegerField(required=True)
 
 
+class UpdatePlacementSerializer(serializers.Serializer):
+    placement_id = serializers.IntegerField(required=False)
+    characters = serializers.ListField(child=serializers.IntegerField(),
+        required=True, min_length=5, max_length=5)
+    positions = serializers.ListField(child=serializers.IntegerField(),
+        required=True, min_length=5, max_length=5)
+
+
 class UploadResultSerializer(serializers.Serializer):
     result = serializers.JSONField()
 
