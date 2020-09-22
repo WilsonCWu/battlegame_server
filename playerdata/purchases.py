@@ -17,6 +17,7 @@ from .questupdater import QuestUpdater
 from .serializers import PurchaseItemSerializer
 from .serializers import PurchaseSerializer
 from .serializers import ValidateReceiptSerializer
+from .inventory import CharacterSchema
 
 
 class PurchaseView(APIView):
@@ -104,10 +105,11 @@ def insert_character(user, chosen_char):
     if old_char:
         old_char.copies += 1
         old_char.save()
-        return
+        return old_char
 
-    Character.objects.create(user=user, char_type=chosen_char)
+    new_char = Character.objects.create(user=user, char_type=chosen_char)
     QuestUpdater.add_progress_by_type(user, constants.OWN_HEROES, 1)
+    return new_char
 
 
 class PurchaseItemView(APIView):
@@ -131,11 +133,13 @@ class PurchaseItemView(APIView):
             inventory.save()
             QuestUpdater.add_progress_by_type(request.user, constants.PURCHASE_ITEM, 1)
 
-            newCharTypes = []
-
+            new_chars = []
+            # TODO(wilsoncwu): this isnt really right, we are sending multiple versions of the same character,
+            # with info of the first ones being outdated. Happens to work out because of ordering,
+            # but should be fixed at some point
             for i in range(0, 10):
-                newChar = generate_character()
-                insert_character(user, newChar)
-                newCharTypes.append(newChar.char_type)
+                base_char = generate_character()
+                new_char = insert_character(user, base_char)
+                new_chars.append(new_char)
 
-            return Response({"status": 0, "characters": newCharTypes})
+            return Response({"status": 0, "characters": CharacterSchema(new_chars, many=True).data})
