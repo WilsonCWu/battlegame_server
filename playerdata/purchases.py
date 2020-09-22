@@ -134,7 +134,9 @@ class PurchaseItemView(APIView):
             QuestUpdater.add_progress_by_type(request.user, constants.PURCHASE_ITEM, 1)
 
             new_chars = []
-
+            # TODO(wilsoncwu): this isnt really right, we are sending multiple versions of the same character,
+            # with info of the first ones being outdated. Happens to work out because of ordering,
+            # but should be fixed at some point
             for i in range(0, 10):
                 base_char = generate_character()
                 new_char = insert_character(user, base_char)
