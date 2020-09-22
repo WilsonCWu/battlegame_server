@@ -1,4 +1,5 @@
 from rest_framework.test import APITestCase
+from rest_framework import status
 
 from playerdata.models import User, Character
 from playerdata.purchases import generate_and_insert_characters
@@ -10,7 +11,7 @@ class GenerateCharactersTestCase(APITestCase):
         self.u = User.objects.get(username='battlegame')
         self.client.force_authenticate(user=self.u)
 
-    def test_equipping_item(self):
+    def test_summon_10(self):
         char_map = generate_and_insert_characters(self.u, 10)
         database_chars = Character.objects.filter(user=self.u)
 

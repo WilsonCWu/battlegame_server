@@ -134,25 +134,27 @@ class PurchaseItemView(APIView):
         purchase_item_id = serializer.validated_data['purchase_item_id']
         user = request.user
 
-        if purchase_item_id == "chars10":
-            # check enough gems
-            inventory = Inventory.objects.get(user=user)
-            if inventory.gems < 2700:
-                return Response({"status": 1, "reason": "not enough gems"})
+        if purchase_item_id not in constants.SUMMON_GEM_COST:
+            return Response({"status": 1, "reason": "invalid purchase id " + purchase_item_id})
 
-            #deduct gems, update quests
-            inventory.gems -= 2700
-            inventory.save()
-            # TODO: we need to replace this with a summon(.., 10) quest, otherwise
-            # we're promoting buying 100 small items just for a quest
-            QuestUpdater.add_progress_by_type(request.user, constants.PURCHASE_ITEM, 1)
+        # check enough gems
+        inventory = Inventory.objects.get(user=user)
+        if inventory.gems < constants.SUMMON_GEM_COST[purchase_item_id]:
+            return Response({"status": 1, "reason": "not enough gems"})
 
-            #generate characters
-            new_char_arr = []
-            new_chars = generate_and_insert_characters(user, 10)
+        #deduct gems, update quests
+        inventory.gems -= constants.SUMMON_GEM_COST[purchase_item_id]
+        inventory.save()
+        # TODO: we need to replace this with a summon(.., 10) quest, otherwise
+        # we're promoting buying 100 small items just for a quest
+        QuestUpdater.add_progress_by_type(request.user, constants.PURCHASE_ITEM, constants.SUMMON_COUNT[purchase_item_id])
 
-            # convert to a serialized form
-            for char_id, charTuple in new_chars.items():
-                new_char_arr.append({"count":charTuple[1], "character":CharacterSchema(charTuple[0]).data})
+        #generate characters
+        new_char_arr = []
+        new_chars = generate_and_insert_characters(user, constants.SUMMON_COUNT[purchase_item_id])
 
-            return Response({"status": 0, "characters": new_char_arr})
+        # convert to a serialized form
+        for char_id, charTuple in new_chars.items():
+            new_char_arr.append({"count":charTuple[1], "character":CharacterSchema(charTuple[0]).data})
+
+        return Response({"status": 0, "characters": new_char_arr})

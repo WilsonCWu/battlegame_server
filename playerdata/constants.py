@@ -35,3 +35,15 @@ WIN_X_GAMES_WITH_CHAR_NAMESPACE = 100
 
 # Tournament constants
 TOURNEY_SIZE = 8
+
+
+# Purchases constants
+SUMMON_GEM_COST = {
+    "summon1": 300,
+    "summon10": 2700,
+}
+
+SUMMON_COUNT = {
+    "summon1": 1,
+    "summon10": 10,
+}
