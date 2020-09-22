@@ -39,11 +39,11 @@ TOURNEY_SIZE = 8
 
 # Purchases constants
 SUMMON_GEM_COST = {
-    "summon1": 300,
-    "summon10": 2700,
+    "SUMMON1": 300,
+    "SUMMON10": 2700,
 }
 
 SUMMON_COUNT = {
-    "summon1": 1,
-    "summon10": 10,
+    "SUMMON1": 1,
+    "SUMMON10": 10,
 }
