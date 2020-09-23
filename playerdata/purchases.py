@@ -7,6 +7,7 @@ from googleapiclient.discovery import build
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import status
 
 from battlegame.settings import SERVICE_ACCOUNT_FILE
 from playerdata.models import BaseCharacter
@@ -138,12 +139,12 @@ class PurchaseItemView(APIView):
         user = request.user
 
         if purchase_item_id not in constants.SUMMON_GEM_COST:
-            return Response({"status": 1, "reason": "invalid purchase id " + purchase_item_id})
+            return Response({"status": status.HTTP_400_BAD_REQUEST, "reason": "invalid purchase id " + purchase_item_id})
 
         # check enough gems
         inventory = Inventory.objects.get(user=user)
         if inventory.gems < constants.SUMMON_GEM_COST[purchase_item_id]:
-            return Response({"status": 1, "reason": "not enough gems"})
+            return Response({"status": status.HTTP_400_BAD_REQUEST, "reason": "not enough gems"})
 
         #deduct gems, update quests
         inventory.gems -= constants.SUMMON_GEM_COST[purchase_item_id]
@@ -160,4 +161,4 @@ class PurchaseItemView(APIView):
         for char_id, char_count in new_chars.items():
             new_char_arr.append({"count":char_count.count, "character":CharacterSchema(char_count.character).data})
 
-        return Response({"status": 0, "characters": new_char_arr})
+        return Response({"status": status.HTTP_200_OK, "characters": new_char_arr})
