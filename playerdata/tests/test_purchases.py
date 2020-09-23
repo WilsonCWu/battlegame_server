@@ -16,8 +16,8 @@ class GenerateCharactersTestCase(APITestCase):
         database_chars = Character.objects.filter(user=self.u)
 
         #assert 10 generated
-        self.assertEqual(sum(list(map(lambda x: x[1][1], char_map.items()))), 10)
+        self.assertEqual(sum(list(map(lambda x: x[1].count, char_map.items()))), 10)
 
         #assert database is accurate
         for database_char in database_chars:
-            self.assertEqual(char_map[database_char.char_id][1], database_char.copies)
+            self.assertEqual(char_map[database_char.char_id].count, database_char.copies)

@@ -1,5 +1,6 @@
 import random
 import json
+from collections import namedtuple
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
@@ -111,6 +112,8 @@ def insert_character(user, chosen_char):
     QuestUpdater.add_progress_by_type(user, constants.OWN_HEROES, 1)
     return new_char
 
+CharacterCount = namedtuple("CharacterCount", "character count")
+
 def generate_and_insert_characters(user, char_count):
     new_chars = {}
     # generate char_count random characters
@@ -118,10 +121,10 @@ def generate_and_insert_characters(user, char_count):
         base_char = generate_character()
         new_char = insert_character(user, base_char)
         if new_char.char_id in new_chars:
-            _, prev_count = new_chars[new_char.char_id]
-            new_chars[new_char.char_id] = (new_char, prev_count+1)
+            old_char = new_chars[new_char.char_id]
+            new_chars[new_char.char_id] = CharacterCount(character = new_char, count = old_char.count+1)
         else:
-            new_chars[new_char.char_id] = (new_char, 1)
+            new_chars[new_char.char_id] = CharacterCount(character = new_char, count = 1)
     return new_chars
 
 class PurchaseItemView(APIView):
@@ -154,7 +157,7 @@ class PurchaseItemView(APIView):
         new_chars = generate_and_insert_characters(user, constants.SUMMON_COUNT[purchase_item_id])
 
         # convert to a serialized form
-        for char_id, charTuple in new_chars.items():
-            new_char_arr.append({"count":charTuple[1], "character":CharacterSchema(charTuple[0]).data})
+        for char_id, char_count in new_chars.items():
+            new_char_arr.append({"count":char_count.count, "character":CharacterSchema(char_count.character).data})
 
         return Response({"status": 0, "characters": new_char_arr})
