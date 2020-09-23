@@ -139,12 +139,12 @@ class PurchaseItemView(APIView):
         user = request.user
 
         if purchase_item_id not in constants.SUMMON_GEM_COST:
-            return Response({"status": status.HTTP_400_BAD_REQUEST, "reason": "invalid purchase id " + purchase_item_id})
+            return Response({"status": False, "reason": "invalid purchase id " + purchase_item_id})
 
         # check enough gems
         inventory = Inventory.objects.get(user=user)
         if inventory.gems < constants.SUMMON_GEM_COST[purchase_item_id]:
-            return Response({"status": status.HTTP_400_BAD_REQUEST, "reason": "not enough gems"})
+            return Response({"status": False, "reason": "not enough gems"})
 
         #deduct gems, update quests
         inventory.gems -= constants.SUMMON_GEM_COST[purchase_item_id]
@@ -161,4 +161,4 @@ class PurchaseItemView(APIView):
         for char_id, char_count in new_chars.items():
             new_char_arr.append({"count":char_count.count, "character":CharacterSchema(char_count.character).data})
 
-        return Response({"status": status.HTTP_200_OK, "characters": new_char_arr})
+        return Response({"status": True, "characters": new_char_arr})
