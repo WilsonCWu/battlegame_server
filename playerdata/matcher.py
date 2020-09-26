@@ -17,8 +17,11 @@ from playerdata.models import Placement
 from playerdata.models import UserInfo
 from playerdata.models import Character
 from playerdata.models import Item
+from playerdata.models import Placement
+
 from .serializers import GetUserSerializer
 from .serializers import GetOpponentsSerializer
+from .serializers import UpdatePlacementSerializer
 from .inventory import CharacterSchema
 
 
@@ -36,16 +39,6 @@ class PlacementSchema(Schema):
     char_5 = fields.Nested(CharacterSchema)
 
 
-class TeamSchema(Schema):
-    team_id = fields.Int()
-    char_1 = fields.Nested(CharacterSchema)
-    char_2 = fields.Nested(CharacterSchema)
-    char_3 = fields.Nested(CharacterSchema)
-    char_4 = fields.Nested(CharacterSchema)
-    char_5 = fields.Nested(CharacterSchema)
-    char_6 = fields.Nested(CharacterSchema)
-
-
 class UserInfoSchema(Schema):
     user_id = fields.Int(attribute='user_id')
     elo = fields.Int()
@@ -57,7 +50,6 @@ class UserInfoSchema(Schema):
     num_games = fields.Int(attribute='user.userstats.num_games')
     time_started = fields.Str(attribute='user.userstats.time_started')
     default_placement = fields.Nested(PlacementSchema)
-    team = fields.Nested(TeamSchema)
     clan = fields.Str(attribute='clanmember.clan_id')
 
 
@@ -71,23 +63,25 @@ class MatcherView(APIView):
 class GetUserView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    # TODO(yanke): do we need equippables for these queries?
     def get(self, request):
-        query = UserInfo.objects.select_related('team__char_1__weapon') \
-            .select_related('team__char_2__weapon') \
-            .select_related('team__char_3__weapon') \
-            .select_related('team__char_4__weapon') \
-            .select_related('team__char_5__weapon') \
-            .select_related('team__char_6__weapon') \
+        query = UserInfo.objects.select_related('default_placement__char_1__weapon') \
+            .select_related('default_placement__char_2__weapon') \
+            .select_related('default_placement__char_3__weapon') \
+            .select_related('default_placement__char_4__weapon') \
+            .select_related('default_placement__char_5__weapon') \
             .select_related('clanmember') \
             .select_related('user__userstats') \
             .get(user_id=request.user.id)
-        user_info = UserInfoSchema(query, exclude=('default_placement',))
+        user_info = UserInfoSchema(query)
         return Response(user_info.data)
 
     def post(self, request):
+        """Post returns the user view of another user."""
         serializer = GetUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         target_user = serializer.validated_data['target_user']
+        # TODO(yanke): this query is about to get ugly with the item preloads.
         query = UserInfo.objects.select_related('default_placement__char_1__weapon') \
             .select_related('default_placement__char_2__weapon') \
             .select_related('default_placement__char_3__weapon') \
@@ -95,7 +89,7 @@ class GetUserView(APIView):
             .select_related('default_placement__char_5__weapon') \
             .select_related('user__userstats') \
             .get(user_id=target_user)
-        target_user_info = UserInfoSchema(query, exclude=('team',))
+        target_user_info = UserInfoSchema(query)
         return Response(target_user_info.data)
 
 
@@ -113,6 +107,71 @@ class GetOpponentsView(APIView):
                     .select_related('default_placement__char_4__weapon') \
                     .select_related('default_placement__char_5__weapon') \
                     .filter(elo__gte=cur_elo - 200, elo__lte=cur_elo + 200) \
-            [:30]
-        enemies = UserInfoSchema(query, exclude=('team',), many=True)
+            [:search_count]
+        enemies = UserInfoSchema(query, many=True)
         return Response({'users': enemies.data})
+
+
+class PlacementsView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        placements = Placement.objects.filter(user=request.user, is_tourney=False)
+        return Response({'placements': [PlacementSchema(p).data for p in placements]})
+
+    def post(self, request):
+        serializer = UpdatePlacementSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        if 'placement_id' in serializer.validated_data:
+            id = serializer.validated_data['placement_id']
+            placement = Placement.objects.get(placement_id=id)
+            if placement.user != request.user:
+                return Response({'status': False, 'reason': 'user does not own the placement'})
+
+            self._update_placement(placement, serializer)
+            return Response({'status': True})
+        else:
+            # TODO(yanke): currently limit the user to 3 placements. In the
+            # future we can expand slots like rune pages for P2W players.
+            if Placement.objects.filter(user=request.user, is_tourney=False).count() >= 3:
+                return Response({'status': False, 'reason': 'user already has the max 3 placement'})
+
+            placement = self._new_placement(request.user, serializer)
+            return Response({'status': True, 'placement_id': placement.placement_id})
+
+    def _update_placement(self, placement, serializer):
+        characters = serializer.validated_data['characters']
+        characters = [cid if cid != -1 else None for cid in characters]
+        positions = serializer.validated_data['positions']
+
+        placement.char_1_id=characters[0]
+        placement.char_2_id=characters[1]
+        placement.char_3_id=characters[2]
+        placement.char_4_id=characters[3]
+        placement.char_5_id=characters[4]
+        placement.pos_1=positions[0]
+        placement.pos_2=positions[1]
+        placement.pos_3=positions[2]
+        placement.pos_4=positions[3]
+        placement.pos_5=positions[4]
+        placement.save()
+
+    def _new_placement(self, user, serializer):
+        characters = serializer.validated_data['characters']
+        characters = [cid if cid != -1 else None for cid in characters]
+        positions = serializer.validated_data['positions']
+
+        return Placement.objects.create(
+            user=user,
+            char_1_id=characters[0],
+            char_2_id=characters[1],
+            char_3_id=characters[2],
+            char_4_id=characters[3],
+            char_5_id=characters[4],
+            pos_1=positions[0],
+            pos_2=positions[1],
+            pos_3=positions[2],
+            pos_4=positions[3],
+            pos_5=positions[4],
+        )

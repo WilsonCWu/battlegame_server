@@ -11,7 +11,6 @@ from .models import Item
 from .models import User
 from .models import UserInfo
 from .models import Placement
-from .models import Team
 from .models import UserStats
 from .models import Inventory
 from .models import Chat
@@ -40,6 +39,7 @@ from .models import TournamentMember
 from .models import TournamentTeam
 from .models import TournamentRegistration
 from .models import TournamentMatch
+from .models import InvalidReceipt
 
 
 class BaseCodeAdmin(admin.ModelAdmin, DynamicArrayMixin):
@@ -83,7 +83,6 @@ admin.site.register(Character)
 admin.site.register(Item)
 
 admin.site.register(Placement)
-admin.site.register(Team)
 admin.site.register(UserInfo)
 admin.site.register(UserStats)
 admin.site.register(Inventory)
@@ -117,3 +116,5 @@ admin.site.register(TournamentMember)
 admin.site.register(TournamentTeam)
 admin.site.register(TournamentRegistration)
 admin.site.register(TournamentMatch)
+
+admin.site.register(InvalidReceipt)
