@@ -62,7 +62,7 @@ def weekly_quests_cron():
     PlayerQuestWeekly.objects.all().delete()
 
     # pull new ones and make them for every user
-    active_quests = PlayerQuestWeekly.objects.all()[:constants.NUM_WEEKLY_QUESTS]
+    active_quests = ActiveWeeklyQuest.objects.all()[:constants.NUM_WEEKLY_QUESTS]
     expiry_date = get_expiration_date(7)
     users = User.objects.all()
     bulk_quests = []

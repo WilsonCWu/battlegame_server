@@ -15,9 +15,9 @@ COINS_EARNED = 1
 ULTS_USED = 2
 LEVEL_UP_A_HERO = 3
 PURCHASE_ITEM = 4  # Tracked
-DISCORD = 5  # Tracked
+DISCORD = 5  # Tracked / 1
 TWITTER = 6
-ACCOUNT_LINK = 7
+ACCOUNT_LINK = 7  # Tracked / 1
 JOIN_GUILD = 8  # Tracked / 1
 FIGHT_GUILD_WAR = 9
 MAKE_A_FRIEND = 10  # Tracked / 1
@@ -35,3 +35,15 @@ WIN_X_GAMES_WITH_CHAR_NAMESPACE = 100
 
 # Tournament constants
 TOURNEY_SIZE = 8
+
+
+# Purchases constants
+SUMMON_GEM_COST = {
+    "SUMMON1": 300,
+    "SUMMON10": 2700,
+}
+
+SUMMON_COUNT = {
+    "SUMMON1": 1,
+    "SUMMON10": 10,
+}

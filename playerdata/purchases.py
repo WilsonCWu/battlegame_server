@@ -1,11 +1,13 @@
 import random
 import json
+from collections import namedtuple
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import status
 
 from battlegame.settings import SERVICE_ACCOUNT_FILE
 from playerdata.models import BaseCharacter
@@ -17,6 +19,7 @@ from .questupdater import QuestUpdater
 from .serializers import PurchaseItemSerializer
 from .serializers import PurchaseSerializer
 from .serializers import ValidateReceiptSerializer
+from .inventory import CharacterSchema
 
 
 class PurchaseView(APIView):
@@ -104,11 +107,26 @@ def insert_character(user, chosen_char):
     if old_char:
         old_char.copies += 1
         old_char.save()
-        return
+        return old_char
 
-    Character.objects.create(user=user, char_type=chosen_char)
+    new_char = Character.objects.create(user=user, char_type=chosen_char)
     QuestUpdater.add_progress_by_type(user, constants.OWN_HEROES, 1)
+    return new_char
 
+CharacterCount = namedtuple("CharacterCount", "character count")
+
+def generate_and_insert_characters(user, char_count):
+    new_chars = {}
+    # generate char_count random characters
+    for i in range(char_count):
+        base_char = generate_character()
+        new_char = insert_character(user, base_char)
+        if new_char.char_id in new_chars:
+            old_char = new_chars[new_char.char_id]
+            new_chars[new_char.char_id] = CharacterCount(character = new_char, count = old_char.count+1)
+        else:
+            new_chars[new_char.char_id] = CharacterCount(character = new_char, count = 1)
+    return new_chars
 
 class PurchaseItemView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -118,24 +136,29 @@ class PurchaseItemView(APIView):
         serializer = PurchaseItemSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         purchase_item_id = serializer.validated_data['purchase_item_id']
+        user = request.user
 
-        if purchase_item_id == "chars10":
-            user = request.user
+        if purchase_item_id not in constants.SUMMON_GEM_COST:
+            return Response({"status": False, "reason": "invalid purchase id " + purchase_item_id})
 
-            # check enough gems
-            inventory = Inventory.objects.get(user=user)
-            if inventory.gems < 1000:
-                return Response({"status": 1, "reason": "not enough gems"})
+        # check enough gems
+        inventory = Inventory.objects.get(user=user)
+        if inventory.gems < constants.SUMMON_GEM_COST[purchase_item_id]:
+            return Response({"status": False, "reason": "not enough gems"})
 
-            inventory.gems -= 1000
-            inventory.save()
-            QuestUpdater.add_progress_by_type(request.user, constants.PURCHASE_ITEM, 1)
+        #deduct gems, update quests
+        inventory.gems -= constants.SUMMON_GEM_COST[purchase_item_id]
+        inventory.save()
+        # TODO: we need to replace this with a summon(.., 10) quest, otherwise
+        # we're promoting buying 100 small items just for a quest
+        QuestUpdater.add_progress_by_type(request.user, constants.PURCHASE_ITEM, constants.SUMMON_COUNT[purchase_item_id])
 
-            newCharTypes = []
+        #generate characters
+        new_char_arr = []
+        new_chars = generate_and_insert_characters(user, constants.SUMMON_COUNT[purchase_item_id])
 
-            for i in range(0, 10):
-                newChar = generate_character()
-                insert_character(user, newChar)
-                newCharTypes.append(newChar.char_type)
+        # convert to a serialized form
+        for char_id, char_count in new_chars.items():
+            new_char_arr.append({"count":char_count.count, "character":CharacterSchema(char_count.character).data})
 
-            return Response({"status": 0, "characters": newCharTypes})
+        return Response({"status": True, "characters": new_char_arr})

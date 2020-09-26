@@ -39,6 +39,7 @@ from .models import TournamentMember
 from .models import TournamentTeam
 from .models import TournamentRegistration
 from .models import TournamentMatch
+from .models import InvalidReceipt
 
 
 class BaseCodeAdmin(admin.ModelAdmin, DynamicArrayMixin):
@@ -115,3 +116,5 @@ admin.site.register(TournamentMember)
 admin.site.register(TournamentTeam)
 admin.site.register(TournamentRegistration)
 admin.site.register(TournamentMatch)
+
+admin.site.register(InvalidReceipt)

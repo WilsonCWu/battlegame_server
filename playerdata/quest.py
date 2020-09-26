@@ -127,7 +127,7 @@ class ClaimQuestDailyView(APIView):
         return handle_claim_quest(request, PlayerQuestDaily)
 
 
-class ClaimDiscordView(APIView):
+class CompleteDiscordView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
@@ -136,4 +136,16 @@ class ClaimDiscordView(APIView):
             return Response({'status': False, 'reason': 'already completed discord quest'})
 
         QuestUpdater.add_progress_by_type(request.user, constants.DISCORD, 1)
+        return Response({'status': True})
+
+
+class LinkAccountView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        link_quest = PlayerQuestCumulative.objects.get(base_quest__type=constants.ACCOUNT_LINK, user=request.user)
+        if link_quest.completed:
+            return Response({'status': False, 'reason': 'already completed link account quest'})
+
+        QuestUpdater.add_progress_by_type(request.user, constants.ACCOUNT_LINK, 1)
         return Response({'status': True})
