@@ -14,6 +14,7 @@ from django.http import JsonResponse
 
 from rest_marshmallow import Schema, fields
 
+from playerdata import constants
 from playerdata.models import Placement
 from playerdata.models import UserInfo
 from playerdata.models import Character
@@ -93,14 +94,16 @@ class GetUserView(APIView):
         target_user_info = UserInfoSchema(query)
         return Response(target_user_info.data)
 
-# will return UP TO numOpponents
-def GetRandomOpponents(num_opponents, min_elo, max_elo):
-    users = UserInfo.objects.filter(elo__gte=min_elo, elo__lte=max_elo) \
-                    .values_list('user_id', flat=True)[:100]
-    return random.sample(list(users), min(len(users), num_opponents))
 
 class GetOpponentsView(APIView):
     permission_classes = (IsAuthenticated,)
+
+    # will return UP TO numOpponents
+    def _get_random_opponents(self, self_user_id, num_opponents, min_elo, max_elo):
+        users = UserInfo.objects.filter(elo__gte=min_elo, elo__lte=max_elo) \
+                        .exclude(user_id = self_user_id) \
+                        .values_list('user_id', flat=True)[:100]
+        return random.sample(list(users), min(len(users), num_opponents))
 
     def post(self, request):
         serializer = GetOpponentsSerializer(data=request.data)
@@ -109,7 +112,8 @@ class GetOpponentsView(APIView):
 
         # get some random users, and expand range if the search_count is going up
         cur_elo = request.user.userinfo.elo
-        user_ids = GetRandomOpponents(30, cur_elo - (search_count+2)*50, cur_elo + (search_count+2)*50)
+        bound = search_count*constants.MATCHER_INCREASE_RANGE+constants.MATCHER_START_RANGE
+        user_ids = self._get_random_opponents(request.user.id, constants.MATCHER_DEFAULT_COUNT, cur_elo - bound, cur_elo + bound)
         
         query = UserInfo.objects.select_related('default_placement__char_1__weapon') \
                     .select_related('default_placement__char_2__weapon') \
