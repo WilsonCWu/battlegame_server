@@ -1,3 +1,4 @@
+import random
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -92,6 +93,11 @@ class GetUserView(APIView):
         target_user_info = UserInfoSchema(query)
         return Response(target_user_info.data)
 
+# will return UP TO numOpponents
+def GetRandomOpponents(num_opponents, min_elo, max_elo):
+    users = UserInfo.objects.filter(elo__gte=min_elo, elo__lte=max_elo) \
+                    .values_list('user_id', flat=True)[:100]
+    return random.sample(list(users), min(len(users), num_opponents))
 
 class GetOpponentsView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -100,14 +106,18 @@ class GetOpponentsView(APIView):
         serializer = GetOpponentsSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         search_count = serializer.validated_data['search_count']
+
+        # get some random users, and expand range if the search_count is going up
         cur_elo = request.user.userinfo.elo
+        user_ids = GetRandomOpponents(30, cur_elo - (search_count+2)*50, cur_elo + (search_count+2)*50)
+        
         query = UserInfo.objects.select_related('default_placement__char_1__weapon') \
                     .select_related('default_placement__char_2__weapon') \
                     .select_related('default_placement__char_3__weapon') \
                     .select_related('default_placement__char_4__weapon') \
                     .select_related('default_placement__char_5__weapon') \
-                    .filter(elo__gte=cur_elo - 200, elo__lte=cur_elo + 200) \
-            [:search_count]
+                    .filter(user_id__in=user_ids) \
+
         enemies = UserInfoSchema(query, many=True)
         return Response({'users': enemies.data})
 
