@@ -17,9 +17,6 @@ from decouple import config
 from .serializers import AuthTokenSerializer
 from .serializers import CreateNewUserSerializer
 
-import json
-import random
-
 class HelloView(APIView):
     
     permission_classes = (IsAuthenticated,) 
