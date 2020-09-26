@@ -17,7 +17,7 @@ class PlacementsAPITestCase(APITestCase):
             char_type = base_archer,
         )
 
-    def _create_placement(self, characters, positions):
+    def _create_placement(self, characters, positions, is_tourney=False):
         return Placement.objects.create(
             user=self.u,
             char_1_id=characters[0],
@@ -30,6 +30,7 @@ class PlacementsAPITestCase(APITestCase):
             pos_3=positions[2],
             pos_4=positions[3],
             pos_5=positions[4],
+            is_tourney=is_tourney,
         )
 
     def test_getting_placements(self):
@@ -44,6 +45,11 @@ class PlacementsAPITestCase(APITestCase):
         self._create_placement(
             [self.archer.char_id] + [None] * 4,
             [2] + [-1] * 4,
+        )
+        self._create_placement(
+            [self.archer.char_id] + [None] * 4,
+            [3] + [-1] * 4,
+            is_tourney=True,
         )
         response = self.client.get('/placements/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
