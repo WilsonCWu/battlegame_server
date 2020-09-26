@@ -99,7 +99,8 @@ class GetOpponentsView(APIView):
     permission_classes = (IsAuthenticated,)
 
     # will return UP TO numOpponents
-    def _get_random_opponents(self, self_user_id, num_opponents, min_elo, max_elo):
+    @staticmethod
+    def _get_random_opponents(self_user_id, num_opponents, min_elo, max_elo):
         users = UserInfo.objects.filter(elo__gte=min_elo, elo__lte=max_elo) \
                         .exclude(user_id = self_user_id) \
                         .values_list('user_id', flat=True)[:100]
@@ -113,7 +114,7 @@ class GetOpponentsView(APIView):
         # get some random users, and expand range if the search_count is going up
         cur_elo = request.user.userinfo.elo
         bound = search_count*constants.MATCHER_INCREASE_RANGE+constants.MATCHER_START_RANGE
-        user_ids = self._get_random_opponents(request.user.id, constants.MATCHER_DEFAULT_COUNT, cur_elo - bound, cur_elo + bound)
+        user_ids = GetOpponentsView._get_random_opponents(request.user.id, constants.MATCHER_DEFAULT_COUNT, cur_elo - bound, cur_elo + bound)
         
         query = UserInfo.objects.select_related('default_placement__char_1__weapon') \
                     .select_related('default_placement__char_2__weapon') \
