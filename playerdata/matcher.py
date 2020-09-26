@@ -126,7 +126,7 @@ class PlacementsView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        placements = Placement.objects.filter(user=request.user)
+        placements = Placement.objects.filter(user=request.user, is_tourney=False)
         return Response({'placements': [PlacementSchema(p).data for p in placements]})
 
     def post(self, request):
@@ -144,7 +144,7 @@ class PlacementsView(APIView):
         else:
             # TODO(yanke): currently limit the user to 3 placements. In the
             # future we can expand slots like rune pages for P2W players.
-            if Placement.objects.filter(user=request.user).count() >= 3:
+            if Placement.objects.filter(user=request.user, is_tourney=False).count() >= 3:
                 return Response({'status': False, 'reason': 'user already has the max 3 placement'})
 
             placement = self._new_placement(request.user, serializer)

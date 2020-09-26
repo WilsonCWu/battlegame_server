@@ -170,6 +170,13 @@ class Placement(models.Model):
     pos_5 = models.IntegerField(default=-1)
     char_5 = models.ForeignKey(Character, blank=True, null=True, on_delete=models.SET_NULL, related_name='char_5')
 
+    is_tourney = models.BooleanField(default=False)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'is_tourney']),
+        ]
+
     def __str__(self):
         return str(self.user) + ": " + str(self.placement_id)
 
