@@ -491,6 +491,13 @@ class TournamentSelectionCards(models.Model):
     cards = ArrayField(models.IntegerField())
 
 
+class InvalidReceipt(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    order_number = models.TextField()
+    date = models.IntegerField()
+    product_id = models.TextField()
+
+
 def create_user_referral(user):
     try:
         UserReferral.objects.create(user=user, referral_code=generate_referral_code())

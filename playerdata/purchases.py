@@ -1,19 +1,24 @@
 import random
+import json
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from battlegame.settings import SERVICE_ACCOUNT_FILE
 from playerdata.models import BaseCharacter
+from playerdata.models import InvalidReceipt
 from playerdata.models import Character
 from playerdata.models import Inventory
 from . import constants
 from .questupdater import QuestUpdater
 from .serializers import PurchaseItemSerializer
 from .serializers import PurchaseSerializer
+from .serializers import ValidateReceiptSerializer
 
 
-# TODO: verify these purchases serverside
 class PurchaseView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -24,13 +29,56 @@ class PurchaseView(APIView):
 
         inventory = Inventory.objects.get(user=request.user)
 
-        if purchase_id == 'com.battlegame.gems300':
-            inventory.gems += 300
+        if purchase_id == 'com.salutationstudio.tinyheroes.gems400':
+            inventory.gems += 400
         else:
             return Response({'status': False, 'reason': 'invalid id ' + purchase_id})
 
         inventory.save()
         return Response({'status': True})
+
+
+class ValidateView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = ValidateReceiptSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        store = serializer.validated_data['store']
+        receipt = serializer.validated_data['receipt']
+
+        if store == 0:  # Apple
+            return validate_apple(request, receipt)
+        elif store == 1:
+            return validate_google(request, receipt)
+
+
+def validate_google(request, receipt_raw):
+    SCOPES = ['https://www.googleapis.com/auth/androidpublisher']
+
+    credentials = service_account.Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+
+    payload = json.loads(receipt_raw)['Payload']
+    json_payload = json.loads(payload)['json']
+    receipt = json.loads(json_payload)
+
+    service = build('androidpublisher', 'v3', credentials=credentials)
+
+    try:
+        response = service.purchases().products().get(packageName=receipt['packageName'],
+                                                      productId=receipt['productId'],
+                                                      token=receipt['purchaseToken']).execute()
+
+        return Response({'status': True})
+    except Exception:
+        InvalidReceipt.objects.create(user=request.user, order_number=receipt['orderId'],
+                                      date=receipt['purchaseTime'], product_id=receipt['productId'])
+        return Response({'status': False})
+
+
+def validate_apple(request, receipt_raw):
+    return Response({'status': True})
 
 
 # returns a random BaseCharacter with weighted rarity
