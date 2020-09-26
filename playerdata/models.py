@@ -515,6 +515,20 @@ def create_user_info(sender, instance, created, **kwargs):
         create_quests_by_class(instance, ActiveWeeklyQuest.objects.all()[:constants.NUM_WEEKLY_QUESTS], PlayerQuestWeekly, expiry_date_weekly)
         create_quests_by_class(instance, ActiveDailyQuest.objects.all()[:constants.NUM_DAILY_QUESTS], PlayerQuestDaily, expiry_date_daily)
 
+        # Add welcome messages
+        DEV_ACCOUNT_IDS = [25, 26, 27, 28]
+        users = User.objects.filter(id__in=DEV_ACCOUNT_IDS)
+        devUser = random.choice(users)
+        userName = UserInfo.objects.get(user_id=instance.id).name
+        devUserName = UserInfo.objects.get(user_id=devUser.id).name
+        chat = Chat.objects.create(chat_name="dm(%s)" % (devUser.get_username()))
+        # TODO(advait): add db-level constraint to prevent duplicate friend pairs
+        Friend.objects.create(user_1=instance, user_2=devUser, chat=chat)
+        welcomeMessage1 = "Hey there %s! I'm %s, one of the creators of the game. Thanks so much for giving Early Access a shot, you're one of the first people to play it! Please note that Tiny Heroes is in active development, and many things may break or change while we are trying to make the best game possible for you." % (userName, devUserName)
+        welcomeMessage2 = "That being said, Early Access users will receive double their gems in our starter pack once we reset at release 1.0 as a thank you for joining us at the start. We also have a growing community on Discord https://discord.gg/bQR8DZW - please join us!"
+        ChatMessage.objects.create(chat=chat, message=welcomeMessage1, sender=devUser)
+        ChatMessage.objects.create(chat=chat, message=welcomeMessage2, sender=devUser)
+
 
 def create_cumulative_quests(user):
     cumulative_quests = []
