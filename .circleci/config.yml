@@ -14,11 +14,14 @@ jobs:
           POSTGRES_DB: battlegame
     steps:
       - checkout
-      - run: sudo chown -R circleci:circleci /usr/local/bin
-      - run: sudo chown -R circleci:circleci /usr/local/lib/python3.6/site-packages
+      - run:
+          name: "Grand CI permissions"
+          command: |
+            sudo chown -R circleci:circleci /usr/local/bin
       - restore_cache:
           key: deps9-{{ .Branch }}-{{ checksum "requirements.txt" }}
       - run:
+          name: "Pip install dependencies"
           command: |
             python3 -m venv venv
             . venv/bin/activate
@@ -30,16 +33,31 @@ jobs:
       - run:
           name: "Set up .env"
           command: |
-            echo -e "SECRET_KEY=foo\nPOSTGRES_PASSWORD=postgres" >> .env
+            echo -e "SECRET_KEY=foo\nPOSTGRES_PASSWORD=postgres\nDEVELOPMENT=on" >> .env
       - run:
           name: "No pending migrations"
           command: |
             . venv/bin/activate
             python manage.py makemigrations --check --dry-run
       - run:
+          name: "Run migrations and service"
+          command: |
+            . venv/bin/activate
+            python manage.py migrate
+            python manage.py runserver
+          background: true
+      - run:
+          name: "Unit tests"
           command: |
             . venv/bin/activate
             python manage.py test
+      - run:
+          name: "Ping service"
+          # NOTE(yanke): CI failures may happen here if migrations and starting
+          # the server takes longer than the unit tests. May need to add sleep
+          # or retry loop.
+          command: |
+            curl localhost:8000/test
   deploy-prod:
     docker:
       - image: circleci/python:3.6.4
