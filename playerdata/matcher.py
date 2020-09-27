@@ -1,3 +1,4 @@
+import random
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -13,6 +14,7 @@ from django.http import JsonResponse
 
 from rest_marshmallow import Schema, fields
 
+from playerdata import constants
 from playerdata.models import Placement
 from playerdata.models import UserInfo
 from playerdata.models import Character
@@ -96,18 +98,31 @@ class GetUserView(APIView):
 class GetOpponentsView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    # will return UP TO numOpponents
+    @staticmethod
+    def _get_random_opponents(self_user_id, num_opponents, min_elo, max_elo):
+        users = UserInfo.objects.filter(elo__gte=min_elo, elo__lte=max_elo) \
+                        .exclude(user_id = self_user_id) \
+                        .values_list('user_id', flat=True)[:100]
+        return random.sample(list(users), min(len(users), num_opponents))
+
     def post(self, request):
         serializer = GetOpponentsSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         search_count = serializer.validated_data['search_count']
+
+        # get some random users, and expand range if the search_count is going up
         cur_elo = request.user.userinfo.elo
+        bound = search_count*constants.MATCHER_INCREASE_RANGE+constants.MATCHER_START_RANGE
+        user_ids = GetOpponentsView._get_random_opponents(request.user.id, constants.MATCHER_DEFAULT_COUNT, cur_elo - bound, cur_elo + bound)
+        
         query = UserInfo.objects.select_related('default_placement__char_1__weapon') \
                     .select_related('default_placement__char_2__weapon') \
                     .select_related('default_placement__char_3__weapon') \
                     .select_related('default_placement__char_4__weapon') \
                     .select_related('default_placement__char_5__weapon') \
-                    .filter(elo__gte=cur_elo - 200, elo__lte=cur_elo + 200) \
-            [:search_count]
+                    .filter(user_id__in=user_ids) \
+
         enemies = UserInfoSchema(query, many=True)
         return Response({'users': enemies.data})
 

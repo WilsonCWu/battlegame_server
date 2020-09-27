@@ -3,6 +3,21 @@ from rest_framework.test import APITestCase
 
 from playerdata.models import User, Placement, BaseCharacter, Character
 
+class MatcherAPITestCase(APITestCase):
+    fixtures = ['playerdata/tests/fixtures.json']
+
+    def setUp(self):
+        self.u = User.objects.get(username='testWilson')
+        self.client.force_authenticate(user=self.u)
+
+    def test_matcher_basic(self):
+        response = self.client.post('/opponents/', {
+            'search_count': 1
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # this is kinda obscure, but 4 probably means it accidentally matched with self
+        self.assertEqual(len(response.data['users']), 3)
+
 class PlacementsAPITestCase(APITestCase):
     fixtures = ['playerdata/tests/fixtures.json']
 
