@@ -15,6 +15,8 @@ from decouple import config
 
 from playerdata import constants
 
+# Developer account IDs for in-game accounts
+DEV_ACCOUNT_IDS = json.loads(config("DEV_ACCOUNT_IDS",  default='{"data": []}'))["data"]
 
 class BaseCharacter(models.Model):
     char_type = models.IntegerField(primary_key=True)
@@ -521,12 +523,11 @@ def create_user_info(sender, instance, created, **kwargs):
         create_quests_by_class(instance, ActiveDailyQuest.objects.all()[:constants.NUM_DAILY_QUESTS], PlayerQuestDaily, expiry_date_daily)
 
         # Add welcome messages, if developer account IDs are defined in env
-        DEV_ACCOUNT_IDS = json.loads(config("DEV_ACCOUNT_IDS",  default='{"data": []}'))["data"]
-        if DEV_ACCOUNT_IDS:
-            users = User.objects.filter(id__in=DEV_ACCOUNT_IDS)
-            devUser = random.choice(users)
+        if DEV_ACCOUNT_IDS:            
+            devUserId = random.choice(DEV_ACCOUNT_IDS)
+            devUser = User.objects.get(id=devUserId)
             userName = UserInfo.objects.get(user_id=instance.id).name
-            devUserName = UserInfo.objects.get(user_id=devUser.id).name
+            devUserName = UserInfo.objects.get(user_id=devUserId).name
             chat = Chat.objects.create(chat_name="dm(%s)" % (devUser.get_username()))
             # TODO(advait): add db-level constraint to prevent duplicate friend pairs
             Friend.objects.create(user_1=instance, user_2=devUser, chat=chat)
