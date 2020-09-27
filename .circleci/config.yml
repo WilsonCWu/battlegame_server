@@ -15,7 +15,7 @@ jobs:
     steps:
       - checkout
       - run:
-          name: "Grand CI permissions"
+          name: "Grant CI permissions"
           command: |
             sudo chown -R circleci:circleci /usr/local/bin
       - restore_cache:
