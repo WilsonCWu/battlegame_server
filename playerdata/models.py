@@ -1,3 +1,4 @@
+import json
 import random
 import string
 from datetime import datetime, date, time, timedelta
@@ -10,9 +11,12 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.deconstruct import deconstructible
 from django_better_admin_arrayfield.models.fields import ArrayField
+from decouple import config
 
 from playerdata import constants
 
+# Developer account IDs for in-game accounts
+DEV_ACCOUNT_IDS = json.loads(config("DEV_ACCOUNT_IDS",  default='{"data": []}'))["data"]
 
 class BaseCharacter(models.Model):
     char_type = models.IntegerField(primary_key=True)
@@ -517,6 +521,20 @@ def create_user_info(sender, instance, created, **kwargs):
         create_cumulative_quests(instance)
         create_quests_by_class(instance, ActiveWeeklyQuest.objects.all()[:constants.NUM_WEEKLY_QUESTS], PlayerQuestWeekly, expiry_date_weekly)
         create_quests_by_class(instance, ActiveDailyQuest.objects.all()[:constants.NUM_DAILY_QUESTS], PlayerQuestDaily, expiry_date_daily)
+
+        # Add welcome messages, if developer account IDs are defined in env
+        if DEV_ACCOUNT_IDS:            
+            devUserId = random.choice(DEV_ACCOUNT_IDS)
+            devUser = User.objects.get(id=devUserId)
+            userName = UserInfo.objects.get(user_id=instance.id).name
+            devUserName = UserInfo.objects.get(user_id=devUserId).name
+            chat = Chat.objects.create(chat_name="dm(%s)" % (devUser.get_username()))
+            # TODO(advait): add db-level constraint to prevent duplicate friend pairs
+            Friend.objects.create(user_1=instance, user_2=devUser, chat=chat)
+            welcomeMessage1 = "Hey there %s! I'm %s, one of the creators of the game. Thanks so much for giving Early Access a shot, you're one of the first people to play it! Please note that Tiny Heroes is in active development, and many things may break or change while we are trying to make the best game possible for you." % (userName, devUserName)
+            welcomeMessage2 = "That being said, Early Access users will receive double their gems in our starter pack once we reset at release 1.0 as a thank you for joining us at the start. We also have a growing community on Discord https://discord.gg/bQR8DZW - please join us!"
+            ChatMessage.objects.create(chat=chat, message=welcomeMessage1, sender=devUser)
+            ChatMessage.objects.create(chat=chat, message=welcomeMessage2, sender=devUser)
 
 
 def create_cumulative_quests(user):
