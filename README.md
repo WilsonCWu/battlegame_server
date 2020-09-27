@@ -13,7 +13,7 @@ alias shell='python /home/battlegame/battlegame/manage.py shell'
 install postgres, virtualenv
 ```
 sudo apt-get -y install postgresql postgresql-contrib
-sudo pip3 install virtualenv  
+sudo pip3 install virtualenv
 ```
 Python installation
 ```bash
@@ -26,6 +26,7 @@ Make an `.env` in the root git folder with the following:
 ```
 SECRET_KEY=<type something here>
 POSTGRES_PASSWORD=postgres
+CREATEUSER_TOKEN=<ask someone for this>
 ```
 
 Set up Postgres

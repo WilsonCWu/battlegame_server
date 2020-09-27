@@ -62,7 +62,7 @@ def weekly_quests_cron():
     PlayerQuestWeekly.objects.all().delete()
 
     # pull new ones and make them for every user
-    active_quests = PlayerQuestWeekly.objects.all()[:constants.NUM_WEEKLY_QUESTS]
+    active_quests = ActiveWeeklyQuest.objects.all()[:constants.NUM_WEEKLY_QUESTS]
     expiry_date = get_expiration_date(7)
     users = User.objects.all()
     bulk_quests = []
@@ -91,7 +91,7 @@ def setup_tournament():
             tourney = Tournament.objects.create(round_expiration=round_expiration)
             group_member_count = 0
 
-        placement = Placement.objects.create()
+        placement = Placement.objects.create(user=reg_user.user, is_tourney=True)
         tournament_member = TournamentMember(user=reg_user.user, tournament=tourney, defence_placement=placement)
         tournament_list.append(tournament_member)
         group_member_count += 1
@@ -99,7 +99,8 @@ def setup_tournament():
     # make last group with bots to pad empty spots
     num_bots_needed = TOURNEY_SIZE - group_member_count
     while num_bots_needed > 0:
-        placement = Placement.objects.create()
+        placement = Placement.objects.create(user_id=TOURNAMENT_BOTS[num_bots_needed - 1],
+                                             is_tourney=True)
         tournament_member = TournamentMember(user_id=TOURNAMENT_BOTS[num_bots_needed - 1],
                                              tournament=tourney, defence_placement=placement)
         tournament_list.append(tournament_member)
