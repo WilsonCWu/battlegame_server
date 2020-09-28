@@ -11,6 +11,7 @@ from playerdata.models import TournamentRegistration
 from playerdata.models import TournamentTeam
 from playerdata.models import TournamentSelectionCards
 from playerdata.models import TournamentMatch
+from . import constants
 from .matcher import UserInfoSchema, PlacementSchema
 from .purchases import generate_character
 from .serializers import GetCardSerializer
@@ -95,7 +96,7 @@ class GetCardsView(APIView):
         # TODO: pass `rarity_odds` as arg to improve the odds of getting rarer Chars near later tourney stages
         card_set = TournamentSelectionCards.objects.filter(user=request.user).first()
         if card_set is None:
-            card_set = get_random_char_set(num_selection)
+            card_set = get_random_char_set(num_selection, constants.SUMMON_RARITY_TOURNAMENT)
             TournamentSelectionCards.objects.create(user=request.user, cards=card_set)
         else:
             card_set = card_set.cards
