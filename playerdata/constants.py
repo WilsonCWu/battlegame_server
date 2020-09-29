@@ -48,6 +48,10 @@ SUMMON_COUNT = {
     "SUMMON10": 10,
 }
 
+# Summon rarity constants
+SUMMON_RARITY_BASE = [2, 8, 50, 100]
+SUMMON_RARITY_TOURNAMENT = [10, 40, 100, 100]
+
 # Matcher constants
 MATCHER_DEFAULT_COUNT = 30
 MATCHER_START_RANGE = 100

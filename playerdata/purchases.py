@@ -87,7 +87,7 @@ def validate_apple(request, receipt_raw):
 # returns a random BaseCharacter with weighted rarity
 def generate_character(rarity_odds=None):
     if rarity_odds is None:
-        rarity_odds = [5, 15, 30, 100]
+        rarity_odds = constants.SUMMON_RARITY_BASE
     val = random.randrange(10000) / 100
 
     for i in range(0, len(rarity_odds)):
