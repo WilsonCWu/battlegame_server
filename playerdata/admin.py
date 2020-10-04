@@ -47,7 +47,8 @@ class BaseCodeAdmin(admin.ModelAdmin, DynamicArrayMixin):
 
 
 class BaseItemAdmin(admin.ModelAdmin, DynamicArrayMixin):
-    pass
+    list_display = ('name', 'item_type', 'rarity', 'gear_slot', 'cost', 'description')
+    list_filter = ('gear_slot', 'rarity', 'cost')
 
 
 class BaseQuestAdmin(admin.ModelAdmin):
