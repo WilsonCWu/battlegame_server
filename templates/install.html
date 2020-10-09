@@ -32,6 +32,12 @@
       .cookiefont {
         font-family: "Cookie Run", sans-serif;
       }
+
+      .large-image {
+        width: 15vw;
+        min-width: 200px;
+      }
+        
     </style>
   </head>
 
@@ -39,12 +45,12 @@
     <section class="hero is-fullheight">
       <div class="hero-body">
           <div class="container">
-            <div class="columns is-centered is-multiline is-mobile">
+            <div class="columns is-centered is-vcentered is-multiline">
                 <div class="column has-text-right">
-                    <h1 class="title">awesome pic</h1>
+                    <img class="large-image" src="{% static "images/battle-phone.png" %}" />
                 </div>
                 <div class="column">
-                    <h1 class="title">Tiny Heroes Logo</h1>
+                    <h1 class="title">Tiny Titans Logo</h1>
                     <h1 class="title is-1 has-text-warning">Equip and Conquer!</h1>
                     <h2 class="subtitle is-3 has-text-white-ter">
                         Join +1M players who are fighting tiny but winning BIG.
@@ -80,27 +86,33 @@
     <section class="hero is-info is-large has-background-white">
         <div class="hero-body">
             <div class="container">
-                <h1 class="title is-2 has-text-black-bis">
-                    +5000 GEMS PER REFERRAL
-                </h1>
-                <h2 class="subtitle is-4 has-text-grey">
-                    Gather your friends and battle to be the best guild!
-                </h2>
-
-                <p class="has-text-black-bis cookiefont mt-6">
-                    JOIN OUR COMMUNITY ^-^
-                </p>
-                <span class="icon is-large mt-4 mr-3">
-                    <a href="https://discord.gg/bQR8DZW" class="has-text-link-dark">
-                        <i class="fab fa-3x fa-discord"></i>
-                    </a>
-                </span>
-                <span class="icon is-large mt-4">
-                    <a href="https://www.reddit.com/r/tinyheroes/" class="has-text-danger">
-                        <i class="fab fa-3x fa-reddit"></i>
-                    </a>
-                </span>
-
+                <div class="columns is-vcentered is-multiline">
+                    <div class="column">
+                        <h1 class="title is-2 has-text-black-bis">
+                            +5000 GEMS PER REFERRAL
+                        </h1>
+                        <h2 class="subtitle is-4 has-text-grey">
+                            Gather your friends and battle to be the best guild!
+                        </h2>
+        
+                        <p class="has-text-black-bis cookiefont mt-6">
+                            JOIN OUR COMMUNITY ^-^
+                        </p>
+                        <span class="icon is-large mt-4 mr-3">
+                            <a href="https://discord.gg/bQR8DZW" class="has-text-link-dark">
+                                <i class="fab fa-3x fa-discord"></i>
+                            </a>
+                        </span>
+                        <span class="icon is-large mt-4">
+                            <a href="https://www.reddit.com/r/tinyheroes/" class="has-text-danger">
+                                <i class="fab fa-3x fa-reddit"></i>
+                            </a>
+                        </span>
+                    </div>
+                    <div class="column has-text-right">
+                        <img class="" src="{% static "images/everyone.png" %}" />
+                    </div>
+                </div>
             </div>
         </div>
     </section>
