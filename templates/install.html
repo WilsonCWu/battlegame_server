@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Tiny Heroes - AFK Auto Battles</title>
+    <link href="{% static "css/all.min.css" %}" rel="stylesheet">
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css"
@@ -22,12 +23,13 @@
         src: url("{% static "fonts/CookieRunBold.otf" %}");
       }
 
-      .hero {
+      .is-fullheight {
         background: url("{% static "images/background.jpg" %}") center / cover;
       }
 
       h1,
-      h2 {
+      h2,
+      .cookiefont {
         font-family: "Cookie Run", sans-serif;
       }
     </style>
@@ -75,15 +77,45 @@
       </div>
     </section>
 
-    <section></section>
+    <section class="hero is-info is-large has-background-white">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title is-2 has-text-black-bis">
+                    +5000 GEMS PER REFERRAL
+                </h1>
+                <h2 class="subtitle is-4 has-text-grey">
+                    Gather your friends and battle to be the best guild!
+                </h2>
+
+                <p class="has-text-black-bis cookiefont mt-6">
+                    JOIN OUR COMMUNITY ^-^
+                </p>
+                <span class="icon is-large mt-4 mr-3">
+                    <a href="https://discord.gg/bQR8DZW" class="has-text-link-dark">
+                        <i class="fab fa-3x fa-discord"></i>
+                    </a>
+                </span>
+                <span class="icon is-large mt-4">
+                    <a href="https://www.reddit.com/r/tinyheroes/" class="has-text-danger">
+                        <i class="fab fa-3x fa-reddit"></i>
+                    </a>
+                </span>
+
+            </div>
+        </div>
+    </section>
   </body>
 
   <footer class="footer">
     <div class="content has-text-centered">
       <p>
         <strong>Tiny Heroes</strong> by Salutation Studio. Designed in
-        California.
+        Waterloo.
       </p>
+      <p class="cookiefont mt-6">
+        Here be Dragons.
+      </p>
+      <i class="fas fa-dragon"></i>
     </div>
   </footer>
 </html>
