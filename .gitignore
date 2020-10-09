@@ -148,3 +148,6 @@ static
 
 # Google service account
 .google-service-account.json
+
+# mac stuff
+.DS_Store
