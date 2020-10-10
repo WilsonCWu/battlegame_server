@@ -13,6 +13,9 @@ from rest_framework.views import APIView
 
 from .serializers import AuthTokenSerializer
 from .serializers import CreateNewUserSerializer
+from .serializers import ChangeNameSerializer
+
+from .models import UserInfo
 
 
 class HelloView(APIView):
@@ -31,7 +34,6 @@ class CreateNewUser(APIView):
         serializer = CreateNewUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         token = serializer.validated_data['token']
-        name = serializer.validated_data['name']
 
         if token != config('CREATEUSER_TOKEN'):
             return Response({'detail': 'Invalid Credentials. Please contact support.'}, status=HTTP_404_NOT_FOUND)
@@ -39,10 +41,26 @@ class CreateNewUser(APIView):
         latest_id = get_user_model().objects.latest('id').id + 1
         password = secrets.token_urlsafe(35)
 
-        user = get_user_model().objects.create_user(username=latest_id, password=password, first_name=name)
+        user = get_user_model().objects.create_user(username=latest_id, password=password)
 
-        content = {'username': str(latest_id), 'password': password, 'name': name}
+        content = {'username': str(latest_id), 'password': password, 'name': latest_id}
         return Response(content)
+
+
+class ChangeName(APIView):
+    throttle_classes = ()
+    permission_classes = ()
+
+    def post(self, request):
+        serializer = ChangeNameSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        name = serializer.validated_data['name']
+
+        userinfo = UserInfo.objects.get(user=request.user)
+        userinfo.name = name
+        userinfo.save()
+
+        return Response({'status': True})
 
 
 class ObtainAuthToken(APIView):
