@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'django_crontab',
     'django_better_admin_arrayfield',
     'django_prometheus',
+    'bulk_admin',
 
     'chat',
     'playerdata',

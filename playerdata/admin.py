@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib import messages
 from django.utils.translation import ngettext
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
+import bulk_admin
 
 from .models import BaseCharacter
 from .models import BaseCharacterUsage
@@ -51,7 +52,7 @@ class BaseItemAdmin(admin.ModelAdmin, DynamicArrayMixin):
     list_filter = ('gear_slot', 'rarity', 'cost')
 
 
-class BaseQuestAdmin(admin.ModelAdmin):
+class BaseQuestAdmin(bulk_admin.BulkModelAdmin):
     actions = ['propagate_quests']
     list_display = ('title', 'type', 'total')
     list_filter = ('type', )
@@ -72,6 +73,18 @@ class BaseQuestAdmin(admin.ModelAdmin):
             len(queryset),
         ) % len(queryset), messages.SUCCESS)
     propagate_quests.short_description = "Propagate cumulative BaseQuest to all Users"
+
+
+class ActiveCumulativeQuestAdmin(bulk_admin.BulkModelAdmin):
+    pass
+
+
+class ActiveDailyQuestAdmin(bulk_admin.BulkModelAdmin):
+    pass
+
+
+class ActiveWeeklyQuestAdmin(bulk_admin.BulkModelAdmin):
+    pass
 
 
 admin.site.register(DungeonStage)
@@ -102,9 +115,9 @@ admin.site.register(PlayerQuestDaily)
 admin.site.register(PlayerQuestWeekly)
 admin.site.register(CumulativeTracker)
 
-admin.site.register(ActiveCumulativeQuest)
-admin.site.register(ActiveDailyQuest)
-admin.site.register(ActiveWeeklyQuest)
+admin.site.register(ActiveCumulativeQuest, ActiveCumulativeQuestAdmin)
+admin.site.register(ActiveDailyQuest, ActiveDailyQuestAdmin)
+admin.site.register(ActiveWeeklyQuest, ActiveWeeklyQuestAdmin)
 
 admin.site.register(BaseCode, BaseCodeAdmin)
 admin.site.register(ClaimedCode)
