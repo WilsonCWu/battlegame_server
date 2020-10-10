@@ -37,6 +37,18 @@
         width: 15vw;
         min-width: 200px;
       }
+
+      @media only screen and (max-width: 768px) {
+        .desktop-only {
+            display: none;
+        }
+      }
+
+      @media only screen and (min-width: 768px) {
+        .mobile-only {
+            display: none;
+        }
+      }
         
     </style>
   </head>
@@ -46,15 +58,18 @@
       <div class="hero-body">
           <div class="container">
             <div class="columns is-centered is-vcentered is-multiline">
-                <div class="column has-text-right">
+                <div class="desktop-only column has-text-right">
                     <img class="large-image" src="{% static "images/battle-phone.png" %}" />
                 </div>
                 <div class="column">
-                    <h1 class="title">Tiny Heroes Logo</h1>
+                    <h1 class="title has-text-white-ter">Tiny Heroes Logo</h1>
                     <h1 class="title is-1 has-text-warning">Equip and Conquer!</h1>
                     <h2 class="subtitle is-3 has-text-white-ter">
                         Join +1M players who are fighting tiny but winning BIG.
                     </h2>
+                </div>
+                <div class="mobile-only column has-text-centered">
+                    <img class="large-image" src="{% static "images/battle-phone.png" %}" />
                 </div>
             </div>
           </div>
