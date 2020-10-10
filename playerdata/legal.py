@@ -5,3 +5,6 @@ def privacy(request):
 
 def terms(request):
     return render(request, 'terms.html', {})
+
+def install(request):
+    return render(request, 'install.html', {})

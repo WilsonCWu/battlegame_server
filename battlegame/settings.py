@@ -153,6 +153,11 @@ STATIC_URL = '/static/'
 
 STATIC_ROOT = '/home/battlegame/staticfiles/'
 
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static/')
+]
+
+
 # Rest framework files
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
