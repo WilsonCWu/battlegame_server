@@ -13,6 +13,9 @@ from rest_framework.views import APIView
 
 from .serializers import AuthTokenSerializer
 from .serializers import CreateNewUserSerializer
+from .serializers import ChangeNameSerializer
+
+from .models import UserInfo
 
 
 class HelloView(APIView):
@@ -43,6 +46,22 @@ class CreateNewUser(APIView):
 
         content = {'username': str(latest_id), 'password': password, 'name': name}
         return Response(content)
+
+
+class ChangeName(APIView):
+    throttle_classes = ()
+    permission_classes = ()
+
+    def post(self, request):
+        serializer = ChangeNameSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        name = serializer.validated_data['name']
+
+        userinfo = UserInfo.objects.get(user=request.user)
+        userinfo.name = name
+        userinfo.save()
+
+        return Response()
 
 
 class ObtainAuthToken(APIView):
