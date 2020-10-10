@@ -41,7 +41,7 @@ class CreateNewUser(APIView):
         latest_id = get_user_model().objects.latest('id').id + 1
         password = secrets.token_urlsafe(35)
 
-        user = get_user_model().objects.create_user(username=latest_id, password=password, first_name=latest_id)
+        user = get_user_model().objects.create_user(username=latest_id, password=password)
 
         content = {'username': str(latest_id), 'password': password, 'name': latest_id}
         return Response(content)
