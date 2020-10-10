@@ -60,7 +60,7 @@ class ChangeName(APIView):
         userinfo.name = name
         userinfo.save()
 
-        return Response()
+        return Response({'status': True})
 
 
 class ObtainAuthToken(APIView):
