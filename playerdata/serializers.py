@@ -12,7 +12,6 @@ class TokenSerializer(serializers.Serializer):
 
 class CreateNewUserSerializer(serializers.Serializer):
     token = serializers.CharField(required=True)
-    name = serializers.CharField(required=True)
 
 
 class ChangeNameSerializer(serializers.Serializer):

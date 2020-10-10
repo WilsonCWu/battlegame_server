@@ -34,7 +34,6 @@ class CreateNewUser(APIView):
         serializer = CreateNewUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         token = serializer.validated_data['token']
-        name = serializer.validated_data['name']
 
         if token != config('CREATEUSER_TOKEN'):
             return Response({'detail': 'Invalid Credentials. Please contact support.'}, status=HTTP_404_NOT_FOUND)
@@ -42,9 +41,9 @@ class CreateNewUser(APIView):
         latest_id = get_user_model().objects.latest('id').id + 1
         password = secrets.token_urlsafe(35)
 
-        user = get_user_model().objects.create_user(username=latest_id, password=password, first_name=name)
+        user = get_user_model().objects.create_user(username=latest_id, password=password, first_name=latest_id)
 
-        content = {'username': str(latest_id), 'password': password, 'name': name}
+        content = {'username': str(latest_id), 'password': password, 'name': latest_id}
         return Response(content)
 
 
