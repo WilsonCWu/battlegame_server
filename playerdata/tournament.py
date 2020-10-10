@@ -19,7 +19,7 @@ from .serializers import SelectCardSerializer
 from .serializers import SetDefenceSerializer
 
 # hardcoded list of "bot" user ids
-TOURNAMENT_BOTS = [27, 28, 29, 30, 31, 32, 33]
+TOURNAMENT_BOTS = [29, 30, 31, 32, 33, 34, 35]
 
 
 # Tournaments start every week on Thursday

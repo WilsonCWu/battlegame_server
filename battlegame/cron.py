@@ -111,6 +111,8 @@ def setup_tournament():
     # clean up
     TournamentRegistration.objects.all().delete()
 
+    next_round()
+
 
 def _play_bot_moves():
     bots = TournamentMember.objects.filter(user_id__in=TOURNAMENT_BOTS)
@@ -185,7 +187,7 @@ def _make_matches(tourney_members):
     return matches_list
 
 
-def next_round(self, request, queryset):
+def next_round():
     _play_bot_moves()
 
     # handle unfinished users (games not played)
