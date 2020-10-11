@@ -4,7 +4,7 @@ from django.utils.translation import ngettext
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 import bulk_admin
 
-from battlegame.cron import next_round, setup_tournament
+from battlegame.cron import next_round, setup_tournament, end_tourney
 from .models import BaseCharacter
 from .models import BaseCharacterUsage
 from .models import BaseItem
@@ -89,15 +89,22 @@ class ActiveWeeklyQuestAdmin(bulk_admin.BulkModelAdmin):
     pass
 
 
-class TournamentAdmin(admin.ModelAdmin):
-    # manual overrides for tourney rounds
-    actions = ['setup_tourney', 'next_round']
+class TournamentRegAdmin(admin.ModelAdmin):
+    actions = ['setup_tourney']
 
     def setup_tourney(self, request, queryset):
         setup_tournament()
 
+
+class TournamentAdmin(admin.ModelAdmin):
+    # manual overrides for tourney rounds
+    actions = ['next_round', 'end_tourney']
+
     def next_round(self, request, queryset):
         next_round()
+
+    def end_tourney(self, request, queryset):
+        end_tourney()
 
 
 admin.site.register(DungeonStage)
@@ -141,7 +148,7 @@ admin.site.register(ReferralTracker)
 admin.site.register(Tournament, TournamentAdmin)
 admin.site.register(TournamentMember)
 admin.site.register(TournamentTeam)
-admin.site.register(TournamentRegistration)
+admin.site.register(TournamentRegistration, TournamentRegAdmin)
 admin.site.register(TournamentMatch)
 
 admin.site.register(InvalidReceipt)

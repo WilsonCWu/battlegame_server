@@ -115,7 +115,15 @@ Cumulative Quests:
 
 
 ## Dungeon
-##### Creating Worlds
+#### Creating Worlds
 1. World names and actual distinctions come from client-side hardcoding of which stages
 belong to which levels, so look there to add changes
 1. Dungeon mob teams are just `Placements`, so create a `Placement` first, then create a `DungeonStage`
+
+
+## Tournament
+#### Testing
+Actions in Admin Panel
+1. `setup_tourney` in `TournamentRegistrations`: Running this will create the tourney groups and set up the first round.
+1. `next_round` in `Tournament`: Run the next round.
+1. `end_tourney` in `Tournament`: Ends tourney and cleans up.
