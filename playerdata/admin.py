@@ -89,7 +89,7 @@ class ActiveWeeklyQuestAdmin(bulk_admin.BulkModelAdmin):
     pass
 
 
-class TournamentRegAdmin(admin.ModelAdmin):
+class TournamentAdmin(admin.ModelAdmin):
     # manual overrides for tourney rounds
     actions = ['setup_tourney', 'next_round']
 
@@ -138,10 +138,10 @@ admin.site.register(ClaimedCode)
 admin.site.register(UserReferral)
 admin.site.register(ReferralTracker)
 
-admin.site.register(Tournament)
+admin.site.register(Tournament, TournamentAdmin)
 admin.site.register(TournamentMember)
 admin.site.register(TournamentTeam)
-admin.site.register(TournamentRegistration, TournamentRegAdmin)
+admin.site.register(TournamentRegistration)
 admin.site.register(TournamentMatch)
 
 admin.site.register(InvalidReceipt)
