@@ -4,6 +4,7 @@ from django.utils.translation import ngettext
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 import bulk_admin
 
+from battlegame.cron import next_round, setup_tournament
 from .models import BaseCharacter
 from .models import BaseCharacterUsage
 from .models import BaseItem
@@ -55,7 +56,7 @@ class BaseItemAdmin(admin.ModelAdmin, DynamicArrayMixin):
 class BaseQuestAdmin(bulk_admin.BulkModelAdmin):
     actions = ['propagate_quests']
     list_display = ('title', 'type', 'total')
-    list_filter = ('type', )
+    list_filter = ('type',)
 
     def propagate_quests(self, request, queryset):
         bulk_quests = []
@@ -72,6 +73,7 @@ class BaseQuestAdmin(bulk_admin.BulkModelAdmin):
             '%d cumulative BaseQuests successfully propagated.',
             len(queryset),
         ) % len(queryset), messages.SUCCESS)
+
     propagate_quests.short_description = "Propagate cumulative BaseQuest to all Users"
 
 
@@ -85,6 +87,17 @@ class ActiveDailyQuestAdmin(bulk_admin.BulkModelAdmin):
 
 class ActiveWeeklyQuestAdmin(bulk_admin.BulkModelAdmin):
     pass
+
+
+class TournamentRegAdmin(admin.ModelAdmin):
+    # manual overrides for tourney rounds
+    actions = ['setup_tourney', 'next_round']
+
+    def setup_tourney(self, request, queryset):
+        setup_tournament()
+
+    def next_round(self, request, queryset):
+        next_round()
 
 
 admin.site.register(DungeonStage)
@@ -128,7 +141,7 @@ admin.site.register(ReferralTracker)
 admin.site.register(Tournament)
 admin.site.register(TournamentMember)
 admin.site.register(TournamentTeam)
-admin.site.register(TournamentRegistration)
+admin.site.register(TournamentRegistration, TournamentRegAdmin)
 admin.site.register(TournamentMatch)
 
 admin.site.register(InvalidReceipt)

@@ -273,6 +273,7 @@ def _update_elo(tourney):
 
 def end_tourney():
     # clean up
+    Character.objects.filter(is_tourney=True).delete()
     TournamentTeam.objects.all().delete()
     TournamentMember.objects.all().delete()
     Tournament.objects.all().delete()
