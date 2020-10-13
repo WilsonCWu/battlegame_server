@@ -59,7 +59,7 @@ class DungeonSetProgressView(APIView):
 
         dungeon_rewards = {
             'gold': 100,
-            'hero_Exp': 100,
+            'hero_exp': 100,
             'player_exp': player_exp
         }
 

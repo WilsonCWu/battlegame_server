@@ -53,15 +53,15 @@ class InventoryView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        charSerializer = CharacterSchema(Character.objects.filter(user=request.user), many=True)
-        itemSerializer = ItemSchema(Item.objects.filter(user=request.user), many=True)
-        inventorySerializer = InventorySchema(Inventory.objects.get(user=request.user))
+        char_serializer = CharacterSchema(Character.objects.filter(user=request.user), many=True)
+        item_serializer = ItemSchema(Item.objects.filter(user=request.user), many=True)
+        inventory_serializer = InventorySchema(Inventory.objects.get(user=request.user))
         return Response(
-            {'characters': charSerializer.data, 'items': itemSerializer.data, 'details': inventorySerializer.data})
+            {'characters': char_serializer.data, 'items': item_serializer.data, 'details': inventory_serializer.data})
 
 
-# C3/8*(C3-1)+800*(2^((C3-1)/7)-1)
 # Level to exp: L(L-1)/8 + 800(2^(L-1)/7 - 1)
+# simplified version of Runespace's exp formula [See the Scaling spreadsheet for details]
 def level_to_exp(level):
     level = min(level, 120)
     return math.floor(level*(level-1)/8 + 800*(2**((level-1)/7) - 1))
@@ -74,12 +74,11 @@ def get_reward_exp_for_dungeon_level(dungeon_level):
 
 def inventory_increment_player_level(inventory, exp):
     inventory.player_exp += exp
-    # recalculate player level
+    # check player level
     if inventory.player_exp >= level_to_exp(inventory.player_level + 1):
         inventory.player_level += 1
 
     inventory.save()
-
 
 
 def GetTotalExp(level):
