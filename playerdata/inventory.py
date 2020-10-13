@@ -1,18 +1,16 @@
-from enum import Enum
 import math
+from enum import Enum
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from playerdata.models import BaseCharacter
-from playerdata.models import BaseItem
 from playerdata.models import Character
 from playerdata.models import Inventory
 from playerdata.models import Item
-from .serializers import LevelUpSerializer
 from .serializers import EquipItemSerializer, UnequipItemSerializer
+from .serializers import LevelUpSerializer
 
 
 class ItemSchema(Schema):
@@ -48,6 +46,7 @@ class InventorySchema(Schema):
     coins = fields.Int()
     gems = fields.Int()
     hero_exp = fields.Int()
+    player_level = fields.Int()
 
 
 class InventoryView(APIView):
@@ -59,6 +58,28 @@ class InventoryView(APIView):
         inventorySerializer = InventorySchema(Inventory.objects.get(user=request.user))
         return Response(
             {'characters': charSerializer.data, 'items': itemSerializer.data, 'details': inventorySerializer.data})
+
+
+# C3/8*(C3-1)+800*(2^((C3-1)/7)-1)
+# Level to exp: L(L-1)/8 + 800(2^(L-1)/7 - 1)
+def level_to_exp(level):
+    level = min(level, 120)
+    return math.floor(level*(level-1)/8 + 800*(2**((level-1)/7) - 1))
+
+
+# increase by 200 for each 20 levels
+def get_reward_exp_for_dungeon_level(dungeon_level):
+    return math.floor((dungeon_level / 5) * 9) + 10
+
+
+def inventory_increment_player_level(inventory, exp):
+    inventory.player_exp += exp
+    # recalculate player level
+    if inventory.player_exp >= level_to_exp(inventory.player_level + 1):
+        inventory.player_level += 1
+
+    inventory.save()
+
 
 
 def GetTotalExp(level):

@@ -5,6 +5,7 @@ from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 import bulk_admin
 
 from battlegame.cron import next_round, setup_tournament, end_tourney
+from .inventory import level_to_exp
 from .models import BaseCharacter
 from .models import BaseCharacterUsage
 from .models import BaseItem
@@ -51,6 +52,23 @@ class BaseCodeAdmin(admin.ModelAdmin, DynamicArrayMixin):
 class BaseItemAdmin(admin.ModelAdmin, DynamicArrayMixin):
     list_display = ('name', 'item_type', 'rarity', 'gear_slot', 'cost', 'description')
     list_filter = ('gear_slot', 'rarity', 'cost')
+
+
+class InventoryAdmin(admin.ModelAdmin):
+    actions = ['recalculate_levels']
+
+    def recalculate_levels(self, request, queryset):
+        bulk_inventories = []
+        for inventory in queryset:
+            level = 2
+            # can be optimised with binary search but not a big optimization just 120 levels
+            while inventory.player_exp < level_to_exp(level):
+                level += 1
+
+            inventory.player_level = level
+            bulk_inventories.append(inventory)
+
+        Inventory.objects.bulk_update(bulk_inventories, ['player_level'])
 
 
 class BaseQuestAdmin(bulk_admin.BulkModelAdmin):
