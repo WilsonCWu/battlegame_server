@@ -62,10 +62,10 @@ class InventoryAdmin(admin.ModelAdmin):
         for inventory in queryset:
             level = 2
             # can be optimised with binary search but not a big optimization just 120 levels
-            while inventory.player_exp < level_to_exp(level):
+            while inventory.player_exp > level_to_exp(level):
                 level += 1
 
-            inventory.player_level = level
+            inventory.player_level = level - 1
             bulk_inventories.append(inventory)
 
         Inventory.objects.bulk_update(bulk_inventories, ['player_level'])
@@ -137,7 +137,7 @@ admin.site.register(Item)
 admin.site.register(Placement)
 admin.site.register(UserInfo)
 admin.site.register(UserStats)
-admin.site.register(Inventory)
+admin.site.register(Inventory, InventoryAdmin)
 
 admin.site.register(Chat)
 admin.site.register(ChatMessage)
