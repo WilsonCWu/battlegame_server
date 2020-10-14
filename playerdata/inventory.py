@@ -68,7 +68,7 @@ def level_to_exp(level):
     return math.floor(level * (level - 1) / 8 + 800 * (2 ** ((level - 1) / 7) - 1))
 
 
-@lru_cache(constants.MAX_PLAYER_EXP)
+@lru_cache()
 def exp_to_level(exp):
     return bisect_func(level_to_exp, exp)
 
@@ -102,7 +102,7 @@ def get_reward_exp_for_dungeon_level(dungeon_level):
 
 
 def inventory_increment_player_level(inventory, exp):
-    inventory.player_exp = min(inventory.player_exp + exp, constants.MAX_PLAYER_EXP)
+    inventory.player_exp += exp
     # check player level
     if inventory.player_exp >= level_to_exp(inventory.player_level + 1):
         inventory.player_level += 1
