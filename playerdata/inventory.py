@@ -7,8 +7,8 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from playerdata.models import Character
-from playerdata.models import Inventory
 from playerdata.models import Item
+from . import constants
 from .serializers import EquipItemSerializer, UnequipItemSerializer
 from .serializers import LevelUpSerializer
 
@@ -46,7 +46,7 @@ class InventorySchema(Schema):
     coins = fields.Int()
     gems = fields.Int()
     hero_exp = fields.Int()
-    player_level = fields.Int()
+    player_level = fields.Function(lambda inventory: exp_to_level(inventory.player_exp))
 
 
 class InventoryView(APIView):
@@ -55,7 +55,7 @@ class InventoryView(APIView):
     def get(self, request):
         char_serializer = CharacterSchema(Character.objects.filter(user=request.user), many=True)
         item_serializer = ItemSchema(Item.objects.filter(user=request.user), many=True)
-        inventory_serializer = InventorySchema(Inventory.objects.get(user=request.user))
+        inventory_serializer = InventorySchema(request.user.inventory)
         return Response(
             {'characters': char_serializer.data, 'items': item_serializer.data, 'details': inventory_serializer.data})
 
@@ -63,8 +63,36 @@ class InventoryView(APIView):
 # Level to exp: L(L-1)/8 + 800(2^(L-1)/7 - 1)
 # simplified version of Runespace's exp formula [See the Scaling spreadsheet for details]
 def level_to_exp(level):
-    level = min(level, 120)
-    return math.floor(level*(level-1)/8 + 800*(2**((level-1)/7) - 1))
+    level = min(level, constants.MAX_PLAYER_LEVEL)
+    return math.floor(level * (level - 1) / 8 + 800 * (2 ** ((level - 1) / 7) - 1))
+
+
+def exp_to_level(exp):
+    return bisect_func(level_to_exp, exp)
+
+
+# Daniel's better bisect that takes a function instead of a list
+# https://github.com/python/cpython/blob/3.9/Lib/bisect.py
+def bisect_func(func, x, lo=1, hi=None):
+    """
+    func(x) => y
+    Given y, returns x where f(x) <= y
+    """
+
+    if lo < 0:
+        raise ValueError('lo must be non-negative')
+    if hi is None:
+        hi = constants.MAX_PLAYER_LEVEL  # max level
+    if x >= func(hi):
+        return hi
+
+    while lo < hi - 1:
+        mid = (lo + hi) // 2
+        if x < func(mid):
+            hi = mid
+        else:
+            lo = mid
+    return lo
 
 
 # increase by 200 for each 20 levels
