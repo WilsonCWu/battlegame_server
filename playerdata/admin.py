@@ -53,6 +53,10 @@ class BaseItemAdmin(admin.ModelAdmin, DynamicArrayMixin):
     list_filter = ('gear_slot', 'rarity', 'cost')
 
 
+class DungeonStageAdmin(bulk_admin.BulkModelAdmin):
+    list_display = ('id', 'gems', 'coins', 'player_exp')
+
+
 class BaseQuestAdmin(bulk_admin.BulkModelAdmin):
     actions = ['propagate_quests']
     list_display = ('title', 'type', 'total')
@@ -107,7 +111,7 @@ class TournamentAdmin(admin.ModelAdmin):
         end_tourney()
 
 
-admin.site.register(DungeonStage)
+admin.site.register(DungeonStage, DungeonStageAdmin)
 admin.site.register(DungeonProgress)
 
 admin.site.register(BaseCharacter)

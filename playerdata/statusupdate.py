@@ -3,11 +3,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from . import constants
+from . import constants, formulas
 from .questupdater import QuestUpdater
 from .serializers import UploadResultSerializer
 
-from playerdata.models import Character
+from playerdata.models import Character, DungeonProgress
 from playerdata.models import UserStats
 from playerdata.models import TournamentMember
 from playerdata.models import TournamentMatch
@@ -92,7 +92,17 @@ class UploadResultView(APIView):
 
             prev_elo = request.user.userinfo.elo
             updated_rating = calculate_elo(request.user.userinfo.elo, other_user.userinfo.elo, win)
-            response = {"elo": updated_rating, 'prev_elo': prev_elo}
+
+            dungeon_progress = DungeonProgress.objects.get(user=request.user)
+            coins = formulas.coins_reward_quickplay(dungeon_progress.stage_id)
+            player_exp = formulas.player_exp_reward_quickplay(dungeon_progress.stage_id)
+
+            inventory = request.user.inventory
+            inventory.coins += coins
+            inventory.player_exp += player_exp
+            inventory.save()
+
+            response = {"elo": updated_rating, 'prev_elo': prev_elo, 'coins': coins, 'player_exp': player_exp}
 
         elif mode == constants.TOURNAMENT:  # tournament
             tournament_member = TournamentMember.objects.filter(user=request.user).first()

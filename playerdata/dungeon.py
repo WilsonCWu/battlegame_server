@@ -8,7 +8,6 @@ from playerdata.models import DungeonProgress
 from playerdata.models import DungeonStage
 from playerdata.models import ReferralTracker
 from . import constants
-from .inventory import get_reward_exp_for_dungeon_level
 
 from .matcher import PlacementSchema
 from .questupdater import QuestUpdater
@@ -21,7 +20,7 @@ class DungeonProgressSchema(Schema):
 
 class DungeonStageSchema(Schema):
     stage_id = fields.Int(attribute='id')
-    exp = fields.Int()
+    player_exp = fields.Int()
     coins = fields.Int()
     gems = fields.Int()
     mob = fields.Nested(PlacementSchema)
@@ -47,9 +46,12 @@ class DungeonSetProgressView(APIView):
         if progress.stage_id == constants.DUNGEON_REFERRAL_CONVERSION_STAGE:
             complete_referral_conversion(request.user)
 
+        # dungeon rewards
+        dungeon = DungeonStage.objects.get(id=progress.stage_id)
         inventory = request.user.inventory
-        player_exp = get_reward_exp_for_dungeon_level(progress.stage_id)
-        inventory.player_exp += player_exp
+        inventory.player_exp += dungeon.player_exp
+        inventory.coins += dungeon.coins
+        inventory.gems += dungeon.gems
         inventory.save()
 
         progress.stage_id += 1
@@ -58,13 +60,7 @@ class DungeonSetProgressView(APIView):
         QuestUpdater.add_progress_by_type(request.user, constants.REACH_DUNGEON_LEVEL, 1)
         QuestUpdater.add_progress_by_type(request.user, constants.WIN_DUNGEON_GAMES, 1)
 
-        dungeon_rewards = {
-            'gold': 100,
-            'hero_exp': 100,
-            'player_exp': player_exp
-        }
-
-        return Response({'status': True, 'rewards': dungeon_rewards})
+        return Response({'status': True})
 
 
 class DungeonStageView(APIView):
