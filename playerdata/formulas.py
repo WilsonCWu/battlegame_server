@@ -1,4 +1,5 @@
 import math
+from bisect import bisect
 
 from functools import lru_cache
 
@@ -30,31 +31,21 @@ def level_to_exp(level):
 
 @lru_cache()
 def exp_to_level(exp):
-    return bisect_func(level_to_exp, exp)
+    if exp >= level_to_exp(constants.MAX_PLAYER_LEVEL):
+        return constants.MAX_PLAYER_LEVEL
+    return bisect(ExpToLevel(), exp) - 1
 
 
-# Daniel's better bisect that takes a function instead of a list
-# https://github.com/python/cpython/blob/3.9/Lib/bisect.py
-def bisect_func(func, x, lo=1, hi=None):
-    """
-    func(x) => y
-    Given y, returns x where f(x) <= y
-    """
+class ExpToLevel:
+    def __len__(self):
+        return constants.MAX_PLAYER_LEVEL
 
-    if lo < 0:
-        raise ValueError('lo must be non-negative')
-    if hi is None:
-        hi = constants.MAX_PLAYER_LEVEL  # max level
-    if x >= func(hi):
-        return hi
+    def __getitem__(self, level):
+        return level_to_exp(level)
 
-    while lo < hi - 1:
-        mid = (lo + hi) // 2
-        if x < func(mid):
-            hi = mid
-        else:
-            lo = mid
-    return lo
+
+def char_level_to_exp(level):
+    return math.floor((level - 1) * 50 + ((level - 1) ** 3.6) / 10)
 
 
 def player_exp_reward_quickplay(dungeon_level):

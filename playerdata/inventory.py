@@ -60,10 +60,6 @@ class InventoryView(APIView):
             {'characters': char_serializer.data, 'items': item_serializer.data, 'details': inventory_serializer.data})
 
 
-def GetTotalExp(level):
-    return math.floor((level - 1) * 50 + ((level - 1) ** 3.6) / 10)
-
-
 class TryLevelView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -74,8 +70,8 @@ class TryLevelView(APIView):
 
         curChar = Character.objects.get(char_id=target_char_id)
         level = curChar.level
-        curExp = GetTotalExp(level)
-        nextExp = GetTotalExp(level + 1)
+        curExp = formulas.char_level_to_exp(level)
+        nextExp = formulas.char_level_to_exp(level + 1)
         deltaExp = nextExp - curExp
 
         inventory = request.user.inventory
