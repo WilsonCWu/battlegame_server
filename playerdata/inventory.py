@@ -101,15 +101,6 @@ def get_reward_exp_for_dungeon_level(dungeon_level):
     return math.floor((dungeon_level / 5) * 9) + 10
 
 
-def inventory_increment_player_level(inventory, exp):
-    inventory.player_exp += exp
-    # check player level
-    if inventory.player_exp >= level_to_exp(inventory.player_level + 1):
-        inventory.player_level += 1
-
-    inventory.save()
-
-
 def GetTotalExp(level):
     return math.floor((level - 1) * 50 + ((level - 1) ** 3.6) / 10)
 

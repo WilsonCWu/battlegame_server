@@ -8,7 +8,7 @@ from playerdata.models import DungeonProgress
 from playerdata.models import DungeonStage
 from playerdata.models import ReferralTracker
 from . import constants
-from .inventory import get_reward_exp_for_dungeon_level, inventory_increment_player_level
+from .inventory import get_reward_exp_for_dungeon_level
 
 from .matcher import PlacementSchema
 from .questupdater import QuestUpdater
@@ -49,7 +49,8 @@ class DungeonSetProgressView(APIView):
 
         inventory = request.user.inventory
         player_exp = get_reward_exp_for_dungeon_level(progress.stage_id)
-        inventory_increment_player_level(inventory, player_exp)
+        inventory.player_exp += player_exp
+        inventory.save()
 
         progress.stage_id += 1
         progress.save()
