@@ -97,7 +97,6 @@ def bisect_func(func, x, lo=1, hi=None):
     return lo
 
 
-# increase by 200 for each 20 levels
 def get_reward_exp_for_dungeon_level(dungeon_level):
     return math.floor((dungeon_level / 5) * 9) + 10
 
