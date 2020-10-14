@@ -219,6 +219,7 @@ class Inventory(models.Model):
     coins = models.IntegerField(default=0)
     gems = models.IntegerField(default=0)
     hero_exp = models.IntegerField(default=0)
+    player_exp = models.IntegerField(default=0)
 
     def __str__(self):
         return self.user.userinfo.name + '(' + str(self.user.id) + ')'

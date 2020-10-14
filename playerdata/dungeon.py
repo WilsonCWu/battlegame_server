@@ -8,6 +8,7 @@ from playerdata.models import DungeonProgress
 from playerdata.models import DungeonStage
 from playerdata.models import ReferralTracker
 from . import constants
+from .inventory import get_reward_exp_for_dungeon_level
 
 from .matcher import PlacementSchema
 from .questupdater import QuestUpdater
@@ -46,13 +47,24 @@ class DungeonSetProgressView(APIView):
         if progress.stage_id == constants.DUNGEON_REFERRAL_CONVERSION_STAGE:
             complete_referral_conversion(request.user)
 
+        inventory = request.user.inventory
+        player_exp = get_reward_exp_for_dungeon_level(progress.stage_id)
+        inventory.player_exp += player_exp
+        inventory.save()
+
         progress.stage_id += 1
         progress.save()
 
         QuestUpdater.add_progress_by_type(request.user, constants.REACH_DUNGEON_LEVEL, 1)
         QuestUpdater.add_progress_by_type(request.user, constants.WIN_DUNGEON_GAMES, 1)
 
-        return Response({'status': True})
+        dungeon_rewards = {
+            'gold': 100,
+            'hero_exp': 100,
+            'player_exp': player_exp
+        }
+
+        return Response({'status': True, 'rewards': dungeon_rewards})
 
 
 class DungeonStageView(APIView):
