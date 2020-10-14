@@ -303,7 +303,7 @@ class ClanRequest(models.Model):
 
 class DungeonStage(models.Model):
     mob = models.ForeignKey(Placement, on_delete=models.CASCADE)
-    exp = models.IntegerField()
+    player_exp = models.IntegerField()
     coins = models.IntegerField()
     gems = models.IntegerField()
 
