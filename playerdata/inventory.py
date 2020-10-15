@@ -60,6 +60,14 @@ class InventoryView(APIView):
             {'characters': char_serializer.data, 'items': item_serializer.data, 'details': inventory_serializer.data})
 
 
+class InventoryHeaderView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        inventory_serializer = InventorySchema(request.user.inventory)
+        return Response(inventory_serializer.data)
+
+
 class TryLevelView(APIView):
     permission_classes = (IsAuthenticated,)
 
