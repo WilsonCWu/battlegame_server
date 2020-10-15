@@ -74,6 +74,7 @@ urlpatterns = [
     path('matcher/', matcher.MatcherView.as_view()),
     path('placements/', matcher.PlacementsView.as_view()),
     path('inventoryinfo/', inventory.InventoryView.as_view()),
+    path('inventoryheader/', inventory.InventoryHeaderView.as_view()),
     path('inventory/equipitem/', inventory.EquipItemView.as_view()),
     path('inventory/unequipitem/', inventory.UnequipItemView.as_view()),
     path('baseinfo/', base.BaseInfoView.as_view()),
