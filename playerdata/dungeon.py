@@ -49,10 +49,13 @@ class DungeonSetProgressView(APIView):
         # dungeon rewards
         dungeon = DungeonStage.objects.get(id=progress.stage_id)
         inventory = request.user.inventory
-        inventory.player_exp += dungeon.player_exp
         inventory.coins += dungeon.coins
         inventory.gems += dungeon.gems
         inventory.save()
+
+        userinfo = request.user.userinfo
+        userinfo.player_exp += dungeon.player_exp
+        userinfo.save()
 
         progress.stage_id += 1
         progress.save()

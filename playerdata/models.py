@@ -193,6 +193,7 @@ class UserInfo(models.Model):
     name = models.CharField(max_length=20, default='new player')
     profile_picture = models.IntegerField(default=0)
     default_placement = models.ForeignKey(Placement, null=True, on_delete=models.SET_NULL)
+    player_exp = models.IntegerField(default=0)
 
     class Meta:
         indexes = [
@@ -219,7 +220,6 @@ class Inventory(models.Model):
     coins = models.IntegerField(default=0)
     gems = models.IntegerField(default=0)
     hero_exp = models.IntegerField(default=0)
-    player_exp = models.IntegerField(default=0)
 
     def __str__(self):
         return self.user.userinfo.name + '(' + str(self.user.id) + ')'
