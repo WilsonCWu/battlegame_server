@@ -99,8 +99,10 @@ class UploadResultView(APIView):
 
             inventory = request.user.inventory
             inventory.coins += coins
-            inventory.player_exp += player_exp
             inventory.save()
+
+            request.user.userinfo.player_exp += player_exp
+            request.user.userinfo.save()
 
             response = {"elo": updated_rating, 'prev_elo': prev_elo, 'coins': coins, 'player_exp': player_exp}
 

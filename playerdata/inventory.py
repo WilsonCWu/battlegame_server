@@ -1,4 +1,3 @@
-import math
 from enum import Enum
 
 from rest_framework.permissions import IsAuthenticated
@@ -6,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from playerdata.models import Character
+from playerdata.models import Character, UserInfo
 from playerdata.models import Item
 from . import formulas
 from .serializers import EquipItemSerializer, UnequipItemSerializer
@@ -46,7 +45,11 @@ class InventorySchema(Schema):
     coins = fields.Int()
     gems = fields.Int()
     hero_exp = fields.Int()
-    player_level = fields.Function(lambda inventory: formulas.exp_to_level(inventory.player_exp))
+    player_level = fields.Method("get_player_exp")
+
+    def get_player_exp(self, inventory):
+        userinfo = UserInfo.objects.get(user_id=inventory.user_id)
+        return formulas.exp_to_level(userinfo.player_exp)
 
 
 class InventoryView(APIView):

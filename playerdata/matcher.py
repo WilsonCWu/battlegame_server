@@ -14,7 +14,7 @@ from django.http import JsonResponse
 
 from rest_marshmallow import Schema, fields
 
-from playerdata import constants
+from playerdata import constants, formulas
 from playerdata.models import Placement
 from playerdata.models import UserInfo
 from playerdata.models import Character
@@ -53,6 +53,7 @@ class UserInfoSchema(Schema):
     time_started = fields.Str(attribute='user.userstats.time_started')
     default_placement = fields.Nested(PlacementSchema)
     clan = fields.Str(attribute='clanmember.clan_id')
+    player_level = fields.Function(lambda userinfo: formulas.exp_to_level(userinfo.player_exp))
 
 
 class MatcherView(APIView):
