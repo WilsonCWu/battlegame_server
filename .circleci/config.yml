@@ -68,9 +68,9 @@ jobs:
       - run:
           name: Get DB backup from prod
           command: |
-            scp -oStrictHostKeyChecking=no -v circleci@salutationstudio.com:/home/circleci/db.json /tmp/db-backup-$(date +s).json
+            scp -oStrictHostKeyChecking=no -v circleci@salutationstudio.com:/home/circleci/db.json /tmp/db-backup.json
       - store_artifacts:
-          path: /tmp/db-backup
+          path: /tmp/db-backup.json
 
   deploy-prod:
     docker:
