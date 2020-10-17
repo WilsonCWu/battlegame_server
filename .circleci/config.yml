@@ -58,9 +58,23 @@ jobs:
           # or retry loop.
           command: |
             curl localhost:8000/test
+
+  backup-db:
+    working_directory: /tmp
+    docker:
+      - image: cimg/base:2020.01
+    steps:
+      - run: ssh -oStrictHostKeyChecking=no -v circleci@salutationstudio.com "./backup.sh"
+      - run:
+          name: Get DB backup from prod
+          command: |
+            scp -oStrictHostKeyChecking=no -v circleci@salutationstudio.com:/home/circleci/db.json /tmp/db-backup.json
+      - store_artifacts:
+          path: /tmp/db-backup.json
+
   deploy-prod:
     docker:
-      - image: circleci/python:3.6.4
+      - image: cimg/base:2020.01
     steps:
       - checkout
       - run: ssh -oStrictHostKeyChecking=no -v circleci@salutationstudio.com "./deploy.sh"
@@ -69,6 +83,7 @@ workflows:
   version: 2
   build-test-deploy:
     jobs:
+      - backup-db
       - build-and-test
       # Optionally we can have a manual approval step in the future. For now
       # let it auto deploy on push to master.
@@ -78,7 +93,17 @@ workflows:
       #       - build-and-test
       - deploy-prod:
           requires:
+            - backup-db
             - build-and-test
           filters:
             branches:
               only: master
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only: master
+    jobs:
+      - backup-db
