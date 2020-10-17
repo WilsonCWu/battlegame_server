@@ -64,15 +64,13 @@ jobs:
     docker:
       - image: cimg/base:2020.01
     steps:
+      - run: ssh -oStrictHostKeyChecking=no -v circleci@salutationstudio.com "./backup.sh"
       - run:
-          name: Creating Dummy Artifacts
+          name: Get DB backup from prod
           command: |
-            echo "my artifact file" > /tmp/artifact-1;
-            mkdir /tmp/artifacts;
-            echo "my artifact files in a dir" > /tmp/artifacts/artifact-2;
+            scp -oStrictHostKeyChecking=no -v circleci@salutationstudio.com:~/db.json /tmp/db-backup
       - store_artifacts:
-          path: /tmp/artifact-1
-          destination: artifact-file
+          path: /tmp/db-backup
 
   deploy-prod:
     docker:
