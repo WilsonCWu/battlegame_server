@@ -83,7 +83,10 @@ workflows:
   version: 2
   build-test-deploy:
     jobs:
-      - backup-db
+      - backup-db:
+          filters:
+            branches:
+              only: master
       - build-and-test
       # Optionally we can have a manual approval step in the future. For now
       # let it auto deploy on push to master.
