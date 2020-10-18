@@ -29,6 +29,8 @@ from playerdata import referral
 from playerdata import tournament
 from playerdata import inventory
 from playerdata import legal
+from playerdata import server
+
 urlpatterns = [
     path('tournament/matchhistory', tournament.TournamentMatchHistory.as_view()),
     path('tournament/self', tournament.TournamentSelfView.as_view()),
@@ -84,6 +86,7 @@ urlpatterns = [
     path('changename/', login.ChangeName.as_view()),
     path('dungeon/stage', dungeon.DungeonStageView.as_view()),
     path('dungeon/setprogress', dungeon.DungeonSetProgressView.as_view()),
+    path('status/', server.ServerStatusView.as_view()),
     path('privacy/', legal.privacy),
     path('terms/', legal.terms),
     path('install/', legal.install),
