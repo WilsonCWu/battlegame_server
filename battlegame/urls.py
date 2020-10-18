@@ -86,7 +86,7 @@ urlpatterns = [
     path('dungeon/setprogress', dungeon.DungeonSetProgressView.as_view()),
     path('privacy/', legal.privacy),
     path('terms/', legal.terms),
-    path('install/', legal.install),
     path('chat/', include('chat.urls')),
     path('admin/', admin.site.urls),
+    path('', legal.install),
 ]
