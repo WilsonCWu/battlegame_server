@@ -19,6 +19,11 @@ def coins_reward_quickplay(dungeon_level):
     return math.floor(dungeon_level / 3 * 50 + (dungeon_level - 1) ** 2 + 500)
 
 
+# FLOOR((level / 3) * 50 + ((level-1)^2))+ 500
+def coins_reward_dungeon(dungeon_level):
+    return math.floor(dungeon_level / 3 * 50 + (dungeon_level - 1) ** 2 + 500)
+
+
 #########################
 ## EXP
 
@@ -50,3 +55,7 @@ def char_level_to_exp(level):
 
 def player_exp_reward_quickplay(dungeon_level):
     return math.floor((dungeon_level / 5) * 6) + 6
+
+
+def player_exp_reward_dungeon(dungeon_level):
+    return math.floor((dungeon_level / 5) * 9) + 10
