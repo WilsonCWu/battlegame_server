@@ -60,11 +60,15 @@ jobs:
             curl localhost:8000/test
 
   backup-db:
-    working_directory: /tmp
+    working_directory: ~/battlegame_server
     docker:
       - image: cimg/base:2020.01
     steps:
-      - run: ssh -oStrictHostKeyChecking=no -v circleci@salutationstudio.com "./backup.sh"
+      - checkout
+      - run:
+          name: Backup DB from prod
+          command: |
+            ssh -oStrictHostKeyChecking=no -v circleci@salutationstudio.com 'bash -s' < ./bin/backup_db.sh
       - run:
           name: Get DB backup from prod
           command: |
@@ -73,11 +77,15 @@ jobs:
           path: /tmp/db-backup.json
 
   deploy-prod:
+    working_directory: ~/battlegame_server
     docker:
       - image: cimg/base:2020.01
     steps:
       - checkout
-      - run: ssh -oStrictHostKeyChecking=no -v circleci@salutationstudio.com "./deploy.sh"
+      - run:
+          name: Deploy
+          command: |
+            ssh -oStrictHostKeyChecking=no -v circleci@salutationstudio.com 'bash -s' < ./bin/deploy.sh
 
 workflows:
   version: 2
