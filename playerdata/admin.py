@@ -66,6 +66,10 @@ class DungeonBossAdmin(bulk_admin.BulkModelAdmin):
         generate_dungeon_stages(queryset)
 
 
+class PlacementAdmin(admin.ModelAdmin):
+    list_display = ('placement_id', 'user', 'char_1', 'char_2', 'char_3', 'char_4', 'char_5')
+
+
 class BaseQuestAdmin(bulk_admin.BulkModelAdmin):
     actions = ['propagate_quests']
     list_display = ('title', 'type', 'total')
@@ -130,7 +134,7 @@ admin.site.register(BaseItem, BaseItemAdmin)
 admin.site.register(Character)
 admin.site.register(Item)
 
-admin.site.register(Placement)
+admin.site.register(Placement, PlacementAdmin)
 admin.site.register(UserInfo)
 admin.site.register(UserStats)
 admin.site.register(Inventory)

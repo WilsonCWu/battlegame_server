@@ -33,10 +33,11 @@ def update_char(char: Character, new_char: Character):
     return char
 
 
-def make_mob_from_boss(boss_placement: Placement, nth_copy: int, stage_num: int):
-    char_levels = [max(boss_placement.char_1.level - nth_copy, 1), max(boss_placement.char_2.level - nth_copy, 1),
-                   max(boss_placement.char_3.level - nth_copy, 1), max(boss_placement.char_4.level - nth_copy, 1),
-                   max(boss_placement.char_5.level - nth_copy, 1)]
+# creates or updates a placement for stage_num based on the boss_placement
+def make_mob_from_boss(boss_placement: Placement, i: int, stage_num: int):
+    char_levels = [max(boss_placement.char_1.level - i, 1), max(boss_placement.char_2.level - i, 1),
+                   max(boss_placement.char_3.level - i, 1), max(boss_placement.char_4.level - i, 1),
+                   max(boss_placement.char_5.level - i, 1)]
 
     dungeon_user_id = 1
     char1 = Character(user_id=dungeon_user_id, char_type=boss_placement.char_1.char_type, level=char_levels[0])
@@ -64,6 +65,7 @@ def make_mob_from_boss(boss_placement: Placement, nth_copy: int, stage_num: int)
         placement.save()
         return placement
 
+    # if placement doesn't exist for this stage_num yet, we create it!
     Character.objects.bulk_create([char1, char2, char3, char4, char5])
     placement = Placement.objects.create(user_id=dungeon_user_id,
                                          pos_1=boss_placement.pos_1, char_1=char1,
@@ -75,8 +77,9 @@ def make_mob_from_boss(boss_placement: Placement, nth_copy: int, stage_num: int)
     return placement
 
 
+# creates 19 weaker versions of each boss_placement in the queryset
 def generate_dungeon_stages(dungeon_bosses_queryset):
-    # create 19 weaker versions of the boss placement
+
     bulk_stages = []
     for boss in dungeon_bosses_queryset:
         for i in range(1, 20):
