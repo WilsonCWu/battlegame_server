@@ -86,7 +86,7 @@ def generate_dungeon_stages(dungeon_bosses_queryset):
             stage_num = boss.stage - i
             exp = formulas.player_exp_reward_dungeon(stage_num)
             coins = formulas.coins_reward_dungeon(stage_num)
-            gems = 1
+            gems = formulas.gems_reward_dungeon(stage_num)
             placement = make_mob_from_boss(boss.placement, i, stage_num)
 
             stage = DungeonStage(stage=stage_num, mob=placement,
