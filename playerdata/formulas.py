@@ -21,6 +21,9 @@ def coins_reward_quickplay(dungeon_level):
 
 # FLOOR((level / 3) * 50 + ((level-1)^2))+ 500
 def coins_reward_dungeon(dungeon_level):
+    # more on a boss level
+    if dungeon_level % 20 == 0:
+        return dungeon_level * 1000
     return math.floor(dungeon_level / 3 * 50 + (dungeon_level - 1) ** 2 + 500)
 
 

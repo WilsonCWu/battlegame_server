@@ -26,18 +26,45 @@ class DungeonStageSchema(Schema):
     mob = fields.Nested(PlacementSchema)
 
 
-def make_mob_from_boss(boss_placement: Placement, nth_copy: int):
-    # create each character if it doesn't exist
-    level = max(boss_placement.char_1.level - nth_copy, 1)
+def update_char(char: Character, new_char: Character):
+    char.char_type = new_char.char_type
+    char.level = new_char.level
+    char.save()
+    return char
+
+
+def make_mob_from_boss(boss_placement: Placement, nth_copy: int, stage_num: int):
+    char_levels = [max(boss_placement.char_1.level - nth_copy, 1), max(boss_placement.char_2.level - nth_copy, 1),
+                   max(boss_placement.char_3.level - nth_copy, 1), max(boss_placement.char_4.level - nth_copy, 1),
+                   max(boss_placement.char_5.level - nth_copy, 1)]
+
     dungeon_user_id = 1
-    char1 = Character(user_id=dungeon_user_id, char_type=boss_placement.char_1.char_type, level=level)
-    char2 = Character(user_id=dungeon_user_id, char_type=boss_placement.char_2.char_type, level=level)
-    char3 = Character(user_id=dungeon_user_id, char_type=boss_placement.char_3.char_type, level=level)
-    char4 = Character(user_id=dungeon_user_id, char_type=boss_placement.char_4.char_type, level=level)
-    char5 = Character(user_id=dungeon_user_id, char_type=boss_placement.char_5.char_type, level=level)
+    char1 = Character(user_id=dungeon_user_id, char_type=boss_placement.char_1.char_type, level=char_levels[0])
+    char2 = Character(user_id=dungeon_user_id, char_type=boss_placement.char_2.char_type, level=char_levels[1])
+    char3 = Character(user_id=dungeon_user_id, char_type=boss_placement.char_3.char_type, level=char_levels[2])
+    char4 = Character(user_id=dungeon_user_id, char_type=boss_placement.char_4.char_type, level=char_levels[3])
+    char5 = Character(user_id=dungeon_user_id, char_type=boss_placement.char_5.char_type, level=char_levels[4])
 
-    chars = Character.objects.bulk_create([char1, char2, char3, char4, char5])
+    dungeon_stage = DungeonStage.objects.filter(stage=stage_num).first()
+    if dungeon_stage is not None:
+        placement = dungeon_stage.mob
 
+        update_char(placement.char_1, char1)
+        update_char(placement.char_2, char2)
+        update_char(placement.char_3, char3)
+        update_char(placement.char_4, char4)
+        update_char(placement.char_5, char5)
+
+        placement.pos_1 = boss_placement.pos_1
+        placement.pos_2 = boss_placement.pos_2
+        placement.pos_3 = boss_placement.pos_3
+        placement.pos_4 = boss_placement.pos_4
+        placement.pos_5 = boss_placement.pos_5
+
+        placement.save()
+        return placement
+
+    Character.objects.bulk_create([char1, char2, char3, char4, char5])
     placement = Placement.objects.create(user_id=dungeon_user_id,
                                          pos_1=boss_placement.pos_1, char_1=char1,
                                          pos_2=boss_placement.pos_2, char_2=char2,
@@ -57,7 +84,7 @@ def generate_dungeon_stages(dungeon_bosses_queryset):
             exp = formulas.player_exp_reward_dungeon(stage_num)
             coins = formulas.coins_reward_dungeon(stage_num)
             gems = 1
-            placement = make_mob_from_boss(boss.placement, i)
+            placement = make_mob_from_boss(boss.placement, i, stage_num)
 
             stage = DungeonStage(stage=stage_num, mob=placement,
                                  coins=coins, gems=gems, player_exp=exp)
@@ -65,7 +92,8 @@ def generate_dungeon_stages(dungeon_bosses_queryset):
 
         # create the actual boss stage
         boss_stage = DungeonStage(stage=boss.stage, mob=boss.placement,
-                                  coins=1000, gems=100, player_exp=formulas.player_exp_reward_dungeon(boss.stage))
+                                  coins=formulas.coins_reward_dungeon(boss.stage), gems=100,
+                                  player_exp=formulas.player_exp_reward_dungeon(boss.stage))
         bulk_stages.append(boss_stage)
 
     DungeonStage.objects.bulk_update_or_create(bulk_stages, ['mob', 'coins', 'gems', 'player_exp'], match_field='stage')
