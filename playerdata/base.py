@@ -27,6 +27,7 @@ class BaseCharacterSchema(Schema):
     crit_chance = fields.Int()
     health_scale = fields.Int()
     attack_scale = fields.Int()
+    ability_scale = fields.Int()
     ar_scale = fields.Int()
     mr_scale = fields.Int()
 

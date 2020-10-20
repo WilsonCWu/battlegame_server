@@ -74,6 +74,7 @@ class BaseCharacter(models.Model):
     crit_chance = models.IntegerField()
     health_scale = models.IntegerField()
     attack_scale = models.IntegerField()
+    ability_scale = models.IntegerField()
     ar_scale = models.IntegerField()
     mr_scale = models.IntegerField()
 
