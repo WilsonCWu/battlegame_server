@@ -39,6 +39,7 @@ def make_mob_from_boss(boss_placement: Placement, i: int, stage_num: int):
                    max(boss_placement.char_3.level - i, 1), max(boss_placement.char_4.level - i, 1),
                    max(boss_placement.char_5.level - i, 1)]
 
+    # `battlegame` user is the owner for all our dungeon mobs
     dungeon_user_id = 1
     char1 = Character(user_id=dungeon_user_id, char_type=boss_placement.char_1.char_type, level=char_levels[0])
     char2 = Character(user_id=dungeon_user_id, char_type=boss_placement.char_2.char_type, level=char_levels[1])
@@ -72,8 +73,7 @@ def make_mob_from_boss(boss_placement: Placement, i: int, stage_num: int):
                                          pos_2=boss_placement.pos_2, char_2=char2,
                                          pos_3=boss_placement.pos_3, char_3=char3,
                                          pos_4=boss_placement.pos_4, char_4=char4,
-                                         pos_5=boss_placement.pos_5, char_5=char5,
-                                         )
+                                         pos_5=boss_placement.pos_5, char_5=char5)
     return placement
 
 
@@ -95,7 +95,8 @@ def generate_dungeon_stages(dungeon_bosses_queryset):
 
         # create the actual boss stage
         boss_stage = DungeonStage(stage=boss.stage, mob=boss.placement,
-                                  coins=formulas.coins_reward_dungeon(boss.stage), gems=100,
+                                  coins=formulas.coins_reward_dungeon(boss.stage),
+                                  gems=formulas.gems_reward_dungeon(boss.stage),
                                   player_exp=formulas.player_exp_reward_dungeon(boss.stage))
         bulk_stages.append(boss_stage)
 

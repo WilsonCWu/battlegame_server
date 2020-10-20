@@ -62,3 +62,12 @@ def player_exp_reward_quickplay(dungeon_level):
 
 def player_exp_reward_dungeon(dungeon_level):
     return math.floor((dungeon_level / 5) * 9) + 10
+
+
+#########################
+## Gems
+
+def gems_reward_dungeon(dungeon_level):
+    if dungeon_level % 20 == 0:
+        return 200
+    return 1
