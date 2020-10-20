@@ -32,7 +32,7 @@ class PurchaseView(APIView):
 
         inventory = Inventory.objects.get(user=request.user)
 
-        if purchase_id == 'com.salutationstudio.tinyheroes.gems400':
+        if purchase_id == 'com.salutationstudio.tinytitans.gems400':
             inventory.gems += 400
         else:
             return Response({'status': False, 'reason': 'invalid id ' + purchase_id})
