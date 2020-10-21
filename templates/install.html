@@ -38,16 +38,30 @@
         min-width: 200px;
       }
 
+      {# Mobile #}
       @media only screen and (max-width: 768px) {
         .desktop-only {
             display: none;
         }
+
+          .logo {
+              width: 80vw;
+              min-width: 100px;
+              display:block;
+              margin: -10px auto 0;
+          }
       }
 
+      {# Desktop #}
       @media only screen and (min-width: 768px) {
         .mobile-only {
             display: none;
         }
+
+          .logo {
+              width: 20vw;
+              min-width: 300px;
+          }
       }
         
     </style>
@@ -62,7 +76,7 @@
                     <img class="large-image" src="{% static "images/battle-phone.png" %}" />
                 </div>
                 <div class="column">
-                    <h1 class="title has-text-white-ter">Tiny Titans Logo</h1>
+                    <img class="logo" src="{% static "images/logo.png" %}"/>
                     <h1 class="title is-1 has-text-warning">Equip and Conquer!</h1>
                     <h2 class="subtitle is-3 has-text-white-ter">
                         Join +1M players who are fighting tiny but winning BIG.
@@ -86,14 +100,14 @@
             /></a>
           </figure>
 
-          <figure class="image store-btn">
-            <a href="https://apps.apple.com/us/app/afk-arena/id1375425432"
-              ><img
-                src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-US?size=250x83&amp;releaseDate=1554768000&h=612c9b64053a71ea9ef4da4c9640583d"
-                alt="Download on the App Store"
-                style="margin: 6%; width: 80%"
-            /></a>
-          </figure>
+{#          <figure class="image store-btn">#}
+{#            <a href=""#}
+{#              ><img#}
+{#                src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-US?size=250x83&amp;releaseDate=1554768000&h=612c9b64053a71ea9ef4da4c9640583d"#}
+{#                alt="Download on the App Store"#}
+{#                style="margin: 6%; width: 80%"#}
+{#            /></a>#}
+{#          </figure>#}
         </div>
       </div>
     </section>
