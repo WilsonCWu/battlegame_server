@@ -5,6 +5,7 @@ from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 import bulk_admin
 
 from battlegame.cron import next_round, setup_tournament, end_tourney
+from .dungeon import generate_dungeon_stages
 from .models import BaseCharacter
 from .models import BaseCharacterUsage
 from .models import BaseItem
@@ -24,6 +25,7 @@ from .models import ClanMember
 from .models import ClanRequest
 from .models import DungeonStage
 from .models import DungeonProgress
+from .models import DungeonBoss
 from .models import BaseQuest
 from .models import PlayerQuestCumulative
 from .models import PlayerQuestDaily
@@ -55,7 +57,18 @@ class BaseItemAdmin(admin.ModelAdmin, DynamicArrayMixin):
 
 
 class DungeonStageAdmin(bulk_admin.BulkModelAdmin):
-    list_display = ('id', 'gems', 'coins', 'player_exp')
+    list_display = ('stage', 'player_exp', 'coins', 'gems')
+
+
+class DungeonBossAdmin(bulk_admin.BulkModelAdmin):
+    actions = ['generate_stages']
+
+    def generate_stages(self, request, queryset):
+        generate_dungeon_stages(queryset)
+
+
+class PlacementAdmin(admin.ModelAdmin):
+    list_display = ('placement_id', 'user', 'char_1', 'char_2', 'char_3', 'char_4', 'char_5')
 
 
 class BaseQuestAdmin(bulk_admin.BulkModelAdmin):
@@ -114,6 +127,7 @@ class TournamentAdmin(admin.ModelAdmin):
 
 admin.site.register(DungeonStage, DungeonStageAdmin)
 admin.site.register(DungeonProgress)
+admin.site.register(DungeonBoss, DungeonBossAdmin)
 
 admin.site.register(BaseCharacter)
 admin.site.register(BaseCharacterUsage)
@@ -121,7 +135,7 @@ admin.site.register(BaseItem, BaseItemAdmin)
 admin.site.register(Character)
 admin.site.register(Item)
 
-admin.site.register(Placement)
+admin.site.register(Placement, PlacementAdmin)
 admin.site.register(UserInfo)
 admin.site.register(UserStats)
 admin.site.register(Inventory)

@@ -14,6 +14,7 @@ from django.utils.deconstruct import deconstructible
 from django_better_admin_arrayfield.models.fields import ArrayField
 from decouple import config
 
+from bulk_update_or_create import BulkUpdateOrCreateQuerySet
 from playerdata import constants
 
 # Developer account IDs for in-game accounts
@@ -345,13 +346,16 @@ class ClanRequest(models.Model):
 
 
 class DungeonStage(models.Model):
+    objects = BulkUpdateOrCreateQuerySet.as_manager()
+
+    stage = models.IntegerField(null=True, unique=True)
     mob = models.ForeignKey(Placement, on_delete=models.CASCADE)
     player_exp = models.IntegerField()
     coins = models.IntegerField()
     gems = models.IntegerField()
 
     def __str__(self):
-        return "Stage " + str(self.id)
+        return "Stage " + str(self.stage)
 
 
 class DungeonProgress(models.Model):
@@ -360,6 +364,14 @@ class DungeonProgress(models.Model):
 
     def __str__(self):
         return "user " + str(self.user.id) + ": stage " + str(self.stage_id)
+
+
+class DungeonBoss(models.Model):
+    stage = models.IntegerField()
+    placement = models.ForeignKey(Placement, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "Stage: " + str(self.stage)
 
 
 class BaseQuest(models.Model):
