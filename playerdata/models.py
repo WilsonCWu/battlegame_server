@@ -9,6 +9,7 @@ from django.db import IntegrityError
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
 from django.utils.deconstruct import deconstructible
 from django_better_admin_arrayfield.models.fields import ArrayField
 from decouple import config
@@ -19,13 +20,54 @@ from playerdata import constants
 # Developer account IDs for in-game accounts
 DEV_ACCOUNT_IDS = json.loads(config("DEV_ACCOUNT_IDS",  default='{"data": []}'))["data"]
 
+
+class ServerStatus(models.Model):
+    id = models.AutoField(primary_key=True)
+    creation_time = models.DateTimeField(auto_now_add=True)
+    event_type = models.CharField(max_length=1, choices=(
+        ('V', 'Version'),
+        ('M', 'Maintenance'),
+    ))
+    # Fields for Version events.
+    version_number = models.CharField(max_length=15, blank=True, null=True)
+    require_update = models.BooleanField(default=True)
+
+    # Fields for Maintenance events.
+    maintenance_start = models.DateTimeField(blank=True, null=True)
+    expected_end = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['creation_time', 'event_type']),
+        ]
+
+    def clean(self):
+        if self.event_type == 'V':
+            if not self.version_number:
+                raise ValidationError("version number is none")
+        elif self.event_type == 'M':
+            if not self.maintenance_start:
+                raise ValidationError("maintenance_start is none")
+            if self.expected_end and self.expected_end < self.maintenance_start:
+                raise ValidationError("expected_end before maintenance_start")
+
+    def __str__(self):
+        if self.event_type == 'V':
+            return "Version: %s (%s)" % (self.version_number, self.creation_time)
+        elif self.maintenance_start <= timezone.now():
+            return "Past maintenance: %s" % (self.maintenance_start)
+        else:
+            return "Upcoming maintenance: %s" % (self.maintenance_start)
+
+
 class BaseCharacter(models.Model):
     char_type = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=30, unique=True)
     health = models.IntegerField()
     mana = models.IntegerField()
     speed = models.IntegerField()
-    attack = models.IntegerField()
+    attack_damage = models.IntegerField()
+    ability_damage = models.IntegerField()
     ar = models.IntegerField()
     mr = models.IntegerField()
     attack_range = models.IntegerField()
@@ -33,6 +75,7 @@ class BaseCharacter(models.Model):
     crit_chance = models.IntegerField()
     health_scale = models.IntegerField()
     attack_scale = models.IntegerField()
+    ability_scale = models.IntegerField()
     ar_scale = models.IntegerField()
     mr_scale = models.IntegerField()
 
@@ -536,7 +579,7 @@ def create_user_info(sender, instance, created, **kwargs):
         create_quests_by_class(instance, ActiveDailyQuest.objects.all()[:constants.NUM_DAILY_QUESTS], PlayerQuestDaily, expiry_date_daily)
 
         # Add welcome messages, if developer account IDs are defined in env
-        if DEV_ACCOUNT_IDS:            
+        if DEV_ACCOUNT_IDS:
             devUserId = random.choice(DEV_ACCOUNT_IDS)
             devUser = User.objects.get(id=devUserId)
             userName = UserInfo.objects.get(user_id=instance.id).name
@@ -544,7 +587,7 @@ def create_user_info(sender, instance, created, **kwargs):
             chat = Chat.objects.create(chat_name="dm(%s)" % (devUser.get_username()))
             # TODO(advait): add db-level constraint to prevent duplicate friend pairs
             Friend.objects.create(user_1=instance, user_2=devUser, chat=chat)
-            welcomeMessage1 = "Hey there %s! I'm %s, one of the creators of the game. Thanks so much for giving Early Access a shot, you're one of the first people to play it! Please note that Tiny Heroes is in active development, and many things may break or change while we are trying to make the best game possible for you." % (userName, devUserName)
+            welcomeMessage1 = "Hey there %s! I'm %s, one of the creators of the game. Thanks so much for giving Early Access a shot, you're one of the first people to play it! Please note that Tiny Titans is in active development, and many things may break or change while we are trying to make the best game possible for you." % (userName, devUserName)
             welcomeMessage2 = "That being said, Early Access users will receive double their gems in our starter pack once we reset at release 1.0 as a thank you for joining us at the start. We also have a growing community on Discord https://discord.gg/bQR8DZW - please join us!"
             ChatMessage.objects.create(chat=chat, message=welcomeMessage1, sender=devUser)
             ChatMessage.objects.create(chat=chat, message=welcomeMessage2, sender=devUser)

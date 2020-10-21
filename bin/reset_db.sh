@@ -1,5 +1,3 @@
-# !/bin/bash
-
 dropdb battlegame
 createdb battlegame
 ./manage.py migrate

@@ -150,3 +150,6 @@ media
 
 # mac stuff
 .DS_Store
+
+# Ignore repos installed by pip.
+src/*

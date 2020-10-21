@@ -18,7 +18,8 @@ class BaseCharacterSchema(Schema):
     health = fields.Int()
     mana = fields.Int()
     speed = fields.Int()
-    attack = fields.Int()
+    attack_damage = fields.Int()
+    ability_damage = fields.Int()
     ar = fields.Int()
     mr = fields.Int()
     attack_range = fields.Int()
@@ -26,6 +27,7 @@ class BaseCharacterSchema(Schema):
     crit_chance = fields.Int()
     health_scale = fields.Int()
     attack_scale = fields.Int()
+    ability_scale = fields.Int()
     ar_scale = fields.Int()
     mr_scale = fields.Int()
 
