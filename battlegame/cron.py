@@ -251,7 +251,7 @@ def next_round():
 
     # bulk update
     Tournament.objects.bulk_update(tournies_to_update, ['round', 'round_expiration'])
-    TournamentMember.objects.bulk_update(members_to_update, ['has_picked'])
+    TournamentMember.objects.bulk_update(members_to_update, ['has_picked', 'fights_left'])
     TournamentMatch.objects.bulk_create(matches_to_update)
     UserInfo.objects.bulk_update(userinfos_to_update, ['tourney_elo'])
 
