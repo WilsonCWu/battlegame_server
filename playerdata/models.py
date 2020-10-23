@@ -68,6 +68,7 @@ class BaseCharacter(models.Model):
     speed = models.IntegerField()
     attack_damage = models.IntegerField()
     ability_damage = models.IntegerField()
+    attack_speed = models.FloatField()
     ar = models.IntegerField()
     mr = models.IntegerField()
     attack_range = models.IntegerField()
@@ -115,6 +116,9 @@ class BaseItem(models.Model):
     # Stat changes from items.
     attack_flat = models.IntegerField(blank=True, null=True)
     attack_mult = models.FloatField(blank=True, null=True)
+    ability_flat = models.IntegerField(blank=True, null=True)
+    ability_mult = models.FloatField(blank=True, null=True)
+    attack_speed_mult = models.FloatField(blank=True, null=True)
     ar_flat = models.IntegerField(blank=True, null=True)
     ar_mult = models.FloatField(blank=True, null=True)
     mr_flat = models.IntegerField(blank=True, null=True)
