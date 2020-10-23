@@ -20,6 +20,7 @@ class BaseCharacterSchema(Schema):
     speed = fields.Int()
     attack_damage = fields.Int()
     ability_damage = fields.Int()
+    attack_speed = fields.Float()
     ar = fields.Int()
     mr = fields.Int()
     attack_range = fields.Int()
@@ -43,6 +44,9 @@ class BaseItemSchema(Schema):
 
     attack_flat = fields.Int()
     attack_mult = fields.Float()
+    ability_flat = fields.Int()
+    ability_mult = fields.Float()
+    attack_speed_mult = fields.Float()
     ar_flat = fields.Int()
     ar_mult = fields.Float()
     mr_flat = fields.Int()
