@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib import messages
+from django.contrib.admin.models import LogEntry
 from django.utils.translation import ngettext
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 import bulk_admin
@@ -126,6 +127,59 @@ class TournamentAdmin(admin.ModelAdmin):
         end_tourney()
 
 
+class LogEntryAdmin(admin.ModelAdmin):
+    date_hierarchy = 'action_time'
+
+    readonly_fields = [
+        'action_time',
+        'action_flag',
+        'user',
+        'content_type',
+        'object_id',
+        'object_link',
+        'object_repr',
+        'change_message',
+    ]
+
+    list_filter = [
+        'user',
+        'content_type',
+        'action_flag'
+    ]
+
+    search_fields = [
+        'object_repr',
+        'change_message'
+    ]
+
+    list_display = [
+        'action_time',
+        'user',
+        'content_type',
+        'object_link',
+        'action_flag_',
+        'change_message',
+    ]
+
+    def action_flag_(self, obj):
+        flags = {
+            1: "Addition",
+            2: "Changed",
+            3: "Deleted",
+        }
+        return flags[obj.action_flag]
+
+    def object_link(self, obj):
+        return '{type}_id {id}: {obj}'.format(
+            type=obj.content_type.model,
+            id=obj.object_id,
+            obj=obj.object_repr,
+        )
+
+    object_link.admin_order_field = 'object_repr'
+    object_link.short_description = u'Modified Object'
+
+
 admin.site.register(DungeonStage, DungeonStageAdmin)
 admin.site.register(DungeonProgress)
 admin.site.register(DungeonBoss, DungeonBossAdmin)
@@ -174,3 +228,4 @@ admin.site.register(TournamentSelectionCards)
 
 admin.site.register(InvalidReceipt)
 admin.site.register(ServerStatus)
+admin.site.register(LogEntry, LogEntryAdmin)
