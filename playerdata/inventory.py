@@ -31,6 +31,8 @@ class CharacterSchema(Schema):
     num_games = fields.Int()
     num_wins = fields.Int()
 
+    is_tourney = fields.Bool()
+
     hat = fields.Nested(ItemSchema)
     armor = fields.Nested(ItemSchema)
     weapon = fields.Nested(ItemSchema)
