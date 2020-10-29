@@ -265,8 +265,8 @@ class UserStats(models.Model):
 class Inventory(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     char_limit = models.IntegerField(default=50)
-    coins = models.IntegerField(default=0)
-    gems = models.IntegerField(default=0)
+    coins = models.IntegerField(default=1000)
+    gems = models.IntegerField(default=800)
     hero_exp = models.IntegerField(default=0)
 
     def __str__(self):
