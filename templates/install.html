@@ -23,10 +23,6 @@
         src: url("{% static "fonts/CookieRunBold.otf" %}");
       }
 
-      .is-fullheight {
-        background: url("{% static "images/background.jpg" %}") center / cover;
-      }
-
       h1,
       h2,
       .cookiefont {
@@ -40,20 +36,31 @@
 
       {# Mobile #}
       @media only screen and (max-width: 768px) {
+        .is-fullheight {
+            background: url("{% static "images/mobile-background.jpg" %}") center / cover;
+        }
+
         .desktop-only {
             display: none;
         }
 
-          .logo {
-              width: 80vw;
-              min-width: 100px;
-              display:block;
-              margin: -10px auto 0;
-          }
+        .logo {
+            width: 80vw;
+            min-width: 100px;
+            display:block;
+            margin: -10px auto 0;
+         }
+
+        .mobile-title {
+            color: #2e6da4;
+        }
       }
 
       {# Desktop #}
       @media only screen and (min-width: 768px) {
+        .is-fullheight {
+            background: url("{% static "images/background.jpg" %}") center / cover;
+        }
         .mobile-only {
             display: none;
         }
@@ -91,14 +98,18 @@
 
       <div class="hero-foot center" style="padding: 2rem; align-self: center">
         <div class="container">
-          <figure class="image store-btn">
-            <a
-              href="https://play.google.com/store/apps/details?id=com.salutationstudio.tinytitans"
-              ><img
-                alt="Get it on Google Play"
-                src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
-            /></a>
-          </figure>
+            <h2 class="title has-text-white-ter">
+            Join our closed beta <a target="_blank" class="has-text-warning" href="https://forms.gle/Xv7Bfx1a7fPjSU1E8">here!</a>
+          </h2>
+
+{#          <figure class="image store-btn">#}
+{#            <a#}
+{#              href="https://play.google.com/store/apps/details?id=com.salutationstudio.tinytitans"#}
+{#              ><img#}
+{#                alt="Get it on Google Play"#}
+{#                src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"#}
+{#            /></a>#}
+{#          </figure>#}
 
 {#          <figure class="image store-btn">#}
 {#            <a href=""#}
