@@ -353,6 +353,20 @@ class EditClanDescriptionView(APIView):
         return Response({'status': True})
 
 
+class EditProfileDescriptionView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = ValueSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        new_description = serializer.validated_data['value']
+
+        request.user.userinfo.description = new_description
+        request.user.userinfo.save()
+
+        return Response({'status': True})
+
+
 class ChangeMemberStatusView(APIView):
     permission_classes = (IsAuthenticated,)
 
