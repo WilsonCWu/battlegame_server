@@ -566,9 +566,18 @@ def create_user_referral(user):
 @receiver(post_save, sender=User)
 def create_user_info(sender, instance, created, **kwargs):
     if created:
-        # TODO(yanke): when users are created, we need to give them common
-        # characters, and a default team.
-        userinfo = UserInfo.objects.create(user=instance)
+
+        # starter team / 3 peasants
+        peasant_archer = Character.objects.create(user=instance, char_type_id=1)
+        peasant_mage = Character.objects.create(user=instance, char_type_id=2)
+        peasant_swordsman = Character.objects.create(user=instance, char_type_id=3)
+
+        default_placement = Placement.objects.create(user=instance,
+                                                     char_1=peasant_swordsman, pos_1=3,
+                                                     char_2=peasant_archer, pos_2=10,
+                                                     char_3=peasant_mage, pos_3=11)
+
+        userinfo = UserInfo.objects.create(user=instance, default_placement=default_placement)
         UserStats.objects.create(user=instance)
         Inventory.objects.create(user=instance)
         ClanMember.objects.create(userinfo=userinfo)
