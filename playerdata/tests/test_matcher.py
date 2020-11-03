@@ -3,6 +3,7 @@ from rest_framework.test import APITestCase
 
 from playerdata.models import User, Placement, BaseCharacter, Character
 
+
 class MatcherAPITestCase(APITestCase):
     fixtures = ['playerdata/tests/fixtures.json']
 
@@ -17,6 +18,7 @@ class MatcherAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # this is kinda obscure, but 4 probably means it accidentally matched with self
         self.assertEqual(len(response.data['users']), 3)
+
 
 class PlacementsAPITestCase(APITestCase):
     fixtures = ['playerdata/tests/fixtures.json']
@@ -51,7 +53,7 @@ class PlacementsAPITestCase(APITestCase):
     def test_getting_placements(self):
         response = self.client.get('/placements/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['placements']), 0)
+        self.assertEqual(len(response.data['placements']), 1)  # default placement exists
 
         self._create_placement(
             [self.archer.char_id] + [None] * 4,
@@ -68,7 +70,7 @@ class PlacementsAPITestCase(APITestCase):
         )
         response = self.client.get('/placements/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['placements']), 2)
+        self.assertEqual(len(response.data['placements']), 3)
 
     def test_new_placement(self):
         response = self.client.post('/placements/', {
@@ -78,7 +80,7 @@ class PlacementsAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
         self.assertIsNotNone(response.data['placement_id'])
-        self.assertEqual(Placement.objects.filter(user=self.u).count(), 1)
+        self.assertEqual(Placement.objects.filter(user=self.u).count(), 2)
 
         # Give u:battlegame the max amount of placements.
         self._create_placement(

@@ -12,6 +12,9 @@ class GenerateCharactersTestCase(APITestCase):
         self.client.force_authenticate(user=self.u)
 
     def test_summon_10(self):
+        # first delete default characters
+        Character.objects.filter(user=self.u).delete()
+
         char_map = generate_and_insert_characters(self.u, 10)
         database_chars = Character.objects.filter(user=self.u)
 
