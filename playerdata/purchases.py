@@ -84,7 +84,14 @@ def validate_apple(request, receipt_raw):
     return Response({'status': True})
 
 
-# returns a random BaseCharacter with weighted rarity
+# These characters cannot be rolled as they're not playable / limited time /
+# other misc. reason.
+UNROLLABLE_CHARACTERS = [
+    14, # Skeleton
+    15, # Deckhand
+]
+
+# returns a random BaseCharacter with weighted
 def generate_character(rarity_odds=None):
     if rarity_odds is None:
         rarity_odds = constants.SUMMON_RARITY_BASE
@@ -95,7 +102,7 @@ def generate_character(rarity_odds=None):
             rarity = len(rarity_odds) - i
             break
 
-    base_chars = BaseCharacter.objects.filter(rarity=rarity)
+    base_chars = BaseCharacter.objects.filter(rarity=rarity).exclude(char_type__in=UNROLLABLE_CHARACTERS)
     num_chars = base_chars.count()
     chosen_char = base_chars[random.randrange(num_chars)]
     return chosen_char
