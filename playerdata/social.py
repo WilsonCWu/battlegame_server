@@ -262,7 +262,7 @@ class GetClanSearchResultsView(APIView):
             clans = ClanSchema(clan_set, many=True)
             return Response({'clans': clans.data})
         else:
-            clan_set = Clan.objects.filter(name=search_name)
+            clan_set = Clan.objects.filter(name__icontains=search_name)
             clans = ClanSchema(clan_set, many=True)
             return Response({'clans': clans.data})
 
@@ -349,6 +349,20 @@ class EditClanDescriptionView(APIView):
 
         clan.description = new_description
         clan.save()
+
+        return Response({'status': True})
+
+
+class EditProfileDescriptionView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = ValueSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        new_description = serializer.validated_data['value']
+
+        request.user.userinfo.description = new_description
+        request.user.userinfo.save()
 
         return Response({'status': True})
 

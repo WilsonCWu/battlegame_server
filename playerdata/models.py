@@ -239,6 +239,7 @@ class UserInfo(models.Model):
     tourney_elo = models.IntegerField(default=0)
     prev_tourney_elo = models.IntegerField(default=0)
     name = models.CharField(max_length=20, default='new player')
+    description = models.TextField(default='A description has not been set.')
     profile_picture = models.IntegerField(default=0)
     default_placement = models.ForeignKey(Placement, null=True, on_delete=models.SET_NULL)
     player_exp = models.IntegerField(default=0)
