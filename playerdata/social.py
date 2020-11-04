@@ -262,7 +262,7 @@ class GetClanSearchResultsView(APIView):
             clans = ClanSchema(clan_set, many=True)
             return Response({'clans': clans.data})
         else:
-            clan_set = Clan.objects.filter(name=search_name)
+            clan_set = Clan.objects.filter(name__icontains=search_name)
             clans = ClanSchema(clan_set, many=True)
             return Response({'clans': clans.data})
 
