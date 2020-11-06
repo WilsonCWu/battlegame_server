@@ -39,6 +39,23 @@ def update_char(char: Character, new_char: Character):
     return char
 
 
+def shuffle_positions(len_chars, positions: []):
+    new_positions = positions
+    shuffle_pos = random.sample(range(0, len_chars), 2)
+    possible_pos = list(range(1, 17))
+
+    for i in range(0, len(positions)):
+        if i not in shuffle_pos:
+            if positions[i] != -1:
+                possible_pos.remove(positions[i])
+
+    random_positions = random.sample(possible_pos, 2)
+    new_positions[shuffle_pos[0]] = random_positions[0]
+    new_positions[shuffle_pos[1]] = random_positions[1]
+
+    return new_positions
+
+
 # creates or updates a placement for stage_num based on the boss_placement
 def make_mob_from_boss(boss_placement: Placement, i: int, stage_num: int):
 
@@ -49,43 +66,40 @@ def make_mob_from_boss(boss_placement: Placement, i: int, stage_num: int):
     char3 = None if boss_placement.char_3 is None else Character(user_id=dungeon_user_id, char_type=boss_placement.char_3.char_type, level=max(boss_placement.char_3.level - i, 1))
     char4 = None if boss_placement.char_4 is None else Character(user_id=dungeon_user_id, char_type=boss_placement.char_4.char_type, level=max(boss_placement.char_4.level - i, 1))
     char5 = None if boss_placement.char_5 is None else Character(user_id=dungeon_user_id, char_type=boss_placement.char_5.char_type, level=max(boss_placement.char_5.level - i, 1))
-    chars = list(filter(None, [char1, char2, char3, char4, char5]))
+
+    pos1 = boss_placement.pos_1
+    pos2 = boss_placement.pos_2
+    pos3 = boss_placement.pos_3
+    pos4 = boss_placement.pos_4
+    pos5 = boss_placement.pos_5
+
+    chars = [char1, char2, char3, char4, char5]
+    len_chars = len(list(filter(None, chars)))
+    positions = [pos1, pos2, pos3, pos4, pos5]
 
     # 1 random peasant from level 1 - 24
     if stage_num <= 24:
-        char_to_replace = random.randint(0, len(chars) - 1)
+        char_to_replace = random.randint(0, len_chars - 1)
         rand_peasant_type = random.randint(1, 3)
         chars[char_to_replace] = Character(user_id=dungeon_user_id, char_type_id=rand_peasant_type, level=chars[char_to_replace].level)
 
-    rand_pos = random.sample(range(1, 17), 5)
-
-    char1 = chars[0]
-    char2 = chars[1]
-    char3 = chars[2] if 2 < len(chars) else None
-    char4 = chars[3] if 3 < len(chars) else None
-    char5 = chars[4] if 4 < len(chars) else None
-
-    pos1 = -1 if char1 is None else rand_pos[0]
-    pos2 = -1 if char2 is None else rand_pos[1]
-    pos3 = -1 if char3 is None else rand_pos[2]
-    pos4 = -1 if char4 is None else rand_pos[3]
-    pos5 = -1 if char5 is None else rand_pos[4]
+    positions = shuffle_positions(len_chars,  positions)
 
     dungeon_stage = DungeonStage.objects.filter(stage=stage_num).first()
     if dungeon_stage is not None:
         placement = dungeon_stage.mob
 
-        placement.char_1 = update_char(placement.char_1, char1)
-        placement.char_2 = update_char(placement.char_2, char2)
-        placement.char_3 = update_char(placement.char_3, char3)
-        placement.char_4 = update_char(placement.char_4, char4)
-        placement.char_5 = update_char(placement.char_5, char5)
+        placement.char_1 = update_char(placement.char_1, chars[0])
+        placement.char_2 = update_char(placement.char_2, chars[1])
+        placement.char_3 = update_char(placement.char_3, chars[2])
+        placement.char_4 = update_char(placement.char_4, chars[3])
+        placement.char_5 = update_char(placement.char_5, chars[4])
 
-        placement.pos_1 = pos1
-        placement.pos_2 = pos2
-        placement.pos_3 = pos3
-        placement.pos_4 = pos4
-        placement.pos_5 = pos5
+        placement.pos_1 = positions[0]
+        placement.pos_2 = positions[1]
+        placement.pos_3 = positions[2]
+        placement.pos_4 = positions[3]
+        placement.pos_5 = positions[4]
 
         placement.save()
         return placement
@@ -93,11 +107,11 @@ def make_mob_from_boss(boss_placement: Placement, i: int, stage_num: int):
     # if placement doesn't exist for this stage_num yet, we create it!
     Character.objects.bulk_create(chars)
     placement = Placement.objects.create(user_id=dungeon_user_id,
-                                         pos_1=pos1, char_1=char1,
-                                         pos_2=pos2, char_2=char2,
-                                         pos_3=pos3, char_3=char3,
-                                         pos_4=pos4, char_4=char4,
-                                         pos_5=pos5, char_5=char5)
+                                         pos_1=positions[0], char_1=chars[0],
+                                         pos_2=positions[1], char_2=chars[1],
+                                         pos_3=positions[2], char_3=chars[2],
+                                         pos_4=positions[3], char_4=chars[3],
+                                         pos_5=positions[4], char_5=chars[4])
     return placement
 
 
