@@ -39,16 +39,20 @@ def update_char(char: Character, new_char: Character):
     return char
 
 
+# Takes existing positions and picks two random positions to change
+# Then assigns new random positions that have not been used yet
 def shuffle_positions(len_chars, positions: []):
     new_positions = positions
     shuffle_pos = random.sample(range(0, len_chars), 2)
     possible_pos = list(range(1, 17))
 
+    # remove from the set of possible_pos any positions that are taken by existing chars
     for i in range(0, len(positions)):
         if i not in shuffle_pos:
             if positions[i] != -1:
                 possible_pos.remove(positions[i])
 
+    # Get new random positions out unused positions
     random_positions = random.sample(possible_pos, 2)
     new_positions[shuffle_pos[0]] = random_positions[0]
     new_positions[shuffle_pos[1]] = random_positions[1]
@@ -115,6 +119,7 @@ def make_mob_from_boss(boss_placement: Placement, i: int, stage_num: int):
     return placement
 
 
+# design doc: https://docs.google.com/document/d/1TMjO8-8GfMhp4aN8OEGQeBT-a6VRRgbCEe3S4aAWHSM/edit?usp=sharing
 # creates 19 weaker versions of each boss_placement in the queryset
 def generate_dungeon_stages(dungeon_bosses_queryset):
 
