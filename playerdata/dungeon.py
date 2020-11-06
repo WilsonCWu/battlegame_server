@@ -39,35 +39,6 @@ def update_char(char: Character, new_char: Character):
     return char
 
 
-def make_first_world_mobs(boss_placement: Placement, i: int, stage_num: int):
-    dungeon_user_id = 1
-
-    if stage_num <= 20:
-        # generate 1 char out of the two that is peasant
-        # set placement, shuffle positions
-        pos_to_replace = random.randint(1, 2)
-        rand_peasant_type = random.randint(1, 3)
-
-        if pos_to_replace == 1:
-            char1 = Character(user_id=dungeon_user_id, char_type=rand_peasant_type,
-                              level=max(boss_placement.char_1.level - i, 1))
-            char2 = Character(user_id=dungeon_user_id, char_type=boss_placement.char_2.char_type,
-                              level=max(boss_placement.char_2.level - i, 1))
-        else:
-            char1 = Character(user_id=dungeon_user_id, char_type=boss_placement.char_1.char_type,
-                              level=max(boss_placement.char_1.level - i, 1))
-            char2 = Character(user_id=dungeon_user_id, char_type=rand_peasant_type,
-                              level=max(boss_placement.char_2.level - i, 1))
-
-        # randomly shuffle the positions
-        Character.objects.bulk_create([char1, char2])
-        pos = random.sample(range(1, 16,), 2)
-        placement = Placement.objects.create(user_id=dungeon_user_id,
-                                             pos_1=pos[0], char_1=char1,
-                                             pos_2=pos[2], char_2=char2)
-        return placement
-
-
 # creates or updates a placement for stage_num based on the boss_placement
 def make_mob_from_boss(boss_placement: Placement, i: int, stage_num: int):
 
@@ -88,21 +59,33 @@ def make_mob_from_boss(boss_placement: Placement, i: int, stage_num: int):
 
     rand_pos = random.sample(range(1, 17), 5)
 
+    char1 = chars[0]
+    char2 = chars[1]
+    char3 = chars[2] if 2 < len(chars) else None
+    char4 = chars[3] if 3 < len(chars) else None
+    char5 = chars[4] if 4 < len(chars) else None
+
+    pos1 = -1 if char1 is None else rand_pos[0]
+    pos2 = -1 if char2 is None else rand_pos[1]
+    pos3 = -1 if char3 is None else rand_pos[2]
+    pos4 = -1 if char4 is None else rand_pos[3]
+    pos5 = -1 if char5 is None else rand_pos[4]
+
     dungeon_stage = DungeonStage.objects.filter(stage=stage_num).first()
     if dungeon_stage is not None:
         placement = dungeon_stage.mob
 
-        placement.char_1 = update_char(placement.char_1, chars[0])
-        placement.char_2 = update_char(placement.char_2, chars[1])
-        placement.char_3 = update_char(placement.char_3, chars[2] if stage_num > 20 else None)
-        placement.char_4 = update_char(placement.char_4, chars[3] if stage_num > 20 else None)
-        placement.char_5 = update_char(placement.char_5, chars[4] if stage_num > 20 else None)
+        placement.char_1 = update_char(placement.char_1, char1)
+        placement.char_2 = update_char(placement.char_2, char2)
+        placement.char_3 = update_char(placement.char_3, char3)
+        placement.char_4 = update_char(placement.char_4, char4)
+        placement.char_5 = update_char(placement.char_5, char5)
 
-        placement.pos_1 = -1 if char1 is None else rand_pos[0]
-        placement.pos_2 = -1 if char2 is None else rand_pos[1]
-        placement.pos_3 = -1 if char3 is None else rand_pos[2]
-        placement.pos_4 = -1 if char4 is None else rand_pos[3]
-        placement.pos_5 = -1 if char5 is None else rand_pos[4]
+        placement.pos_1 = pos1
+        placement.pos_2 = pos2
+        placement.pos_3 = pos3
+        placement.pos_4 = pos4
+        placement.pos_5 = pos5
 
         placement.save()
         return placement
@@ -110,11 +93,11 @@ def make_mob_from_boss(boss_placement: Placement, i: int, stage_num: int):
     # if placement doesn't exist for this stage_num yet, we create it!
     Character.objects.bulk_create(chars)
     placement = Placement.objects.create(user_id=dungeon_user_id,
-                                         pos_1=rand_pos[0], char_1=char1,
-                                         pos_2=rand_pos[1], char_2=char2,
-                                         pos_3=rand_pos[2], char_3=char3,
-                                         pos_4=rand_pos[3], char_4=char4,
-                                         pos_5=rand_pos[4], char_5=char5)
+                                         pos_1=pos1, char_1=char1,
+                                         pos_2=pos2, char_2=char2,
+                                         pos_3=pos3, char_3=char3,
+                                         pos_4=pos4, char_4=char4,
+                                         pos_5=pos5, char_5=char5)
     return placement
 
 
