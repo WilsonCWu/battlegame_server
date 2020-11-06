@@ -52,7 +52,7 @@ def shuffle_positions(len_chars, positions: []):
             if positions[i] != -1:
                 possible_pos.remove(positions[i])
 
-    # Get new random positions out unused positions
+    # Get new random positions from unused positions
     random_positions = random.sample(possible_pos, 2)
     new_positions[shuffle_pos[0]] = random_positions[0]
     new_positions[shuffle_pos[1]] = random_positions[1]
@@ -89,6 +89,7 @@ def make_mob_from_boss(boss_placement: Placement, i: int, stage_num: int):
 
     positions = shuffle_positions(len_chars,  positions)
 
+    # if placement already exists for this stage, we update
     dungeon_stage = DungeonStage.objects.filter(stage=stage_num).first()
     if dungeon_stage is not None:
         placement = dungeon_stage.mob
