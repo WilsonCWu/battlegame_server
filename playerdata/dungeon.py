@@ -110,7 +110,7 @@ def make_mob_from_boss(boss_placement: Placement, i: int, stage_num: int):
         return placement
 
     # if placement doesn't exist for this stage_num yet, we create it!
-    Character.objects.bulk_create(chars)
+    Character.objects.bulk_create(list(filter(None, chars)))
     placement = Placement.objects.create(user_id=dungeon_user_id,
                                          pos_1=positions[0], char_1=chars[0],
                                          pos_2=positions[1], char_2=chars[1],
