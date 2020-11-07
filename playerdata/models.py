@@ -5,6 +5,7 @@ from datetime import datetime, date, time, timedelta
 
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
+from django.contrib.postgres.fields import JSONField
 from django.db import IntegrityError
 from django.db import models
 from django.db.models.signals import post_save
@@ -61,7 +62,7 @@ class ServerStatus(models.Model):
 
 
 class BaseCharacter(models.Model):
-    char_type = models.IntegerField(primary_key=True)
+    char_type = models.AutoField(primary_key=True)
     name = models.CharField(max_length=30, unique=True)
     health = models.IntegerField()
     mana = models.IntegerField()
@@ -79,6 +80,11 @@ class BaseCharacter(models.Model):
     ability_scale = models.IntegerField()
     ar_scale = models.IntegerField()
     mr_scale = models.IntegerField()
+
+    # Document-isque representation of ability / ultimate stats. This will
+    # allow us to hotfix characters. NOTE(yanske1): when we upgrade to Django
+    # 3.1.x, we can use the new JSONField from Django.
+    specs = JSONField(blank=True, null=True)
 
     def __str__(self):
         return self.name
