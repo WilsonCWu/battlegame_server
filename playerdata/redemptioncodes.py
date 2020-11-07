@@ -40,7 +40,7 @@ def award_code(user, base_code):
     if base_code.char_type:
         insert_character(user, base_code.char_type)
 
-    if base_code.num_left is not -1:
+    if base_code.num_left != -1:
         base_code.num_left -= 1
         base_code.save()
 
@@ -50,7 +50,7 @@ def award_code(user, base_code):
 def is_valid_code(base_code):
     curr_time = timezone.now()
     # check expiration and amount left
-    return base_code.start_time < curr_time < base_code.end_time and (base_code.num_left > 0 or base_code.num_left is -1)
+    return base_code.start_time < curr_time < base_code.end_time and (base_code.num_left > 0 or base_code.num_left == -1)
 
 
 class RedeemCodeView(APIView):
