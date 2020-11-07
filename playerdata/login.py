@@ -49,7 +49,7 @@ class CreateNewUser(APIView):
 
 class ChangeName(APIView):
     throttle_classes = ()
-    permission_classes = ()
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request):
         serializer = ChangeNameSerializer(data=request.data)
