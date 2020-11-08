@@ -90,9 +90,6 @@ class UploadResultView(APIView):
 
             other_user = get_user_model().objects.select_related('userinfo').get(id=opponent)
 
-            prev_elo = request.user.userinfo.elo
-            updated_rating = calculate_elo(request.user.userinfo.elo, other_user.userinfo.elo, win)
-
             dungeon_progress = DungeonProgress.objects.get(user=request.user)
             coins = formulas.coins_reward_quickplay(dungeon_progress.stage_id)
             player_exp = formulas.player_exp_reward_quickplay(dungeon_progress.stage_id)
@@ -101,6 +98,10 @@ class UploadResultView(APIView):
             inventory.coins += coins
             inventory.save()
 
+            prev_elo = request.user.userinfo.elo
+            updated_rating = calculate_elo(request.user.userinfo.elo, other_user.userinfo.elo, win)
+
+            request.user.userinfo.elo = updated_rating
             request.user.userinfo.player_exp += player_exp
             request.user.userinfo.save()
 
