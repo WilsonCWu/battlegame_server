@@ -56,6 +56,9 @@ class ChangeName(APIView):
         serializer.is_valid(raise_exception=True)
         name = serializer.validated_data['name']
 
+        if "TT" in name:
+            return Response({'status': False, 'reason': 'Invalid name'})
+
         userinfo = UserInfo.objects.get(user=request.user)
         userinfo.name = name
         userinfo.save()
