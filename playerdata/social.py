@@ -277,8 +277,7 @@ class NewClanView(APIView):
         clan_description = serializer.validated_data['clan_description']
 
         if Clan.objects.filter(name=clan_name):  # if exists already
-            return Response({'status': False, 'detail': 'clan name ' + clan_name + ' already taken'},
-                            status=HTTP_404_NOT_FOUND)
+            return Response({'status': False, 'reason': 'Clan name ' + clan_name + ' already taken!'})
 
         clan_chat = Chat.objects.create(chat_name=clan_name)
 
