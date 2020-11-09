@@ -60,6 +60,7 @@ class BaseItemAdmin(admin.ModelAdmin, DynamicArrayMixin):
 
 class DungeonStageAdmin(bulk_admin.BulkModelAdmin):
     list_display = ('stage', 'player_exp', 'coins', 'gems')
+    raw_id_fields = ("mob",)
 
 
 class DungeonBossAdmin(bulk_admin.BulkModelAdmin):
