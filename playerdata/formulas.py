@@ -68,6 +68,6 @@ def player_exp_reward_dungeon(dungeon_level):
 ## Gems
 
 def gems_reward_dungeon(dungeon_level):
-    if dungeon_level % 20 == 0:
-        return 200
-    return 1
+    if dungeon_level % 5 == 0:
+        return 1000
+    return 100
