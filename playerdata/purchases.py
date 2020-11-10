@@ -138,6 +138,14 @@ def generate_and_insert_characters(user, char_count, rarity_odds=None):
     return new_chars
 
 
+def count_char_copies(chars):
+    count = 0
+    for char in chars:
+        count += char.copies
+
+    return count
+
+
 class PurchaseItemView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -166,12 +174,13 @@ class PurchaseItemView(APIView):
 
         # generate characters
         new_char_arr = []
-        rarity = []
+        rarity = None
+        char_copies = count_char_copies(Character.objects.filter(user=request.user))
         # rig the first two rolls
-        if Character.objects.filter(user=request.user).count() == 3:
+        if char_copies == 3:
             # rarity 2
             rarity = [-1, -1, 100, 100]
-        elif Character.objects.filter(user=request.user).count() == 4:
+        elif char_copies == 4:
             # rarity 3
             rarity = [-1, 100, 100, 100]
 
