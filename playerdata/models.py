@@ -273,7 +273,7 @@ class Inventory(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     char_limit = models.IntegerField(default=50)
     coins = models.IntegerField(default=1000)
-    gems = models.IntegerField(default=800)
+    gems = models.IntegerField(default=5000)
     hero_exp = models.IntegerField(default=0)
 
     def __str__(self):
@@ -636,11 +636,11 @@ def create_quests_by_class(user, active_quests, quest_class, expiry_date):
 
 # Gets the next expiration date which is just midnight no time zone
 def get_expiration_date(interval):
-    if interval is 1:
+    if interval == 1:
         delta = 1
     else:
         delta = (7 - datetime.today().weekday()) % 7
-        if delta is 0:
+        if delta == 0:
             delta = 7
 
     return datetime.combine(date.today(), time()) + timedelta(days=delta)
