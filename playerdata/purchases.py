@@ -7,7 +7,6 @@ from googleapiclient.discovery import build
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import status
 
 from battlegame.settings import SERVICE_ACCOUNT_FILE
 from playerdata.models import BaseCharacter
@@ -87,9 +86,10 @@ def validate_apple(request, receipt_raw):
 # These characters cannot be rolled as they're not playable / limited time /
 # other misc. reason.
 UNROLLABLE_CHARACTERS = [
-    14, # Skeleton
-    15, # Deckhand
+    14,  # Skeleton
+    15,  # Deckhand
 ]
+
 
 # returns a random BaseCharacter with weighted
 def generate_character(rarity_odds=None):
@@ -120,20 +120,31 @@ def insert_character(user, chosen_char):
     QuestUpdater.add_progress_by_type(user, constants.OWN_HEROES, 1)
     return new_char
 
+
 CharacterCount = namedtuple("CharacterCount", "character count")
 
-def generate_and_insert_characters(user, char_count):
+
+def generate_and_insert_characters(user, char_count, rarity_odds=None):
     new_chars = {}
     # generate char_count random characters
     for i in range(char_count):
-        base_char = generate_character()
+        base_char = generate_character(rarity_odds)
         new_char = insert_character(user, base_char)
         if new_char.char_id in new_chars:
             old_char = new_chars[new_char.char_id]
-            new_chars[new_char.char_id] = CharacterCount(character = new_char, count = old_char.count+1)
+            new_chars[new_char.char_id] = CharacterCount(character=new_char, count=old_char.count + 1)
         else:
-            new_chars[new_char.char_id] = CharacterCount(character = new_char, count = 1)
+            new_chars[new_char.char_id] = CharacterCount(character=new_char, count=1)
     return new_chars
+
+
+def count_char_copies(chars):
+    count = 0
+    for char in chars:
+        count += char.copies
+
+    return count
+
 
 class PurchaseItemView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -153,19 +164,30 @@ class PurchaseItemView(APIView):
         if inventory.gems < constants.SUMMON_GEM_COST[purchase_item_id]:
             return Response({"status": False, "reason": "not enough gems"})
 
-        #deduct gems, update quests
+        # deduct gems, update quests
         inventory.gems -= constants.SUMMON_GEM_COST[purchase_item_id]
         inventory.save()
         # TODO: we need to replace this with a summon(.., 10) quest, otherwise
         # we're promoting buying 100 small items just for a quest
-        QuestUpdater.add_progress_by_type(request.user, constants.PURCHASE_ITEM, constants.SUMMON_COUNT[purchase_item_id])
+        QuestUpdater.add_progress_by_type(request.user, constants.PURCHASE_ITEM,
+                                          constants.SUMMON_COUNT[purchase_item_id])
 
-        #generate characters
+        # generate characters
         new_char_arr = []
-        new_chars = generate_and_insert_characters(user, constants.SUMMON_COUNT[purchase_item_id])
+        rarity = None
+        char_copies = count_char_copies(Character.objects.filter(user=request.user))
+        # rig the first two rolls
+        if char_copies == 3:
+            # rarity 2
+            rarity = [-1, -1, 100, 100]
+        elif char_copies == 4:
+            # rarity 3
+            rarity = [-1, 100, 100, 100]
+
+        new_chars = generate_and_insert_characters(user, constants.SUMMON_COUNT[purchase_item_id], rarity)
 
         # convert to a serialized form
         for char_id, char_count in new_chars.items():
-            new_char_arr.append({"count":char_count.count, "character":CharacterSchema(char_count.character).data})
+            new_char_arr.append({"count": char_count.count, "character": CharacterSchema(char_count.character).data})
 
         return Response({"status": True, "characters": new_char_arr})
