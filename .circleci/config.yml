@@ -96,14 +96,16 @@ workflows:
             branches:
               only: master
       - build-and-test
-      # Optionally we can have a manual approval step in the future. For now
-      # let it auto deploy on push to master.
-      # - hold:
-      #     type: approval
-      #     requires:
-      #       - build-and-test
+      - hold:
+          type: approval
+          requires:
+            - build-and-test
+          filters:
+            branches:
+              only: master
       - deploy-prod:
           requires:
+            - hold
             - backup-db
             - build-and-test
           filters:
