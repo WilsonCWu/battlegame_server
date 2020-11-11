@@ -49,7 +49,8 @@ SUMMON_COUNT = {
 }
 
 # Summon rarity constants
-SUMMON_RARITY_BASE = [2, 8, 50, 100]
+SUMMON_RARITY_BASE = [5, 15, 50, 100]
+#SUMMON_RARITY_BASE = [2, 8, 50, 100]
 SUMMON_RARITY_TOURNAMENT = [10, 40, 100, 100]
 
 # Matcher constants
