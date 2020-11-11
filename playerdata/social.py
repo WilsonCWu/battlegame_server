@@ -40,7 +40,7 @@ def getGlobalChats():
     }
     global2 = {
         'chat_id': 2,
-        'chat_name': 'Global 2'
+        'chat_name': 'Feedback'
     }
 
     return [global1, global2]
