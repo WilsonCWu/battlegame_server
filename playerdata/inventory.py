@@ -1,5 +1,5 @@
 from enum import Enum
-
+from django.db import transaction
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -76,27 +76,29 @@ class InventoryHeaderView(APIView):
 class TryLevelView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = LevelUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        target_char_id = serializer.validated_data['target_char_id']
 
-        curChar = Character.objects.get(char_id=target_char_id)
-        level = curChar.level
-        curExp = formulas.char_level_to_exp(level)
-        nextExp = formulas.char_level_to_exp(level + 1)
-        deltaExp = nextExp - curExp
+        target_char_id = serializer.validated_data['target_char_id']
+        target_character = Character.objects.get(char_id=target_char_id)
+        if target_character.user != request.user:
+            return Response({'status': False, 'reason': 'character does not belong to user!'})
+
+        cur_exp = formulas.char_level_to_exp(target_character.level)
+        next_exp = formulas.char_level_to_exp(target_character.level + 1)
+        delta_exp = next_exp - cur_exp
 
         inventory = request.user.inventory
-
-        if deltaExp > inventory.coins:
+        if delta_exp > inventory.coins:
             return Response({'status': False})
 
-        inventory.coins -= deltaExp
-        curChar.level += 1
+        inventory.coins -= delta_exp
+        target_character.level += 1
 
         inventory.save()
-        curChar.save()
+        target_character.save()
 
         return Response({'status': True})
 
