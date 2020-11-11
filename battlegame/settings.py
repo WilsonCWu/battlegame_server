@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 from decouple import config
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -182,3 +184,13 @@ CRONJOBS = [
 # https://github.com/korfuri/django-prometheus/blob/master/documentation/exports.md#exporting-metrics-in-a-wsgi-application-with-multiple-processes-per-process.
 if not DEVELOPMENT:
     PROMETHEUS_METRICS_EXPORT_PORT_RANGE = range(8001, 8009)
+
+    sentry_sdk.init(
+        dsn="https://d2e5bf5336d14219a7f067d70ffb7f9d@o474928.ingest.sentry.io/5512103",
+        integrations=[DjangoIntegration()],
+        traces_sample_rate=1.0,
+
+        # If you wish to associate users to errors (assuming you are using
+        # django.contrib.auth) you may enable sending PII data.
+        send_default_pii=True
+    )
