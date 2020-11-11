@@ -25,6 +25,7 @@ class CharacterSchema(Schema):
     char_type = fields.Int(attribute='char_type_id')
     level = fields.Int()
     prestige = fields.Int()
+    copies = fields.Int()
     total_damage_dealt = fields.Int()
     total_damage_taken = fields.Int()
     total_health_healed = fields.Int()
