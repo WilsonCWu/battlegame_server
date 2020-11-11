@@ -38,12 +38,12 @@ def getGlobalChats():
         'chat_id': 1,
         'chat_name': 'Global'
     }
-    global2 = {
+    feedback = {
         'chat_id': 2,
         'chat_name': 'Feedback'
     }
 
-    return [global1, global2]
+    return [global1, feedback]
 
 
 class FriendSchema(Schema):
