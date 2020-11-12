@@ -192,3 +192,13 @@ class PlacementsView(APIView):
             pos_4=positions[3],
             pos_5=positions[4],
         )
+
+class PostBotResultsView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = BotResultsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        print(serializer)
+
+        return Response({'status': True})
