@@ -6,6 +6,8 @@ from rest_framework.permissions import IsAuthenticated
 
 from rest_marshmallow import Schema, fields
 
+from django.db import transaction
+
 from playerdata.models import DungeonProgress, Character, Placement
 from playerdata.models import DungeonStage
 from playerdata.models import ReferralTracker
@@ -122,6 +124,7 @@ def make_mob_from_boss(boss_placement: Placement, i: int, stage_num: int):
 
 # design doc: https://docs.google.com/document/d/1TMjO8-8GfMhp4aN8OEGQeBT-a6VRRgbCEe3S4aAWHSM/edit?usp=sharing
 # creates 19 weaker versions of each boss_placement in the queryset
+@transaction.atomic
 def generate_dungeon_stages(dungeon_bosses_queryset):
 
     bulk_stages = []
