@@ -14,6 +14,7 @@ from playerdata.models import InvalidReceipt
 from playerdata.models import Character
 from playerdata.models import Inventory
 from . import constants
+from .constants import UNROLLABLE_CHARACTERS
 from .questupdater import QuestUpdater
 from .serializers import PurchaseItemSerializer
 from .serializers import PurchaseSerializer
@@ -81,14 +82,6 @@ def validate_google(request, receipt_raw):
 
 def validate_apple(request, receipt_raw):
     return Response({'status': True})
-
-
-# These characters cannot be rolled as they're not playable / limited time /
-# other misc. reason.
-UNROLLABLE_CHARACTERS = [
-    14,  # Skeleton
-    15,  # Deckhand
-]
 
 
 # returns a random BaseCharacter with weighted

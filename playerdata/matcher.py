@@ -1,30 +1,24 @@
 import random
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.authtoken.models import Token
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.status import (
-    HTTP_400_BAD_REQUEST,
-    HTTP_404_NOT_FOUND,
-    HTTP_200_OK,
-)
-from django.contrib.auth import authenticate
-from django.http import JsonResponse
+import secrets
+from random_username.generate import generate_username
 
+from django.contrib.auth import get_user_model
+from django.db import transaction
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from playerdata import constants, formulas
+from playerdata.models import BaseCharacter
+from playerdata.models import Character
 from playerdata.models import Placement
 from playerdata.models import UserInfo
-from playerdata.models import Character
-from playerdata.models import Item
-from playerdata.models import Placement
-
-from .serializers import GetUserSerializer
-from .serializers import GetOpponentsSerializer
-from .serializers import UpdatePlacementSerializer
+from .constants import UNROLLABLE_CHARACTERS
 from .inventory import CharacterSchema
+from .serializers import GetOpponentsSerializer
+from .serializers import GetUserSerializer
+from .serializers import UpdatePlacementSerializer
 
 
 class PlacementSchema(Schema):
@@ -157,6 +151,7 @@ class PlacementsView(APIView):
             placement = self._new_placement(request.user, serializer)
             return Response({'status': True, 'placement_id': placement.placement_id})
 
+
     def _update_placement(self, placement, serializer):
         characters = serializer.validated_data['characters']
         characters = [cid if cid != -1 else None for cid in characters]
@@ -173,6 +168,7 @@ class PlacementsView(APIView):
         placement.pos_4=positions[3]
         placement.pos_5=positions[4]
         placement.save()
+
 
     def _new_placement(self, user, serializer):
         characters = serializer.validated_data['characters']
@@ -202,3 +198,111 @@ class PostBotResultsView(APIView):
         print(serializer)
 
         return Response({'status': True})
+
+class BotsView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        query = UserInfo.objects.filter(is_bot=True)\
+            .select_related('default_placement__char_1__weapon') \
+            .select_related('default_placement__char_2__weapon') \
+            .select_related('default_placement__char_3__weapon') \
+            .select_related('default_placement__char_4__weapon') \
+            .select_related('default_placement__char_5__weapon') \
+            .select_related('clanmember') \
+            .select_related('user__userstats') \
+
+        user_info = UserInfoSchema(query)
+        return Response(user_info.data)
+
+
+# creates n users
+def create_users(num_users):
+    users = []
+    for i in range(num_users):
+        latest_id = get_user_model().objects.latest('id').id + 1
+        password = secrets.token_urlsafe(35)
+
+        user = get_user_model().objects.create_user(username=latest_id, password=password)
+        users.append(user)
+    return users
+
+
+@transaction.atomic
+def _generate_bots(num_bots_per_user, elo, char_levels, num_chars=5):
+    bot_users = create_users(num_bots_per_user)
+
+    for bot_user in bot_users:
+        bot_userinfo = UserInfo.objects.get(user=bot_user)
+        bot_userinfo.name = generate_username(1)[0]
+        bot_userinfo.elo = random.randint(max(0, elo - 50), elo + 50)
+        bot_userinfo.is_bot = True
+        bot_userinfo.save()
+
+        # random char
+        base_chars = BaseCharacter.objects.filter().exclude(char_type__in=UNROLLABLE_CHARACTERS)
+        chosen_chars = random.sample(list(base_chars), num_chars)
+
+        bot_placement = Placement.objects.get(user=bot_user)
+        positions = random.sample(range(1, 17), num_chars)
+
+        for i in range(0, num_chars):
+            new_char = Character.objects.create(user=bot_user, char_type=chosen_chars[i])
+
+            if i == 0:
+                level = char_levels[0]
+                bot_placement.char_1 = new_char
+                bot_placement.pos_1 = positions[0]
+            elif i == 1:
+                level = char_levels[1]
+                bot_placement.char_2 = new_char
+                bot_placement.pos_2 = positions[1]
+            elif i == 2:
+                level = char_levels[2]
+                bot_placement.char_3 = new_char
+                bot_placement.pos_3 = positions[2]
+            elif i == 3:
+                level = char_levels[3]
+                bot_placement.char_4 = new_char
+                bot_placement.pos_4 = positions[3]
+            else:
+                level = char_levels[4]
+                bot_placement.char_5 = new_char
+                bot_placement.pos_5 = positions[4]
+
+            # generate a character +/- 10 levels of the user's char level
+            level = random.randint(max(1, level - 10), min(120, level + 10))
+            new_char.level = level
+            new_char.save()
+
+        bot_placement.save()
+
+
+@transaction.atomic
+def generate_bots_from_users(queryset):
+    for userinfo in queryset:
+        num_bots_per_user = 10
+
+        placement = userinfo.default_placement
+        num_chars = len(list(filter(None, [placement.char_1, placement.char_2,
+                                           placement.char_3, placement.char_4, placement.char_5])))
+        user_elo = userinfo.elo
+        char_levels = [placement.char_1.level if placement.char_1 is not None else 1,
+                       placement.char_2.level if placement.char_2 is not None else 1,
+                       placement.char_3.level if placement.char_3 is not None else 1,
+                       placement.char_4.level if placement.char_4 is not None else 1,
+                       placement.char_5.level if placement.char_5 is not None else 1]
+
+        _generate_bots(num_bots_per_user, user_elo, char_levels, num_chars)
+
+
+@transaction.atomic
+def generate_bots_bulk():
+    elo_range = [50, 200, 400, 600, 800, 900, 1000, 1100, 1200]
+    level_range = [10, 15, 35, 45, 55, 65, 75, 85, 95]
+
+    for elo, level, in zip(elo_range, level_range):
+        num_bots_per_elo_range = 10
+        char_levels = [level] * 5
+
+        _generate_bots(num_bots_per_elo_range, elo, char_levels)
