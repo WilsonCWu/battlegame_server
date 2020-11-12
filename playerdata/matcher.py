@@ -220,14 +220,10 @@ def create_users(num_users):
 
 
 @transaction.atomic
-def _generate_bots(num_bots_per_user, elo, char_levels, num_chars=None):
-    is_rand_num_chars = num_chars is None
+def _generate_bots(num_bots_per_user, elo, char_levels, num_chars=5):
     bot_users = create_users(num_bots_per_user)
 
     for bot_user in bot_users:
-        if is_rand_num_chars:
-            num_chars = random.randint(3, 5)
-
         bot_userinfo = UserInfo.objects.get(user=bot_user)
         bot_userinfo.name = generate_username(1)[0]
         bot_userinfo.elo = random.randint(max(0, elo - 50), elo + 50)
@@ -265,8 +261,8 @@ def _generate_bots(num_bots_per_user, elo, char_levels, num_chars=None):
                 bot_placement.char_5 = new_char
                 bot_placement.pos_5 = positions[4]
 
-            # generate a character +/- 4 levels of the user's char level
-            level = random.randint(max(1, level - 5), min(120, level + 5))
+            # generate a character +/- 10 levels of the user's char level
+            level = random.randint(max(1, level - 10), min(120, level + 10))
             new_char.level = level
             new_char.save()
 
