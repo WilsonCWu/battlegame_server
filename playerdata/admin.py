@@ -75,9 +75,9 @@ class DungeonBossAdmin(bulk_admin.BulkModelAdmin):
 
 class UserInfoAdmin(admin.ModelAdmin):
     list_display = ('user_id', 'name', 'elo')
-    actions = ['generate_bots', 'generate_bots_bulk']
+    actions = ['generate_bots_from_users', 'generate_bots_bulk']
 
-    def generate_bots(self, request, queryset):
+    def generate_bots_from_users(self, request, queryset):
         generate_bots_from_users(queryset)
 
     def generate_bots_bulk(self, request, queryset):
