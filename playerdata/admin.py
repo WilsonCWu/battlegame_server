@@ -1,12 +1,14 @@
+import bulk_admin
+
 from django.contrib import admin
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry
 from django.utils.translation import ngettext
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
-import bulk_admin
 
 from battlegame.cron import next_round, setup_tournament, end_tourney
 from .dungeon import generate_dungeon_stages
+from .matcher import generate_bots
 from .models import BaseCharacter
 from .models import BaseCharacterUsage
 from .models import BaseItem
@@ -69,6 +71,14 @@ class DungeonBossAdmin(bulk_admin.BulkModelAdmin):
 
     def generate_stages(self, request, queryset):
         generate_dungeon_stages(queryset)
+
+
+class UserInfoAdmin(admin.ModelAdmin):
+    list_display = ('user_id', 'name', 'elo')
+    actions = ['generate_bots']
+
+    def generate_bots(self, request, queryset):
+        generate_bots(queryset)
 
 
 class PlacementAdmin(admin.ModelAdmin):
@@ -194,7 +204,7 @@ admin.site.register(Character)
 admin.site.register(Item)
 
 admin.site.register(Placement, PlacementAdmin)
-admin.site.register(UserInfo)
+admin.site.register(UserInfo, UserInfoAdmin)
 admin.site.register(UserStats)
 admin.site.register(Inventory)
 

@@ -48,6 +48,13 @@ SUMMON_COUNT = {
     "SUMMON10": 10,
 }
 
+# These characters cannot be rolled as they're not playable / limited time /
+# other misc. reason.
+UNROLLABLE_CHARACTERS = [
+    14,  # Skeleton
+    15,  # Deckhand
+]
+
 # Summon rarity constants
 SUMMON_RARITY_BASE = [5, 15, 50, 100]
 #SUMMON_RARITY_BASE = [2, 8, 50, 100]
