@@ -151,6 +151,7 @@ class PlacementsView(APIView):
             placement = self._new_placement(request.user, serializer)
             return Response({'status': True, 'placement_id': placement.placement_id})
 
+
     def _update_placement(self, placement, serializer):
         characters = serializer.validated_data['characters']
         characters = [cid if cid != -1 else None for cid in characters]
@@ -167,6 +168,7 @@ class PlacementsView(APIView):
         placement.pos_4=positions[3]
         placement.pos_5=positions[4]
         placement.save()
+
 
     def _new_placement(self, user, serializer):
         characters = serializer.validated_data['characters']
@@ -186,6 +188,23 @@ class PlacementsView(APIView):
             pos_4=positions[3],
             pos_5=positions[4],
         )
+
+
+class BotsView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        query = UserInfo.objects.filter(is_bot=True)\
+            .select_related('default_placement__char_1__weapon') \
+            .select_related('default_placement__char_2__weapon') \
+            .select_related('default_placement__char_3__weapon') \
+            .select_related('default_placement__char_4__weapon') \
+            .select_related('default_placement__char_5__weapon') \
+            .select_related('clanmember') \
+            .select_related('user__userstats') \
+
+        user_info = UserInfoSchema(query)
+        return Response(user_info.data)
 
 
 # creates n users

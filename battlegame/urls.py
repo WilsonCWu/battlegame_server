@@ -74,6 +74,7 @@ urlpatterns = [
     path('uploadresult/', statusupdate.UploadResultView.as_view()),
     path('opponents/', matcher.GetOpponentsView.as_view()),
     path('user/', matcher.GetUserView.as_view()),
+    path('bots/', matcher.BotsView.as_view()),
     path('matcher/', matcher.MatcherView.as_view()),
     path('placements/', matcher.PlacementsView.as_view()),
     path('inventoryinfo/', inventory.InventoryView.as_view()),
