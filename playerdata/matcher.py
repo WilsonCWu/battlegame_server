@@ -201,56 +201,84 @@ def create_users(num_users):
 
 
 @transaction.atomic
-def generate_bots(queryset):
+def _generate_bots(num_bots_per_user, elo, char_levels, num_chars=None):
+    is_rand_num_chars = num_chars is None
+    bot_users = create_users(num_bots_per_user)
+
+    for bot_user in bot_users:
+        if is_rand_num_chars:
+            num_chars = random.randint(3, 5)
+
+        bot_userinfo = UserInfo.objects.get(user=bot_user)
+        bot_userinfo.name = generate_username(1)[0]
+        bot_userinfo.elo = random.randint(max(0, elo - 50), elo + 50)
+        bot_userinfo.is_bot = True
+        bot_userinfo.save()
+
+        # random char
+        base_chars = BaseCharacter.objects.filter().exclude(char_type__in=UNROLLABLE_CHARACTERS)
+        chosen_chars = random.sample(list(base_chars), num_chars)
+
+        bot_placement = Placement.objects.get(user=bot_user)
+        positions = random.sample(range(1, 17), num_chars)
+
+        for i in range(0, num_chars):
+            new_char = Character.objects.create(user=bot_user, char_type=chosen_chars[i])
+
+            if i == 0:
+                level = char_levels[0]
+                bot_placement.char_1 = new_char
+                bot_placement.pos_1 = positions[0]
+            elif i == 1:
+                level = char_levels[1]
+                bot_placement.char_2 = new_char
+                bot_placement.pos_2 = positions[1]
+            elif i == 2:
+                level = char_levels[2]
+                bot_placement.char_3 = new_char
+                bot_placement.pos_3 = positions[2]
+            elif i == 3:
+                level = char_levels[3]
+                bot_placement.char_4 = new_char
+                bot_placement.pos_4 = positions[3]
+            else:
+                level = char_levels[4]
+                bot_placement.char_5 = new_char
+                bot_placement.pos_5 = positions[4]
+
+            # generate a character +/- 4 levels of the user's char level
+            level = random.randint(max(1, level - 5), min(120, level + 5))
+            new_char.level = level
+            new_char.save()
+
+        bot_placement.save()
+
+
+@transaction.atomic
+def generate_bots_from_users(queryset):
     for userinfo in queryset:
-        num_bots_per_user = 2
+        num_bots_per_user = 10
 
-        bot_users = create_users(num_bots_per_user)
-        for bot_user in bot_users:
+        placement = userinfo.default_placement
+        num_chars = len(list(filter(None, [placement.char_1, placement.char_2,
+                                           placement.char_3, placement.char_4, placement.char_5])))
+        user_elo = userinfo.elo
+        char_levels = [placement.char_1.level if placement.char_1 is not None else 1,
+                       placement.char_2.level if placement.char_2 is not None else 1,
+                       placement.char_3.level if placement.char_3 is not None else 1,
+                       placement.char_4.level if placement.char_4 is not None else 1,
+                       placement.char_5.level if placement.char_5 is not None else 1]
 
-            bot_userinfo = UserInfo.objects.get(user=bot_user)
-            bot_userinfo.name = generate_username(1)[0]
-            bot_userinfo.elo = random.randint(userinfo.elo - 50, userinfo.elo + 50)
-            bot_userinfo.save()
+        _generate_bots(num_bots_per_user, user_elo, char_levels, num_chars)
 
-            placement = userinfo.default_placement
-            num_chars = len(list(filter(None, [placement.char_1, placement.char_2,
-                                               placement.char_3, placement.char_4, placement.char_5])))
 
-            # random char
-            base_chars = BaseCharacter.objects.filter().exclude(char_type__in=UNROLLABLE_CHARACTERS)
-            chosen_chars = random.sample(list(base_chars), num_chars)
+@transaction.atomic
+def generate_bots_bulk():
+    elo_range = [50, 200, 400, 600, 800, 900, 1000, 1100, 1200]
+    level_range = [10, 15, 35, 45, 55, 65, 75, 85, 95]
 
-            bot_placement = Placement.objects.get(user=bot_user)
-            positions = random.sample(range(1, 17), num_chars)
+    for elo, level, in zip(elo_range, level_range):
+        num_bots_per_elo_range = 10
+        char_levels = [level] * 5
 
-            for i in range(0, num_chars):
-                new_char = Character.objects.create(user=bot_user, char_type=chosen_chars[i])
-
-                if i == 0:
-                    level = placement.char_1.level
-                    bot_placement.char_1 = new_char
-                    bot_placement.pos_1 = positions[0]
-                elif i == 1:
-                    level = placement.char_2.level
-                    bot_placement.char_2 = new_char
-                    bot_placement.pos_2 = positions[1]
-                elif i == 2:
-                    level = placement.char_3.level
-                    bot_placement.char_3 = new_char
-                    bot_placement.pos_3 = positions[2]
-                elif i == 3:
-                    level = placement.char_4.level
-                    bot_placement.char_4 = new_char
-                    bot_placement.pos_4 = positions[3]
-                else:
-                    level = placement.char_5.level
-                    bot_placement.char_5 = new_char
-                    bot_placement.pos_5 = positions[4]
-
-                # generate a character +/- 4 levels of the user's char level
-                level = random.randint(max(1, level - 4), min(120, level + 4))
-                new_char.level = level
-                new_char.save()
-
-            bot_placement.save()
+        _generate_bots(num_bots_per_elo_range, elo, char_levels)

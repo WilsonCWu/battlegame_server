@@ -8,7 +8,7 @@ from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 
 from battlegame.cron import next_round, setup_tournament, end_tourney
 from .dungeon import generate_dungeon_stages
-from .matcher import generate_bots
+from .matcher import generate_bots_from_users, generate_bots_bulk
 from .models import BaseCharacter
 from .models import BaseCharacterUsage
 from .models import BaseItem
@@ -75,10 +75,13 @@ class DungeonBossAdmin(bulk_admin.BulkModelAdmin):
 
 class UserInfoAdmin(admin.ModelAdmin):
     list_display = ('user_id', 'name', 'elo')
-    actions = ['generate_bots']
+    actions = ['generate_bots', 'generate_bots_bulk']
 
     def generate_bots(self, request, queryset):
-        generate_bots(queryset)
+        generate_bots_from_users(queryset)
+
+    def generate_bots_bulk(self, request, queryset):
+        generate_bots_bulk()
 
 
 class PlacementAdmin(admin.ModelAdmin):
