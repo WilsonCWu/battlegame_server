@@ -1,33 +1,24 @@
 import random
 import secrets
+from random_username.generate import generate_username
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from django.contrib.auth import get_user_model
+from django.db import transaction
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.authtoken.models import Token
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.status import (
-    HTTP_400_BAD_REQUEST,
-    HTTP_404_NOT_FOUND,
-    HTTP_200_OK,
-)
-from django.contrib.auth import authenticate, get_user_model
-from django.http import JsonResponse
-
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from playerdata import constants, formulas
-from playerdata.models import Placement, BaseCharacter
-from playerdata.models import UserInfo
+from playerdata.models import BaseCharacter
 from playerdata.models import Character
-from playerdata.models import Item
 from playerdata.models import Placement
+from playerdata.models import UserInfo
 from .constants import UNROLLABLE_CHARACTERS
-
-from .serializers import GetUserSerializer
-from .serializers import GetOpponentsSerializer
-from .serializers import UpdatePlacementSerializer
 from .inventory import CharacterSchema
+from .serializers import GetOpponentsSerializer
+from .serializers import GetUserSerializer
+from .serializers import UpdatePlacementSerializer
 
 
 class PlacementSchema(Schema):
@@ -209,16 +200,18 @@ def create_users(num_users):
     return users
 
 
+@transaction.atomic
 def generate_bots(queryset):
     for userinfo in queryset:
-        num_bots_per_user = 1
+        num_bots_per_user = 2
 
         bot_users = create_users(num_bots_per_user)
         for bot_user in bot_users:
 
             bot_userinfo = UserInfo.objects.get(user=bot_user)
-            bot_userinfo.name = "some_bot_name"
+            bot_userinfo.name = generate_username(1)[0]
             bot_userinfo.elo = random.randint(userinfo.elo - 50, userinfo.elo + 50)
+            bot_userinfo.save()
 
             placement = userinfo.default_placement
             num_chars = len(list(filter(None, [placement.char_1, placement.char_2,
@@ -226,7 +219,7 @@ def generate_bots(queryset):
 
             # random char
             base_chars = BaseCharacter.objects.filter().exclude(char_type__in=UNROLLABLE_CHARACTERS)
-            chosen_chars = random.sample(base_chars, num_chars)
+            chosen_chars = random.sample(list(base_chars), num_chars)
 
             bot_placement = Placement.objects.get(user=bot_user)
             positions = random.sample(range(1, 17), num_chars)
@@ -236,27 +229,27 @@ def generate_bots(queryset):
 
                 if i == 0:
                     level = placement.char_1.level
-                    bot_placement.char1 = new_char
+                    bot_placement.char_1 = new_char
                     bot_placement.pos_1 = positions[0]
                 elif i == 1:
                     level = placement.char_2.level
-                    bot_placement.char2 = new_char
+                    bot_placement.char_2 = new_char
                     bot_placement.pos_2 = positions[1]
                 elif i == 2:
                     level = placement.char_3.level
-                    bot_placement.char3 = new_char
+                    bot_placement.char_3 = new_char
                     bot_placement.pos_3 = positions[2]
                 elif i == 3:
                     level = placement.char_4.level
-                    bot_placement.char4 = new_char
+                    bot_placement.char_4 = new_char
                     bot_placement.pos_4 = positions[3]
                 else:
                     level = placement.char_5.level
-                    bot_placement.char5 = new_char
+                    bot_placement.char_5 = new_char
                     bot_placement.pos_5 = positions[4]
 
                 # generate a character +/- 4 levels of the user's char level
-                level = random.random(max(1, level - 4), min(120, level + 4))
+                level = random.randint(max(1, level - 4), min(120, level + 4))
                 new_char.level = level
                 new_char.save()
 
