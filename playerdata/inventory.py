@@ -87,13 +87,20 @@ class TryLevelView(APIView):
         if target_character.user != request.user:
             return Response({'status': False, 'reason': 'character does not belong to user!'})
 
+        # We can only level up to the (number of copies owned * 30) + 50.
+        if target_character.level + 1 > target_character.copies * 30 + 50:
+            return Response({
+                'status': False,
+                'reason': 'level cap exceeded given %d copies!' % target_character.copies,
+            })
+
         cur_exp = formulas.char_level_to_exp(target_character.level)
         next_exp = formulas.char_level_to_exp(target_character.level + 1)
         delta_exp = next_exp - cur_exp
 
         inventory = request.user.inventory
         if delta_exp > inventory.coins:
-            return Response({'status': False})
+            return Response({'status': False, 'reason': 'not enough coins!'})
 
         inventory.coins -= delta_exp
         target_character.level += 1
