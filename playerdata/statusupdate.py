@@ -105,6 +105,10 @@ class UploadResultView(APIView):
             request.user.userinfo.player_exp += player_exp
             request.user.userinfo.save()
 
+            # update enemy elo
+            other_user.userinfo.elo = calculate_elo(other_user.userinfo.elo, prev_elo, not win)
+            other_user.userinfo.save()
+
             response = {"elo": updated_rating, 'prev_elo': prev_elo, 'coins': coins, 'player_exp': player_exp}
 
         elif mode == constants.TOURNAMENT:  # tournament
