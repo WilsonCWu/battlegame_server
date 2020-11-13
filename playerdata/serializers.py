@@ -25,13 +25,10 @@ class GetUserSerializer(serializers.Serializer):
 class GetOpponentsSerializer(serializers.Serializer):
     search_count = serializers.IntegerField(required=True)
 
-class BotResultSerializer(serializers.Serializer):
-    id1 = serializers.IntegerField(required=True)
-    id2 = serializers.IntegerField(required=True)
-    won = serializers.BooleanField(required=True)
-
 class BotResultsSerializer(serializers.Serializer):
-    results = serializers.ListField(child=BotResultSerializer, required=True)
+    id1s = serializers.ListField(child=serializers.IntegerField(), required=True)
+    id2s = serializers.ListField(child=serializers.IntegerField(), required=True)
+    wons = serializers.ListField(child=serializers.BooleanField(), required=True)
 
 class UpdatePlacementSerializer(serializers.Serializer):
     placement_id = serializers.IntegerField(required=False)
