@@ -276,6 +276,7 @@ class Inventory(models.Model):
     coins = models.IntegerField(default=1000)
     gems = models.IntegerField(default=5000)
     hero_exp = models.IntegerField(default=0)
+    last_collected_rewards = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.user.userinfo.name + '(' + str(self.user.id) + ')'
