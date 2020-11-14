@@ -160,7 +160,7 @@ class LevelUpAPITestCase(APITestCase):
         self.u = User.objects.get(username='battlegame')
         self.client.force_authenticate(user=self.u)
 
-    def test_level_up_cap(self):
+    def test_level_up_copy_cap(self):
         base_archer = BaseCharacter.objects.get(name="Archer")
         owned_archer = Character.objects.create(
             user = self.u,
@@ -169,7 +169,7 @@ class LevelUpAPITestCase(APITestCase):
             level = 2 * 30 + 50,
         )
         inventory = self.u.inventory
-        inventory.coins += 1000000
+        inventory.coins += 1000000000
         inventory.save()
 
         response = self.client.post('/levelup/', {
@@ -178,3 +178,22 @@ class LevelUpAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data['status'])
         self.assertIn('level cap exceeded', response.data['reason'])
+
+    def test_level_up_max_cap(self):
+        base_archer = BaseCharacter.objects.get(name="Archer")
+        owned_archer = Character.objects.create(
+            user = self.u,
+            char_type = base_archer,
+            copies = 2,
+            level = 140,
+        )
+        inventory = self.u.inventory
+        inventory.coins += 1000000000
+        inventory.save()
+
+        response = self.client.post('/levelup/', {
+            'target_char_id': owned_archer.char_id,
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['status'])
+        self.assertIn('already hit level 140', response.data['reason'])
