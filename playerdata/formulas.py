@@ -5,10 +5,10 @@ from functools import lru_cache
 
 from playerdata import constants
 
-
 """
 Scaling Formulas
 """
+
 
 #########################
 ## Coins
@@ -25,6 +25,10 @@ def coins_reward_dungeon(dungeon_level):
     if dungeon_level % 20 == 0:
         return dungeon_level * 1000
     return math.floor(dungeon_level / 3 * 50 + (dungeon_level - 1) ** 2 + 500)
+
+
+def afk_coins_per_min(dungeon_level):
+    return math.floor((dungeon_level - 1) * 2 + ((dungeon_level - 1) ** 1.8) / 10)
 
 
 #########################
@@ -64,6 +68,10 @@ def player_exp_reward_dungeon(dungeon_level):
     return math.floor((dungeon_level / 5) * 9) + 10
 
 
+def afk_exp_per_min(dungeon_level):
+    return 10
+
+
 #########################
 ## Gems
 
@@ -71,3 +79,7 @@ def gems_reward_dungeon(dungeon_level):
     if dungeon_level % 5 == 0:
         return 2000
     return 100
+
+
+def afk_gems_per_min(dungeon_level):
+    return (dungeon_level - 1) * 0.0015 + ((dungeon_level - 1) ** 0.2) / 10

@@ -27,6 +27,7 @@ from playerdata import quest
 from playerdata import redemptioncodes
 from playerdata import referral
 from playerdata import tournament
+from playerdata import afk_rewards
 from playerdata import inventory
 from playerdata import legal
 from playerdata import server
@@ -42,6 +43,8 @@ urlpatterns = [
     path('tournament/get', tournament.TournamentView.as_view()),
     path('referral', referral.ReferralView.as_view()),
     path('redeemcode', redemptioncodes.RedeemCodeView.as_view()),
+    path('afkrewards/get', afk_rewards.GetAFKRewardView.as_view()),
+    path('afkrewards/collect', afk_rewards.CollectAFKRewardView.as_view()),
     path('quest/get', quest.QuestView.as_view()),
     path('quest/claim/cumulative', quest.ClaimQuestCumulativeView.as_view()),
     path('quest/claim/weekly', quest.ClaimQuestWeeklyView.as_view()),
