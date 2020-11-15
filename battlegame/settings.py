@@ -184,6 +184,7 @@ CRONJOBS = [
 # https://github.com/korfuri/django-prometheus/blob/master/documentation/exports.md#exporting-metrics-in-a-wsgi-application-with-multiple-processes-per-process.
 if not DEVELOPMENT:
     PROMETHEUS_METRICS_EXPORT_PORT_RANGE = range(8001, 8009)
+    PROMETHEUS_LATENCY_BUCKETS = (.05, .1, .2, .5, 1.0, 2.0, 3.0, 5.0, 7.5, 10.0, 15.0, float("inf"))
 
     sentry_sdk.init(
         dsn="https://d2e5bf5336d14219a7f067d70ffb7f9d@o474928.ingest.sentry.io/5512103",
