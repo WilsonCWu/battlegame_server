@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 import math
 
 from rest_framework.views import APIView
@@ -7,37 +7,18 @@ from rest_framework.permissions import IsAuthenticated
 
 from playerdata.formulas import afk_coins_per_min, afk_gems_per_min, afk_exp_per_min
 from playerdata.models import DungeonProgress
+from playerdata.models import User
 
 
 def mins_since_last_collection(last_collected_time):
-    now_time = datetime.datetime.now()
+    now_time = datetime.now(timezone.utc)
     elapsed = now_time - last_collected_time
     elapsed_mins = int(elapsed.total_seconds() / 60)
-    return max(12 * 60, elapsed_mins)
+    return min(12 * 60, elapsed_mins)
 
 
-class AFKRewardView(APIView):
+class GetAFKRewardView(APIView):
     permission_classes = (IsAuthenticated,)
-
-    def post(self, request):
-        inventory = request.user.inventory
-        last_collected_time = inventory.last_collected_rewards
-        dungeon_progress = DungeonProgress.objects.get(user=request.user)
-
-        time = mins_since_last_collection(last_collected_time)
-        coins = time * afk_coins_per_min(dungeon_progress.stage_id)
-        gems = math.floor(time * afk_gems_per_min(dungeon_progress.stage_id))
-        # exp = time * afk_exp_per_min(dungeon_progress.stage_id)
-
-        inventory.last_collected_rewards = datetime.datetime.now()
-        inventory.coins += coins
-        inventory.gems += gems
-        inventory.save()
-
-        # request.user.userinfo.player_exp += exp
-        # request.user.userinfo.save()
-
-        return Response({'status': True, 'coins': coins, 'gems': gems})
 
     def get(self, request):
         dungeon_progress = DungeonProgress.objects.get(user=request.user)
@@ -59,3 +40,27 @@ class AFKRewardView(APIView):
                          'coins': coins, 'gems': gems,
                          # 'exp': exp
                          })
+
+
+class CollectAFKRewardView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        inventory = request.user.inventory
+        last_collected_time = inventory.last_collected_rewards
+        dungeon_progress = DungeonProgress.objects.get(user=request.user)
+
+        time = mins_since_last_collection(last_collected_time)
+        coins = time * afk_coins_per_min(dungeon_progress.stage_id)
+        gems = math.floor(time * afk_gems_per_min(dungeon_progress.stage_id))
+        # exp = time * afk_exp_per_min(dungeon_progress.stage_id)
+
+        inventory.last_collected_rewards = datetime.now(timezone.utc)
+        inventory.coins += coins
+        inventory.gems += gems
+        inventory.save()
+
+        # request.user.userinfo.player_exp += exp
+        # request.user.userinfo.save()
+
+        return Response({'status': True, 'coins': coins, 'gems': gems})
