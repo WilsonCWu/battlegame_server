@@ -11,6 +11,7 @@ from playerdata.models import Item, BaseItem
 from .serializers import BuyItemSerializer
 
 from .inventory import ItemSchema
+import json
 
 class TryBuyItemView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -39,3 +40,9 @@ class TryBuyItemView(APIView):
         item = Item.objects.create(user=request.user, item_type=base_item)
 
         return Response({'status': True, 'item': ItemSchema(item).data})
+
+class GetItemsView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        return Response({'item_types': constants.COIN_SHOP_ITEMS})
