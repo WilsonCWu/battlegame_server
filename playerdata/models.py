@@ -340,6 +340,7 @@ class Clan(models.Model):
     elo = models.IntegerField(default=0)
     profile_picture = models.IntegerField(default=0)
     num_members = models.IntegerField(default=0)
+    cap = models.IntegerField(default=30)
 
     class Meta:
         indexes = [

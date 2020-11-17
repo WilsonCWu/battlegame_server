@@ -310,6 +310,7 @@ class ClanSchema(Schema):
     profile_picture = fields.Int()
     time_started = fields.DateTime()
     elo = fields.Int()
+    cap = fields.Int()
     clan_members = fields.Nested(ClanMemberSchema, attribute='clan_members', many=True)
 
 
@@ -466,6 +467,9 @@ class UpdateClanRequestView(APIView):
         if not accept:
             ClanRequest.objects.get(userinfo=target_clanmember.userinfo, clan=clan).delete()
             return Response({'status': True})
+
+        if clan.num_members + 1 > clan.cap:
+            return Response({'status': False, 'reason': 'clan is full, max capacity reached'})
 
         target_clanmember.clan = clan
         target_clanmember.is_admin = False
