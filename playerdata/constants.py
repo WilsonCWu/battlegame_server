@@ -68,3 +68,24 @@ MATCHER_INCREASE_RANGE = 50
 # Inventory constants
 MAX_PLAYER_LEVEL = 120
 MAX_CHARACTER_LEVEL = 140
+
+# coin shop constants
+# various experimental items for closed beta
+COIN_SHOP_ITEMS = [
+    1016,
+    1015,
+    1018,
+    1023,
+    1004,
+    1012,
+    2004,
+    2007,
+    2002,
+    2006,
+    2008,
+    2009,
+    2028,
+    2029,
+    2001,
+]
+

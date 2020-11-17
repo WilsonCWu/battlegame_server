@@ -118,6 +118,7 @@ class BaseItem(models.Model):
 
     rarity = models.IntegerField()
     cost = models.IntegerField()
+    is_unique = models.BooleanField(default=False)
 
     # Stat changes from items.
     attack_flat = models.IntegerField(blank=True, null=True)

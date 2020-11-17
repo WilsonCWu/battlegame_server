@@ -46,6 +46,10 @@ class LevelUpSerializer(serializers.Serializer):
     target_char_id = serializers.IntegerField(required=True)
 
 
+class BuyItemSerializer(serializers.Serializer):
+    target_item_type = serializers.IntegerField(required=True)
+
+
 class ValidateReceiptSerializer(serializers.Serializer):
     receipt = serializers.CharField(required=True)
     store = serializers.IntegerField(required=True)

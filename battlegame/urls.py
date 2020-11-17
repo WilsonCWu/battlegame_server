@@ -31,8 +31,11 @@ from playerdata import afk_rewards
 from playerdata import inventory
 from playerdata import legal
 from playerdata import server
+from playerdata import coin_shop
 
 urlpatterns = [
+    path('coinshop/buyitem/', coin_shop.TryBuyItemView.as_view()),
+    path('coinshop/getitems/', coin_shop.GetItemsView.as_view()),
     path('tournament/matchhistory', tournament.TournamentMatchHistory.as_view()),
     path('tournament/self', tournament.TournamentSelfView.as_view()),
     path('tournament/getfights', tournament.TournamentFightsView.as_view()),
