@@ -13,6 +13,7 @@ from .serializers import BuyItemSerializer
 from .inventory import ItemSchema
 import json
 
+# TODO: test cases!
 class TryBuyItemView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -23,13 +24,16 @@ class TryBuyItemView(APIView):
 
         target_item_type = serializer.validated_data['target_item_type']
         base_item = BaseItem.objects.get(item_type=target_item_type)
-        dup_copies = Item.objects.filter(user=request.user, item_type=base_item)
 
-        if dup_copies:
-            return Response({
-                'status': False,
-                'reason': 'already own this item!',
-            })
+        # check for unique items
+        if base_item.is_unique:
+            dup_copies = Item.objects.filter(user=request.user, item_type=base_item)
+
+            if dup_copies:
+                return Response({
+                    'status': False,
+                    'reason': 'already own this item!',
+                })
 
         inventory = request.user.inventory
         if base_item.cost > inventory.coins:

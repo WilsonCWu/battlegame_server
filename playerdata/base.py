@@ -42,6 +42,7 @@ class BaseItemSchema(Schema):
 
     rarity = fields.Int()
     cost = fields.Int()
+    is_unique = fields.Bool()
 
     attack_flat = fields.Int()
     attack_mult = fields.Float()

@@ -70,6 +70,7 @@ MAX_PLAYER_LEVEL = 120
 MAX_CHARACTER_LEVEL = 140
 
 # coin shop constants
+# various experimental items for closed beta
 COIN_SHOP_ITEMS = [
     1016,
     1015,
