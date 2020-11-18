@@ -53,6 +53,15 @@ class UserInfoSchema(Schema):
     player_level = fields.Function(lambda userinfo: formulas.exp_to_level(userinfo.player_exp))
 
 
+# This is a light-weight Userinfo Schema for showing users in a list
+class LightUserInfoSchema(Schema):
+    user_id = fields.Int(attribute='user_id')
+    elo = fields.Int()
+    name = fields.Str()
+    profile_picture = fields.Int()
+    clan = fields.Str(attribute='clanmember.clan_id')
+
+
 class MatcherView(APIView):
     permission_classes = (IsAuthenticated,)
 
