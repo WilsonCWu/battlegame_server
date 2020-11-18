@@ -48,9 +48,12 @@
             width: 80vw;
             min-width: 100px;
             display:block;
-            margin: -10px auto 0;
-            margin-bottom: 6rem;
-         }
+            margin: -10px auto 6rem;
+        }
+        
+        .logo.desktop-only {
+            display: none;
+        }
 
         .mobile-title {
             color: #2e6da4;
@@ -82,7 +85,7 @@
             <div class="columns is-centered is-vcentered is-multiline">
                 <div class="desktop-only column has-text-right">
                 </div>
-                <div class="column">
+                <div class="column mobile-only">
                     <img class="logo" src="{% static "images/logo.png" %}"/>
                     <h1 class="title is-1 has-text-warning">Equip and Conquer!</h1>
                     <h2 class="subtitle is-3 has-text-white-ter">
@@ -98,8 +101,9 @@
 
       <div class="hero-foot center" style="padding: 2em; align-self: center">
         <div class="container">
+            <img class="logo desktop-only" src="{% static "images/logo.png" %}"/>
             <h2 class="title has-text-white-ter">
-            Join our closed beta <a target="_blank" class="has-text-warning" href="https://forms.gle/Xv7Bfx1a7fPjSU1E8">here!</a>
+            Join our closed beta <a target="_blank" class="has-text-warning" href="https://forms.gle/Xv7Bfx1a7fPjSU1E8"><u>here!</u></a>
           </h2>
 
 {#          <figure class="image store-btn">#}
@@ -129,14 +133,22 @@
                 <div class="columns is-vcentered is-multiline">
                     <div class="column has-text-centered">
                         <img class="large-image desktop-only" src="{% static "images/battle-phone.png" %}" />
-                        <img class="large-image" src="{% static "images/dungeon-phone.png" %}" />
+                        <img class="large-image" src="{% static "images/battle-phone2.png" %}" />
                     </div>
-                    <div class="column">
+                    <div class="column mobile-only">
                         <h1 class="title is-2 has-text-black-bis">
                             1v1 me bro
                         </h1>
                         <h2 class="subtitle is-4 has-text-grey">
                             Play solo online or fight through the dungeons
+                        </h2>
+                    </div>
+                    <div class="column desktop-only">
+                        <h1 class="title is-2 has-text-black-bis">
+                            Equip and Conquer!
+                        </h1>
+                        <h2 class="subtitle is-4 has-text-grey">
+                            Join +1M players who are fighting tiny but winning BIG.
                         </h2>
                     </div>
                 </div>
