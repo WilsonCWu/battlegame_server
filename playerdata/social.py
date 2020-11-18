@@ -381,6 +381,9 @@ class ChangeMemberStatusView(APIView):
         target_clanmember = ClanMember.objects.get(userinfo_id=member_id)
         clanmember = request.user.userinfo.clanmember
 
+        if member_id == request.user.id:
+            return Response({'status': False, 'reason': 'cannot ' + member_status + ' yourself'})
+
         if not (
                 clanmember.clan and
                 clanmember.is_admin and
