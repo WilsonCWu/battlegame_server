@@ -16,7 +16,7 @@ from playerdata.models import Friend
 from playerdata.models import FriendRequest
 from playerdata.models import UserInfo
 from . import constants
-from .matcher import UserInfoSchema
+from .matcher import UserInfoSchema, LightUserInfoSchema
 from .questupdater import QuestUpdater
 from .serializers import AcceptFriendRequestSerializer
 from .serializers import GetUserSerializer
@@ -49,8 +49,8 @@ def getGlobalChats():
 class FriendSchema(Schema):
     user_1_id = fields.Int(attribute='user_1_id')
     user_2_id = fields.Int(attribute='user_2_id')
-    user_1_info = fields.Nested(UserInfoSchema, attribute='user_1.userinfo')
-    user_2_info = fields.Nested(UserInfoSchema, attribute='user_2.userinfo')
+    light_user_1_info = fields.Nested(LightUserInfoSchema, attribute='user_1.userinfo')
+    light_user_2_info = fields.Nested(LightUserInfoSchema, attribute='user_2.userinfo')
     chat_id = fields.Int(attribute='chat_id')
 
 
@@ -113,7 +113,9 @@ class CreateFriendRequestView(APIView):
         serializer.is_valid(raise_exception=True)
         target_user_id = serializer.validated_data['value']
 
-        target_user = get_user_model().objects.get(id=target_user_id)
+        target_user = get_user_model().objects.filter(id=target_user_id).first()
+        if target_user is None:
+            return Response({'status': False, 'reason': "user id doesn't exist"})
 
         oldRequestSet1 = FriendRequest.objects.filter(user=request.user, target=target_user)
         oldRequestSet2 = FriendRequest.objects.filter(user=target_user, target=request.user)
@@ -238,7 +240,7 @@ class GetLeaderboardView(APIView):
 
         if leaderboard_type == 'solo_top_100':
             top_player_set = UserInfo.objects.all().order_by('-elo')[:100]
-            players = UserInfoSchema(top_player_set, many=True, exclude=('default_placement',))
+            players = LightUserInfoSchema(top_player_set, many=True)
             return Response({'players': players.data})
         if leaderboard_type == 'clan_top_100':
             top_clan_set = Clan.objects.all().order_by('-elo')[:100]
@@ -310,6 +312,7 @@ class ClanSchema(Schema):
     profile_picture = fields.Int()
     time_started = fields.DateTime()
     elo = fields.Int()
+    cap = fields.Int()
     clan_members = fields.Nested(ClanMemberSchema, attribute='clan_members', many=True)
 
 
@@ -378,6 +381,9 @@ class ChangeMemberStatusView(APIView):
         target_clanmember = ClanMember.objects.get(userinfo_id=member_id)
         clanmember = request.user.userinfo.clanmember
 
+        if member_id == request.user.id:
+            return Response({'status': False, 'reason': 'cannot ' + member_status + ' yourself'})
+
         if not (
                 clanmember.clan and
                 clanmember.is_admin and
@@ -404,7 +410,7 @@ class ChangeMemberStatusView(APIView):
 
 class ClanRequestSchema(Schema):
     request_id = fields.Int(attribute='id')
-    userinfo = fields.Nested(UserInfoSchema, exclude=('default_placement',))
+    userinfo = fields.Nested(LightUserInfoSchema)
     clan_id = fields.Str()
 
 
@@ -466,6 +472,9 @@ class UpdateClanRequestView(APIView):
         if not accept:
             ClanRequest.objects.get(userinfo=target_clanmember.userinfo, clan=clan).delete()
             return Response({'status': True})
+
+        if clan.num_members + 1 > clan.cap:
+            return Response({'status': False, 'reason': 'clan is full, max capacity reached'})
 
         target_clanmember.clan = clan
         target_clanmember.is_admin = False
