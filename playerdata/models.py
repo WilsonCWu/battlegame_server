@@ -87,7 +87,7 @@ class BaseCharacter(models.Model):
     specs = JSONField(blank=True, null=True)
 
     def __str__(self):
-        return self.name
+        return str(self.char_type) + ': ' + self.name
 
 
 class BaseCharacterUsage(models.Model):
