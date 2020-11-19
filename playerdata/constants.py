@@ -50,10 +50,17 @@ SUMMON_COUNT = {
 
 # These characters cannot be rolled as they're not playable / limited time /
 # other misc. reason.
-UNROLLABLE_CHARACTERS = [
+_MOBS = [
     14,  # Skeleton
     15,  # Deckhand
 ]
+
+_IN_PROGRESS_CHARACTERS = [
+    16, # Potion Master
+]
+
+# TODO: this needs to be an allowlist instead.
+UNROLLABLE_CHARACTERS = _MOBS + _IN_PROGRESS_CHARACTERS
 
 # Summon rarity constants
 SUMMON_RARITY_BASE = [5, 15, 50, 100]
@@ -88,4 +95,3 @@ COIN_SHOP_ITEMS = [
     2029,
     2001,
 ]
-
