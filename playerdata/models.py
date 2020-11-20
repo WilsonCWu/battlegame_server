@@ -86,6 +86,14 @@ class BaseCharacter(models.Model):
     # 3.1.x, we can use the new JSONField from Django.
     specs = JSONField(blank=True, null=True)
 
+    rollable = models.BooleanField(default=False)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['rarity', 'rollable']),
+        ]
+
+
     def __str__(self):
         return str(self.char_type) + ': ' + self.name
 
