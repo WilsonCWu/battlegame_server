@@ -170,12 +170,13 @@ class PurchaseItemView(APIView):
         rarity = None
         char_copies = count_char_copies(Character.objects.filter(user=request.user))
         # rig the first two rolls
-        if char_copies == 3:
-            # rarity 2
-            rarity = [-1, -1, 100, 100]
-        elif char_copies == 4:
-            # rarity 3
-            rarity = [-1, 100, 100, 100]
+        if constants.SUMMON_COUNT[purchase_item_id] == 1:
+            if char_copies == 3:
+                # rarity 2
+                rarity = [-1, -1, 100, 100]
+            elif char_copies == 4:
+                # rarity 3
+                rarity = [-1, 100, 100, 100]
 
         new_chars = generate_and_insert_characters(user, constants.SUMMON_COUNT[purchase_item_id], rarity)
 
