@@ -297,6 +297,49 @@ class NewClanView(APIView):
         return Response({'status': True})
 
 
+class LeaveClanView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        clan_member = request.user.userinfo.clanmember
+
+        if clan_member.is_owner:
+            return Response({'status': False, 'reason': 'cannot leave clan without transferring ownership!'})
+
+        clan_member.clan = None
+        clan_member.is_admin = False
+        clan_member.is_owner = False
+        clan_member.save()
+
+        return Response({'status': True})
+
+
+class DeleteClanView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        clan_member = request.user.userinfo.clanmember
+        clan_name = clan_member.clan
+        if not clan_member.is_owner:
+            return Response({'status': False, 'reason': 'invalid clan permissions'})
+
+        clan_query = Clan.objects.filter(name=clan_name).prefetch_related(Prefetch(
+            'clanmember_set', to_attr='clan_members',
+            queryset=ClanMember.objects.select_related('userinfo')))
+
+        clanmembers = clan_query[0].clan_members
+
+        for member in clanmembers:
+            member.clan = None
+            member.is_admin = False
+            member.is_owner = False
+
+        ClanMember.objects.bulk_update(clanmembers, ['clan', 'is_admin', 'is_owner'])
+        Clan.objects.filter(name=clan_name).first().delete()
+
+        return Response({'status': True})
+
+
 class ClanMemberSchema(Schema):
     userinfo = fields.Nested(UserInfoSchema, exclude=('default_placement',))
     clan_id = fields.Str()
@@ -322,16 +365,16 @@ class GetClanView(APIView):
     def post(self, request):
         serializer = ValueSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        clanName = serializer.validated_data['value']
-        clanQuery = Clan.objects.filter(name=clanName).prefetch_related(Prefetch(
+        clan_name = serializer.validated_data['value']
+        clan_query = Clan.objects.filter(name=clan_name).prefetch_related(Prefetch(
             'clanmember_set', to_attr='clan_members',
             queryset=ClanMember.objects.select_related('userinfo').order_by('-userinfo__elo')))
 
-        if not clanQuery:
+        if not clan_query:
             return Response({'status': False})
 
-        clanSchema = ClanSchema(clanQuery[0])
-        return Response({'status': True, 'clan': clanSchema.data})
+        clan_schema = ClanSchema(clan_query[0])
+        return Response({'status': True, 'clan': clan_schema.data})
 
 
 class EditClanDescriptionView(APIView):

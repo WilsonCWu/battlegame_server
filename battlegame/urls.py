@@ -63,6 +63,8 @@ urlpatterns = [
     path('clan/editdescription/', social.EditClanDescriptionView.as_view()),
     path('clan/members/updatestatus/', social.ChangeMemberStatusView.as_view()),
     path('clan/new/', social.NewClanView.as_view()),
+    path('clan/leave/', social.LeaveClanView.as_view()),
+    path('clan/delete/', social.DeleteClanView.as_view()),
     path('clan/requests/get/', social.GetClanRequestsView.as_view()),
     path('clan/requests/update/', social.UpdateClanRequestView.as_view()),
     path('clan/requests/create/', social.CreateClanRequestView.as_view()),
