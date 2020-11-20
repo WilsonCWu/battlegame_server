@@ -325,7 +325,7 @@ class DeleteClanView(APIView):
 
         clan_query = Clan.objects.filter(name=clan_name).prefetch_related(Prefetch(
             'clanmember_set', to_attr='clan_members',
-            queryset=ClanMember.objects.select_related('userinfo').order_by('-userinfo__elo')))
+            queryset=ClanMember.objects.select_related('userinfo')))
 
         clanmembers = clan_query[0].clan_members
 
