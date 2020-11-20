@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User
 from django.db.models import Prefetch
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
