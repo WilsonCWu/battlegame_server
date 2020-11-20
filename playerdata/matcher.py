@@ -14,7 +14,6 @@ from playerdata.models import BaseCharacter
 from playerdata.models import Character
 from playerdata.models import Placement
 from playerdata.models import UserInfo
-from .constants import UNROLLABLE_CHARACTERS
 from .inventory import CharacterSchema
 from .serializers import GetOpponentsSerializer
 from .serializers import GetUserSerializer
@@ -122,7 +121,7 @@ class GetOpponentsView(APIView):
         cur_elo = request.user.userinfo.elo
         bound = search_count*constants.MATCHER_INCREASE_RANGE+constants.MATCHER_START_RANGE
         user_ids = GetOpponentsView._get_random_opponents(request.user.id, constants.MATCHER_DEFAULT_COUNT, cur_elo - bound, cur_elo + bound)
-        
+
         query = UserInfo.objects.select_related('default_placement__char_1__weapon') \
                     .select_related('default_placement__char_2__weapon') \
                     .select_related('default_placement__char_3__weapon') \
@@ -269,7 +268,7 @@ def _generate_bots(num_bots_per_user, elo, char_levels, num_chars=5):
         bot_userinfo.save()
 
         # random char
-        base_chars = BaseCharacter.objects.filter().exclude(char_type__in=UNROLLABLE_CHARACTERS)
+        base_chars = BaseCharacter.objects.filter(rollable=True)
         chosen_chars = random.sample(list(base_chars), num_chars)
 
         bot_placement = Placement.objects.get(user=bot_user)
