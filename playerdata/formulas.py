@@ -77,7 +77,7 @@ def afk_exp_per_min(dungeon_level):
 
 def gems_reward_dungeon(dungeon_level):
     if dungeon_level % 5 == 0:
-        return 2000
+        return 800
     return 100
 
 
