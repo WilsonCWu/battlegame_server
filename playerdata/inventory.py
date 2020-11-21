@@ -122,7 +122,6 @@ class RefundCharacter(APIView):
     def post(self, request):
         serializer = ValueSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
         target_char_id = serializer.validated_data['value']
         target_character = Character.objects.get(char_id=target_char_id)
 
@@ -136,7 +135,7 @@ class RefundCharacter(APIView):
         inventory.gems -= constants.DUSTING_GEMS_COST
 
         refunded_coins = formulas.char_level_to_exp(target_character.level)
-        refunded_dust = formulas.char_level_to_exp(target_character.level)
+        refunded_dust = formulas.char_level_to_dust(target_character.level)
 
         inventory.coins += refunded_coins
         inventory.dust += refunded_dust
