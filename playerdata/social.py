@@ -319,7 +319,7 @@ class DeleteClanView(APIView):
 
     def post(self, request):
         clan_member = request.user.userinfo.clanmember
-        clan_name = clan_member.clan
+        clan_name = clan_member.clan.name
         if not clan_member.is_owner:
             return Response({'status': False, 'reason': 'invalid clan permissions'})
 
