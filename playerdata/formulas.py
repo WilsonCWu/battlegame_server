@@ -73,6 +73,33 @@ def afk_exp_per_min(dungeon_level):
 
 
 #########################
+## Dust
+
+
+# copied from https://afk-arena.fandom.com/wiki/Hero%27s_Essence
+def char_level_to_dust(level):
+    if level == 1:
+        return 10
+    if level < 20:
+        return 50
+    if level < 40:
+        return 150
+    if level < 60:
+        return 350
+    if level < 80:
+        return 850
+    if level < 100:
+        return 2050
+    if level < 120:
+        return 5050
+    if level < 140:
+        return 11050
+    if level < 160:
+        return 23050
+    return 0
+
+
+#########################
 ## Gems
 
 def gems_reward_dungeon(dungeon_level):

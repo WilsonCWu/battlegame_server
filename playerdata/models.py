@@ -284,6 +284,7 @@ class Inventory(models.Model):
     char_limit = models.IntegerField(default=50)
     coins = models.IntegerField(default=1000)
     gems = models.IntegerField(default=5000)
+    dust = models.IntegerField(default=100)
     hero_exp = models.IntegerField(default=0)
     last_collected_rewards = models.DateTimeField(default=timezone.now)
 

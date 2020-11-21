@@ -9,7 +9,7 @@ from playerdata import constants
 from playerdata.models import Character, UserInfo
 from playerdata.models import Item
 from . import formulas
-from .serializers import EquipItemSerializer, UnequipItemSerializer
+from .serializers import EquipItemSerializer, UnequipItemSerializer, ValueSerializer
 from .serializers import LevelUpSerializer
 
 
@@ -48,6 +48,7 @@ class InventorySchema(Schema):
     char_limit = fields.Int()
     coins = fields.Int()
     gems = fields.Int()
+    dust = fields.Int()
     hero_exp = fields.Int()
     player_level = fields.Method("get_player_exp")
 
@@ -108,6 +109,39 @@ class TryLevelView(APIView):
         inventory.coins -= delta_exp
         target_character.level += 1
 
+        inventory.save()
+        target_character.save()
+
+        return Response({'status': True})
+
+
+class RefundCharacter(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic
+    def post(self, request):
+        serializer = ValueSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        target_char_id = serializer.validated_data['value']
+        target_character = Character.objects.get(char_id=target_char_id)
+
+        if target_character.user != request.user:
+            return Response({'status': False, 'reason': 'character does not belong to user!'})
+
+        inventory = request.user.inventory
+        if inventory.gems < constants.DUSTING_GEMS_COST:
+            return Response({'status': False, 'reason': 'not enough coins!'})
+
+        inventory.gems -= constants.DUSTING_GEMS_COST
+
+        refunded_coins = formulas.char_level_to_exp(target_character.level)
+        refunded_dust = formulas.char_level_to_exp(target_character.level)
+
+        inventory.coins += refunded_coins
+        inventory.dust += refunded_dust
+
+        target_character.level = 1
         inventory.save()
         target_character.save()
 
