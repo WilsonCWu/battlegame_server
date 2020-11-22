@@ -12,6 +12,8 @@ from playerdata.models import UserStats
 from playerdata.models import TournamentMember
 from playerdata.models import TournamentMatch
 
+import math
+
 
 # r1, r2 ratings of player 1,2. s1 = 1 if win, 0 if loss, 0.5 for tie
 # k larger for more volatility
@@ -96,8 +98,10 @@ class UploadResultView(APIView):
             player_exp = 0
 
             if win:
-                coins = formulas.coins_reward_quickplay(dungeon_progress.stage_id)
-                player_exp = formulas.player_exp_reward_quickplay(dungeon_progress.stage_id)
+                elo_scaler = 100 + math.floor(request.user.userinfo.elo/10)
+                reward_scaler = min(dungeon_progress.stage_id, elo_scaler)
+                coins = formulas.coins_reward_quickplay(reward_scaler)
+                player_exp = formulas.player_exp_reward_quickplay(reward_scaler)
 
             inventory = request.user.inventory
             inventory.coins += coins
