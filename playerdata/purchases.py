@@ -14,7 +14,6 @@ from playerdata.models import InvalidReceipt
 from playerdata.models import Character
 from playerdata.models import Inventory
 from . import constants
-from .constants import UNROLLABLE_CHARACTERS
 from .questupdater import QuestUpdater
 from .serializers import PurchaseItemSerializer
 from .serializers import PurchaseSerializer
@@ -95,7 +94,7 @@ def generate_character(rarity_odds=None):
             rarity = len(rarity_odds) - i
             break
 
-    base_chars = BaseCharacter.objects.filter(rarity=rarity).exclude(char_type__in=UNROLLABLE_CHARACTERS)
+    base_chars = BaseCharacter.objects.filter(rarity=rarity, rollable=True)
     num_chars = base_chars.count()
     chosen_char = base_chars[random.randrange(num_chars)]
     return chosen_char

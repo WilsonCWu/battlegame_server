@@ -88,7 +88,7 @@ class TryLevelView(APIView):
         if target_character.user != request.user:
             return Response({'status': False, 'reason': 'character does not belong to user!'})
         if target_character.level >= constants.MAX_CHARACTER_LEVEL:
-            return Response({'status': False, 'reason': 'character has already hit level 140!'})
+            return Response({'status': False, 'reason': 'character has already hit level ' + str(constants.MAX_CHARACTER_LEVEL) + '!'})
 
         # We can only level up to the (number of copies owned * 30) + 50.
         if target_character.level + 1 > target_character.copies * 30 + 50:
