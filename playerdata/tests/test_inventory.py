@@ -185,7 +185,7 @@ class LevelUpAPITestCase(APITestCase):
             user = self.u,
             char_type = base_archer,
             copies = 2,
-            level = 140,
+            level = 170,
         )
         inventory = self.u.inventory
         inventory.coins += 1000000000
@@ -196,4 +196,4 @@ class LevelUpAPITestCase(APITestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data['status'])
-        self.assertIn('already hit level 140', response.data['reason'])
+        self.assertIn('already hit level 170', response.data['reason'])
