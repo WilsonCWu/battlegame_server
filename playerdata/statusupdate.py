@@ -91,8 +91,13 @@ class UploadResultView(APIView):
             other_user = get_user_model().objects.select_related('userinfo').get(id=opponent)
 
             dungeon_progress = DungeonProgress.objects.get(user=request.user)
-            coins = formulas.coins_reward_quickplay(dungeon_progress.stage_id)
-            player_exp = formulas.player_exp_reward_quickplay(dungeon_progress.stage_id)
+
+            coins = 0
+            player_exp = 0
+
+            if win:
+                coins = formulas.coins_reward_quickplay(dungeon_progress.stage_id)
+                player_exp = formulas.player_exp_reward_quickplay(dungeon_progress.stage_id)
 
             inventory = request.user.inventory
             inventory.coins += coins
