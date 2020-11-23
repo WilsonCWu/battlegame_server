@@ -144,7 +144,7 @@ class RefundCharacter(APIView):
         inventory.save()
         target_character.save()
 
-        return Response({'status': True})
+        return Response({'status': True, 'coins': refunded_coins, 'dust': refunded_dust})
 
 
 class RetireCharacter(APIView):
@@ -164,10 +164,6 @@ class RetireCharacter(APIView):
             return Response({'status': False, 'reason': 'can only retire common rarity heroes!'})
 
         inventory = request.user.inventory
-        if inventory.gems < constants.DUSTING_GEMS_COST:
-            return Response({'status': False, 'reason': 'not enough coins!'})
-
-        inventory.gems -= constants.DUSTING_GEMS_COST
 
         refunded_coins = formulas.char_level_to_coins(target_character.level)
         refunded_dust = formulas.char_level_to_dust(target_character.level)
@@ -180,7 +176,7 @@ class RetireCharacter(APIView):
         target_character.delete()
         inventory.save()
 
-        return Response({'status': True})
+        return Response({'status': True, 'essence': essence_collected, 'coins': refunded_coins, 'dust': refunded_dust})
 
 
 class SlotType(Enum):
