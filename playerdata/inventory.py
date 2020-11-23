@@ -179,6 +179,20 @@ class RetireCharacter(APIView):
         return Response({'status': True, 'essence': essence_collected, 'coins': refunded_coins, 'dust': refunded_dust})
 
 
+class SetAutoRetire(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = ValueSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        is_auto_retire = serializer.validated_data['value']
+
+        request.user.inventory.is_auto_retire = is_auto_retire
+        request.user.inventory.save()
+
+        return Response({'status': True})
+
+
 class SlotType(Enum):
     HAT = 'H'
     ARMOR = 'A'
