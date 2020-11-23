@@ -9,7 +9,7 @@ from playerdata import constants
 from playerdata.models import Character, UserInfo
 from playerdata.models import Item
 from . import formulas
-from .serializers import EquipItemSerializer, UnequipItemSerializer
+from .serializers import EquipItemSerializer, UnequipItemSerializer, ValueSerializer
 from .serializers import LevelUpSerializer
 
 
@@ -48,6 +48,7 @@ class InventorySchema(Schema):
     char_limit = fields.Int()
     coins = fields.Int()
     gems = fields.Int()
+    dust = fields.Int()
     hero_exp = fields.Int()
     player_level = fields.Method("get_player_exp")
 
@@ -97,19 +98,103 @@ class TryLevelView(APIView):
                 'reason': 'level cap exceeded given %d copies!' % target_character.copies,
             })
 
-        cur_exp = formulas.char_level_to_exp(target_character.level)
-        next_exp = formulas.char_level_to_exp(target_character.level + 1)
-        delta_exp = next_exp - cur_exp
+        cur_coins = formulas.char_level_to_coins(target_character.level)
+        next_coins = formulas.char_level_to_coins(target_character.level + 1)
+        delta_coins = next_coins - cur_coins
 
         inventory = request.user.inventory
-        if delta_exp > inventory.coins:
+        if delta_coins > inventory.coins:
             return Response({'status': False, 'reason': 'not enough coins!'})
 
-        inventory.coins -= delta_exp
+        inventory.coins -= delta_coins
         target_character.level += 1
 
         inventory.save()
         target_character.save()
+
+        return Response({'status': True})
+
+
+# retired_copies should only be passed in if retiring
+def refund_char_resources(inventory, level, retired_copies=0):
+    refunded_coins = formulas.char_level_to_coins(level)
+    refunded_dust = formulas.char_level_to_dust(level) + formulas.char_level_to_dust(1) * max(0, (retired_copies - 1))
+    essence_collected = constants.ESSENCE_PER_COMMON_CHAR_RETIRE * retired_copies
+
+    inventory.coins += refunded_coins
+    inventory.dust += refunded_dust
+    inventory.essence += essence_collected
+    inventory.save()
+
+    return {'refunded_coins': refunded_coins, 'refunded_dust': refunded_dust, 'essence': essence_collected}
+
+
+class RefundCharacter(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic
+    def post(self, request):
+        serializer = ValueSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        target_char_id = serializer.validated_data['value']
+        target_character = Character.objects.get(char_id=target_char_id)
+
+        if target_character.user != request.user:
+            return Response({'status': False, 'reason': 'character does not belong to user!'})
+
+        if target_character.level < 2:
+            return Response({'status': False, 'reason': 'can only refund character over level 1!'})
+
+        inventory = request.user.inventory
+        if inventory.gems < constants.DUSTING_GEMS_COST:
+            return Response({'status': False, 'reason': 'not enough gems!'})
+
+        inventory.gems -= constants.DUSTING_GEMS_COST
+        refund = refund_char_resources(inventory, target_character.level)
+
+        target_character.level = 1
+        inventory.save()
+        target_character.save()
+
+        return Response({'status': True, 'coins': refund["refunded_coins"], 'dust': refund["refunded_dust"]})
+
+
+class RetireCharacter(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic
+    def post(self, request):
+        serializer = ValueSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        target_char_id = serializer.validated_data['value']
+        target_character = Character.objects.get(char_id=target_char_id)
+
+        if target_character.user != request.user:
+            return Response({'status': False, 'reason': 'character does not belong to user!'})
+
+        if target_character.char_type.rarity != 1:
+            return Response({'status': False, 'reason': 'can only retire common rarity heroes!'})
+
+        inventory = request.user.inventory
+        refund = refund_char_resources(inventory, target_character.level, target_character.copies)
+
+        target_character.delete()
+        inventory.save()
+
+        return Response({'status': True, 'essence': refund["essence"],
+                         'coins': refund["refunded_coins"], 'dust': refund["refunded_dust"]})
+
+
+class SetAutoRetire(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = ValueSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        is_auto_retire = serializer.validated_data['value']
+
+        request.user.inventory.is_auto_retire = is_auto_retire
+        request.user.inventory.save()
 
         return Response({'status': True})
 

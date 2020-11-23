@@ -121,6 +121,13 @@ def generate_and_insert_characters(user, char_count, rarity_odds=None):
     # generate char_count random characters
     for i in range(char_count):
         base_char = generate_character(rarity_odds)
+
+        # auto retire common heroes
+        if base_char.rarity == 1 and user.inventory.is_auto_retire:
+            user.inventory.essence += constants.ESSENCE_PER_COMMON_CHAR_RETIRE
+            user.inventory.save()
+            continue
+
         new_char = insert_character(user, base_char)
         if new_char.char_id in new_chars:
             old_char = new_chars[new_char.char_id]

@@ -31,6 +31,10 @@ def afk_coins_per_min(dungeon_level):
     return math.floor((dungeon_level - 1) * 2 + ((dungeon_level - 1) ** 1.8) / 10)
 
 
+def char_level_to_coins(level):
+    return math.floor((level - 1) * 50 + ((level - 1) ** 3.6) / 10)
+
+
 #########################
 ## EXP
 
@@ -56,10 +60,6 @@ class ExpToLevel:
         return level_to_exp(level)
 
 
-def char_level_to_exp(level):
-    return math.floor((level - 1) * 50 + ((level - 1) ** 3.6) / 10)
-
-
 def player_exp_reward_quickplay(dungeon_level):
     return math.floor((dungeon_level / 5) * 6) + 6
 
@@ -70,6 +70,38 @@ def player_exp_reward_dungeon(dungeon_level):
 
 def afk_exp_per_min(dungeon_level):
     return 10
+
+
+#########################
+## Dust
+
+
+# copied from https://afk-arena.fandom.com/wiki/Hero%27s_Essence
+# ignoring the first level, since
+def char_level_to_dust(level):
+    if level < 21:
+        return 10
+    if level < 41:
+        return 50
+    if level < 61:
+        return 150
+    if level < 81:
+        return 400
+    if level < 101:
+        return 900
+    if level < 121:
+        return 2100
+    if level < 141:
+        return 5100
+    if level < 161:
+        return 11100
+    if level < 181:
+        return 23100
+    if level < 201:
+        return 48100
+    if level < 221:
+        return 78100
+    return 118100
 
 
 #########################

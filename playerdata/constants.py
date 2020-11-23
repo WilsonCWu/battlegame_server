@@ -48,6 +48,10 @@ SUMMON_COUNT = {
     "SUMMON10": 10,
 }
 
+DUSTING_GEMS_COST = 100
+
+ESSENCE_PER_COMMON_CHAR_RETIRE = 100
+
 # These characters cannot be rolled as they're not playable / limited time /
 # other misc. reason.
 _MOBS = [
