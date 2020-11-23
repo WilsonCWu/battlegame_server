@@ -98,15 +98,15 @@ class TryLevelView(APIView):
                 'reason': 'level cap exceeded given %d copies!' % target_character.copies,
             })
 
-        cur_exp = formulas.char_level_to_exp(target_character.level)
-        next_exp = formulas.char_level_to_exp(target_character.level + 1)
-        delta_exp = next_exp - cur_exp
+        cur_coins = formulas.char_level_to_coins(target_character.level)
+        next_coins = formulas.char_level_to_coins(target_character.level + 1)
+        delta_coins = next_coins - cur_coins
 
         inventory = request.user.inventory
-        if delta_exp > inventory.coins:
+        if delta_coins > inventory.coins:
             return Response({'status': False, 'reason': 'not enough coins!'})
 
-        inventory.coins -= delta_exp
+        inventory.coins -= delta_coins
         target_character.level += 1
 
         inventory.save()
@@ -134,7 +134,7 @@ class RefundCharacter(APIView):
 
         inventory.gems -= constants.DUSTING_GEMS_COST
 
-        refunded_coins = formulas.char_level_to_exp(target_character.level)
+        refunded_coins = formulas.char_level_to_coins(target_character.level)
         refunded_dust = formulas.char_level_to_dust(target_character.level)
 
         inventory.coins += refunded_coins

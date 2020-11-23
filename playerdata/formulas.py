@@ -31,6 +31,10 @@ def afk_coins_per_min(dungeon_level):
     return math.floor((dungeon_level - 1) * 2 + ((dungeon_level - 1) ** 1.8) / 10)
 
 
+def char_level_to_coins(level):
+    return math.floor((level - 1) * 50 + ((level - 1) ** 3.6) / 10)
+
+
 #########################
 ## EXP
 
@@ -54,10 +58,6 @@ class ExpToLevel:
 
     def __getitem__(self, level):
         return level_to_exp(level)
-
-
-def char_level_to_exp(level):
-    return math.floor((level - 1) * 50 + ((level - 1) ** 3.6) / 10)
 
 
 def player_exp_reward_quickplay(dungeon_level):
