@@ -115,6 +115,20 @@ class TryLevelView(APIView):
         return Response({'status': True})
 
 
+# retired_copies should only be passed in if retiring
+def refund_levels(inventory, level, retired_copies=0):
+    refunded_coins = formulas.char_level_to_coins(level)
+    refunded_dust = formulas.char_level_to_dust(level) if retired_copies == 0 else formulas.char_level_to_dust(level) * retired_copies
+    essence_collected = constants.ESSENCE_PER_COMMON_CHAR_RETIRE * retired_copies
+
+    inventory.coins += refunded_coins
+    inventory.dust += refunded_dust
+    inventory.essence += essence_collected
+    inventory.save()
+
+    return {'refunded_coins': refunded_coins, 'refunded_dust': refunded_dust, 'essence': essence_collected}
+
+
 class RefundCharacter(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -128,23 +142,21 @@ class RefundCharacter(APIView):
         if target_character.user != request.user:
             return Response({'status': False, 'reason': 'character does not belong to user!'})
 
+        if target_character.level < 2:
+            return Response({'status': False, 'reason': 'can only refund character over level 1!'})
+
         inventory = request.user.inventory
         if inventory.gems < constants.DUSTING_GEMS_COST:
-            return Response({'status': False, 'reason': 'not enough coins!'})
+            return Response({'status': False, 'reason': 'not enough gems!'})
 
         inventory.gems -= constants.DUSTING_GEMS_COST
-
-        refunded_coins = formulas.char_level_to_coins(target_character.level)
-        refunded_dust = formulas.char_level_to_dust(target_character.level)
-
-        inventory.coins += refunded_coins
-        inventory.dust += refunded_dust
+        refund = refund_levels(inventory, target_character.level)
 
         target_character.level = 1
         inventory.save()
         target_character.save()
 
-        return Response({'status': True, 'coins': refunded_coins, 'dust': refunded_dust})
+        return Response({'status': True, 'coins': refund["refunded_coins"], 'dust': refund["refunded_dust"]})
 
 
 class RetireCharacter(APIView):
@@ -164,19 +176,13 @@ class RetireCharacter(APIView):
             return Response({'status': False, 'reason': 'can only retire common rarity heroes!'})
 
         inventory = request.user.inventory
-
-        refunded_coins = formulas.char_level_to_coins(target_character.level)
-        refunded_dust = formulas.char_level_to_dust(target_character.level)
-        essence_collected = constants.ESSENCE_PER_COMMON_CHAR_RETIRE * target_character.copies
-
-        inventory.coins += refunded_coins
-        inventory.dust += refunded_dust
-        inventory.essence += essence_collected
+        refund = refund_levels(inventory, target_character.level, target_character.copies)
 
         target_character.delete()
         inventory.save()
 
-        return Response({'status': True, 'essence': essence_collected, 'coins': refunded_coins, 'dust': refunded_dust})
+        return Response({'status': True, 'essence': refund["essence"],
+                         'coins': refund["refunded_coins"], 'dust': refund["refunded_dust"]})
 
 
 class SetAutoRetire(APIView):
