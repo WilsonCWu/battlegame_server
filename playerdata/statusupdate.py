@@ -12,6 +12,8 @@ from playerdata.models import UserStats
 from playerdata.models import TournamentMember
 from playerdata.models import TournamentMatch
 
+import math
+
 
 # r1, r2 ratings of player 1,2. s1 = 1 if win, 0 if loss, 0.5 for tie
 # k larger for more volatility
@@ -74,25 +76,27 @@ class UploadResultView(APIView):
 
         if mode == constants.QUICKPLAY:  # quickplay
             user_stats = UserStats.objects.get(user=request.user)
-            opponent_stats = UserStats.objects.get(user_id=opponent)
 
             user_stats.num_games += 1
-            opponent_stats.num_games += 1
 
             if win:
                 user_stats.num_wins += 1
                 QuestUpdater.add_progress_by_type(request.user, constants.WIN_QUICKPLAY_GAMES, 1)
-            else:
-                opponent_stats.num_wins += 1
 
             user_stats.save()
-            opponent_stats.save()
 
             other_user = get_user_model().objects.select_related('userinfo').get(id=opponent)
 
             dungeon_progress = DungeonProgress.objects.get(user=request.user)
-            coins = formulas.coins_reward_quickplay(dungeon_progress.stage_id)
-            player_exp = formulas.player_exp_reward_quickplay(dungeon_progress.stage_id)
+
+            coins = 0
+            player_exp = 0
+
+            if win:
+                elo_scaler = 50 + math.floor(request.user.userinfo.elo/10)
+                reward_scaler = min(dungeon_progress.stage_id, elo_scaler)
+                coins = formulas.coins_reward_quickplay(reward_scaler)
+                player_exp = formulas.player_exp_reward_quickplay(reward_scaler)
 
             inventory = request.user.inventory
             inventory.coins += coins

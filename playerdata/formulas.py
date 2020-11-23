@@ -104,7 +104,7 @@ def char_level_to_dust(level):
 
 def gems_reward_dungeon(dungeon_level):
     if dungeon_level % 5 == 0:
-        return 2000
+        return 800
     return 100
 
 
