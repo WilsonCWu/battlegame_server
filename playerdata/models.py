@@ -287,6 +287,7 @@ class Inventory(models.Model):
     dust = models.IntegerField(default=100)
     essence = models.IntegerField(default=0)
     hero_exp = models.IntegerField(default=0)
+    is_auto_retire = models.BooleanField(default=False)
     last_collected_rewards = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
