@@ -116,9 +116,9 @@ class TryLevelView(APIView):
 
 
 # retired_copies should only be passed in if retiring
-def refund_levels(inventory, level, retired_copies=0):
+def refund_char_resources(inventory, level, retired_copies=0):
     refunded_coins = formulas.char_level_to_coins(level)
-    refunded_dust = formulas.char_level_to_dust(level) if retired_copies == 0 else formulas.char_level_to_dust(level) * retired_copies
+    refunded_dust = formulas.char_level_to_dust(level) + formulas.char_level_to_dust(1) * max(0, (retired_copies - 1))
     essence_collected = constants.ESSENCE_PER_COMMON_CHAR_RETIRE * retired_copies
 
     inventory.coins += refunded_coins
@@ -150,7 +150,7 @@ class RefundCharacter(APIView):
             return Response({'status': False, 'reason': 'not enough gems!'})
 
         inventory.gems -= constants.DUSTING_GEMS_COST
-        refund = refund_levels(inventory, target_character.level)
+        refund = refund_char_resources(inventory, target_character.level)
 
         target_character.level = 1
         inventory.save()
@@ -176,7 +176,7 @@ class RetireCharacter(APIView):
             return Response({'status': False, 'reason': 'can only retire common rarity heroes!'})
 
         inventory = request.user.inventory
-        refund = refund_levels(inventory, target_character.level, target_character.copies)
+        refund = refund_char_resources(inventory, target_character.level, target_character.copies)
 
         target_character.delete()
         inventory.save()
