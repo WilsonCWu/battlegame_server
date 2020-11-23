@@ -76,19 +76,14 @@ class UploadResultView(APIView):
 
         if mode == constants.QUICKPLAY:  # quickplay
             user_stats = UserStats.objects.get(user=request.user)
-            opponent_stats = UserStats.objects.get(user_id=opponent)
 
             user_stats.num_games += 1
-            opponent_stats.num_games += 1
 
             if win:
                 user_stats.num_wins += 1
                 QuestUpdater.add_progress_by_type(request.user, constants.WIN_QUICKPLAY_GAMES, 1)
-            else:
-                opponent_stats.num_wins += 1
 
             user_stats.save()
-            opponent_stats.save()
 
             other_user = get_user_model().objects.select_related('userinfo').get(id=opponent)
 
@@ -98,7 +93,7 @@ class UploadResultView(APIView):
             player_exp = 0
 
             if win:
-                elo_scaler = 100 + math.floor(request.user.userinfo.elo/10)
+                elo_scaler = 50 + math.floor(request.user.userinfo.elo/10)
                 reward_scaler = min(dungeon_progress.stage_id, elo_scaler)
                 coins = formulas.coins_reward_quickplay(reward_scaler)
                 player_exp = formulas.player_exp_reward_quickplay(reward_scaler)
