@@ -285,6 +285,7 @@ class Inventory(models.Model):
     coins = models.IntegerField(default=1000)
     gems = models.IntegerField(default=5000)
     dust = models.IntegerField(default=100)
+    essence = models.IntegerField(default=0)
     hero_exp = models.IntegerField(default=0)
     last_collected_rewards = models.DateTimeField(default=timezone.now)
 

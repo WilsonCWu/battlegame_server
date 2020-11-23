@@ -80,6 +80,7 @@ urlpatterns = [
     path('purchase/', purchases.PurchaseView.as_view()),
     path('levelup/', inventory.TryLevelView.as_view()),
     path('refund/', inventory.RefundCharacter.as_view()),
+    path('retire/', inventory.RetireCharacter.as_view()),
     path('uploadresult/', statusupdate.UploadResultView.as_view()),
     path('opponents/', matcher.GetOpponentsView.as_view()),
     path('user/', matcher.GetUserView.as_view()),

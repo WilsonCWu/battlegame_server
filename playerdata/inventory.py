@@ -147,6 +147,42 @@ class RefundCharacter(APIView):
         return Response({'status': True})
 
 
+class RetireCharacter(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic
+    def post(self, request):
+        serializer = ValueSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        target_char_id = serializer.validated_data['value']
+        target_character = Character.objects.get(char_id=target_char_id)
+
+        if target_character.user != request.user:
+            return Response({'status': False, 'reason': 'character does not belong to user!'})
+
+        if target_character.char_type.rarity != 1:
+            return Response({'status': False, 'reason': 'can only retire common rarity heroes!'})
+
+        inventory = request.user.inventory
+        if inventory.gems < constants.DUSTING_GEMS_COST:
+            return Response({'status': False, 'reason': 'not enough coins!'})
+
+        inventory.gems -= constants.DUSTING_GEMS_COST
+
+        refunded_coins = formulas.char_level_to_coins(target_character.level)
+        refunded_dust = formulas.char_level_to_dust(target_character.level)
+        essence_collected = constants.ESSENCE_PER_COMMON_CHAR_RETIRE * target_character.copies
+
+        inventory.coins += refunded_coins
+        inventory.dust += refunded_dust
+        inventory.essence += essence_collected
+
+        target_character.delete()
+        inventory.save()
+
+        return Response({'status': True})
+
+
 class SlotType(Enum):
     HAT = 'H'
     ARMOR = 'A'
