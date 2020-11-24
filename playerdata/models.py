@@ -403,7 +403,7 @@ class DungeonBoss(models.Model):
 class BaseQuest(models.Model):
     title = models.TextField()
     type = models.IntegerField()
-    total = models.IntegerField()
+    total = models.BigIntegerField()
     gems = models.IntegerField(null=True)
     coins = models.IntegerField(null=True)
     item_type = models.ForeignKey(BaseItem, on_delete=models.CASCADE, blank=True, null=True)
@@ -415,7 +415,7 @@ class BaseQuest(models.Model):
 
 class CumulativeTracker(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    progress = models.IntegerField(default=0)
+    progress = models.BigIntegerField(default=0)
     type = models.IntegerField()
 
     def __str__(self):
@@ -436,7 +436,7 @@ class PlayerQuestCumulative(models.Model):
 class PlayerQuestDaily(models.Model):
     base_quest = models.ForeignKey(BaseQuest, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    progress = models.IntegerField(default=0)
+    progress = models.BigIntegerField(default=0)
     completed = models.BooleanField(default=False)
     claimed = models.BooleanField(default=False)
     expiration_date = models.DateTimeField()
@@ -448,7 +448,7 @@ class PlayerQuestDaily(models.Model):
 class PlayerQuestWeekly(models.Model):
     base_quest = models.ForeignKey(BaseQuest, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    progress = models.IntegerField(default=0)
+    progress = models.BigIntegerField(default=0)
     completed = models.BooleanField(default=False)
     claimed = models.BooleanField(default=False)
     expiration_date = models.DateTimeField()
