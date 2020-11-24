@@ -5,9 +5,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from playerdata.formulas import afk_coins_per_min, afk_gems_per_min, afk_exp_per_min
+from playerdata.formulas import afk_coins_per_min, afk_gems_per_min, afk_exp_per_min, afk_dust_per_min
 from playerdata.models import DungeonProgress
-from playerdata.models import User
 
 
 def mins_since_last_collection(last_collected_time):
@@ -28,16 +27,20 @@ class GetAFKRewardView(APIView):
 
         coins_per_min = afk_coins_per_min(dungeon_progress.stage_id)
         gems_per_min = afk_gems_per_min(dungeon_progress.stage_id)
+        dust_per_min = afk_dust_per_min(dungeon_progress.stage_id)
         # exp_per_min = afk_exp_per_min(dungeon_progress.stage_id)
 
         coins = time * coins_per_min
         gems = math.floor(time * gems_per_min)
+        dust = math.floor(time * dust_per_min)
         # exp = time * exp_per_min
 
         return Response({'coins_per_min': coins_per_min, 'gems_per_min': gems_per_min,
+                         'dust_per_min': dust_per_min,
                          # 'exp_per_min': exp_per_min,
                          'last_collected_time': last_collected_time,
                          'coins': coins, 'gems': gems,
+                         'dust': dust,
                          # 'exp': exp
                          })
 
@@ -53,14 +56,16 @@ class CollectAFKRewardView(APIView):
         time = mins_since_last_collection(last_collected_time)
         coins = time * afk_coins_per_min(dungeon_progress.stage_id)
         gems = math.floor(time * afk_gems_per_min(dungeon_progress.stage_id))
+        dust = math.floor(time * afk_dust_per_min(dungeon_progress.stage_id))
         # exp = time * afk_exp_per_min(dungeon_progress.stage_id)
 
         inventory.last_collected_rewards = datetime.now(timezone.utc)
         inventory.coins += coins
         inventory.gems += gems
+        inventory.dust += dust
         inventory.save()
 
         # request.user.userinfo.player_exp += exp
         # request.user.userinfo.save()
 
-        return Response({'status': True, 'coins': coins, 'gems': gems})
+        return Response({'status': True, 'coins': coins, 'gems': gems, 'dust': dust})

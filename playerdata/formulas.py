@@ -104,6 +104,10 @@ def char_level_to_dust(level):
     return 118100
 
 
+def afk_dust_per_min(dungeon_level):
+    return (dungeon_level - 1) * 0.001 + ((dungeon_level - 1) ** 0.45) / 10
+
+
 #########################
 ## Gems
 
