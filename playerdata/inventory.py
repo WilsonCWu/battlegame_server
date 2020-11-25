@@ -1,4 +1,5 @@
 from enum import Enum
+from packaging import version
 from django.db import transaction
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -6,7 +7,7 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from playerdata import constants
-from playerdata.models import Character, UserInfo
+from playerdata.models import Character, UserInfo, ServerStatus
 from playerdata.models import Item
 from . import formulas
 from .serializers import EquipItemSerializer, UnequipItemSerializer, ValueSerializer
@@ -105,6 +106,18 @@ class TryLevelView(APIView):
         inventory = request.user.inventory
         if delta_coins > inventory.coins:
             return Response({'status': False, 'reason': 'not enough coins!'})
+
+        # TODO remove once we release 0.0.5
+        latest_version = ServerStatus.objects.filter(event_type='V').latest('creation_time')
+        if version.parse(latest_version) > version.parse("0.0.4"):
+            cur_dust = formulas.char_level_to_dust(target_character.level)
+            next_dust = formulas.char_level_to_dust(target_character.level + 1)
+            delta_dust = next_dust - cur_dust
+
+            if delta_dust > inventory.dust:
+                return Response({'status': False, 'reason': 'not enough dust!'})
+
+            inventory.dust -= delta_dust
 
         inventory.coins -= delta_coins
         target_character.level += 1
