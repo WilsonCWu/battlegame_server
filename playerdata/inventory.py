@@ -1,4 +1,5 @@
 from enum import Enum
+from packaging import version
 from django.db import transaction
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -108,16 +109,15 @@ class TryLevelView(APIView):
 
         # TODO remove once we release 0.0.5
         latest_version = ServerStatus.objects.filter(event_type='V').latest('creation_time')
-        if latest_version > "0.0.4":
-            if target_character.level % 20 == 0:
-                cur_dust = formulas.char_level_to_dust(target_character.level)
-                next_dust = formulas.char_level_to_dust(target_character.level + 1)
-                delta_dust = next_dust - cur_dust
+        if version.parse(latest_version) > version.parse("0.0.4"):
+            cur_dust = formulas.char_level_to_dust(target_character.level)
+            next_dust = formulas.char_level_to_dust(target_character.level + 1)
+            delta_dust = next_dust - cur_dust
 
-                if delta_dust > inventory.dust:
-                    return Response({'status': False, 'reason': 'not enough dust!'})
+            if delta_dust > inventory.dust:
+                return Response({'status': False, 'reason': 'not enough dust!'})
 
-                inventory.dust -= delta_dust
+            inventory.dust -= delta_dust
 
         inventory.coins -= delta_coins
         target_character.level += 1
