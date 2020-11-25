@@ -109,7 +109,7 @@ class TryLevelView(APIView):
 
         # TODO remove once we release 0.0.5
         latest_version = ServerStatus.objects.filter(event_type='V').latest('creation_time')
-        if version.parse(latest_version) > version.parse("0.0.4"):
+        if version.parse(latest_version.version_number) > version.parse("0.0.4"):
             cur_dust = formulas.char_level_to_dust(target_character.level)
             next_dust = formulas.char_level_to_dust(target_character.level + 1)
             delta_dust = next_dust - cur_dust
