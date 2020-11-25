@@ -20,6 +20,7 @@ class CumulativeQuestSchema(Schema):
     total = fields.Int(attribute='base_quest.total')
     gems = fields.Int(attribute='base_quest.gems')
     coins = fields.Int(attribute='base_quest.coins')
+    dust = fields.Int(attribute='base_quest.dust')
     item_id = fields.Int(attribute='base_quest.item_type.id')
     item_description = fields.Str(attribute='base_quest.item_type.description')
     char_id = fields.Int(attribute='base_quest.char_type.id')
@@ -37,6 +38,7 @@ class QuestSchema(Schema):
     total = fields.Int(attribute='base_quest.total')
     gems = fields.Int(attribute='base_quest.gems')
     coins = fields.Int(attribute='base_quest.coins')
+    dust = fields.Int(attribute='base_quest.dust')
     item_id = fields.Int(attribute='base_quest.item_type.id')
     item_description = fields.Str(attribute='base_quest.item_type.description')
     char_id = fields.Int(attribute='base_quest.char_type.id')
@@ -51,6 +53,7 @@ class QuestSchema(Schema):
 def award_quest(user_inventory, quest_base, quest):
     user_inventory.coins += quest_base.coins
     user_inventory.gems += quest_base.gems
+    user_inventory.dust += quest_base.dust
     # TODO: items and characters
     user_inventory.save()
 
