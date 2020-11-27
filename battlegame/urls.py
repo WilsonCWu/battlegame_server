@@ -29,7 +29,7 @@ from playerdata import referral
 from playerdata import tournament
 from playerdata import afk_rewards
 from playerdata import inventory
-from playerdata import legal
+from playerdata import web_pages
 from playerdata import server
 from playerdata import coin_shop
 
@@ -101,9 +101,10 @@ urlpatterns = [
     path('dungeon/stage', dungeon.DungeonStageView.as_view()),
     path('dungeon/setprogress', dungeon.DungeonSetProgressView.as_view()),
     path('status/', server.ServerStatusView.as_view()),
-    path('privacy/', legal.privacy),
-    path('terms/', legal.terms),
+    path('privacy/', web_pages.privacy),
+    path('terms/', web_pages.terms),
+    path('beta/', web_pages.beta),
     path('chat/', include('chat.urls')),
     path('admin/', admin.site.urls),
-    path('', legal.install),
+    path('', web_pages.install),
 ]
