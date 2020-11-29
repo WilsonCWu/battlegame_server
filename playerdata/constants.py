@@ -1,4 +1,6 @@
 # Constants
+from enum import Enum
+
 QUICKPLAY = 0
 DUNGEON = 1
 TOURNAMENT = 2
@@ -96,3 +98,10 @@ COIN_SHOP_ITEMS = [
     2029,
     2001,
 ]
+
+
+# Deal types
+class DealType(Enum):
+    DAILY = 0
+    WEEKLY = 1
+    MONTHLY = 2

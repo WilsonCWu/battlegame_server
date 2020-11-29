@@ -1,24 +1,27 @@
 import random
 import json
+from datetime import datetime, date, time, timedelta
 from collections import namedtuple
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
+from rest_marshmallow import Schema, fields
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from battlegame.settings import SERVICE_ACCOUNT_FILE
-from playerdata.models import BaseCharacter
+from playerdata.models import BaseCharacter, Deal
 from playerdata.models import InvalidReceipt
 from playerdata.models import Character
 from playerdata.models import Inventory
 from . import constants
+from .constants import DealType
 from .questupdater import QuestUpdater
 from .serializers import PurchaseItemSerializer
 from .serializers import PurchaseSerializer
 from .serializers import ValidateReceiptSerializer
-from .inventory import CharacterSchema
+from .inventory import CharacterSchema, ItemSchema
 
 
 class PurchaseView(APIView):
@@ -81,6 +84,30 @@ def validate_google(request, receipt_raw):
 
 def validate_apple(request, receipt_raw):
     return Response({'status': True})
+
+
+class DealSchema(Schema):
+    gems = fields.Int()
+    coins = fields.Int()
+    dust = fields.Int()
+    essence = fields.Int()
+    item = fields.Nested(ItemSchema)
+    item_quantity = fields.Int()
+    char_type = fields.Nested(CharacterSchema)
+    essence_cost = fields.Int()
+    deal_type = fields.Int()
+    order = fields.Int()
+    expiration = fields.DateTime()
+
+
+class GetDeals(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        daily_deals = DealSchema(Deal.objects.filter(deal_type=DealType.DAILY.value).order_by('order'), many=True)
+        weekly_deals = DealSchema(Deal.objects.filter(deal_type=DealType.WEEKLY.value).order_by('order'), many=True)
+
+        return Response({"daily_deals": daily_deals.data, 'weekly_deals': weekly_deals.data})
 
 
 # returns a random BaseCharacter with weighted

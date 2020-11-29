@@ -49,6 +49,8 @@ from .models import TournamentMatch
 from .models import TournamentSelectionCards
 from .models import InvalidReceipt
 from .models import ServerStatus
+from .models import Deal
+from .models import PurchasedTracker
 
 
 class BaseCodeAdmin(admin.ModelAdmin, DynamicArrayMixin):
@@ -243,5 +245,7 @@ admin.site.register(TournamentMatch)
 admin.site.register(TournamentSelectionCards)
 
 admin.site.register(InvalidReceipt)
+admin.site.register(Deal)
+admin.site.register(PurchasedTracker)
 admin.site.register(ServerStatus)
 admin.site.register(LogEntry, LogEntryAdmin)

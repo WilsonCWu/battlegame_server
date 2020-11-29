@@ -19,6 +19,8 @@ from bulk_update_or_create import BulkUpdateOrCreateQuerySet
 from playerdata import constants
 
 # Developer account IDs for in-game accounts
+from playerdata.constants import DealType
+
 DEV_ACCOUNT_IDS = json.loads(config("DEV_ACCOUNT_IDS",  default='{"data": []}'))["data"]
 
 
@@ -577,6 +579,25 @@ class InvalidReceipt(models.Model):
     order_number = models.TextField()
     date = models.IntegerField()
     product_id = models.TextField()
+
+
+class Deal(models.Model):
+    gems = models.IntegerField(default=0)
+    coins = models.IntegerField(default=0)
+    dust = models.IntegerField(default=0)
+    essence = models.IntegerField(default=0)
+    item = models.ForeignKey(BaseItem, on_delete=models.CASCADE, blank=True, null=True)
+    item_quantity = models.IntegerField(default=0)
+    char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE, blank=True, null=True)
+    essence_cost = models.IntegerField(default=0)
+    deal_type = models.IntegerField(choices=[(deal.value, deal.name) for deal in DealType])
+    order = models.IntegerField(default=0)
+    expiration_date = models.DateTimeField()
+
+
+class PurchasedTracker(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    deal = models.ForeignKey(Deal, on_delete=models.CASCADE)
 
 
 def create_user_referral(user):
