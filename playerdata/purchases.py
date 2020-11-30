@@ -1,6 +1,6 @@
 import random
 import json
-from datetime import datetime, date, time, timedelta
+from datetime import datetime, timezone
 from collections import namedtuple
 
 from django.contrib.auth.models import User
@@ -15,17 +15,18 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from battlegame.settings import SERVICE_ACCOUNT_FILE
-from playerdata.models import BaseCharacter, Deal, PurchasedTracker, Item
+from playerdata.models import BaseCharacter, PurchasedTracker, Item, ActiveDeal
 from playerdata.models import InvalidReceipt
 from playerdata.models import Character
 from playerdata.models import Inventory
 from . import constants
+from .base import BaseItemSchema, BaseCharacterSchema
 from .constants import DealType
 from .questupdater import QuestUpdater
 from .serializers import PurchaseItemSerializer
 from .serializers import PurchaseSerializer
 from .serializers import ValidateReceiptSerializer
-from .inventory import CharacterSchema, ItemSchema
+from .inventory import CharacterSchema
 
 
 class PurchaseView(APIView):
@@ -93,33 +94,33 @@ def validate_apple(request, receipt_raw):
     return Response({'status': True})
 
 
-def reward_deal(user, inventory, deal):
-    inventory.coins += deal.coins
-    inventory.gems += deal.gems
-    inventory.dust += deal.dust
-    inventory.essence += deal.essence
+def reward_deal(user, inventory, base_deal):
+    inventory.coins += base_deal.coins
+    inventory.gems += base_deal.gems
+    inventory.dust += base_deal.dust
 
     inventory.save()
 
-    if deal.char_type is not None:
-        insert_character(user, deal.char_type)
+    if base_deal.char_type is not None:
+        insert_character(user, base_deal.char_type)
 
-    if deal.item is not None:
-        for i in range(0, deal.item_quantity):
-            Item.objects.create(user=user, item_type=deal.item.item_type)
+    if base_deal.item is not None:
+        for i in range(0, base_deal.item_quantity):
+            Item.objects.create(user=user, item_type=base_deal.item.item_type)
 
 
 def handle_purchase_deal(user, purchase_id):
     if purchase_id.startswith('com.salutationstudio.tinytitans.deal.daily'):
-        deal_type = DealType.DAILY
+        deal_type = DealType.DAILY.value
     else:
-        deal_type = DealType.WEEKLY
+        deal_type = DealType.WEEKLY.value
 
     order = int(purchase_id[-1])
-    curr_time = datetime.now()
+    curr_time = datetime.now(timezone.utc)
 
     try:
-        deal = Deal.objects.get(deal_type=deal_type, order=order, expiration_date__gt=curr_time)
+        deal = ActiveDeal.objects.get(base_deal__deal_type=deal_type, base_deal__order=order,
+                                      expiration_date__gt=curr_time)
     except Model.DoesNotExist as e:
         return Response({'status': False, 'reason': 'invalid deal id'})
 
@@ -128,23 +129,21 @@ def handle_purchase_deal(user, purchase_id):
     except IntegrityError as e:
         return Response({'status': False, 'reason': 'already purchased this deal!'})
 
-    reward_deal(user, user.inventory, deal)
+    reward_deal(user, user.inventory, deal.base_deal)
     return Response({'status': True})
 
 
 class DealSchema(Schema):
-    id = fields.Int()
-    gems = fields.Int()
-    coins = fields.Int()
-    dust = fields.Int()
-    essence = fields.Int()
-    item = fields.Nested(ItemSchema)
-    item_quantity = fields.Int()
-    char_type = fields.Nested(CharacterSchema)
-    essence_cost = fields.Int()
-    deal_type = fields.Int()
-    order = fields.Int()
-    expiration = fields.DateTime()
+    id = fields.Int(attribute='base_deal.id')
+    gems = fields.Int(attribute='base_deal.gems')
+    coins = fields.Int(attribute='base_deal.coins')
+    dust = fields.Int(attribute='base_deal.dust')
+    item = fields.Nested(BaseItemSchema, attribute='base_deal.item')
+    item_quantity = fields.Int(attribute='base_deal.item_quantity')
+    char_type = fields.Nested(BaseCharacterSchema, attribute='base_deal.char_type')
+    deal_type = fields.Int(attribute='base_deal.deal_type')
+    order = fields.Int(attribute='base_deal.order')
+    expiration_date = fields.DateTime()
 
     is_available = fields.Method("get_availability")
 
@@ -153,17 +152,22 @@ class DealSchema(Schema):
 
 
 class GetDeals(APIView):
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request):
         deal_schema = DealSchema(many=True)
-        deal_schema.context = request.user
+        # deal_schema.context = request.user
+        deal_schema.context = User.objects.get(id=21)
         curr_time = datetime.now()
 
-        daily_deals = deal_schema.dump(Deal.objects.filter(deal_type=DealType.DAILY.value,
-                                                           expiration_date__gt=curr_time).order_by('order'))
-        weekly_deals = deal_schema.dump(Deal.objects.filter(deal_type=DealType.WEEKLY.value,
-                                                            expiration_date__gt=curr_time).order_by('order'))
+        daily_deals = deal_schema.dump(
+            ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
+                base_deal__deal_type=DealType.DAILY.value,
+                expiration_date__gt=curr_time).order_by('base_deal__order'))
+        weekly_deals = deal_schema.dump(
+            ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
+                base_deal__deal_type=DealType.WEEKLY.value,
+                expiration_date__gt=curr_time).order_by('base_deal__order'))
 
         return Response({"daily_deals": daily_deals, 'weekly_deals': weekly_deals})
 
