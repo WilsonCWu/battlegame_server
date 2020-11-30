@@ -3,7 +3,6 @@ import json
 from datetime import datetime, timezone
 from collections import namedtuple
 
-from django.contrib.auth.models import User
 from django.db import IntegrityError, transaction
 from django.db.models import Model
 from google.oauth2 import service_account
@@ -152,12 +151,11 @@ class DealSchema(Schema):
 
 
 class GetDeals(APIView):
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request):
         deal_schema = DealSchema(many=True)
-        # deal_schema.context = request.user
-        deal_schema.context = User.objects.get(id=21)
+        deal_schema.context = request.user
         curr_time = datetime.now()
 
         daily_deals = deal_schema.dump(
