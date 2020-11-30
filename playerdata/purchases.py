@@ -1,19 +1,27 @@
 import random
 import json
+from datetime import datetime, timezone
 from collections import namedtuple
+
+from django.contrib.auth.models import User
+from django.db import IntegrityError, transaction
+from django.db.models import Model
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
+from rest_marshmallow import Schema, fields
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from battlegame.settings import SERVICE_ACCOUNT_FILE
-from playerdata.models import BaseCharacter
+from playerdata.models import BaseCharacter, PurchasedTracker, Item, ActiveDeal
 from playerdata.models import InvalidReceipt
 from playerdata.models import Character
 from playerdata.models import Inventory
 from . import constants
+from .base import BaseItemSchema, BaseCharacterSchema
+from .constants import DealType
 from .questupdater import QuestUpdater
 from .serializers import PurchaseItemSerializer
 from .serializers import PurchaseSerializer
@@ -24,6 +32,7 @@ from .inventory import CharacterSchema
 class PurchaseView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic()
     def post(self, request):
         serializer = PurchaseSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -33,6 +42,8 @@ class PurchaseView(APIView):
 
         if purchase_id == 'com.salutationstudio.tinytitans.gems400':
             inventory.gems += 400
+        elif purchase_id.startswith('com.salutationstudio.tinytitans.deal.'):
+            return handle_purchase_deal(request.user, purchase_id)
         else:
             return Response({'status': False, 'reason': 'invalid id ' + purchase_id})
 
@@ -81,6 +92,97 @@ def validate_google(request, receipt_raw):
 
 def validate_apple(request, receipt_raw):
     return Response({'status': True})
+
+
+def reward_deal(user, inventory, base_deal):
+    if base_deal.deal_type == constants.DealType.GEMS_COST.value:
+        inventory.gems -= base_deal.gems_cost
+
+    inventory.coins += base_deal.coins
+    inventory.gems += base_deal.gems
+    inventory.dust += base_deal.dust
+
+    inventory.save()
+
+    if base_deal.char_type is not None:
+        insert_character(user, base_deal.char_type)
+
+    if base_deal.item is not None:
+        for i in range(0, base_deal.item_quantity):
+            Item.objects.create(user=user, item_type=base_deal.item.item_type)
+
+
+def handle_purchase_deal(user, purchase_id):
+    if purchase_id.startswith('com.salutationstudio.tinytitans.deal.daily'):
+        deal_type = DealType.DAILY.value
+    elif purchase_id.startswith('com.salutationstudio.tinytitans.deal.weekly'):
+        deal_type = DealType.WEEKLY.value
+    else:
+        deal_type = DealType.GEMS_COST.value
+
+    order = int(purchase_id[-1])
+    curr_time = datetime.now(timezone.utc)
+
+    try:
+        deal = ActiveDeal.objects.get(base_deal__deal_type=deal_type, base_deal__order=order,
+                                      expiration_date__gt=curr_time)
+    except Model.DoesNotExist as e:
+        return Response({'status': False, 'reason': 'invalid deal id'})
+
+    try:
+        PurchasedTracker.objects.create(user=user, deal=deal)
+    except IntegrityError as e:
+        return Response({'status': False, 'reason': 'already purchased this deal!'})
+
+    if user.inventory.gems < deal.base_deal.gems_cost:
+        return Response({'status': False, 'reason': 'not enough gems!'})
+
+    reward_deal(user, user.inventory, deal.base_deal)
+    return Response({'status': True})
+
+
+class DealSchema(Schema):
+    id = fields.Int(attribute='base_deal.id')
+    gems = fields.Int(attribute='base_deal.gems')
+    coins = fields.Int(attribute='base_deal.coins')
+    dust = fields.Int(attribute='base_deal.dust')
+    item = fields.Nested(BaseItemSchema, attribute='base_deal.item')
+    item_quantity = fields.Int(attribute='base_deal.item_quantity')
+    char_type = fields.Nested(BaseCharacterSchema, attribute='base_deal.char_type')
+    deal_type = fields.Int(attribute='base_deal.deal_type')
+    order = fields.Int(attribute='base_deal.order')
+    gems_cost = fields.Int(attribute='base_deal.gems_cost')
+    expiration_date = fields.DateTime()
+
+    is_available = fields.Method("get_availability")
+
+    def get_availability(self, deal):
+        return PurchasedTracker.objects.filter(user=self.context, deal=deal).first() is None
+
+
+class GetDeals(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        deal_schema = DealSchema(many=True)
+        deal_schema.context = request.user
+        curr_time = datetime.now()
+
+        daily_deals = deal_schema.dump(
+            ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
+                base_deal__deal_type=DealType.DAILY.value,
+                expiration_date__gt=curr_time).order_by('base_deal__order'))
+        weekly_deals = deal_schema.dump(
+            ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
+                base_deal__deal_type=DealType.WEEKLY.value,
+                expiration_date__gt=curr_time).order_by('base_deal__order'))
+
+        gemscost_deals = deal_schema.dump(
+            ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
+                base_deal__deal_type=DealType.GEMS_COST.value,
+                expiration_date__gt=curr_time).order_by('base_deal__order'))
+
+        return Response({"daily_deals": daily_deals, 'weekly_deals': weekly_deals, 'gemcost_deals': gemscost_deals})
 
 
 # returns a random BaseCharacter with weighted

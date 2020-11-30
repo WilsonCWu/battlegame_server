@@ -19,6 +19,8 @@ from bulk_update_or_create import BulkUpdateOrCreateQuerySet
 from playerdata import constants
 
 # Developer account IDs for in-game accounts
+from playerdata.constants import DealType
+
 DEV_ACCOUNT_IDS = json.loads(config("DEV_ACCOUNT_IDS",  default='{"data": []}'))["data"]
 
 
@@ -577,6 +579,38 @@ class InvalidReceipt(models.Model):
     order_number = models.TextField()
     date = models.IntegerField()
     product_id = models.TextField()
+
+
+class BaseDeal(models.Model):
+    gems = models.IntegerField(default=0)
+    coins = models.IntegerField(default=0)
+    dust = models.IntegerField(default=0)
+    item = models.ForeignKey(BaseItem, on_delete=models.CASCADE, blank=True, null=True)
+    item_quantity = models.IntegerField(default=0)
+    char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE, blank=True, null=True)
+    deal_type = models.IntegerField(choices=[(deal.value, deal.name) for deal in DealType])
+    order = models.IntegerField(default=0)
+    gems_cost = models.IntegerField(default=0)
+
+
+class ActiveDeal(models.Model):
+    base_deal = models.ForeignKey(BaseDeal, on_delete=models.CASCADE)
+    expiration_date = models.DateTimeField()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['expiration_date']),
+        ]
+
+
+class PurchasedTracker(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    deal = models.ForeignKey(ActiveDeal, on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'deal'], name='unique_purchase')
+        ]
 
 
 def create_user_referral(user):

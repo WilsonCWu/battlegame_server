@@ -78,6 +78,7 @@ urlpatterns = [
     path('validate/', purchases.ValidateView.as_view()),
     path('purchaseitem/', purchases.PurchaseItemView.as_view()),
     path('purchase/', purchases.PurchaseView.as_view()),
+    path('deals/', purchases.GetDeals.as_view()),
     path('levelup/', inventory.TryLevelView.as_view()),
     path('refund/', inventory.RefundCharacter.as_view()),
     path('retire/', inventory.RetireCharacter.as_view()),
