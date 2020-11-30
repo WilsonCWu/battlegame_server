@@ -62,6 +62,10 @@ DEAL_WEEKLY_0 = 'com.salutationstudio.tinytitans.deal.weekly0'
 DEAL_WEEKLY_1 = 'com.salutationstudio.tinytitans.deal.weekly1'
 DEAL_WEEKLY_2 = 'com.salutationstudio.tinytitans.deal.weekly2'
 
+DEAL_GEMS_COST_0 = 'com.salutationstudio.tinytitans.deal.gemscost0'
+DEAL_GEMS_COST_1 = 'com.salutationstudio.tinytitans.deal.gemscost1'
+DEAL_GEMS_COST_2 = 'com.salutationstudio.tinytitans.deal.gemscost2'
+
 # These characters cannot be rolled as they're not playable / limited time /
 # other misc. reason.
 _MOBS = [
@@ -113,3 +117,4 @@ class DealType(Enum):
     DAILY = 0
     WEEKLY = 1
     MONTHLY = 2
+    GEMS_COST = 3

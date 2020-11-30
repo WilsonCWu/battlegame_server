@@ -3,6 +3,7 @@ import json
 from datetime import datetime, timezone
 from collections import namedtuple
 
+from django.contrib.auth.models import User
 from django.db import IntegrityError, transaction
 from django.db.models import Model
 from google.oauth2 import service_account
@@ -94,6 +95,9 @@ def validate_apple(request, receipt_raw):
 
 
 def reward_deal(user, inventory, base_deal):
+    if base_deal.deal_type == constants.DealType.GEMS_COST.value:
+        inventory.gems -= base_deal.gems_cost
+
     inventory.coins += base_deal.coins
     inventory.gems += base_deal.gems
     inventory.dust += base_deal.dust
@@ -111,8 +115,10 @@ def reward_deal(user, inventory, base_deal):
 def handle_purchase_deal(user, purchase_id):
     if purchase_id.startswith('com.salutationstudio.tinytitans.deal.daily'):
         deal_type = DealType.DAILY.value
-    else:
+    elif purchase_id.startswith('com.salutationstudio.tinytitans.deal.weekly'):
         deal_type = DealType.WEEKLY.value
+    else:
+        deal_type = DealType.GEMS_COST.value
 
     order = int(purchase_id[-1])
     curr_time = datetime.now(timezone.utc)
@@ -128,6 +134,9 @@ def handle_purchase_deal(user, purchase_id):
     except IntegrityError as e:
         return Response({'status': False, 'reason': 'already purchased this deal!'})
 
+    if user.inventory.gems < deal.base_deal.gems_cost:
+        return Response({'status': False, 'reason': 'not enough gems!'})
+
     reward_deal(user, user.inventory, deal.base_deal)
     return Response({'status': True})
 
@@ -142,6 +151,7 @@ class DealSchema(Schema):
     char_type = fields.Nested(BaseCharacterSchema, attribute='base_deal.char_type')
     deal_type = fields.Int(attribute='base_deal.deal_type')
     order = fields.Int(attribute='base_deal.order')
+    gems_cost = fields.Int(attribute='base_deal.gems_cost')
     expiration_date = fields.DateTime()
 
     is_available = fields.Method("get_availability")
@@ -167,7 +177,12 @@ class GetDeals(APIView):
                 base_deal__deal_type=DealType.WEEKLY.value,
                 expiration_date__gt=curr_time).order_by('base_deal__order'))
 
-        return Response({"daily_deals": daily_deals, 'weekly_deals': weekly_deals})
+        gemscost_deals = deal_schema.dump(
+            ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
+                base_deal__deal_type=DealType.GEMS_COST.value,
+                expiration_date__gt=curr_time).order_by('base_deal__order'))
+
+        return Response({"daily_deals": daily_deals, 'weekly_deals': weekly_deals, 'gemcost_deals': gemscost_deals})
 
 
 # returns a random BaseCharacter with weighted

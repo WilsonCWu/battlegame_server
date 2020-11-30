@@ -590,6 +590,7 @@ class BaseDeal(models.Model):
     char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE, blank=True, null=True)
     deal_type = models.IntegerField(choices=[(deal.value, deal.name) for deal in DealType])
     order = models.IntegerField(default=0)
+    gems_cost = models.IntegerField(default=0)
 
 
 class ActiveDeal(models.Model):
