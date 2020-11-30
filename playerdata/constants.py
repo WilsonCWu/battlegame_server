@@ -54,6 +54,14 @@ DUSTING_GEMS_COST = 100
 
 ESSENCE_PER_COMMON_CHAR_RETIRE = 100
 
+DEAL_DAILY_0 = 'com.salutationstudio.tinytitans.deal.daily0'
+DEAL_DAILY_1 = 'com.salutationstudio.tinytitans.deal.daily1'
+DEAL_DAILY_2 = 'com.salutationstudio.tinytitans.deal.daily2'
+
+DEAL_WEEKLY_0 = 'com.salutationstudio.tinytitans.deal.weekly0'
+DEAL_WEEKLY_1 = 'com.salutationstudio.tinytitans.deal.weekly1'
+DEAL_WEEKLY_2 = 'com.salutationstudio.tinytitans.deal.weekly2'
+
 # These characters cannot be rolled as they're not playable / limited time /
 # other misc. reason.
 _MOBS = [

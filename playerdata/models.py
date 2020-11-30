@@ -599,6 +599,9 @@ class PurchasedTracker(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     deal = models.ForeignKey(Deal, on_delete=models.CASCADE)
 
+    class Meta:
+        unique_together = ('user', 'deal')
+
 
 def create_user_referral(user):
     try:

@@ -2,6 +2,10 @@ import random
 import json
 from datetime import datetime, date, time, timedelta
 from collections import namedtuple
+
+from django.contrib.auth.models import User
+from django.db import IntegrityError, transaction
+from django.db.models import Model
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
@@ -11,7 +15,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from battlegame.settings import SERVICE_ACCOUNT_FILE
-from playerdata.models import BaseCharacter, Deal
+from playerdata.models import BaseCharacter, Deal, PurchasedTracker, Item
 from playerdata.models import InvalidReceipt
 from playerdata.models import Character
 from playerdata.models import Inventory
@@ -27,6 +31,7 @@ from .inventory import CharacterSchema, ItemSchema
 class PurchaseView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic()
     def post(self, request):
         serializer = PurchaseSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -36,6 +41,8 @@ class PurchaseView(APIView):
 
         if purchase_id == 'com.salutationstudio.tinytitans.gems400':
             inventory.gems += 400
+        elif purchase_id.startswith('com.salutationstudio.tinytitans.deal.'):
+            return handle_purchase_deal(request.user, purchase_id)
         else:
             return Response({'status': False, 'reason': 'invalid id ' + purchase_id})
 
@@ -86,7 +93,47 @@ def validate_apple(request, receipt_raw):
     return Response({'status': True})
 
 
+def reward_deal(user, inventory, deal):
+    inventory.coins += deal.coins
+    inventory.gems += deal.gems
+    inventory.dust += deal.dust
+    inventory.essence += deal.essence
+
+    inventory.save()
+
+    if deal.char_type is not None:
+        insert_character(user, deal.char_type)
+
+    if deal.item is not None:
+        for i in range(0, deal.item_quantity):
+            Item.objects.create(user=user, item_type=deal.item.item_type)
+
+
+def handle_purchase_deal(user, purchase_id):
+    if purchase_id.startswith('com.salutationstudio.tinytitans.deal.daily'):
+        deal_type = DealType.DAILY
+    else:
+        deal_type = DealType.WEEKLY
+
+    order = int(purchase_id[-1])
+    curr_time = datetime.now()
+
+    try:
+        deal = Deal.objects.get(deal_type=deal_type, order=order, expiration_date__gt=curr_time)
+    except Model.DoesNotExist as e:
+        return Response({'status': False, 'reason': 'invalid deal id'})
+
+    try:
+        PurchasedTracker.objects.create(user=user, deal=deal)
+    except IntegrityError as e:
+        return Response({'status': False, 'reason': 'already purchased this deal!'})
+
+    reward_deal(user, user.inventory, deal)
+    return Response({'status': True})
+
+
 class DealSchema(Schema):
+    id = fields.Int()
     gems = fields.Int()
     coins = fields.Int()
     dust = fields.Int()
@@ -99,15 +146,26 @@ class DealSchema(Schema):
     order = fields.Int()
     expiration = fields.DateTime()
 
+    is_available = fields.Method("get_availability")
+
+    def get_availability(self, deal):
+        return PurchasedTracker.objects.filter(user=self.context, deal=deal).first() is None
+
 
 class GetDeals(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        daily_deals = DealSchema(Deal.objects.filter(deal_type=DealType.DAILY.value).order_by('order'), many=True)
-        weekly_deals = DealSchema(Deal.objects.filter(deal_type=DealType.WEEKLY.value).order_by('order'), many=True)
+        deal_schema = DealSchema(many=True)
+        deal_schema.context = request.user
+        curr_time = datetime.now()
 
-        return Response({"daily_deals": daily_deals.data, 'weekly_deals': weekly_deals.data})
+        daily_deals = deal_schema.dump(Deal.objects.filter(deal_type=DealType.DAILY.value,
+                                                           expiration_date__gt=curr_time).order_by('order'))
+        weekly_deals = deal_schema.dump(Deal.objects.filter(deal_type=DealType.WEEKLY.value,
+                                                            expiration_date__gt=curr_time).order_by('order'))
+
+        return Response({"daily_deals": daily_deals, 'weekly_deals': weekly_deals})
 
 
 # returns a random BaseCharacter with weighted
