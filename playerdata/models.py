@@ -613,6 +613,12 @@ class PurchasedTracker(models.Model):
         ]
 
 
+class Chest(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    rarity = models.IntegerField()
+    locked_until = models.DateTimeField(blank=True, null=True)
+
+
 def create_user_referral(user):
     try:
         UserReferral.objects.create(user=user, referral_code=generate_referral_code())

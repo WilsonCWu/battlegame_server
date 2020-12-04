@@ -148,3 +148,8 @@ class UnequipItemSerializer(serializers.Serializer):
         ('T1', 'Tricket 1'),
         ('T2', 'Tricket 2'),
     ), required=True)
+
+
+class CollectChestSerializer(serializers.Serializer):
+    chest_id = serializers.IntegerField(required=True)
+    is_skip = serializers.BooleanField(required=True)

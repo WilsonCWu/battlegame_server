@@ -118,3 +118,15 @@ class DealType(Enum):
     WEEKLY = 1
     MONTHLY = 2
     GEMS_COST = 3
+
+
+# Chest rarity types
+class ChestType(Enum):
+    SILVER = 1
+    GOLD = 2
+    MYTHICAL = 3
+    EPIC = 4
+    LEGENDARY = 5
+
+
+CHEST_GEMS_PER_HOUR = 24
