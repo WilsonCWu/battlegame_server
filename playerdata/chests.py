@@ -11,6 +11,7 @@ from rest_marshmallow import Schema, fields
 from playerdata import constants, formulas
 from playerdata.constants import ChestType
 from playerdata.models import Chest
+from playerdata.purchases import get_rand_base_char_from_rarity, get_weighted_odds_character, get_weighted_odds_item
 from playerdata.serializers import ValueSerializer, CollectChestSerializer
 
 
@@ -97,19 +98,50 @@ def get_rand_from_bucket(buckets):
     return -1
 
 
-def reward_resource(user, resource_type, rarity):
-    # random range
+def reward_resource(user, resource_type, chest_rarity):
     # scale off of elo
     if resource_type == 'coins':
-        pivot_amount = formulas.coins_chest_reward(user.dungeonprogress.stage_id, rarity)
+        pivot_amount = formulas.coins_chest_reward(user.userinfo.elo, chest_rarity)
     elif resource_type == 'gems':
-        pivot_amount = formulas.gems_chest_reward(user.dungeonprogress.stage_id, rarity)
+        pivot_amount = formulas.gems_chest_reward(user.userinfo.elo, chest_rarity)
     else:
-        pivot_amount = formulas.essence_chest_reward(user.dungeonprogress.stage_id, rarity)
+        pivot_amount = formulas.essence_chest_reward(user.userinfo.elo, chest_rarity)
 
-    # randomly draw from within +/- 15% of that amount
+    # randomly draw from within +/- 15% of that pivot_amount
     amount = random.randint(math.floor(0.85 * pivot_amount), math.floor(pivot_amount * 1.15))
     return ChestReward(reward_type=resource_type, value=amount)
+
+
+# randomly pick item from rarity buckets
+def pick_reward_item(chest_rarity):
+    rarity_odds = constants.REGULAR_ITEM_ODDS_PER_CHEST(chest_rarity - 1)
+    item_id = get_weighted_odds_item(rarity_odds).item_type
+    return ChestReward(reward_type='item_id', value=item_id)
+
+
+# randomly pick char from rarity buckets
+def pick_reward_char(chest_rarity):
+    rarity_odds = constants.REGULAR_CHAR_ODDS_PER_CHEST(chest_rarity - 1)
+    char_id = get_weighted_odds_character(rarity_odds).char_type
+    return ChestReward(reward_type='char_id', value=char_id)
+
+
+def roll_guaranteed_char_rewards(char_guarantees):
+    rewards = []
+    i = 0
+    while i < len(char_guarantees):
+        # roll a guaranteed rarity char
+        if char_guarantees[i] > 0:
+            char_id = get_rand_base_char_from_rarity(i + 1).char_type
+            char_reward = ChestReward(reward_type='char_id', value=char_id)
+            rewards.append(char_reward)
+
+            char_guarantees[i] -= 1
+
+        if char_guarantees[i] == 0:
+            i += 1
+
+    return rewards
 
 
 class CollectChest(APIView):
@@ -136,53 +168,32 @@ class CollectChest(APIView):
             if chest.locked_until is None or datetime.now(timezone.utc) < chest.locked_until:
                 return Response({'status': False, 'reason': 'chest is not ready to open'})
 
-        # open chest based on rarity
-        # pick based on rarity the types of rewards
-        # dust gems coins items characters
-
-        """
-        dust: scaled to elo range
-        gems: scaled to elo range
-        coins: scaled to elo range
-        
-        chars: guarantee 
-        
-        return [ {
-            "type": "gems" / "coins" / "char"
-            "value": 100 / 100 / 14 (char_id)
-        } ] 
-        
-        buckets
-        
-        
-        
-        """
         rewards = []
         num_rewards = random.randint(5, 10)
 
-        if chest.rarity == constants.ChestType.SILVER:
-            resource_reward_odds = [10, 10, 10, 50, 20]
-        elif chest.rarity == constants.ChestType.GOLD:
-            resource_reward_odds = [10, 10, 10, 50, 20]
-        elif chest.rarity == constants.ChestType.MYTHICAL:
-            resource_reward_odds = [10, 10, 10, 50, 20]
-        elif chest.rarity == constants.ChestType.EPIC:
-            resource_reward_odds = [10, 10, 10, 50, 20]
-        else:  # constants.ChestType.LEGENDARY
-            resource_reward_odds = [10, 10, 10, 40, 30]
+        # Get the odds for getting each type of reward for respective chest rarity
+        resource_reward_odds = constants.RESOURCE_TYPE_ODDS_PER_CHEST[chest.rarity - 1]
+
+        # num_char rarity guarantee odds
+        char_guarantees = constants.GUARANTEED_CHARS_PER_RARITY_PER_CHEST[chest.rarity - 1]
+
+        guaranteed_char_rewards = roll_guaranteed_char_rewards(char_guarantees)
+        rewards.extend(guaranteed_char_rewards)
+        num_rewards -= len(guaranteed_char_rewards)
 
         for i in range(0, num_rewards):
             rand_reward_type = constants.REWARD_TYPE_INDEX[get_rand_from_bucket(resource_reward_odds)]
             if rand_reward_type == 'coins' or rand_reward_type == 'gems' or rand_reward_type == 'essence':
                 reward = reward_resource(request.user, rand_reward_type, chest.rarity)
             elif rand_reward_type == 'item_id':
-                # reward = reward_item()
+                reward = pick_reward_item(chest.rarity)
                 pass
             else:
-                # reward = reward_char()
-                pass
+                reward = pick_reward_char(chest.rarity)
 
             rewards.append(reward)
+
+        # award chest rewards
 
         reward_schema = ChestRewardSchema(rewards, many=True)
         return Response({'status': True, 'rewards': reward_schema.data})

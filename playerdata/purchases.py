@@ -15,7 +15,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from battlegame.settings import SERVICE_ACCOUNT_FILE
-from playerdata.models import BaseCharacter, PurchasedTracker, Item, ActiveDeal
+from playerdata.models import BaseCharacter, PurchasedTracker, Item, ActiveDeal, BaseItem
 from playerdata.models import InvalidReceipt
 from playerdata.models import Character
 from playerdata.models import Inventory
@@ -185,8 +185,29 @@ class GetDeals(APIView):
         return Response({"daily_deals": daily_deals, 'weekly_deals': weekly_deals, 'gemcost_deals': gemscost_deals})
 
 
-# returns a random BaseCharacter with weighted
-def generate_character(rarity_odds=None):
+# returns a random BaseItem with weighted odds
+def get_weighted_odds_item(rarity_odds=None):
+    if rarity_odds is None:
+        rarity_odds = constants.REGULAR_ITEM_ODDS_PER_CHEST[0]  # default SILVER chest rarity odds
+    val = random.randrange(10000) / 100
+
+    for i in range(0, len(rarity_odds)):
+        if val <= rarity_odds[i]:
+            rarity = len(rarity_odds) - i
+            break
+
+    return get_rand_base_item_from_rarity(rarity)
+
+
+def get_rand_base_item_from_rarity(rarity):
+    base_items = BaseItem.objects.filter(rarity=rarity, rollable=True, item_type__in=constants.COIN_SHOP_ITEMS)
+    num_items = base_items.count()
+    chosen_item = base_items[random.randrange(num_items)]
+    return chosen_item
+
+
+# returns a random BaseCharacter with weighted odds
+def get_weighted_odds_character(rarity_odds=None):
     if rarity_odds is None:
         rarity_odds = constants.SUMMON_RARITY_BASE
     val = random.randrange(10000) / 100
@@ -196,6 +217,10 @@ def generate_character(rarity_odds=None):
             rarity = len(rarity_odds) - i
             break
 
+    return get_rand_base_char_from_rarity(rarity)
+
+
+def get_rand_base_char_from_rarity(rarity):
     base_chars = BaseCharacter.objects.filter(rarity=rarity, rollable=True)
     num_chars = base_chars.count()
     chosen_char = base_chars[random.randrange(num_chars)]
@@ -222,7 +247,7 @@ def generate_and_insert_characters(user, char_count, rarity_odds=None):
     new_chars = {}
     # generate char_count random characters
     for i in range(char_count):
-        base_char = generate_character(rarity_odds)
+        base_char = get_weighted_odds_character(rarity_odds)
 
         # auto retire common heroes
         if base_char.rarity == 1 and user.inventory.is_auto_retire:

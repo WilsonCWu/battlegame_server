@@ -34,10 +34,8 @@ REFERRAL = 16  # Tracked / total referrals
 # so for Archer (id: 1), quest_type would be 101
 WIN_X_GAMES_WITH_CHAR_NAMESPACE = 100
 
-
 # Tournament constants
 TOURNEY_SIZE = 8
-
 
 # Purchases constants
 SUMMON_GEM_COST = {
@@ -74,12 +72,12 @@ _MOBS = [
 ]
 
 _IN_PROGRESS_CHARACTERS = [
-    16, # Potion Master
+    16,  # Potion Master
 ]
 
 # Summon rarity constants
 SUMMON_RARITY_BASE = [5, 15, 50, 100]
-#SUMMON_RARITY_BASE = [2, 8, 50, 100]
+# SUMMON_RARITY_BASE = [2, 8, 50, 100]
 SUMMON_RARITY_TOURNAMENT = [10, 40, 100, 100]
 
 # Matcher constants
@@ -128,5 +126,48 @@ class ChestType(Enum):
     EPIC = 4
     LEGENDARY = 5
 
+
 REWARD_TYPE_INDEX = ['coins', 'gems', 'essence', 'char_id', 'item_id']
+
+# The odds for getting each type of reward for respective chest rarity
+# Ex: RESOURCE_TYPE_ODDS[0][0] is the chance to get a 'coins' type reward for a silver chest
+# NOTE: each row should total to 100
+RESOURCE_TYPE_ODDS_PER_CHEST = [
+    [10, 10, 10, 50, 20],  # SILVER
+    [10, 10, 10, 50, 20],  # GOLD
+    [10, 10, 10, 50, 20],  # MYTHICAL
+    [10, 10, 10, 50, 20],  # EPIC
+    [10, 10, 10, 50, 20],  # LEGENDARY
+]
+
 CHEST_GEMS_PER_HOUR = 24
+
+# The number of chars of each rarity guaranteed for a chest rarity
+# Ex: CHAR_RARITY_GUARANTEE[0][0] is number of guaranteed rarity=1 chars to put in the chest rewards
+GUARANTEED_CHARS_PER_RARITY_PER_CHEST = [
+    [2, 1, 0, 0],  # SILVER
+    [2, 2, 0, 0],  # GOLD
+    [0, 2, 2, 0],  # MYTHICAL
+    [0, 0, 5, 0],  # EPIC
+    [0, 0, 4, 1],  # LEGENDARY
+]
+
+# Odds of getting each rarity char on non-guaranteed roll
+# NOTE: each row should total to 100
+REGULAR_CHAR_ODDS_PER_CHEST = [
+    [50, 40, 10, 0],  # SILVER
+    [30, 45, 25, 0],  # GOLD
+    [20, 35, 45, 0],  # MYTHICAL
+    [0, 0, 100, 0],  # EPIC
+    [0, 10, 55, 35],  # LEGENDARY
+]
+
+# Odds of getting each rarity item on non-guaranteed roll
+# NOTE: each row should total to 100
+REGULAR_ITEM_ODDS_PER_CHEST = [
+    [40, 40, 20, 0, 0],  # SILVER
+    [30, 40, 30, 0, 0],  # GOLD
+    [20, 35, 45, 0, 0],  # MYTHICAL
+    [0, 0, 0, 100, 0],  # EPIC
+    [0, 0, 10, 55, 35],  # LEGENDARY
+]

@@ -13,7 +13,7 @@ from playerdata.models import TournamentSelectionCards
 from playerdata.models import TournamentMatch
 from . import constants
 from .matcher import UserInfoSchema, PlacementSchema
-from .purchases import generate_character
+from .purchases import get_weighted_odds_character
 from .serializers import GetCardSerializer
 from .serializers import SelectCardSerializer
 from .serializers import SetDefenceSerializer
@@ -77,7 +77,7 @@ class TournamentMatchHistorySchema(Schema):
 def get_random_char_set(num, rarity_odds=None):
     object_set = []
     while len(object_set) < num:
-        new_char = generate_character(rarity_odds)
+        new_char = get_weighted_odds_character(rarity_odds)
         object_set.append(new_char.char_type)
     return object_set
 
