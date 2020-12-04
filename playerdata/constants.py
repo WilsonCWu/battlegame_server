@@ -128,5 +128,5 @@ class ChestType(Enum):
     EPIC = 4
     LEGENDARY = 5
 
-
+REWARD_TYPE_INDEX = ['coins', 'gems', 'essence', 'char_id', 'item_id']
 CHEST_GEMS_PER_HOUR = 24

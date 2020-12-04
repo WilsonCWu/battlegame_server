@@ -1,3 +1,4 @@
+import math
 import random
 from datetime import timedelta, datetime, timezone
 
@@ -7,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_marshmallow import Schema, fields
 
-from playerdata import constants
+from playerdata import constants, formulas
 from playerdata.constants import ChestType
 from playerdata.models import Chest
 from playerdata.serializers import ValueSerializer, CollectChestSerializer
@@ -25,8 +26,14 @@ class ChestSchema(Schema):
 # item_id, 1001
 # coins, 10000
 class ChestRewardSchema(Schema):
-    type = fields.Str()
+    reward_type = fields.Str()
     value = fields.Int()
+
+
+class ChestReward:
+  def __init__(self, reward_type, value):
+    self.reward_type = reward_type
+    self.value = value
 
 
 def chest_unlock_timedelta(rarity: int):
@@ -90,6 +97,21 @@ def get_rand_from_bucket(buckets):
     return -1
 
 
+def reward_resource(user, resource_type, rarity):
+    # random range
+    # scale off of elo
+    if resource_type == 'coins':
+        pivot_amount = formulas.coins_chest_reward(user.dungeonprogress.stage_id, rarity)
+    elif resource_type == 'gems':
+        pivot_amount = formulas.gems_chest_reward(user.dungeonprogress.stage_id, rarity)
+    else:
+        pivot_amount = formulas.essence_chest_reward(user.dungeonprogress.stage_id, rarity)
+
+    # randomly draw from within +/- 15% of that amount
+    amount = random.randint(math.floor(0.85 * pivot_amount), math.floor(pivot_amount * 1.15))
+    return ChestReward(reward_type=resource_type, value=amount)
+
+
 class CollectChest(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -135,17 +157,32 @@ class CollectChest(APIView):
         
         
         """
+        rewards = []
         num_rewards = random.randint(5, 10)
 
-        # Indices: coins, gems, dust, char, item
-        resource_reward_odds = [10, 10, 10, 50, 20]
+        if chest.rarity == constants.ChestType.SILVER:
+            resource_reward_odds = [10, 10, 10, 50, 20]
+        elif chest.rarity == constants.ChestType.GOLD:
+            resource_reward_odds = [10, 10, 10, 50, 20]
+        elif chest.rarity == constants.ChestType.MYTHICAL:
+            resource_reward_odds = [10, 10, 10, 50, 20]
+        elif chest.rarity == constants.ChestType.EPIC:
+            resource_reward_odds = [10, 10, 10, 50, 20]
+        else:  # constants.ChestType.LEGENDARY
+            resource_reward_odds = [10, 10, 10, 40, 30]
 
-        rand_reward_type = get_rand_from_bucket(resource_reward_odds)
+        for i in range(0, num_rewards):
+            rand_reward_type = constants.REWARD_TYPE_INDEX[get_rand_from_bucket(resource_reward_odds)]
+            if rand_reward_type == 'coins' or rand_reward_type == 'gems' or rand_reward_type == 'essence':
+                reward = reward_resource(request.user, rand_reward_type, chest.rarity)
+            elif rand_reward_type == 'item_id':
+                # reward = reward_item()
+                pass
+            else:
+                # reward = reward_char()
+                pass
 
+            rewards.append(reward)
 
-
-        # For each reward roll to see what tier of rewards
-
-        # award rewards
-
-        # return a response list of the rewards
+        reward_schema = ChestRewardSchema(rewards, many=True)
+        return Response({'status': True, 'rewards': reward_schema.data})
