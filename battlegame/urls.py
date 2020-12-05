@@ -32,6 +32,7 @@ from playerdata import inventory
 from playerdata import web_pages
 from playerdata import server
 from playerdata import coin_shop
+from playerdata import chests
 
 urlpatterns = [
     path('coinshop/buyitem/', coin_shop.TryBuyItemView.as_view()),
@@ -101,6 +102,9 @@ urlpatterns = [
     path('changename/', login.ChangeName.as_view()),
     path('dungeon/stage', dungeon.DungeonStageView.as_view()),
     path('dungeon/setprogress', dungeon.DungeonSetProgressView.as_view()),
+    path('chest/get/', chests.ChestView.as_view()),
+    path('chest/unlock/', chests.UnlockChest.as_view()),
+    path('chest/collect/', chests.CollectChest.as_view()),
     path('status/', server.ServerStatusView.as_view()),
     path('privacy/', web_pages.privacy),
     path('terms/', web_pages.terms),

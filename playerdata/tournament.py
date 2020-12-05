@@ -25,7 +25,7 @@ TOURNAMENT_BOTS = [29, 30, 31, 32, 33, 34, 35]
 # Tournaments start every week on Thursday
 def get_next_tournament_start_time():
     delta = (4 - datetime.today().weekday()) % 7
-    if delta is 0:
+    if delta == 0:
         delta = 7
 
     return datetime.combine(date.today(), time()) + timedelta(days=delta)

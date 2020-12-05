@@ -52,8 +52,10 @@ def chest_unlock_timedelta(rarity: int):
     return timedelta(hours=hours)
 
 
-def skip_cost(rarity: int):
-    return constants.CHEST_GEMS_PER_HOUR * chest_unlock_timedelta(rarity).total_seconds() / 3600
+def skip_cost(unlock_time: datetime):
+    curr_time = datetime.now(timezone.utc)
+    remaining_seconds = (unlock_time - curr_time).total_seconds()
+    return constants.CHEST_GEMS_PER_HOUR * remaining_seconds / 3600
 
 
 class ChestView(APIView):
@@ -62,7 +64,7 @@ class ChestView(APIView):
     def get(self, request):
         chests = Chest.objects.filter(user=request.user)
         chest_schema = ChestSchema(chests, many=True)
-        return Response({chest_schema.data})
+        return Response({'chests': chest_schema.data})
 
 
 class UnlockChest(APIView):
@@ -83,7 +85,7 @@ class UnlockChest(APIView):
         chest.locked_until = unlock_time
         chest.save()
 
-        Response({'status': True})
+        return Response({'status': True})
 
 
 def get_rand_from_bucket(buckets):
@@ -161,9 +163,10 @@ class CollectChest(APIView):
         inventory = request.user.inventory
 
         if is_skip:
-            if inventory.gems < skip_cost(chest.rarity):
+            gems_cost = skip_cost(chest.locked_until)
+            if inventory.gems < gems_cost:
                 return Response({'status': False, 'reason': 'not enough gems to skip'})
-            inventory.gems -= skip_cost(chest.rarity)
+            inventory.gems -= gems_cost
         else:
             if chest.locked_until is None or datetime.now(timezone.utc) < chest.locked_until:
                 return Response({'status': False, 'reason': 'chest is not ready to open'})
