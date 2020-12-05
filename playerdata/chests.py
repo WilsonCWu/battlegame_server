@@ -24,10 +24,10 @@ class ChestSchema(Schema):
 
 
 # Examples:
-# "gems", 100
-# char_id, 12
-# item_id, 1001
-# coins, 10000
+# 'gems', 100
+# 'char_id', 12
+# 'item_id', 1001
+# 'coins', 10000
 class ChestRewardSchema(Schema):
     reward_type = fields.Str()
     value = fields.Int()
@@ -185,7 +185,8 @@ class CollectChest(APIView):
                 return Response({'status': False, 'reason': 'chest is not ready to open'})
 
         rewards = []
-        num_rewards = random.randint(7, 10)
+        num_rewards = random.randint(constants.MIN_REWARDS_PER_CHEST[chest.rarity - 1],
+                                     constants.MAX_REWARDS_PER_CHEST[chest.rarity - 1])
 
         # Get the odds for getting each type of reward for respective chest rarity
         resource_reward_odds = constants.RESOURCE_TYPE_ODDS_PER_CHEST[chest.rarity - 1]

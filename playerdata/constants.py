@@ -119,7 +119,7 @@ class DealType(Enum):
     GEMS_COST = 3
 
 
-# Chest rarity types
+# Chest Constants
 class ChestType(Enum):
     SILVER = 1
     GOLD = 2
@@ -128,10 +128,13 @@ class ChestType(Enum):
     LEGENDARY = 5
 
 
+MIN_REWARDS_PER_CHEST = [7, 7, 7, 6, 5]
+MAX_REWARDS_PER_CHEST = [10, 10, 10, 7, 6]
+
 REWARD_TYPE_INDEX = ['coins', 'gems', 'essence', 'char_id', 'item_id']
 
 # The odds for getting each type of reward for respective chest rarity
-# Ex: RESOURCE_TYPE_ODDS[0][0] is the chance to get a 'coins' type reward for a silver chest
+# Ex: RESOURCE_TYPE_ODDS[0][0] are the odds to get a 'coins' reward for a SILVER chest
 # NOTE: each row should total to 100
 RESOURCE_TYPE_ODDS_PER_CHEST = [
     [20, 20, 10, 30, 20],  # SILVER
@@ -143,8 +146,8 @@ RESOURCE_TYPE_ODDS_PER_CHEST = [
 
 CHEST_GEMS_PER_HOUR = 24
 
-# The number of chars of each rarity guaranteed for a chest rarity
-# Ex: CHAR_RARITY_GUARANTEE[0][0] is number of guaranteed rarity=1 chars to put in the chest rewards
+# The number of chars of each char_rarity guaranteed for a chest_rarity
+# Ex: CHAR_RARITY_GUARANTEE[0][0] is number of guaranteed rarity=1 chars for a SILVER chest
 GUARANTEED_CHARS_PER_RARITY_PER_CHEST = [
     [2, 1, 0, 0],  # SILVER
     [2, 2, 0, 0],  # GOLD
