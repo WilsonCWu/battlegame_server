@@ -75,10 +75,11 @@ _IN_PROGRESS_CHARACTERS = [
     16,  # Potion Master
 ]
 
+RARITY_INDEX = [1, 2, 3, 4]
+
 # Summon rarity constants
-SUMMON_RARITY_BASE = [5, 15, 50, 100]
-# SUMMON_RARITY_BASE = [2, 8, 50, 100]
-SUMMON_RARITY_TOURNAMENT = [10, 40, 100, 100]
+SUMMON_RARITY_BASE = [50, 35, 10, 5]
+SUMMON_RARITY_TOURNAMENT = [30, 30, 30, 10]
 
 # Matcher constants
 MATCHER_DEFAULT_COUNT = 30
@@ -133,11 +134,11 @@ REWARD_TYPE_INDEX = ['coins', 'gems', 'essence', 'char_id', 'item_id']
 # Ex: RESOURCE_TYPE_ODDS[0][0] is the chance to get a 'coins' type reward for a silver chest
 # NOTE: each row should total to 100
 RESOURCE_TYPE_ODDS_PER_CHEST = [
-    [10, 10, 10, 50, 20],  # SILVER
-    [10, 10, 10, 50, 20],  # GOLD
-    [10, 10, 10, 50, 20],  # MYTHICAL
-    [10, 10, 10, 50, 20],  # EPIC
-    [10, 10, 10, 50, 20],  # LEGENDARY
+    [20, 20, 10, 30, 20],  # SILVER
+    [20, 20, 10, 30, 20],  # GOLD
+    [20, 20, 10, 30, 20],  # MYTHICAL
+    [20, 20, 10, 30, 20],  # EPIC
+    [20, 20, 10, 30, 20],  # LEGENDARY
 ]
 
 CHEST_GEMS_PER_HOUR = 24

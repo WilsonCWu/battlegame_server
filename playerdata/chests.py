@@ -11,9 +11,9 @@ from rest_marshmallow import Schema, fields
 
 from playerdata import constants, formulas
 from playerdata.constants import ChestType
-from playerdata.models import Chest, BaseItem, Item
+from playerdata.models import Chest, BaseItem, Item, UserInfo
 from playerdata.purchases import get_rand_base_char_from_rarity, get_weighted_odds_character, get_weighted_odds_item, \
-    insert_character
+    insert_character, weighted_pick_from_buckets
 from playerdata.serializers import ValueSerializer, CollectChestSerializer
 
 
@@ -48,7 +48,7 @@ def chest_unlock_timedelta(rarity: int):
         hours = 12
     elif rarity == ChestType.EPIC.value:
         hours = 12
-    else: # Max / Legendary
+    else:  # Max / Legendary
         hours = 24
 
     return timedelta(hours=hours)
@@ -57,7 +57,7 @@ def chest_unlock_timedelta(rarity: int):
 def skip_cost(unlock_time: datetime):
     curr_time = datetime.now(timezone.utc)
     remaining_seconds = (unlock_time - curr_time).total_seconds()
-    return constants.CHEST_GEMS_PER_HOUR * remaining_seconds / 3600
+    return math.floor(constants.CHEST_GEMS_PER_HOUR * remaining_seconds / 3600)
 
 
 class ChestView(APIView):
@@ -90,26 +90,16 @@ class UnlockChest(APIView):
         return Response({'status': True})
 
 
-def get_rand_from_bucket(buckets):
-    rand = random.randint(1, 100)
-    total = 0
-    for i, bucket in enumerate(buckets):
-        total += bucket
-        if rand < total:
-            return i
-
-    # should never hit this
-    return -1
-
-
 def reward_resource(user, resource_type, chest_rarity):
     # scale off of elo
+    userinfo = UserInfo.objects.get(user=user)
+
     if resource_type == 'coins':
-        pivot_amount = formulas.coins_chest_reward(user.userinfo.elo, chest_rarity)
+        pivot_amount = formulas.coins_chest_reward(userinfo.elo, chest_rarity)
     elif resource_type == 'gems':
-        pivot_amount = formulas.gems_chest_reward(user.userinfo.elo, chest_rarity)
+        pivot_amount = formulas.gems_chest_reward(userinfo.elo, chest_rarity)
     else:
-        pivot_amount = formulas.essence_chest_reward(user.userinfo.elo, chest_rarity)
+        pivot_amount = formulas.essence_chest_reward(userinfo.elo, chest_rarity)
 
     # randomly draw from within +/- 15% of that pivot_amount
     amount = random.randint(math.floor(0.85 * pivot_amount), math.floor(pivot_amount * 1.15))
@@ -118,15 +108,15 @@ def reward_resource(user, resource_type, chest_rarity):
 
 # randomly pick item from rarity buckets
 def pick_reward_item(chest_rarity):
-    rarity_odds = constants.REGULAR_ITEM_ODDS_PER_CHEST(chest_rarity - 1)
+    rarity_odds = constants.REGULAR_ITEM_ODDS_PER_CHEST[chest_rarity - 1]
     item_id = get_weighted_odds_item(rarity_odds).item_type
     return ChestReward(reward_type='item_id', value=item_id)
 
 
 # randomly pick char from rarity buckets
 def pick_reward_char(chest_rarity):
-    rarity_odds = constants.REGULAR_CHAR_ODDS_PER_CHEST(chest_rarity - 1)
-    char_id = get_weighted_odds_character(rarity_odds).char_type
+    rarity_odds = constants.REGULAR_CHAR_ODDS_PER_CHEST[chest_rarity - 1]
+    char_id = get_weighted_odds_character(rarity_odds).char_type # todo: odds are out of 100, change to cumulative
     return ChestReward(reward_type='char_id', value=char_id)
 
 
@@ -179,6 +169,9 @@ class CollectChest(APIView):
         except Model.DoesNotExist as e:
             return Response({'status': False, 'reason': 'chest_id does not exist ' + chest_id})
 
+        if chest.locked_until is None:
+            return Response({'status': False, 'reason': 'chest needs to be unlocked first'})
+
         inventory = request.user.inventory
 
         if is_skip:
@@ -186,12 +179,13 @@ class CollectChest(APIView):
             if inventory.gems < gems_cost:
                 return Response({'status': False, 'reason': 'not enough gems to skip'})
             inventory.gems -= gems_cost
+            inventory.save()
         else:
-            if chest.locked_until is None or datetime.now(timezone.utc) < chest.locked_until:
+            if datetime.now(timezone.utc) < chest.locked_until:
                 return Response({'status': False, 'reason': 'chest is not ready to open'})
 
         rewards = []
-        num_rewards = random.randint(5, 10)
+        num_rewards = random.randint(7, 10)
 
         # Get the odds for getting each type of reward for respective chest rarity
         resource_reward_odds = constants.RESOURCE_TYPE_ODDS_PER_CHEST[chest.rarity - 1]
@@ -204,7 +198,7 @@ class CollectChest(APIView):
 
         # roll the rest of the rewards based on resource_reward_odds
         for i in range(0, num_rewards):
-            rand_reward_type = constants.REWARD_TYPE_INDEX[get_rand_from_bucket(resource_reward_odds)]
+            rand_reward_type = constants.REWARD_TYPE_INDEX[weighted_pick_from_buckets(resource_reward_odds)]
             if rand_reward_type == 'coins' or rand_reward_type == 'gems' or rand_reward_type == 'essence':
                 reward = reward_resource(request.user, rand_reward_type, chest.rarity)
             elif rand_reward_type == 'item_id':

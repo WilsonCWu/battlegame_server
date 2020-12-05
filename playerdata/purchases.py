@@ -3,7 +3,6 @@ import json
 from datetime import datetime, timezone
 from collections import namedtuple
 
-from django.contrib.auth.models import User
 from django.db import IntegrityError, transaction
 from django.db.models import Model
 from google.oauth2 import service_account
@@ -185,22 +184,28 @@ class GetDeals(APIView):
         return Response({"daily_deals": daily_deals, 'weekly_deals': weekly_deals, 'gemcost_deals': gemscost_deals})
 
 
+def weighted_pick_from_buckets(buckets):
+    rand = random.randint(1, 100)
+    total = 0
+    for i, bucket in enumerate(buckets):
+        total += bucket
+        if rand < total:
+            return i
+
+    # should never hit this
+    return -1
+
 # returns a random BaseItem with weighted odds
 def get_weighted_odds_item(rarity_odds=None):
     if rarity_odds is None:
         rarity_odds = constants.REGULAR_ITEM_ODDS_PER_CHEST[0]  # default SILVER chest rarity odds
-    val = random.randrange(10000) / 100
 
-    for i in range(0, len(rarity_odds)):
-        if val <= rarity_odds[i]:
-            rarity = len(rarity_odds) - i
-            break
-
+    rarity = constants.RARITY_INDEX[weighted_pick_from_buckets(rarity_odds)]
     return get_rand_base_item_from_rarity(rarity)
 
 
 def get_rand_base_item_from_rarity(rarity):
-    base_items = BaseItem.objects.filter(rarity=rarity, rollable=True, item_type__in=constants.COIN_SHOP_ITEMS)
+    base_items = BaseItem.objects.filter(rarity=rarity, item_type__in=constants.COIN_SHOP_ITEMS)
     num_items = base_items.count()
     chosen_item = base_items[random.randrange(num_items)]
     return chosen_item
@@ -210,13 +215,8 @@ def get_rand_base_item_from_rarity(rarity):
 def get_weighted_odds_character(rarity_odds=None):
     if rarity_odds is None:
         rarity_odds = constants.SUMMON_RARITY_BASE
-    val = random.randrange(10000) / 100
 
-    for i in range(0, len(rarity_odds)):
-        if val <= rarity_odds[i]:
-            rarity = len(rarity_odds) - i
-            break
-
+    rarity = constants.RARITY_INDEX[weighted_pick_from_buckets(rarity_odds)]
     return get_rand_base_char_from_rarity(rarity)
 
 
