@@ -189,7 +189,7 @@ def weighted_pick_from_buckets(buckets):
     total = 0
     for i, bucket in enumerate(buckets):
         total += bucket
-        if rand < total:
+        if rand <= total:
             return i
 
     # should never hit this
