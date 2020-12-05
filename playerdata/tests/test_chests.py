@@ -3,6 +3,7 @@ from rest_framework.test import APITestCase
 
 from playerdata.models import User, Chest
 
+
 class ChestAPITestCase(APITestCase):
     fixtures = ['playerdata/tests/fixtures.json']
 

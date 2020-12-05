@@ -1,17 +1,13 @@
-from enum import Enum
 from django.db import transaction
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_marshmallow import Schema, fields
 
 from playerdata import constants
-from playerdata.models import UserInfo
 from playerdata.models import Item, BaseItem
+from .inventory import ItemSchema
 from .serializers import BuyItemSerializer
 
-from .inventory import ItemSchema
-import json
 
 # TODO: test cases!
 class TryBuyItemView(APIView):

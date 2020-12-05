@@ -105,7 +105,7 @@ def reward_deal(user, inventory, base_deal):
     inventory.save()
 
     if base_deal.char_type is not None:
-        insert_character(user, base_deal.char_type)
+        insert_character(user, base_deal.char_type.char_type)
 
     if base_deal.item is not None:
         for i in range(0, base_deal.item_quantity):
@@ -227,15 +227,15 @@ def get_rand_base_char_from_rarity(rarity):
     return chosen_char
 
 
-def insert_character(user, chosen_char):
-    old_char = Character.objects.filter(user=user, char_type=chosen_char).first()
+def insert_character(user, chosen_char_id):
+    old_char = Character.objects.filter(user=user, char_type_id=chosen_char_id).first()
 
     if old_char:
         old_char.copies += 1
         old_char.save()
         return old_char
 
-    new_char = Character.objects.create(user=user, char_type=chosen_char)
+    new_char = Character.objects.create(user=user, char_type_id=chosen_char_id)
     QuestUpdater.add_progress_by_type(user, constants.OWN_HEROES, 1)
     return new_char
 
@@ -255,7 +255,7 @@ def generate_and_insert_characters(user, char_count, rarity_odds=None):
             user.inventory.save()
             continue
 
-        new_char = insert_character(user, base_char)
+        new_char = insert_character(user, base_char.char_type)
         if new_char.char_id in new_chars:
             old_char = new_chars[new_char.char_id]
             new_chars[new_char.char_id] = CharacterCount(character=new_char, count=old_char.count + 1)
