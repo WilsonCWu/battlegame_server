@@ -123,18 +123,13 @@ def pick_reward_char(chest_rarity):
 
 def roll_guaranteed_char_rewards(char_guarantees):
     rewards = []
-    i = 0
-    while i < len(char_guarantees):
-        # roll a guaranteed rarity char
-        j = 0
-        while j < char_guarantees[i]:
+    # for each char rarity
+    for i in range(len(char_guarantees)):
+        # roll that many guaranteed chars
+        for j in range(char_guarantees[i]):
             char_id = get_rand_base_char_from_rarity(i + 1).char_type
             char_reward = ChestReward(reward_type='char_id', value=char_id)
             rewards.append(char_reward)
-            j += 1
-
-        i += 1
-
     return rewards
 
 
