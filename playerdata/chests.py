@@ -169,6 +169,10 @@ def award_chest_rewards(user, rewards):
             user.inventory.dust += reward.value
         elif reward.reward_type == 'char_id':
             insert_character(user, reward.value)
+        elif reward.reward_type == 'item_id':
+            base_item = BaseItem.objects.get(item_type=reward.value)
+            if not base_item.is_unique:
+                Item.objects.create(user=user, item_type=base_item)
         else:
             raise Exception("invalid reward_type, sorry friendo")
 
