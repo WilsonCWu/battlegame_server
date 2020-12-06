@@ -3,8 +3,10 @@ import bulk_admin
 from django.contrib import admin
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry
+from django.contrib.postgres.fields import JSONField
 from django.utils.translation import ngettext
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
+from django_json_widget.widgets import JSONEditorWidget
 
 from battlegame.cron import next_round, setup_tournament, end_tourney
 from .dungeon import generate_dungeon_stages
@@ -200,12 +202,18 @@ class LogEntryAdmin(admin.ModelAdmin):
     object_link.short_description = u'Modified Object'
 
 
+@admin.register(BaseCharacterAbility)
+class BaseCharacterAbilityAdmin(admin.ModelAdmin):
+    formfield_overrides = {
+        JSONField: {'widget': JSONEditorWidget}
+    }
+
+
 admin.site.register(DungeonStage, DungeonStageAdmin)
 admin.site.register(DungeonProgress)
 admin.site.register(DungeonBoss, DungeonBossAdmin)
 
 admin.site.register(BaseCharacter)
-admin.site.register(BaseCharacterAbility)
 admin.site.register(BaseCharacterUsage)
 admin.site.register(BaseItem, BaseItemAdmin)
 admin.site.register(Character)
