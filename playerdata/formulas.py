@@ -115,7 +115,7 @@ def afk_dust_per_min(dungeon_level):
     return (dungeon_level - 1) * 0.001 + ((dungeon_level - 1) ** 0.45) / 10
 
 
-def essence_chest_reward(elo, rarity):
+def dust_chest_reward(elo, rarity):
     elo += 20  # light pad on elo for 0 elo case
     base_mult = 0.5 + (rarity * 0.5)
     return math.floor(elo * base_mult + (elo ** 1.15) / 10)

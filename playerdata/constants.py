@@ -78,8 +78,8 @@ _IN_PROGRESS_CHARACTERS = [
 RARITY_INDEX = [1, 2, 3, 4]
 
 # Summon rarity constants
-SUMMON_RARITY_BASE = [50, 35, 10, 5]
-SUMMON_RARITY_TOURNAMENT = [30, 30, 30, 10]
+SUMMON_RARITY_BASE = [500, 350, 100, 50]
+SUMMON_RARITY_TOURNAMENT = [300, 300, 300, 100]
 
 # Matcher constants
 MATCHER_DEFAULT_COUNT = 30
@@ -137,11 +137,11 @@ REWARD_TYPE_INDEX = ['coins', 'gems', 'essence', 'char_id', 'item_id']
 # Ex: RESOURCE_TYPE_ODDS[0][0] are the odds to get a 'coins' reward for a SILVER chest
 # NOTE: each row should total to 100
 RESOURCE_TYPE_ODDS_PER_CHEST = [
-    [20, 20, 10, 30, 20],  # SILVER
-    [20, 20, 10, 30, 20],  # GOLD
-    [20, 20, 10, 30, 20],  # MYTHICAL
-    [20, 20, 10, 30, 20],  # EPIC
-    [20, 20, 10, 30, 20],  # LEGENDARY
+    [200, 200, 100, 300, 200],  # SILVER
+    [200, 200, 100, 300, 200],  # GOLD
+    [200, 200, 100, 300, 200],  # MYTHICAL
+    [200, 200, 100, 300, 200],  # EPIC
+    [200, 200, 100, 300, 200],  # LEGENDARY
 ]
 
 CHEST_GEMS_PER_HOUR = 24
@@ -149,29 +149,29 @@ CHEST_GEMS_PER_HOUR = 24
 # The number of chars of each char_rarity guaranteed for a chest_rarity
 # Ex: CHAR_RARITY_GUARANTEE[0][0] is number of guaranteed rarity=1 chars for a SILVER chest
 GUARANTEED_CHARS_PER_RARITY_PER_CHEST = [
-    [2, 1, 0, 0],  # SILVER
-    [2, 2, 0, 0],  # GOLD
+    [0, 3, 0, 0],  # SILVER
+    [0, 2, 1, 0],  # GOLD
     [0, 2, 2, 0],  # MYTHICAL
     [0, 0, 5, 0],  # EPIC
     [0, 0, 4, 1],  # LEGENDARY
 ]
 
 # Odds of getting each rarity char on non-guaranteed roll
-# NOTE: each row should total to 100
+# NOTE: each row should total to 1000
 REGULAR_CHAR_ODDS_PER_CHEST = [
-    [50, 40, 10, 0],  # SILVER
-    [30, 45, 25, 0],  # GOLD
-    [20, 35, 45, 0],  # MYTHICAL
-    [0, 0, 100, 0],  # EPIC
-    [0, 10, 55, 35],  # LEGENDARY
+    [500, 400, 100, 00],  # SILVER
+    [300, 450, 250, 00],  # GOLD
+    [200, 350, 450, 0],  # MYTHICAL
+    [0, 0, 1000, 0],  # EPIC
+    [0, 100, 550, 350],  # LEGENDARY
 ]
 
 # Odds of getting each rarity item on non-guaranteed roll
-# NOTE: each row should total to 100
+# NOTE: each row should total to 1000
 REGULAR_ITEM_ODDS_PER_CHEST = [
-    [40, 40, 20, 0, 0],  # SILVER
-    [30, 40, 30, 0, 0],  # GOLD
-    [20, 35, 45, 0, 0],  # MYTHICAL
-    [0, 0, 0, 100, 0],  # EPIC
-    [0, 0, 10, 55, 35],  # LEGENDARY
+    [400, 400, 200, 0, 0],  # SILVER
+    [300, 400, 300, 0, 0],  # GOLD
+    [200, 350, 450, 0, 0],  # MYTHICAL
+    [0, 0, 0, 1000, 0],  # EPIC
+    [0, 0, 100, 550, 350],  # LEGENDARY
 ]

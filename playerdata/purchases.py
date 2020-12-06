@@ -185,18 +185,18 @@ class GetDeals(APIView):
 
 
 # General function that rolls a bucket based on weighted odds
-# Expects: buckets to be a list of odds that sum to 100
+# Expects: buckets to be a list of odds that sum to 1000
 # Returns: index of the bucket that was picked
 def weighted_pick_from_buckets(buckets):
-    rand = random.randint(1, 100)
+    rand = random.randint(1, 1000)
     total = 0
     for i, bucket in enumerate(buckets):
         total += bucket
         if rand <= total:
             return i
 
-    # should never hit this
-    return -1
+    raise Exception('Invalid bucket total')
+
 
 # returns a random BaseItem with weighted odds
 def get_weighted_odds_item(rarity_odds=None):
@@ -208,7 +208,8 @@ def get_weighted_odds_item(rarity_odds=None):
 
 
 def get_rand_base_item_from_rarity(rarity):
-    base_items = BaseItem.objects.filter(rarity=rarity, item_type__in=constants.COIN_SHOP_ITEMS)
+    base_items = BaseItem.objects.filter(rarity=rarity,
+                                         item_type__in=constants.COIN_SHOP_ITEMS)
     num_items = base_items.count()
     chosen_item = base_items[random.randrange(num_items)]
     return chosen_item

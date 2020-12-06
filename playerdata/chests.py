@@ -72,7 +72,7 @@ class ChestView(APIView):
 
     def get(self, request):
         chest_schema = ChestSlotsSchema(request.user.inventory)
-        return Response({chest_schema.data})
+        return Response({'chests': chest_schema.data})
 
 
 class UnlockChest(APIView):
@@ -83,20 +83,27 @@ class UnlockChest(APIView):
         serializer.is_valid(raise_exception=True)
         chest_id = serializer.validated_data['value']
 
-        try:
-            chest = Chest.objects.get(id=chest_id)
-        except Model.DoesNotExist as e:
+        my_chest = None
+        chests = Chest.objects.filter(user=request.user)
+        for chest in chests:
+            if chest.locked_until is not None:
+                return Response({'status': False, 'reason': 'can only unlock 1 chest at a time'})
+
+            if chest.id == int(chest_id):
+                my_chest = chest
+
+        if my_chest is None:
             return Response({'status': False, 'reason': 'chest_id does not exist ' + chest_id})
 
-        unlock_time = datetime.now(timezone.utc) + chest_unlock_timedelta(chest.rarity)
+        unlock_time = datetime.now(timezone.utc) + chest_unlock_timedelta(my_chest.rarity)
 
-        chest.locked_until = unlock_time
-        chest.save()
+        my_chest.locked_until = unlock_time
+        my_chest.save()
 
         return Response({'status': True})
 
 
-def reward_resource(user, resource_type, chest_rarity):
+def pick_resource_reward(user, resource_type, chest_rarity):
     # scale off of elo
     userinfo = UserInfo.objects.get(user=user)
 
@@ -105,7 +112,7 @@ def reward_resource(user, resource_type, chest_rarity):
     elif resource_type == 'gems':
         pivot_amount = formulas.gems_chest_reward(userinfo.elo, chest_rarity)
     else:
-        pivot_amount = formulas.essence_chest_reward(userinfo.elo, chest_rarity)
+        pivot_amount = formulas.dust_chest_reward(userinfo.elo, chest_rarity)
 
     # randomly draw from within +/- 15% of that pivot_amount
     amount = random.randint(math.floor(0.85 * pivot_amount), math.floor(pivot_amount * 1.15))
@@ -113,16 +120,25 @@ def reward_resource(user, resource_type, chest_rarity):
 
 
 # randomly pick item from rarity buckets
-def pick_reward_item(chest_rarity):
+def pick_reward_item(user, chest_rarity):
     rarity_odds = constants.REGULAR_ITEM_ODDS_PER_CHEST[chest_rarity - 1]
-    item_id = get_weighted_odds_item(rarity_odds).item_type
-    return ChestReward(reward_type='item_id', value=item_id)
+    item = get_weighted_odds_item(rarity_odds)
+
+    # check for unique items
+    if item.is_unique and Item.objects.filter(user=user, item_type=item).exists():
+        item = get_weighted_odds_item(rarity_odds)
+
+        # we'll just give them a char if we roll a dup unique item twice
+        if item.is_unique and Item.objects.filter(user=user, item_type=item).exists():
+            return pick_reward_char(chest_rarity)
+
+    return ChestReward(reward_type='item_id', value=item.item_type)
 
 
 # randomly pick char from rarity buckets
 def pick_reward_char(chest_rarity):
     rarity_odds = constants.REGULAR_CHAR_ODDS_PER_CHEST[chest_rarity - 1]
-    char_id = get_weighted_odds_character(rarity_odds).char_type # todo: odds are out of 100, change to cumulative
+    char_id = get_weighted_odds_character(rarity_odds).char_type
     return ChestReward(reward_type='char_id', value=char_id)
 
 
@@ -131,15 +147,14 @@ def roll_guaranteed_char_rewards(char_guarantees):
     i = 0
     while i < len(char_guarantees):
         # roll a guaranteed rarity char
-        if char_guarantees[i] > 0:
+        j = 0
+        while j < char_guarantees[i]:
             char_id = get_rand_base_char_from_rarity(i + 1).char_type
             char_reward = ChestReward(reward_type='char_id', value=char_id)
             rewards.append(char_reward)
+            j += 1
 
-            char_guarantees[i] -= 1
-
-        if char_guarantees[i] == 0:
-            i += 1
+        i += 1
 
     return rewards
 
@@ -171,7 +186,7 @@ class CollectChest(APIView):
         is_skip = serializer.validated_data['is_skip']
 
         try:
-            chest = Chest.objects.get(id=chest_id)
+            chest = Chest.objects.get(user=request.user, id=chest_id)
         except Model.DoesNotExist as e:
             return Response({'status': False, 'reason': 'chest_id does not exist ' + chest_id})
 
@@ -207,16 +222,19 @@ class CollectChest(APIView):
         for i in range(0, num_rewards):
             rand_reward_type = constants.REWARD_TYPE_INDEX[weighted_pick_from_buckets(resource_reward_odds)]
             if rand_reward_type == 'coins' or rand_reward_type == 'gems' or rand_reward_type == 'essence':
-                reward = reward_resource(request.user, rand_reward_type, chest.rarity)
+                reward = pick_resource_reward(request.user, rand_reward_type, chest.rarity)
             elif rand_reward_type == 'item_id':
-                reward = pick_reward_item(chest.rarity)
-            else:
+                reward = pick_reward_item(request.user, chest.rarity)
+            elif rand_reward_type == 'char_id':
                 reward = pick_reward_char(chest.rarity)
+            else:
+                raise Exception("invalid reward_type, sorry friendo")
 
             rewards.append(reward)
 
         # award chest rewards
         award_chest_rewards(request.user, rewards)
+        chest.delete()
 
         reward_schema = ChestRewardSchema(rewards, many=True)
         return Response({'status': True, 'rewards': reward_schema.data})
