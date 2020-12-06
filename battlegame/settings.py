@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'channels',
     'rest_framework',
     'rest_framework.authtoken',
+    'django_json_widget',
     'django_extensions',
     'django_crontab',
     'django_better_admin_arrayfield',

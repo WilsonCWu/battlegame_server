@@ -21,9 +21,11 @@ django-bulk-update-or-create==0.2.0
 django-common-helpers==0.9.2
 django-crontab==0.7.1
 django-extensions==2.2.9
+django-json-widget==1.0.1
 django-prometheus==2.1.0
 django-rest-marshmallow==4.0.2
 djangorestframework==3.11.0
+future==0.18.2
 google-api-core==1.19.1
 google-api-python-client==1.9.1
 google-auth==1.16.1
