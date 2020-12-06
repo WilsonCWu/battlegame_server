@@ -279,6 +279,7 @@ def count_char_copies(chars):
 class PurchaseItemView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic()
     def post(self, request):
 
         serializer = PurchaseItemSerializer(data=request.data)
