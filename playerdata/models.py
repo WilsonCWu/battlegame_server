@@ -86,6 +86,7 @@ class BaseCharacter(models.Model):
     # Document-isque representation of ability / ultimate stats. This will
     # allow us to hotfix characters. NOTE(yanske1): when we upgrade to Django
     # 3.1.x, we can use the new JSONField from Django.
+    # TODO: deprecate this.
     specs = JSONField(blank=True, null=True)
 
     rollable = models.BooleanField(default=False)
@@ -98,6 +99,104 @@ class BaseCharacter(models.Model):
 
     def __str__(self):
         return str(self.char_type) + ': ' + self.name
+
+
+class BaseCharacterAbility(models.Model):
+    """Model holding character ability specs which are progressively unlocked.
+
+    Unlocking occurs at lvl % 20 == 1 (until there is no more abilities to be
+    unlocked). Each character has a max of four abilities. The ability specs
+    are encoded in JSON for flexibility.
+
+    Within each ability spec, we expect JSON in the following format: {
+        "tooltip": "some user friendly tool tip about the ability",
+        <unlock_level>: {
+            "damage": 1,
+            ...
+        },
+        ...
+    }.
+    """
+    char_type = models.OneToOneField(BaseCharacter, on_delete=models.CASCADE,
+                                     primary_key=True)
+
+    def validate_ability_specs(specs):
+        if 'tooltip' not in specs:
+            raise ValidationError('specs should have a tooltip for ease of '
+                                  'editing.')
+        def is_num(v):
+            try:
+                _ = float(v)
+                return True
+            except:
+                return False
+
+        seen_levels = set()
+        for unlock_level in specs:
+            if unlock_level == 'tooltip':
+                continue
+
+            # We only expect keys to be 'tooltip', and unlock_levels.
+            if not is_num(unlock_level):
+                raise ValidationError('unlock level %s should be a number.'
+                                      % unlock_level)
+
+            # Abilities should only be unlocked in increments of 20.
+            if int(unlock_level) % 20 != 1:
+                raise ValidationError('unlock levels should be in increments '
+                                      'of 20.')
+
+            # No duplicates can exist in a level itself.
+            if unlock_level in seen_levels:
+                raise ValidationError('spec cannot have duplicate unlock '
+                                      'levels.')
+            seen_levels.add(unlock_level)
+
+            # All specs themselves must be a one layer flat list of strings
+            # to numbers.
+            for v in specs[unlock_level].values():
+                if not is_num(v):
+                    raise ValidationError('inner specs can only have numeric '
+                                          'values.')
+
+    ability1_specs = JSONField(blank=True, null=True,
+                               validators=[validate_ability_specs])
+    ability2_specs = JSONField(blank=True, null=True,
+                               validators=[validate_ability_specs])
+    ability3_specs = JSONField(blank=True, null=True,
+                               validators=[validate_ability_specs])
+    ultimate_specs = JSONField(blank=True, null=True,
+                               validators=[validate_ability_specs])
+
+    def clean(self):
+        # Ensure that our levels increase by increments of 20 overall.
+        seen_levels = set()
+        for specs in (self.ability1_specs, self.ability2_specs,
+                      self.ability3_specs, self.ultimate_specs):
+            if specs is None:
+                continue
+
+            try:
+                levels_in_spec = {int(lvl) for lvl in specs
+                                  if lvl != 'tooltip'}
+            except:
+                raise ValidationError('levels must be integers')
+
+            # There should be no duplicate levels.
+            if seen_levels.intersection(levels_in_spec):
+                raise ValidationError('two ability specs have the same '
+                                      'unlock level.')
+
+            seen_levels.update(levels_in_spec)
+
+        for i in range(len(seen_levels)):
+            expected_level = i * 20 + 1
+            if expected_level not in seen_levels:
+                raise ValidationError('specs expected to have level %d.'
+                                      % expected_level)
+
+    def __str__(self):
+        return self.char_type.name
 
 
 class BaseCharacterUsage(models.Model):
