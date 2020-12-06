@@ -45,7 +45,7 @@ class CharacterSchema(Schema):
 
 
 class ChestSchema(Schema):
-    user_id = fields.Int(attribute='user.id')
+    id = fields.Int()
     rarity = fields.Int()
     locked_until = fields.DateTime()
 

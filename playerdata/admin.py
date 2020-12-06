@@ -11,7 +11,7 @@ from django_json_widget.widgets import JSONEditorWidget
 from battlegame.cron import next_round, setup_tournament, end_tourney
 from .dungeon import generate_dungeon_stages
 from .matcher import generate_bots_from_users, generate_bots_bulk
-from .models import BaseCharacter
+from .models import BaseCharacter, Chest
 from .models import BaseCharacterAbility
 from .models import BaseCharacterUsage
 from .models import BaseItem
@@ -261,3 +261,5 @@ admin.site.register(ActiveDeal)
 admin.site.register(PurchasedTracker)
 admin.site.register(ServerStatus)
 admin.site.register(LogEntry, LogEntryAdmin)
+
+admin.site.register(Chest)

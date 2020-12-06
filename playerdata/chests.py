@@ -79,7 +79,7 @@ class UnlockChest(APIView):
         my_chest.locked_until = unlock_time
         my_chest.save()
 
-        return Response({'status': True})
+        return Response({'status': True, 'locked_until': unlock_time})
 
 
 def pick_resource_reward(user, resource_type, chest_rarity):
