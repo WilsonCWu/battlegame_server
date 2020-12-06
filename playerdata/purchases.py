@@ -184,6 +184,9 @@ class GetDeals(APIView):
         return Response({"daily_deals": daily_deals, 'weekly_deals': weekly_deals, 'gemcost_deals': gemscost_deals})
 
 
+# General function that rolls a bucket based on weighted odds
+# Expects: buckets to be a list of odds that sum to 100
+# Returns: index of the bucket that was picked
 def weighted_pick_from_buckets(buckets):
     rand = random.randint(1, 100)
     total = 0

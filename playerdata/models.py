@@ -281,6 +281,12 @@ class UserStats(models.Model):
         return self.user.userinfo.name + '(' + str(self.user.id) + ')'
 
 
+class Chest(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    rarity = models.IntegerField()
+    locked_until = models.DateTimeField(blank=True, null=True)
+
+
 class Inventory(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     char_limit = models.IntegerField(default=50)
@@ -291,6 +297,11 @@ class Inventory(models.Model):
     hero_exp = models.IntegerField(default=0)
     is_auto_retire = models.BooleanField(default=False)
     last_collected_rewards = models.DateTimeField(default=timezone.now)
+
+    chest_slot_1 = models.ForeignKey(Chest, null=True, blank=True, on_delete=models.SET_NULL)
+    chest_slot_2 = models.ForeignKey(Chest, null=True, blank=True, on_delete=models.SET_NULL)
+    chest_slot_3 = models.ForeignKey(Chest, null=True, blank=True, on_delete=models.SET_NULL)
+    chest_slot_4 = models.ForeignKey(Chest, null=True, blank=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.user.userinfo.name + '(' + str(self.user.id) + ')'
@@ -611,12 +622,6 @@ class PurchasedTracker(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['user', 'deal'], name='unique_purchase')
         ]
-
-
-class Chest(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    rarity = models.IntegerField()
-    locked_until = models.DateTimeField(blank=True, null=True)
 
 
 def create_user_referral(user):
