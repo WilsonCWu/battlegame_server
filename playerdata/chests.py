@@ -170,9 +170,7 @@ def award_chest_rewards(user, rewards):
         elif reward.reward_type == 'char_id':
             insert_character(user, reward.value)
         else:
-            base_item = BaseItem.objects.get(item_type=reward.value)
-            if not base_item.is_unique:
-                Item.objects.create(user=user, item_type=base_item)
+            raise Exception("invalid reward_type, sorry friendo")
 
 
 class CollectChest(APIView):
