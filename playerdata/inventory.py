@@ -44,6 +44,12 @@ class CharacterSchema(Schema):
     trinket_2 = fields.Nested(ItemSchema)
 
 
+class ChestSchema(Schema):
+    user_id = fields.Int(attribute='user.id')
+    rarity = fields.Int()
+    locked_until = fields.DateTime()
+
+
 class InventorySchema(Schema):
     user_id = fields.Int(attribute='user_id')
     char_limit = fields.Int()
@@ -51,6 +57,12 @@ class InventorySchema(Schema):
     gems = fields.Int()
     dust = fields.Int()
     hero_exp = fields.Int()
+
+    chest_slot_1 = fields.Nested(ChestSchema)
+    chest_slot_2 = fields.Nested(ChestSchema)
+    chest_slot_3 = fields.Nested(ChestSchema)
+    chest_slot_4 = fields.Nested(ChestSchema)
+
     player_level = fields.Method("get_player_exp")
 
     def get_player_exp(self, inventory):

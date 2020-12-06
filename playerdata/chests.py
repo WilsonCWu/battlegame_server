@@ -17,19 +17,6 @@ from playerdata.purchases import get_rand_base_char_from_rarity, get_weighted_od
 from playerdata.serializers import ValueSerializer, CollectChestSerializer
 
 
-class ChestSchema(Schema):
-    user_id = fields.Int(attribute='user.id')
-    rarity = fields.Int()
-    locked_until = fields.DateTime()
-
-
-class ChestSlotsSchema(Schema):
-    chest_slot_1 = fields.Nested(ChestSchema)
-    chest_slot_2 = fields.Nested(ChestSchema)
-    chest_slot_3 = fields.Nested(ChestSchema)
-    chest_slot_4 = fields.Nested(ChestSchema)
-
-
 # Examples:
 # 'gems', 100
 # 'char_id', 12
@@ -65,14 +52,6 @@ def skip_cost(unlock_time: datetime):
     curr_time = datetime.now(timezone.utc)
     remaining_seconds = (unlock_time - curr_time).total_seconds()
     return max(1, math.floor(constants.CHEST_GEMS_PER_HOUR * remaining_seconds / 3600))
-
-
-class ChestView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request):
-        chest_schema = ChestSlotsSchema(request.user.inventory)
-        return Response({'chests': chest_schema.data})
 
 
 class UnlockChest(APIView):

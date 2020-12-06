@@ -102,7 +102,6 @@ urlpatterns = [
     path('changename/', login.ChangeName.as_view()),
     path('dungeon/stage', dungeon.DungeonStageView.as_view()),
     path('dungeon/setprogress', dungeon.DungeonSetProgressView.as_view()),
-    path('chest/get/', chests.ChestView.as_view()),
     path('chest/unlock/', chests.UnlockChest.as_view()),
     path('chest/collect/', chests.CollectChest.as_view()),
     path('status/', server.ServerStatusView.as_view()),

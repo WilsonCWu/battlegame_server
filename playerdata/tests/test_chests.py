@@ -27,12 +27,6 @@ class ChestAPITestCase(APITestCase):
         BaseItem.objects.create(name="Bow3", rarity=3, gear_slot='W', item_type=constants.COIN_SHOP_ITEMS[2], cost=100)
         BaseItem.objects.create(name="Bow4", rarity=4, gear_slot='W', item_type=constants.COIN_SHOP_ITEMS[3], cost=100)
 
-    def test_get_chests(self):
-        response = self.client.get('/chest/get/')
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(len(response.data['chests']) == 4)
-
     def test_unlock_chests(self):
         self.assertIsNone(self.chest1.locked_until)
 
