@@ -34,10 +34,8 @@ REFERRAL = 16  # Tracked / total referrals
 # so for Archer (id: 1), quest_type would be 101
 WIN_X_GAMES_WITH_CHAR_NAMESPACE = 100
 
-
 # Tournament constants
 TOURNEY_SIZE = 8
-
 
 # Purchases constants
 SUMMON_GEM_COST = {
@@ -74,13 +72,14 @@ _MOBS = [
 ]
 
 _IN_PROGRESS_CHARACTERS = [
-    16, # Potion Master
+    16,  # Potion Master
 ]
 
+RARITY_INDEX = [1, 2, 3, 4]
+
 # Summon rarity constants
-SUMMON_RARITY_BASE = [5, 15, 50, 100]
-#SUMMON_RARITY_BASE = [2, 8, 50, 100]
-SUMMON_RARITY_TOURNAMENT = [10, 40, 100, 100]
+SUMMON_RARITY_BASE = [500, 350, 100, 50]
+SUMMON_RARITY_TOURNAMENT = [300, 300, 300, 100]
 
 # Matcher constants
 MATCHER_DEFAULT_COUNT = 30
@@ -118,3 +117,61 @@ class DealType(Enum):
     WEEKLY = 1
     MONTHLY = 2
     GEMS_COST = 3
+
+
+# Chest Constants
+class ChestType(Enum):
+    SILVER = 1
+    GOLD = 2
+    MYTHICAL = 3
+    EPIC = 4
+    LEGENDARY = 5
+
+
+MIN_REWARDS_PER_CHEST = [7, 7, 7, 6, 5]
+MAX_REWARDS_PER_CHEST = [10, 10, 10, 7, 6]
+
+REWARD_TYPE_INDEX = ['coins', 'gems', 'essence', 'char_id', 'item_id']
+
+# The odds for getting each type of reward for respective chest rarity
+# Ex: RESOURCE_TYPE_ODDS[0][0] are the odds to get a 'coins' reward for a SILVER chest
+# NOTE: each row should total to 100
+RESOURCE_TYPE_ODDS_PER_CHEST = [
+    [200, 200, 100, 300, 200],  # SILVER
+    [200, 200, 100, 300, 200],  # GOLD
+    [200, 200, 100, 300, 200],  # MYTHICAL
+    [200, 200, 100, 300, 200],  # EPIC
+    [200, 200, 100, 300, 200],  # LEGENDARY
+]
+
+CHEST_GEMS_PER_HOUR = 24
+
+# The number of chars of each char_rarity guaranteed for a chest_rarity
+# Ex: CHAR_RARITY_GUARANTEE[0][0] is number of guaranteed rarity=1 chars for a SILVER chest
+GUARANTEED_CHARS_PER_RARITY_PER_CHEST = [
+    [0, 3, 0, 0],  # SILVER
+    [0, 2, 1, 0],  # GOLD
+    [0, 2, 2, 0],  # MYTHICAL
+    [0, 0, 5, 0],  # EPIC
+    [0, 0, 4, 1],  # LEGENDARY
+]
+
+# Odds of getting each rarity char on non-guaranteed roll
+# NOTE: each row should total to 1000
+REGULAR_CHAR_ODDS_PER_CHEST = [
+    [500, 400, 100, 00],  # SILVER
+    [300, 450, 250, 00],  # GOLD
+    [200, 350, 450, 0],  # MYTHICAL
+    [0, 0, 1000, 0],  # EPIC
+    [0, 100, 550, 350],  # LEGENDARY
+]
+
+# Odds of getting each rarity item on non-guaranteed roll
+# NOTE: each row should total to 1000
+REGULAR_ITEM_ODDS_PER_CHEST = [
+    [400, 400, 200, 0, 0],  # SILVER
+    [300, 400, 300, 0, 0],  # GOLD
+    [200, 350, 450, 0, 0],  # MYTHICAL
+    [0, 0, 0, 1000, 0],  # EPIC
+    [0, 0, 100, 550, 350],  # LEGENDARY
+]

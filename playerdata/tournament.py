@@ -13,7 +13,7 @@ from playerdata.models import TournamentSelectionCards
 from playerdata.models import TournamentMatch
 from . import constants
 from .matcher import UserInfoSchema, PlacementSchema
-from .purchases import generate_character
+from .purchases import get_weighted_odds_character
 from .serializers import GetCardSerializer
 from .serializers import SelectCardSerializer
 from .serializers import SetDefenceSerializer
@@ -25,7 +25,7 @@ TOURNAMENT_BOTS = [29, 30, 31, 32, 33, 34, 35]
 # Tournaments start every week on Thursday
 def get_next_tournament_start_time():
     delta = (4 - datetime.today().weekday()) % 7
-    if delta is 0:
+    if delta == 0:
         delta = 7
 
     return datetime.combine(date.today(), time()) + timedelta(days=delta)
@@ -77,7 +77,7 @@ class TournamentMatchHistorySchema(Schema):
 def get_random_char_set(num, rarity_odds=None):
     object_set = []
     while len(object_set) < num:
-        new_char = generate_character(rarity_odds)
+        new_char = get_weighted_odds_character(rarity_odds)
         object_set.append(new_char.char_type)
     return object_set
 

@@ -3,7 +3,6 @@ import json
 from datetime import datetime, timezone
 from collections import namedtuple
 
-from django.contrib.auth.models import User
 from django.db import IntegrityError, transaction
 from django.db.models import Model
 from google.oauth2 import service_account
@@ -15,7 +14,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from battlegame.settings import SERVICE_ACCOUNT_FILE
-from playerdata.models import BaseCharacter, PurchasedTracker, Item, ActiveDeal
+from playerdata.models import BaseCharacter, PurchasedTracker, Item, ActiveDeal, BaseItem
 from playerdata.models import InvalidReceipt
 from playerdata.models import Character
 from playerdata.models import Inventory
@@ -105,7 +104,7 @@ def reward_deal(user, inventory, base_deal):
     inventory.save()
 
     if base_deal.char_type is not None:
-        insert_character(user, base_deal.char_type)
+        insert_character(user, base_deal.char_type.char_type)
 
     if base_deal.item is not None:
         for i in range(0, base_deal.item_quantity):
@@ -185,32 +184,62 @@ class GetDeals(APIView):
         return Response({"daily_deals": daily_deals, 'weekly_deals': weekly_deals, 'gemcost_deals': gemscost_deals})
 
 
-# returns a random BaseCharacter with weighted
-def generate_character(rarity_odds=None):
+# General function that rolls a bucket based on weighted odds
+# Expects: buckets to be a list of odds that sum to 1000
+# Returns: index of the bucket that was picked
+def weighted_pick_from_buckets(buckets):
+    rand = random.randint(1, 1000)
+    total = 0
+    for i, bucket in enumerate(buckets):
+        total += bucket
+        if rand <= total:
+            return i
+
+    raise Exception('Invalid bucket total')
+
+
+# returns a random BaseItem with weighted odds
+def get_weighted_odds_item(rarity_odds=None):
+    if rarity_odds is None:
+        rarity_odds = constants.REGULAR_ITEM_ODDS_PER_CHEST[0]  # default SILVER chest rarity odds
+
+    rarity = constants.RARITY_INDEX[weighted_pick_from_buckets(rarity_odds)]
+    return get_rand_base_item_from_rarity(rarity)
+
+
+def get_rand_base_item_from_rarity(rarity):
+    base_items = BaseItem.objects.filter(rarity=rarity,
+                                         item_type__in=constants.COIN_SHOP_ITEMS)
+    num_items = base_items.count()
+    chosen_item = base_items[random.randrange(num_items)]
+    return chosen_item
+
+
+# returns a random BaseCharacter with weighted odds
+def get_weighted_odds_character(rarity_odds=None):
     if rarity_odds is None:
         rarity_odds = constants.SUMMON_RARITY_BASE
-    val = random.randrange(10000) / 100
 
-    for i in range(0, len(rarity_odds)):
-        if val <= rarity_odds[i]:
-            rarity = len(rarity_odds) - i
-            break
+    rarity = constants.RARITY_INDEX[weighted_pick_from_buckets(rarity_odds)]
+    return get_rand_base_char_from_rarity(rarity)
 
+
+def get_rand_base_char_from_rarity(rarity):
     base_chars = BaseCharacter.objects.filter(rarity=rarity, rollable=True)
     num_chars = base_chars.count()
     chosen_char = base_chars[random.randrange(num_chars)]
     return chosen_char
 
 
-def insert_character(user, chosen_char):
-    old_char = Character.objects.filter(user=user, char_type=chosen_char).first()
+def insert_character(user, chosen_char_id):
+    old_char = Character.objects.filter(user=user, char_type_id=chosen_char_id).first()
 
     if old_char:
         old_char.copies += 1
         old_char.save()
         return old_char
 
-    new_char = Character.objects.create(user=user, char_type=chosen_char)
+    new_char = Character.objects.create(user=user, char_type_id=chosen_char_id)
     QuestUpdater.add_progress_by_type(user, constants.OWN_HEROES, 1)
     return new_char
 
@@ -222,7 +251,7 @@ def generate_and_insert_characters(user, char_count, rarity_odds=None):
     new_chars = {}
     # generate char_count random characters
     for i in range(char_count):
-        base_char = generate_character(rarity_odds)
+        base_char = get_weighted_odds_character(rarity_odds)
 
         # auto retire common heroes
         if base_char.rarity == 1 and user.inventory.is_auto_retire:
@@ -230,7 +259,7 @@ def generate_and_insert_characters(user, char_count, rarity_odds=None):
             user.inventory.save()
             continue
 
-        new_char = insert_character(user, base_char)
+        new_char = insert_character(user, base_char.char_type)
         if new_char.char_id in new_chars:
             old_char = new_chars[new_char.char_id]
             new_chars[new_char.char_id] = CharacterCount(character=new_char, count=old_char.count + 1)
@@ -250,6 +279,7 @@ def count_char_copies(chars):
 class PurchaseItemView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic()
     def post(self, request):
 
         serializer = PurchaseItemSerializer(data=request.data)
