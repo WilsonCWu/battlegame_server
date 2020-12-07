@@ -154,12 +154,19 @@ class BaseCharacterAbility(models.Model):
 
     ability1_specs = JSONField(blank=True, null=True,
                                validators=[validate_ability_specs])
+    ability1_desc = models.CharField(max_length=250, default='')
+
     ability2_specs = JSONField(blank=True, null=True,
                                validators=[validate_ability_specs])
+    ability2_desc = models.CharField(max_length=250, default='')
+
     ability3_specs = JSONField(blank=True, null=True,
                                validators=[validate_ability_specs])
+    ability3_desc = models.CharField(max_length=250, default='')
+
     ultimate_specs = JSONField(blank=True, null=True,
                                validators=[validate_ability_specs])
+    ultimate_desc = models.CharField(max_length=250, default='')
 
     def clean(self):
         # Ensure that our levels increase by increments of 20 overall.
