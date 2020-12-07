@@ -109,7 +109,6 @@ class BaseCharacterAbility(models.Model):
     are encoded in JSON for flexibility.
 
     Within each ability spec, we expect JSON in the following format: {
-        "tooltip": "some user friendly tool tip about the ability",
         <unlock_level>: {
             "damage": 1,
             ...
@@ -121,9 +120,6 @@ class BaseCharacterAbility(models.Model):
                                      primary_key=True)
 
     def validate_ability_specs(specs):
-        if 'tooltip' not in specs:
-            raise ValidationError('specs should have a tooltip for ease of '
-                                  'editing.')
         def is_num(v):
             try:
                 _ = float(v)
@@ -133,10 +129,7 @@ class BaseCharacterAbility(models.Model):
 
         seen_levels = set()
         for unlock_level in specs:
-            if unlock_level == 'tooltip':
-                continue
-
-            # We only expect keys to be 'tooltip', and unlock_levels.
+            # We only expect keys to be unlock_levels.
             if not is_num(unlock_level):
                 raise ValidationError('unlock level %s should be a number.'
                                       % unlock_level)
@@ -177,8 +170,7 @@ class BaseCharacterAbility(models.Model):
                 continue
 
             try:
-                levels_in_spec = {int(lvl) for lvl in specs
-                                  if lvl != 'tooltip'}
+                levels_in_spec = {int(lvl) for lvl in specs}
             except:
                 raise ValidationError('levels must be integers')
 
