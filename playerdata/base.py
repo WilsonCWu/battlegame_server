@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from playerdata.models import BaseCharacter
+from playerdata.models import BaseCharacterAbility
 from playerdata.models import BaseItem
 
 
@@ -32,6 +33,14 @@ class BaseCharacterSchema(Schema):
     ar_scale = fields.Int()
     mr_scale = fields.Int()
     specs = fields.Str()
+
+
+class BaseCharacterAbilitySchema(Schema):
+    char_type = fields.Int(attribute='char_type_id')
+    ability1_specs = fields.Str()
+    ability2_specs = fields.Str()
+    ability3_specs = fields.Str()
+    ultimate_specs = fields.Str()
 
 
 class BaseItemSchema(Schema):
@@ -67,5 +76,10 @@ class BaseInfoView(APIView):
 
     def get(self, request):
         charSerializer = BaseCharacterSchema(BaseCharacter.objects.all(), many=True)
+        specSerializer = BaseCharacterAbilitySchema(BaseCharacterAbility.objects.all(), many=True)
         itemSerializer = BaseItemSchema(BaseItem.objects.all(), many=True)
-        return Response({'characters': charSerializer.data, 'items': itemSerializer.data})
+        return Response({
+            'characters': charSerializer.data,
+            'items': itemSerializer.data,
+            'specs': specSerializer.data,
+        })
