@@ -4,10 +4,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from . import constants, formulas
+from .purchases import weighted_pick_from_buckets
 from .questupdater import QuestUpdater
 from .serializers import UploadResultSerializer
 
-from playerdata.models import Character, DungeonProgress
+from playerdata.models import Character, DungeonProgress, Chest
 from playerdata.models import UserStats
 from playerdata.models import TournamentMember
 from playerdata.models import TournamentMatch
@@ -33,6 +34,36 @@ def calculate_tourney_elo(r1, avg_elo, standing):
     delta_elo = calculate_elo(r1, avg_elo, s1, 100) - r1
     new_r1 = r1 + round(delta_elo * elo_standing_mult[standing])
     return max(new_r1, 0)
+
+
+# returns the rarity of chest
+# if no chest was awarded returns 0
+def award_chest(user):
+    slots = [user.inventory.chest_slot_1,
+             user.inventory.chest_slot_2,
+             user.inventory.chest_slot_3,
+             user.inventory.chest_slot_4]
+
+    if all(chest is not None for chest in slots):
+        return 0
+
+    chest_rarity = weighted_pick_from_buckets(constants.CHEST_ODDS) + 1
+    chest = Chest.objects.create(user=user, rarity=chest_rarity)
+
+    if user.inventory.chest_slot_1 is None:
+        user.inventory.chest_slot_1 = chest
+        user.inventory.chest_slot_1.save()
+    elif user.inventory.chest_slot_2 is None:
+        user.inventory.chest_slot_2 = chest
+        user.inventory.chest_slot_2.save()
+    elif user.inventory.chest_slot_3 is None:
+        user.inventory.chest_slot_3 = chest
+        user.inventory.chest_slot_3.save()
+    elif user.inventory.chest_slot_4 is None:
+        user.inventory.chest_slot_4 = chest
+        user.inventory.chest_slot_4.save()
+
+    return chest_rarity
 
 
 class UploadResultView(APIView):
@@ -78,8 +109,10 @@ class UploadResultView(APIView):
             user_stats = UserStats.objects.get(user=request.user)
 
             user_stats.num_games += 1
+            chest_rarity = 0
 
             if win:
+                chest_rarity = award_chest(request.user)
                 user_stats.num_wins += 1
                 QuestUpdater.add_progress_by_type(request.user, constants.WIN_QUICKPLAY_GAMES, 1)
 
@@ -113,7 +146,7 @@ class UploadResultView(APIView):
             other_user.userinfo.elo = calculate_elo(other_user.userinfo.elo, prev_elo, not win)
             other_user.userinfo.save()
 
-            response = {"elo": updated_rating, 'prev_elo': prev_elo, 'coins': coins, 'player_exp': player_exp}
+            response = {"elo": updated_rating, 'prev_elo': prev_elo, 'coins': coins, 'player_exp': player_exp, 'chest_rarity': chest_rarity}
 
         elif mode == constants.TOURNAMENT:  # tournament
             tournament_member = TournamentMember.objects.filter(user=request.user).first()
