@@ -128,6 +128,7 @@ class ChestType(Enum):
     LEGENDARY = 5
 
 
+CHEST_ODDS = [650, 250, 100, 0, 0]
 MIN_REWARDS_PER_CHEST = [7, 7, 7, 6, 5]
 MAX_REWARDS_PER_CHEST = [10, 10, 10, 7, 6]
 
@@ -135,7 +136,7 @@ REWARD_TYPE_INDEX = ['coins', 'gems', 'essence', 'char_id', 'item_id']
 
 # The odds for getting each type of reward for respective chest rarity
 # Ex: RESOURCE_TYPE_ODDS[0][0] are the odds to get a 'coins' reward for a SILVER chest
-# NOTE: each row should total to 100
+# NOTE: each row should total to 1000
 RESOURCE_TYPE_ODDS_PER_CHEST = [
     [200, 200, 100, 300, 200],  # SILVER
     [200, 200, 100, 300, 200],  # GOLD
