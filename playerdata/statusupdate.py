@@ -52,16 +52,14 @@ def award_chest(user):
 
     if user.inventory.chest_slot_1 is None:
         user.inventory.chest_slot_1 = chest
-        user.inventory.chest_slot_1.save()
     elif user.inventory.chest_slot_2 is None:
         user.inventory.chest_slot_2 = chest
-        user.inventory.chest_slot_2.save()
     elif user.inventory.chest_slot_3 is None:
         user.inventory.chest_slot_3 = chest
-        user.inventory.chest_slot_3.save()
     elif user.inventory.chest_slot_4 is None:
         user.inventory.chest_slot_4 = chest
-        user.inventory.chest_slot_4.save()
+
+    user.inventory.save()
 
     return chest_rarity
 
