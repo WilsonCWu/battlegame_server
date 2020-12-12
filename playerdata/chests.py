@@ -64,8 +64,10 @@ class UnlockChest(APIView):
 
         my_chest = None
         chests = Chest.objects.filter(user=request.user)
+        curr_time = datetime.now(timezone.utc)
+
         for chest in chests:
-            if chest.locked_until is not None:
+            if chest.locked_until is not None and chest.locked_until > curr_time:
                 return Response({'status': False, 'reason': 'can only unlock 1 chest at a time'})
 
             if chest.id == int(chest_id):
