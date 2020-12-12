@@ -705,6 +705,9 @@ class BaseDeal(models.Model):
     order = models.IntegerField(default=0)
     gems_cost = models.IntegerField(default=0)
 
+    def __str__(self):
+        return "ID: " + str(self.id) + " Type: " + str(self.deal_type) + " Order: " + str(self.order)
+
 
 class ActiveDeal(models.Model):
     base_deal = models.ForeignKey(BaseDeal, on_delete=models.CASCADE)
