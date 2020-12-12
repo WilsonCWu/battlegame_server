@@ -14,6 +14,7 @@ from playerdata.models import TournamentMatch
 from playerdata.models import TournamentMember
 from playerdata.models import TournamentRegistration
 from playerdata.models import Placement
+from playerdata.purchases import refresh_daily_deals_cronjob, refresh_weekly_deals_cronjob
 from playerdata.statusupdate import calculate_tourney_elo
 from playerdata.tournament import get_next_round_time, TOURNAMENT_BOTS, get_random_char_set
 
@@ -35,7 +36,7 @@ def _delete_first_n_rows(quest_class, n):
 
 def daily_quests_cron():
     # remove top 3 from daily
-    print("running daily quest reset cronjob")
+    print("running daily quest refresh cronjob")
 
     _delete_first_n_rows(ActiveDailyQuest, constants.NUM_DAILY_QUESTS)
     PlayerQuestDaily.objects.all().delete()
@@ -51,12 +52,12 @@ def daily_quests_cron():
             bulk_quests.append(player_quest)
 
     PlayerQuestDaily.objects.bulk_create(bulk_quests)
-    print("daily quest cronjob complete!")
+    print("done!")
 
 
 def weekly_quests_cron():
     # remove top 5 from weekly
-    print("running weekly quest reset cronjob")
+    print("running weekly quest refresh cronjob")
 
     _delete_first_n_rows(ActiveWeeklyQuest, constants.NUM_WEEKLY_QUESTS)
     PlayerQuestWeekly.objects.all().delete()
@@ -72,7 +73,19 @@ def weekly_quests_cron():
             bulk_quests.append(player_quest)
 
     PlayerQuestWeekly.objects.bulk_create(bulk_quests)
-    print("weekly quest cronjob complete!")
+    print("done!")
+
+
+def daily_deals_cron():
+    print("running daily deals refresh cronjob")
+    refresh_daily_deals_cronjob()
+    print("done!")
+
+
+def weekly_deals_cron():
+    print("running weekly deals refresh cronjob")
+    refresh_weekly_deals_cronjob()
+    print("done!")
 
 
 # Take all registered users

@@ -14,7 +14,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from battlegame.settings import SERVICE_ACCOUNT_FILE
-from playerdata.models import BaseCharacter, PurchasedTracker, Item, ActiveDeal, BaseItem
+from playerdata.models import BaseCharacter, PurchasedTracker, Item, ActiveDeal, BaseItem, BaseDeal, get_expiration_date
 from playerdata.models import InvalidReceipt
 from playerdata.models import Character
 from playerdata.models import Inventory
@@ -182,6 +182,46 @@ class GetDeals(APIView):
                 expiration_date__gt=curr_time).order_by('base_deal__order'))
 
         return Response({"daily_deals": daily_deals, 'weekly_deals': weekly_deals, 'gemcost_deals': gemscost_deals})
+
+
+def make_deals(deal_type: int):
+    if deal_type == constants.DealType.DAILY.value:
+        interval = 1
+    elif deal_type == constants.DealType.WEEKLY.value:
+        interval = 7
+    else:
+        raise Exception("invalid deal_type, sorry friendo")
+
+    # pick random
+    deals0 = BaseDeal.objects.filter(order=0, deal_type=deal_type)
+    deals1 = BaseDeal.objects.filter(order=1, deal_type=deal_type)
+    deals2 = BaseDeal.objects.filter(order=2, deal_type=deal_type)
+
+    pick0 = deals0[random.randrange(len(deals0))]
+    pick1 = deals1[random.randrange(len(deals1))]
+    pick2 = deals2[random.randrange(len(deals2))]
+
+    bulk_deals = []
+    expiration_date = get_expiration_date(interval)
+    for pick in [pick0, pick1, pick2]:
+        active_deal = ActiveDeal(base_deal=pick, expiration_date=expiration_date)
+        bulk_deals.append(active_deal)
+
+    ActiveDeal.objects.bulk_create(bulk_deals)
+
+
+# Runs everyday and randomly picks from the pool of BaseDeals for each of the orders and updates it
+@transaction.atomic()
+def refresh_daily_deals_cronjob():
+    ActiveDeal.objects.filter(base_deal__deal_type=constants.DealType.DAILY.value).delete()
+    make_deals(constants.DealType.DAILY.value)
+
+
+# Runs every week and randomly picks from the pool of BaseDeals for each of the orders and updates it
+@transaction.atomic()
+def refresh_weekly_deals_cronjob():
+    ActiveDeal.objects.filter(base_deal__deal_type=constants.DealType.WEEKLY.value).delete()
+    make_deals(constants.DealType.WEEKLY.value)
 
 
 # General function that rolls a bucket based on weighted odds

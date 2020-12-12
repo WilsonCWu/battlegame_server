@@ -55,6 +55,7 @@ from .models import ServerStatus
 from .models import BaseDeal
 from .models import ActiveDeal
 from .models import PurchasedTracker
+from .purchases import refresh_daily_deals_cronjob, refresh_weekly_deals_cronjob
 
 
 class BaseCodeAdmin(admin.ModelAdmin, DynamicArrayMixin):
@@ -129,6 +130,22 @@ class ActiveDailyQuestAdmin(bulk_admin.BulkModelAdmin):
 
 class ActiveWeeklyQuestAdmin(bulk_admin.BulkModelAdmin):
     pass
+
+
+class ActiveDealAdmin(admin.ModelAdmin):
+    list_display = ('base_deal', 'expiration_date')
+    actions = ['refresh_daily_deals', 'refresh_weekly_deals']
+
+    def refresh_daily_deals(self, request, queryset):
+        refresh_daily_deals_cronjob()
+
+    def refresh_weekly_deals(self, request, queryset):
+        refresh_weekly_deals_cronjob()
+
+
+class BaseDealAdmin(admin.ModelAdmin):
+    list_display = ('id', 'order', 'deal_type', 'gems', 'coins', 'dust', 'item', 'char_type')
+    list_filter = ('order', 'deal_type')
 
 
 class TournamentRegAdmin(admin.ModelAdmin):
@@ -256,8 +273,8 @@ admin.site.register(TournamentMatch)
 admin.site.register(TournamentSelectionCards)
 
 admin.site.register(InvalidReceipt)
-admin.site.register(BaseDeal)
-admin.site.register(ActiveDeal)
+admin.site.register(BaseDeal, BaseDealAdmin)
+admin.site.register(ActiveDeal, ActiveDealAdmin)
 admin.site.register(PurchasedTracker)
 admin.site.register(ServerStatus)
 admin.site.register(LogEntry, LogEntryAdmin)
