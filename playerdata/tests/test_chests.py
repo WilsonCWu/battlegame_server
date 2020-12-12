@@ -4,7 +4,6 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from playerdata import constants
-from playerdata.chests import skip_cost
 from playerdata.models import User, Chest, Inventory, BaseItem
 
 
