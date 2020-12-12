@@ -48,9 +48,12 @@ def chest_unlock_timedelta(rarity: int):
     return timedelta(hours=hours)
 
 
-def skip_cost(unlock_time: datetime):
+def skip_cost(chest: Chest):
+    # we charge full price if you're skipping without unlocking baby
+    if chest.locked_until is None:
+        return constants.CHEST_GEMS_PER_HOUR * chest_unlock_timedelta(chest.rarity).total_seconds() / 3600
     curr_time = datetime.now(timezone.utc)
-    remaining_seconds = (unlock_time - curr_time).total_seconds()
+    remaining_seconds = (chest.locked_until - curr_time).total_seconds()
     return max(1, math.floor(constants.CHEST_GEMS_PER_HOUR * remaining_seconds / 3600))
 
 
@@ -168,13 +171,13 @@ class CollectChest(APIView):
         except Model.DoesNotExist as e:
             return Response({'status': False, 'reason': 'chest_id does not exist ' + chest_id})
 
-        if chest.locked_until is None:
+        if chest.locked_until is None and not is_skip:
             return Response({'status': False, 'reason': 'chest needs to be unlocked first'})
 
         inventory = request.user.inventory
 
         if is_skip:
-            gems_cost = skip_cost(chest.locked_until)
+            gems_cost = skip_cost(chest)
             if inventory.gems < gems_cost:
                 return Response({'status': False, 'reason': 'not enough gems to skip'})
             inventory.gems -= gems_cost
