@@ -138,3 +138,10 @@ def gems_chest_reward(elo, rarity):
     elo += 20  # light pad on elo for 0 elo case
     base_mult = 1 + (rarity * 0.5)
     return math.floor(elo * base_mult + (elo ** 0.2) / 10)
+
+
+#########################
+## Prestige
+
+def next_prestige_copies(curr_prestige_level):
+    return constants.PRESTIGE_COPIES_REQUIRED[curr_prestige_level]

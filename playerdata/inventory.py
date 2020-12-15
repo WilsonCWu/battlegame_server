@@ -11,7 +11,7 @@ from playerdata.models import Character, UserInfo, ServerStatus
 from playerdata.models import Item
 from . import formulas
 from .serializers import EquipItemSerializer, UnequipItemSerializer, ValueSerializer
-from .serializers import LevelUpSerializer
+from .serializers import TargetCharSerializer
 
 
 class ItemSchema(Schema):
@@ -94,7 +94,7 @@ class TryLevelView(APIView):
 
     @transaction.atomic
     def post(self, request):
-        serializer = LevelUpSerializer(data=request.data)
+        serializer = TargetCharSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         target_char_id = serializer.validated_data['target_char_id']
@@ -102,7 +102,7 @@ class TryLevelView(APIView):
         if target_character.user != request.user:
             return Response({'status': False, 'reason': 'character does not belong to user!'})
         if target_character.level >= constants.MAX_CHARACTER_LEVEL:
-            return Response({'status': False, 'reason': 'character has already hit level ' + str(constants.MAX_CHARACTER_LEVEL) + '!'})
+            return Response({'status': False, 'reason': 'character has already hit max level ' + str(constants.MAX_CHARACTER_LEVEL) + '!'})
 
         # We can only level up to the (number of copies owned * 30) + 50.
         if target_character.level + 1 > target_character.copies * 30 + 50:
@@ -135,6 +135,33 @@ class TryLevelView(APIView):
         target_character.level += 1
 
         inventory.save()
+        target_character.save()
+
+        return Response({'status': True})
+
+
+class TryPrestigeView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic
+    def post(self, request):
+        serializer = TargetCharSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        target_char_id = serializer.validated_data['target_char_id']
+        target_character = Character.objects.get(char_id=target_char_id)
+        if target_character.user != request.user:
+            return Response({'status': False, 'reason': 'character does not belong to user!'})
+        if target_character.prestige >= constants.PRESTIGE_CAP_BY_RARITY[target_character.char_type.rarity - 1]:
+            return Response({'status': False, 'reason': 'character has already hit max prestige!'})
+
+        copies_required = formulas.next_prestige_copies(target_character.prestige)
+
+        if target_character.copies < copies_required:
+            return Response({'status': False, 'reason': 'not enough copies to prestige!'})
+
+        target_character.copies -= copies_required
+        target_character.prestige += 1
         target_character.save()
 
         return Response({'status': True})
