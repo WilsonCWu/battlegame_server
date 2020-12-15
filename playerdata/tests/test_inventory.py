@@ -3,6 +3,7 @@ from rest_framework.test import APITestCase
 
 from playerdata.models import User, BaseCharacter, Character, BaseItem, Item
 
+
 class EquipItemAPITestCase(APITestCase):
     fixtures = ['playerdata/tests/fixtures.json']
 
@@ -12,15 +13,15 @@ class EquipItemAPITestCase(APITestCase):
 
         base_bow = BaseItem.objects.get(name="Bow")
         self.owned_bow = Item.objects.create(
-            user = self.u,
-            item_type = base_bow,
-            exp = 0,
+            user=self.u,
+            item_type=base_bow,
+            exp=0,
         )
 
         base_archer = BaseCharacter.objects.get(name="Archer")
         self.owned_archer = Character.objects.create(
-            user = self.u,
-            char_type = base_archer,
+            user=self.u,
+            char_type=base_archer,
         )
 
     def test_equipping_item(self):
@@ -53,8 +54,8 @@ class EquipItemAPITestCase(APITestCase):
         self.owned_archer.save()
 
         owned_archer_2 = Character.objects.create(
-            user = self.u,
-            char_type = self.owned_archer.char_type,
+            user=self.u,
+            char_type=self.owned_archer.char_type,
         )
 
         # This request will result in a DB transactional failure, as we have
@@ -105,8 +106,8 @@ class EquipItemAPITestCase(APITestCase):
 
         # Equipping same trinket on different character fails.
         owned_archer_2 = Character.objects.create(
-            user = self.u,
-            char_type = self.owned_archer.char_type,
+            user=self.u,
+            char_type=self.owned_archer.char_type,
         )
         response = self.client.post('/inventory/equipitem/', {
             'target_slot': 'T2',
@@ -132,14 +133,14 @@ class UnequipItemAPITestCase(APITestCase):
         base_archer = BaseCharacter.objects.get(name="Archer")
 
         owned_bow = Item.objects.create(
-            user = self.u,
-            item_type = base_bow,
-            exp = 0,
+            user=self.u,
+            item_type=base_bow,
+            exp=0,
         )
         owned_archer = Character.objects.create(
-            user = self.u,
-            char_type = base_archer,
-            weapon = owned_bow,
+            user=self.u,
+            char_type=base_archer,
+            weapon=owned_bow,
         )
 
         # Unequip the same item.
@@ -163,10 +164,10 @@ class LevelUpAPITestCase(APITestCase):
     def test_level_up_copy_cap(self):
         base_archer = BaseCharacter.objects.get(name="Archer")
         owned_archer = Character.objects.create(
-            user = self.u,
-            char_type = base_archer,
-            copies = 2,
-            level = 2 * 30 + 50,
+            user=self.u,
+            char_type=base_archer,
+            copies=2,
+            level=2 * 30 + 50,
         )
         inventory = self.u.inventory
         inventory.coins += 1000000000
@@ -182,10 +183,10 @@ class LevelUpAPITestCase(APITestCase):
     def test_level_up_max_cap(self):
         base_archer = BaseCharacter.objects.get(name="Archer")
         owned_archer = Character.objects.create(
-            user = self.u,
-            char_type = base_archer,
-            copies = 2,
-            level = 170,
+            user=self.u,
+            char_type=base_archer,
+            copies=2,
+            level=170,
         )
         inventory = self.u.inventory
         inventory.coins += 1000000000
@@ -197,3 +198,45 @@ class LevelUpAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data['status'])
         self.assertIn('already hit max level 170', response.data['reason'])
+
+
+class PrestigeAPITestCase(APITestCase):
+    fixtures = ['playerdata/tests/fixtures.json']
+
+    def setUp(self):
+        self.u = User.objects.get(username='battlegame')
+        self.client.force_authenticate(user=self.u)
+
+    def test_prestige(self):
+        base_ninja = BaseCharacter.objects.get(name="Ninja")
+        owned_ninja = Character.objects.create(
+            user=self.u,
+            char_type=base_ninja,
+            copies=2,
+            level=30,
+        )
+
+        response = self.client.post('/prestige/', {
+            'target_char_id': owned_ninja.char_id,
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+        owned_ninja.refresh_from_db()
+        self.assertEqual(owned_ninja.prestige, 1)
+
+    def test_prestige_cap(self):
+        base_ninja = BaseCharacter.objects.get(name="Ninja")
+        owned_ninja = Character.objects.create(
+            user=self.u,
+            char_type=base_ninja,
+            copies=500,
+            level=30,
+            prestige=5
+        )
+
+        response = self.client.post('/prestige/', {
+            'target_char_id': owned_ninja.char_id,
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['status'])
+        self.assertIn('character has already hit max prestige', response.data['reason'])
