@@ -11,7 +11,7 @@ from playerdata.models import Character, UserInfo, ServerStatus
 from playerdata.models import Item
 from . import formulas
 from .serializers import EquipItemSerializer, UnequipItemSerializer, ValueSerializer
-from .serializers import LevelUpSerializer
+from .serializers import TargetCharSerializer
 
 
 class ItemSchema(Schema):
@@ -94,7 +94,7 @@ class TryLevelView(APIView):
 
     @transaction.atomic
     def post(self, request):
-        serializer = LevelUpSerializer(data=request.data)
+        serializer = TargetCharSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         target_char_id = serializer.validated_data['target_char_id']
@@ -145,7 +145,7 @@ class TryPrestigeView(APIView):
 
     @transaction.atomic
     def post(self, request):
-        serializer = LevelUpSerializer(data=request.data)
+        serializer = TargetCharSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         target_char_id = serializer.validated_data['target_char_id']

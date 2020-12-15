@@ -42,7 +42,7 @@ class UploadResultSerializer(serializers.Serializer):
     result = serializers.JSONField()
 
 
-class LevelUpSerializer(serializers.Serializer):
+class TargetCharSerializer(serializers.Serializer):
     target_char_id = serializers.IntegerField(required=True)
 
 
