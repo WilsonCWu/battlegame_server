@@ -519,9 +519,9 @@ class BaseQuest(models.Model):
     title = models.TextField()
     type = models.IntegerField()
     total = models.BigIntegerField()
-    gems = models.IntegerField(null=True)
-    coins = models.IntegerField(null=True)
-    dust = models.IntegerField(null=True)
+    gems = models.IntegerField(default=0)
+    coins = models.IntegerField(default=0)
+    dust = models.IntegerField(default=0)
     item_type = models.ForeignKey(BaseItem, on_delete=models.CASCADE, blank=True, null=True)
     char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE, blank=True, null=True)
 
