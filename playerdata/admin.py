@@ -55,7 +55,7 @@ from .models import UserInfo
 from .models import UserReferral
 from .models import UserStats
 from .purchases import refresh_daily_deals_cronjob, refresh_weekly_deals_cronjob
-from .quest import auto_add_daily_quests, auto_add_weekly_quests
+from .quest import queue_active_weekly_quests, queue_active_daily_quests
 
 
 class BaseCodeAdmin(admin.ModelAdmin, DynamicArrayMixin):
@@ -128,14 +128,14 @@ class ActiveDailyQuestAdmin(bulk_admin.BulkModelAdmin):
     actions = ['add_quests']
 
     def add_quests(self, request, queryset):
-        auto_add_daily_quests()
+        queue_active_daily_quests()
 
 
 class ActiveWeeklyQuestAdmin(bulk_admin.BulkModelAdmin):
     actions = ['add_quests']
 
     def add_quests(self, request, queryset):
-        auto_add_weekly_quests()
+        queue_active_weekly_quests()
 
 
 class ActiveDealAdmin(admin.ModelAdmin):

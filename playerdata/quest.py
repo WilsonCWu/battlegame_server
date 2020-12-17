@@ -201,9 +201,12 @@ def add_quests_to_activequests(ActiveQuestModel, pool_ids, num_quests):
     ActiveQuestModel.objects.bulk_create(bulk_quests)
 
 
-def auto_add_daily_quests():
+def queue_active_daily_quests():
     add_quests_to_activequests(ActiveDailyQuest, constants.DAILY_QUEST_POOL_IDS, constants.NUM_DAILY_QUESTS)
 
 
-def auto_add_weekly_quests():
-    add_quests_to_activequests(ActiveWeeklyQuest, constants.WEEKLY_QUEST_POOL_IDS, constants.NUM_WEEKLY_QUESTS)
+def queue_active_weekly_quests():
+    ActiveWeeklyQuest.objects.create(base_quest_id=12)
+    ActiveWeeklyQuest.objects.create(base_quest_id=11)
+    add_quests_to_activequests(ActiveWeeklyQuest, constants.WEEKLY_QUEST_POOL_IDS, constants.NUM_WEEKLY_QUESTS - 2)
+
