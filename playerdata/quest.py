@@ -188,25 +188,22 @@ def refresh_weekly_quests():
     refresh_quests(PlayerQuestWeekly, ActiveWeeklyQuest, constants.NUM_WEEKLY_QUESTS)
 
 
-def auto_add_daily_quests():
-    quest_pool = BaseQuest.objects.filter(pk__in=constants.DAILY_QUEST_POOL_IDS)
-    base_quests = random.sample(list(quest_pool), constants.NUM_DAILY_QUESTS)
+# randomly sample from pool of quest ids to populate ActiveQuest
+def add_quests_to_activequests(ActiveQuestModel, pool_ids, num_quests):
+    quest_pool = BaseQuest.objects.filter(pk__in=pool_ids)
+    base_quests = random.sample(list(quest_pool), num_quests)
 
     bulk_quests = []
     for base_quest in base_quests:
-        active_quest = ActiveDailyQuest(base_quest=base_quest)
+        active_quest = ActiveQuestModel(base_quest=base_quest)
         bulk_quests.append(active_quest)
 
-    ActiveDailyQuest.objects.bulk_create(bulk_quests)
+    ActiveQuestModel.objects.bulk_create(bulk_quests)
+
+
+def auto_add_daily_quests():
+    add_quests_to_activequests(ActiveDailyQuest, constants.DAILY_QUEST_POOL_IDS, constants.NUM_DAILY_QUESTS)
 
 
 def auto_add_weekly_quests():
-    quest_pool = BaseQuest.objects.filter(pk__in=constants.WEEKLY_QUEST_POOL_IDS)
-    base_quests = random.sample(list(quest_pool), constants.NUM_WEEKLY_QUESTS)
-
-    bulk_quests = []
-    for base_quest in base_quests:
-        active_quest = ActiveWeeklyQuest(base_quest=base_quest)
-        bulk_quests.append(active_quest)
-
-    ActiveWeeklyQuest.objects.bulk_create(bulk_quests)
+    add_quests_to_activequests(ActiveWeeklyQuest, constants.WEEKLY_QUEST_POOL_IDS, constants.NUM_WEEKLY_QUESTS)
