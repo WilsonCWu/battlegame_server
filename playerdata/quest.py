@@ -1,12 +1,15 @@
+import random
+
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_marshmallow import Schema, fields
 
-from playerdata.models import PlayerQuestCumulative
+from playerdata.models import PlayerQuestCumulative, ActiveDailyQuest, get_expiration_date, ActiveWeeklyQuest, BaseQuest
 from playerdata.models import PlayerQuestWeekly
 from playerdata.models import PlayerQuestDaily
+from playerdata.models import User
 from . import constants
 from .questupdater import QuestUpdater
 
@@ -152,3 +155,58 @@ class LinkAccountView(APIView):
 
         QuestUpdater.add_progress_by_type(request.user, constants.ACCOUNT_LINK, 1)
         return Response({'status': True})
+
+
+# https://stackoverflow.com/questions/57167237/how-to-delete-first-n-items-from-queryset-in-django
+def _delete_first_n_rows(quest_class, n):
+    quest_class.objects.filter(
+        id__in=list(quest_class.objects.values_list('pk', flat=True)[:n])).delete()
+
+
+def refresh_quests(PlayerQuestModel, ActiveQuestModel, num_quests):
+    _delete_first_n_rows(ActiveQuestModel, num_quests)
+    PlayerQuestModel.objects.all().delete()
+
+    # pull new ones and make them for every user
+    active_quests = ActiveQuestModel.objects.all()[:num_quests]
+    expiry_date = get_expiration_date(1)
+    users = User.objects.all()
+    bulk_quests = []
+    for quest in active_quests:
+        for user in users:
+            player_quest = PlayerQuestModel(base_quest=quest.base_quest, user=user, expiration_date=expiry_date)
+            bulk_quests.append(player_quest)
+
+    PlayerQuestModel.objects.bulk_create(bulk_quests)
+
+
+def refresh_daily_quests():
+    refresh_quests(PlayerQuestDaily, ActiveDailyQuest, constants.NUM_DAILY_QUESTS)
+
+
+def refresh_weekly_quests():
+    refresh_quests(PlayerQuestWeekly, ActiveWeeklyQuest, constants.NUM_WEEKLY_QUESTS)
+
+
+def auto_add_daily_quests():
+    quest_pool = BaseQuest.objects.filter(pk__in=constants.DAILY_QUEST_POOL_IDS)
+    base_quests = random.sample(list(quest_pool), constants.NUM_DAILY_QUESTS)
+
+    bulk_quests = []
+    for base_quest in base_quests:
+        active_quest = ActiveDailyQuest(base_quest=base_quest)
+        bulk_quests.append(active_quest)
+
+    ActiveDailyQuest.objects.bulk_create(bulk_quests)
+
+
+def auto_add_weekly_quests():
+    quest_pool = BaseQuest.objects.filter(pk__in=constants.WEEKLY_QUEST_POOL_IDS)
+    base_quests = random.sample(list(quest_pool), constants.NUM_WEEKLY_QUESTS)
+
+    bulk_quests = []
+    for base_quest in base_quests:
+        active_quest = ActiveWeeklyQuest(base_quest=base_quest)
+        bulk_quests.append(active_quest)
+
+    ActiveWeeklyQuest.objects.bulk_create(bulk_quests)

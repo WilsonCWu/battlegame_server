@@ -1,20 +1,16 @@
 import random
 import statistics
 
-from playerdata import constants
 from playerdata.constants import TOURNEY_SIZE
-from playerdata.models import UserInfo
-from playerdata.models import User, Character, TournamentTeam
-from playerdata.models import ActiveDailyQuest, get_expiration_date
-from playerdata.models import ActiveWeeklyQuest
-from playerdata.models import PlayerQuestDaily
-from playerdata.models import PlayerQuestWeekly
+from playerdata.models import Character, TournamentTeam
+from playerdata.models import Placement
 from playerdata.models import Tournament
 from playerdata.models import TournamentMatch
 from playerdata.models import TournamentMember
 from playerdata.models import TournamentRegistration
-from playerdata.models import Placement
+from playerdata.models import UserInfo
 from playerdata.purchases import refresh_daily_deals_cronjob, refresh_weekly_deals_cronjob
+from playerdata.quest import refresh_daily_quests, refresh_weekly_quests
 from playerdata.statusupdate import calculate_tourney_elo
 from playerdata.tournament import get_next_round_time, TOURNAMENT_BOTS, get_random_char_set
 
@@ -28,51 +24,17 @@ Double check that crontab on the server is running on UTC timezone
 """
 
 
-# https://stackoverflow.com/questions/57167237/how-to-delete-first-n-items-from-queryset-in-django
-def _delete_first_n_rows(quest_class, n):
-    quest_class.objects.filter(
-        id__in=list(quest_class.objects.values_list('pk', flat=True)[:n])).delete()
-
-
 def daily_quests_cron():
     # remove top 3 from daily
     print("running daily quest refresh cronjob")
-
-    _delete_first_n_rows(ActiveDailyQuest, constants.NUM_DAILY_QUESTS)
-    PlayerQuestDaily.objects.all().delete()
-
-    # pull new ones and make them for every user
-    active_quests = ActiveDailyQuest.objects.all()[:constants.NUM_DAILY_QUESTS]
-    expiry_date = get_expiration_date(1)
-    users = User.objects.all()
-    bulk_quests = []
-    for quest in active_quests:
-        for user in users:
-            player_quest = PlayerQuestDaily(base_quest=quest.base_quest, user=user, expiration_date=expiry_date)
-            bulk_quests.append(player_quest)
-
-    PlayerQuestDaily.objects.bulk_create(bulk_quests)
+    refresh_daily_quests()
     print("done!")
 
 
 def weekly_quests_cron():
     # remove top 5 from weekly
     print("running weekly quest refresh cronjob")
-
-    _delete_first_n_rows(ActiveWeeklyQuest, constants.NUM_WEEKLY_QUESTS)
-    PlayerQuestWeekly.objects.all().delete()
-
-    # pull new ones and make them for every user
-    active_quests = ActiveWeeklyQuest.objects.all()[:constants.NUM_WEEKLY_QUESTS]
-    expiry_date = get_expiration_date(7)
-    users = User.objects.all()
-    bulk_quests = []
-    for quest in active_quests:
-        for user in users:
-            player_quest = PlayerQuestWeekly(base_quest=quest.base_quest, user=user, expiration_date=expiry_date)
-            bulk_quests.append(player_quest)
-
-    PlayerQuestWeekly.objects.bulk_create(bulk_quests)
+    refresh_weekly_quests()
     print("done!")
 
 
