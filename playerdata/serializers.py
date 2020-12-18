@@ -67,6 +67,10 @@ class ValueSerializer(serializers.Serializer):
     value = serializers.CharField(required=True)
 
 
+class BooleanSerializer(serializers.Serializer):
+    value = serializers.BooleanField(required=True)
+
+
 class NullableValueSerializer(serializers.Serializer):
     value = serializers.CharField(required=True, allow_blank=True)
 

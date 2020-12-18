@@ -5,10 +5,10 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from rest_marshmallow import Schema, fields
-
+from packaging import version
 from django.db import transaction
 
-from playerdata.models import DungeonProgress, Character, Placement
+from playerdata.models import DungeonProgress, Character, Placement, ServerStatus
 from playerdata.models import DungeonStage
 from playerdata.models import ReferralTracker
 from . import constants, formulas
@@ -16,6 +16,7 @@ from . import constants, formulas
 from .matcher import PlacementSchema
 from .questupdater import QuestUpdater
 from .referral import award_referral
+from .serializers import BooleanSerializer
 
 
 class DungeonProgressSchema(Schema):
@@ -165,6 +166,19 @@ class DungeonSetProgressView(APIView):
 
     def post(self, request):
         # Increment Dungeon progress
+
+        # TODO remove once we release 0.0.5
+        latest_version = ServerStatus.objects.filter(event_type='V').latest('creation_time')
+        if version.parse(latest_version.version_number) > version.parse("0.0.4"):
+            serializer = BooleanSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            QuestUpdater.add_progress_by_type(request.user, constants.ATTEMPT_DUNGEON_GAMES, 1)
+
+            is_win = serializer.validated_data['value']
+            if not is_win:
+                return Response({'status': True})
+
         progress = DungeonProgress.objects.get(user=request.user)
 
         if progress.stage_id == constants.DUNGEON_REFERRAL_CONVERSION_STAGE:
