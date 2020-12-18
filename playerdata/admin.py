@@ -1,5 +1,4 @@
 import bulk_admin
-
 from django.contrib import admin
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry
@@ -11,51 +10,52 @@ from django_json_widget.widgets import JSONEditorWidget
 from battlegame.cron import next_round, setup_tournament, end_tourney
 from .dungeon import generate_dungeon_stages
 from .matcher import generate_bots_from_users, generate_bots_bulk
+from .models import ActiveCumulativeQuest
+from .models import ActiveDailyQuest
+from .models import ActiveDeal
+from .models import ActiveWeeklyQuest
 from .models import BaseCharacter, Chest
 from .models import BaseCharacterAbility
 from .models import BaseCharacterUsage
+from .models import BaseCode
+from .models import BaseDeal
 from .models import BaseItem
+from .models import BaseQuest
 from .models import Character
-from .models import Item
-from .models import User
-from .models import UserInfo
-from .models import Placement
-from .models import UserStats
-from .models import Inventory
 from .models import Chat
 from .models import ChatMessage
-from .models import Friend
-from .models import FriendRequest
+from .models import ClaimedCode
 from .models import Clan
 from .models import ClanMember
 from .models import ClanRequest
-from .models import DungeonStage
-from .models import DungeonProgress
+from .models import CumulativeTracker
 from .models import DungeonBoss
-from .models import BaseQuest
+from .models import DungeonProgress
+from .models import DungeonStage
+from .models import Friend
+from .models import FriendRequest
+from .models import InvalidReceipt
+from .models import Inventory
+from .models import Item
+from .models import Placement
 from .models import PlayerQuestCumulative
 from .models import PlayerQuestDaily
 from .models import PlayerQuestWeekly
-from .models import ActiveDailyQuest
-from .models import ActiveWeeklyQuest
-from .models import ActiveCumulativeQuest
-from .models import CumulativeTracker
-from .models import BaseCode
-from .models import ClaimedCode
-from .models import UserReferral
-from .models import ReferralTracker
-from .models import Tournament
-from .models import TournamentMember
-from .models import TournamentTeam
-from .models import TournamentRegistration
-from .models import TournamentMatch
-from .models import TournamentSelectionCards
-from .models import InvalidReceipt
-from .models import ServerStatus
-from .models import BaseDeal
-from .models import ActiveDeal
 from .models import PurchasedTracker
+from .models import ReferralTracker
+from .models import ServerStatus
+from .models import Tournament
+from .models import TournamentMatch
+from .models import TournamentMember
+from .models import TournamentRegistration
+from .models import TournamentSelectionCards
+from .models import TournamentTeam
+from .models import User
+from .models import UserInfo
+from .models import UserReferral
+from .models import UserStats
 from .purchases import refresh_daily_deals_cronjob, refresh_weekly_deals_cronjob
+from .quest import queue_active_weekly_quests, queue_active_daily_quests
 
 
 class BaseCodeAdmin(admin.ModelAdmin, DynamicArrayMixin):
@@ -98,7 +98,7 @@ class PlacementAdmin(admin.ModelAdmin):
 
 class BaseQuestAdmin(bulk_admin.BulkModelAdmin):
     actions = ['propagate_quests']
-    list_display = ('title', 'type', 'total')
+    list_display = ('id', 'title', 'type', 'total')
     list_filter = ('type',)
 
     def propagate_quests(self, request, queryset):
@@ -125,11 +125,17 @@ class ActiveCumulativeQuestAdmin(bulk_admin.BulkModelAdmin):
 
 
 class ActiveDailyQuestAdmin(bulk_admin.BulkModelAdmin):
-    pass
+    actions = ['add_quests']
+
+    def add_quests(self, request, queryset):
+        queue_active_daily_quests()
 
 
 class ActiveWeeklyQuestAdmin(bulk_admin.BulkModelAdmin):
-    pass
+    actions = ['add_quests']
+
+    def add_quests(self, request, queryset):
+        queue_active_weekly_quests()
 
 
 class ActiveDealAdmin(admin.ModelAdmin):
