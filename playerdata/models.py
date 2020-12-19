@@ -245,6 +245,8 @@ class BaseItem(models.Model):
     mana_tick_flat = models.IntegerField(blank=True, null=True)
     mana_tick_mult = models.FloatField(blank=True, null=True)
     range_flat = models.IntegerField(blank=True, null=True)
+    max_health_flat = models.IntegerField(blank=True, null=True)
+    max_health_mult = models.FloatField(blank=True, null=True)
 
     # Effects from items. These are recognized by the client and its effects
     # are encoded there.
