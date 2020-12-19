@@ -70,6 +70,8 @@ class BaseItemSchema(Schema):
     mana_tick_flat = fields.Int()
     mana_tick_mult = fields.Float()
     range_flat = fields.Int()
+    max_health_flat = fields.Int()
+    max_health_mult = fields.Float()
 
 
 class BaseInfoView(APIView):
