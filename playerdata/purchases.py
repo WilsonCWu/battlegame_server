@@ -37,17 +37,12 @@ class PurchaseView(APIView):
         serializer.is_valid(raise_exception=True)
         purchase_id = serializer.validated_data['purchase_id']
 
-        inventory = Inventory.objects.get(user=request.user)
-
-        if purchase_id == 'com.salutationstudio.tinytitans.gems400':
-            inventory.gems += 400
+        if purchase_id.startswith('com.salutationstudio.tinytitans.gems.'):
+            return handle_purchase_gems(request.user, purchase_id)
         elif purchase_id.startswith('com.salutationstudio.tinytitans.deal.'):
             return handle_purchase_deal(request.user, purchase_id)
         else:
             return Response({'status': False, 'reason': 'invalid id ' + purchase_id})
-
-        inventory.save()
-        return Response({'status': True})
 
 
 class ValidateView(APIView):
@@ -90,6 +85,18 @@ def validate_google(request, receipt_raw):
 
 
 def validate_apple(request, receipt_raw):
+    return Response({'status': True})
+
+
+def handle_purchase_gems(user, purchase_id):
+    if purchase_id in constants.IAP_GEMS_AMOUNT:
+        user.inventory.gems += constants.IAP_GEMS_AMOUNT[purchase_id]
+    else:
+        raise Exception('invalid purchase_id ' + purchase_id)
+
+    user.inventory.save()
+    PurchasedTracker.objects.create(user=user, purchase_id=purchase_id)
+
     return Response({'status': True})
 
 
