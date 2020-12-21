@@ -63,9 +63,22 @@ DEAL_WEEKLY_0 = 'com.salutationstudio.tinytitans.deal.weekly0'
 DEAL_WEEKLY_1 = 'com.salutationstudio.tinytitans.deal.weekly1'
 DEAL_WEEKLY_2 = 'com.salutationstudio.tinytitans.deal.weekly2'
 
-DEAL_GEMS_COST_0 = 'com.salutationstudio.tinytitans.deal.gemscost0'
-DEAL_GEMS_COST_1 = 'com.salutationstudio.tinytitans.deal.gemscost1'
-DEAL_GEMS_COST_2 = 'com.salutationstudio.tinytitans.deal.gemscost2'
+GEMS_499 = 'com.salutationstudio.tinytitans.gems.499'
+GEMS_999 = 'com.salutationstudio.tinytitans.gems.999'
+GEMS_1999 = 'com.salutationstudio.tinytitans.gems.1999'
+
+GEMS_2999 = 'com.salutationstudio.tinytitans.gems.2999'
+GEMS_4999 = 'com.salutationstudio.tinytitans.gems.4999'
+GEMS_9999 = 'com.salutationstudio.tinytitans.gems.9999'
+
+IAP_GEMS_AMOUNT = {
+    GEMS_499: 800,
+    GEMS_999: 2060,
+    GEMS_1999: 4360,
+    GEMS_2999: 7060,
+    GEMS_4999: 12660,
+    GEMS_9999: 32160,
+}
 
 # These characters cannot be rolled as they're not playable / limited time /
 # other misc. reason.
