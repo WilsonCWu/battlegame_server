@@ -37,20 +37,22 @@ class PurchaseTestCase(APITestCase):
         self.client.force_authenticate(user=self.u)
 
         expiration = datetime.now(timezone.utc) + timedelta(days=1)
-        base_deal = BaseDeal.objects.create(gems=1000, order=1, deal_type=constants.DealType.DAILY.value)
+        base_deal = BaseDeal.objects.create(gems=1000, order=0, deal_type=constants.DealType.DAILY.value)
         ActiveDeal.objects.create(base_deal=base_deal, expiration_date=expiration)
 
     # buy deal and try to buy same deal again
     def test_purchase_deal(self):
         response = self.client.post('/purchase/', {
-            'purchase_id': constants.DEAL_DAILY_1,
+            'purchase_id': constants.DEAL_DAILY_0,
+            'transaction_id': constants.DEAL_DAILY_0,
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
 
         response = self.client.post('/purchase/', {
-            'purchase_id': constants.DEAL_DAILY_1,
+            'purchase_id': constants.DEAL_DAILY_0,
+            'transaction_id': constants.DEAL_DAILY_0,
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from collections import namedtuple
 
 from django.db import IntegrityError, transaction
-from django.db.models import Model
+from django.core.exceptions import ObjectDoesNotExist
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
@@ -140,7 +140,7 @@ def handle_purchase_deal(user, purchase_id, transaction_id):
     try:
         deal = ActiveDeal.objects.get(base_deal__deal_type=deal_type, base_deal__order=order,
                                       expiration_date__gt=curr_time)
-    except Model.DoesNotExist as e:
+    except ObjectDoesNotExist:
         return Response({'status': False, 'reason': 'invalid deal id'})
 
     # check if Purchase was recorded from validate/ (don't check if it was the free daily deal)
