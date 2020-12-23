@@ -57,6 +57,7 @@ class ValidateReceiptSerializer(serializers.Serializer):
 
 class PurchaseSerializer(serializers.Serializer):
     purchase_id = serializers.CharField(required=True)
+    transaction_id = serializers.CharField(required=True)
 
 
 class PurchaseItemSerializer(serializers.Serializer):
