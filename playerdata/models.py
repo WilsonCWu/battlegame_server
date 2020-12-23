@@ -725,6 +725,8 @@ class PurchasedTracker(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     deal = models.ForeignKey(ActiveDeal, on_delete=models.CASCADE, blank=True, null=True)
     purchase_id = models.TextField(default='')
+    transaction_id = models.TextField(default='')
+    purchase_time = models.DateTimeField(default=timezone.now)
 
     class Meta:
         constraints = [

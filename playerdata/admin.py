@@ -154,6 +154,11 @@ class BaseDealAdmin(admin.ModelAdmin):
     list_filter = ('order', 'deal_type')
 
 
+class PurchasedTrackerAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'purchase_id', 'transaction_id', 'purchase_time')
+    list_filter = ('user',)
+
+
 class TournamentRegAdmin(admin.ModelAdmin):
     actions = ['setup_tourney']
 
@@ -281,7 +286,7 @@ admin.site.register(TournamentSelectionCards)
 admin.site.register(InvalidReceipt)
 admin.site.register(BaseDeal, BaseDealAdmin)
 admin.site.register(ActiveDeal, ActiveDealAdmin)
-admin.site.register(PurchasedTracker)
+admin.site.register(PurchasedTracker, PurchasedTrackerAdmin)
 admin.site.register(ServerStatus)
 admin.site.register(LogEntry, LogEntryAdmin)
 
