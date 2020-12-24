@@ -156,7 +156,7 @@ class BaseDealAdmin(admin.ModelAdmin):
 
 class PurchasedTrackerAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'purchase_id', 'transaction_id', 'purchase_time')
-    list_filter = ('user',)
+    search_fields = ('user__id',)
 
 
 class TournamentRegAdmin(admin.ModelAdmin):
