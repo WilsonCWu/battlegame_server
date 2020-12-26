@@ -147,9 +147,9 @@ class ChestType(Enum):
     LEGENDARY = 5
 
 
-CHEST_ODDS = [650, 250, 100, 0, 0]
-MIN_REWARDS_PER_CHEST = [7, 7, 7, 6, 5]
-MAX_REWARDS_PER_CHEST = [10, 10, 10, 7, 6]
+CHEST_ODDS = [750, 250, 0, 0, 0]
+MIN_REWARDS_PER_CHEST = [3, 6, 7, 6, 5]
+MAX_REWARDS_PER_CHEST = [4, 6, 10, 7, 6]
 
 REWARD_TYPE_INDEX = ['coins', 'gems', 'essence', 'char_id', 'item_id']
 
@@ -157,20 +157,23 @@ REWARD_TYPE_INDEX = ['coins', 'gems', 'essence', 'char_id', 'item_id']
 # Ex: RESOURCE_TYPE_ODDS[0][0] are the odds to get a 'coins' reward for a SILVER chest
 # NOTE: each row should total to 1000
 RESOURCE_TYPE_ODDS_PER_CHEST = [
-    [200, 200, 100, 300, 200],  # SILVER
-    [200, 200, 100, 300, 200],  # GOLD
+    [500, 250, 250, 0, 0],  # SILVER
+    [400, 300, 300, 0, 0],  # GOLD
     [200, 200, 100, 300, 200],  # MYTHICAL
     [200, 200, 100, 300, 200],  # EPIC
     [200, 200, 100, 300, 200],  # LEGENDARY
 ]
 
-CHEST_GEMS_PER_HOUR = 24
+CHEST_GEMS_PER_HOUR = 120
+
+# Number of guaranteed summons per chest rarity
+GUARANTEED_SUMMONS = [1, 3, 0, 0, 0]
 
 # The number of chars of each char_rarity guaranteed for a chest_rarity
 # Ex: CHAR_RARITY_GUARANTEE[0][0] is number of guaranteed rarity=1 chars for a SILVER chest
 GUARANTEED_CHARS_PER_RARITY_PER_CHEST = [
-    [0, 3, 0, 0],  # SILVER
-    [0, 2, 1, 0],  # GOLD
+    [0, 0, 0, 0],  # SILVER
+    [0, 0, 0, 0],  # GOLD
     [0, 2, 2, 0],  # MYTHICAL
     [0, 0, 5, 0],  # EPIC
     [0, 0, 4, 1],  # LEGENDARY
@@ -179,8 +182,8 @@ GUARANTEED_CHARS_PER_RARITY_PER_CHEST = [
 # Odds of getting each rarity char on non-guaranteed roll
 # NOTE: each row should total to 1000
 REGULAR_CHAR_ODDS_PER_CHEST = [
-    [500, 400, 100, 00],  # SILVER
-    [300, 450, 250, 00],  # GOLD
+    [0, 890, 100, 10],  # SILVER
+    [0, 890, 100, 10],  # GOLD
     [200, 350, 450, 0],  # MYTHICAL
     [0, 0, 1000, 0],  # EPIC
     [0, 100, 550, 350],  # LEGENDARY

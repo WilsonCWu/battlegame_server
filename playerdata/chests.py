@@ -94,7 +94,7 @@ def pick_resource_reward(user, resource_type, chest_rarity):
     if resource_type == 'coins':
         pivot_amount = formulas.coins_chest_reward(userinfo.elo, chest_rarity)
     elif resource_type == 'gems':
-        pivot_amount = formulas.gems_chest_reward(userinfo.elo, chest_rarity)
+        pivot_amount = formulas.gems_chest_reward(chest_rarity)
     else:
         pivot_amount = formulas.dust_chest_reward(userinfo.elo, chest_rarity)
 
@@ -193,11 +193,18 @@ class CollectChest(APIView):
         # Get the odds for getting each type of reward for respective chest rarity
         resource_reward_odds = constants.RESOURCE_TYPE_ODDS_PER_CHEST[chest.rarity - 1]
 
-        # first pick guaranteed chars
+        # pick guaranteed char rarities
         char_guarantees = constants.GUARANTEED_CHARS_PER_RARITY_PER_CHEST[chest.rarity - 1]
         guaranteed_char_rewards = roll_guaranteed_char_rewards(char_guarantees)
         rewards.extend(guaranteed_char_rewards)
         num_rewards -= len(guaranteed_char_rewards)
+
+        # pick guaranteed number of summons
+        num_guaranteed_summons = constants.GUARANTEED_SUMMONS[chest.rarity - 1] - len(guaranteed_char_rewards)
+        for i in range(0, num_guaranteed_summons):
+            reward = pick_reward_char(chest.rarity)
+            rewards.append(reward)
+        num_rewards -= num_guaranteed_summons
 
         # roll the rest of the rewards based on resource_reward_odds
         for i in range(0, num_rewards):
