@@ -94,7 +94,7 @@ def pick_resource_reward(user, resource_type, chest_rarity):
     if resource_type == 'coins':
         pivot_amount = formulas.coins_chest_reward(userinfo.elo, chest_rarity)
     elif resource_type == 'gems':
-        pivot_amount = formulas.gems_chest_reward(userinfo.elo, chest_rarity)
+        pivot_amount = formulas.gems_chest_reward(chest_rarity)
     else:
         pivot_amount = formulas.dust_chest_reward(userinfo.elo, chest_rarity)
 

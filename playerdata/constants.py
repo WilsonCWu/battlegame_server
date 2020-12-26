@@ -147,7 +147,7 @@ class ChestType(Enum):
     LEGENDARY = 5
 
 
-CHEST_ODDS = [650, 250, 100, 0, 0]
+CHEST_ODDS = [750, 250, 0, 0, 0]
 MIN_REWARDS_PER_CHEST = [7, 7, 7, 6, 5]
 MAX_REWARDS_PER_CHEST = [10, 10, 10, 7, 6]
 
@@ -164,13 +164,13 @@ RESOURCE_TYPE_ODDS_PER_CHEST = [
     [200, 200, 100, 300, 200],  # LEGENDARY
 ]
 
-CHEST_GEMS_PER_HOUR = 24
+CHEST_GEMS_PER_HOUR = 120
 
 # The number of chars of each char_rarity guaranteed for a chest_rarity
 # Ex: CHAR_RARITY_GUARANTEE[0][0] is number of guaranteed rarity=1 chars for a SILVER chest
 GUARANTEED_CHARS_PER_RARITY_PER_CHEST = [
-    [0, 3, 0, 0],  # SILVER
-    [0, 2, 1, 0],  # GOLD
+    [0, 0, 0, 0],  # SILVER
+    [0, 0, 0, 0],  # GOLD
     [0, 2, 2, 0],  # MYTHICAL
     [0, 0, 5, 0],  # EPIC
     [0, 0, 4, 1],  # LEGENDARY
@@ -179,8 +179,8 @@ GUARANTEED_CHARS_PER_RARITY_PER_CHEST = [
 # Odds of getting each rarity char on non-guaranteed roll
 # NOTE: each row should total to 1000
 REGULAR_CHAR_ODDS_PER_CHEST = [
-    [500, 400, 100, 00],  # SILVER
-    [300, 450, 250, 00],  # GOLD
+    [0, 890, 100, 10],  # SILVER
+    [0, 890, 100, 10],  # GOLD
     [200, 350, 450, 0],  # MYTHICAL
     [0, 0, 1000, 0],  # EPIC
     [0, 100, 550, 350],  # LEGENDARY
