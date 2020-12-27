@@ -92,10 +92,6 @@ _MOBS = [
     15,  # Deckhand
 ]
 
-_IN_PROGRESS_CHARACTERS = [
-    16,  # Potion Master
-]
-
 RARITY_INDEX = [1, 2, 3, 4]
 
 # Summon rarity constants

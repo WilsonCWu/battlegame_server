@@ -48,7 +48,7 @@ def update_char(char: Character, new_char: Character):
 def shuffle_positions(len_chars, positions: []):
     new_positions = positions
     shuffle_pos = random.sample(range(0, len_chars), 2)
-    possible_pos = list(range(1, 17))
+    possible_pos = list(range(1, 26))
 
     # remove from the set of possible_pos any positions that are taken by existing chars
     for i in range(0, len(positions)):
