@@ -68,13 +68,16 @@ class BaseItemAdmin(admin.ModelAdmin, DynamicArrayMixin):
 
 
 class DungeonStageAdmin(bulk_admin.BulkModelAdmin):
-    list_display = ('stage', 'player_exp', 'coins', 'gems')
+    list_display = ('stage', 'dungeon_type', 'player_exp', 'coins', 'gems')
     raw_id_fields = ("mob",)
+    list_filter = ('dungeon_type',)
 
 
 class DungeonBossAdmin(bulk_admin.BulkModelAdmin):
     actions = ['generate_stages']
     raw_id_fields = ("placement",)
+    list_display = ('stage', 'dungeon_type')
+    list_filter = ('dungeon_type',)
 
     def generate_stages(self, request, queryset):
         generate_dungeon_stages(queryset)

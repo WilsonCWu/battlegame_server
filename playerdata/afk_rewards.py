@@ -25,8 +25,8 @@ class GetAFKRewardView(APIView):
 
         time = mins_since_last_collection(last_collected_time)
 
-        coins_per_min = afk_coins_per_min(dungeon_progress.stage_id)
-        dust_per_min = afk_dust_per_min(dungeon_progress.stage_id)
+        coins_per_min = afk_coins_per_min(dungeon_progress.campaign_stage)
+        dust_per_min = afk_dust_per_min(dungeon_progress.campaign_stage)
         # exp_per_min = afk_exp_per_min(dungeon_progress.stage_id)
 
         coins = math.floor(time * coins_per_min)
@@ -52,8 +52,8 @@ class CollectAFKRewardView(APIView):
         dungeon_progress = DungeonProgress.objects.get(user=request.user)
 
         time = mins_since_last_collection(last_collected_time)
-        coins = math.floor(time * afk_coins_per_min(dungeon_progress.stage_id))
-        dust = math.floor(time * afk_dust_per_min(dungeon_progress.stage_id))
+        coins = math.floor(time * afk_coins_per_min(dungeon_progress.campaign_stage))
+        dust = math.floor(time * afk_dust_per_min(dungeon_progress.campaign_stage))
         # exp = time * afk_exp_per_min(dungeon_progress.stage_id)
 
         inventory.last_collected_rewards = datetime.now(timezone.utc)
