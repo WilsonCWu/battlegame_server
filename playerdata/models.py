@@ -19,7 +19,7 @@ from bulk_update_or_create import BulkUpdateOrCreateQuerySet
 from playerdata import constants
 
 # Developer account IDs for in-game accounts
-from playerdata.constants import DealType
+from playerdata.constants import DealType, DungeonType
 
 DEV_ACCOUNT_IDS = json.loads(config("DEV_ACCOUNT_IDS",  default='{"data": []}'))["data"]
 
@@ -491,11 +491,18 @@ class ClanRequest(models.Model):
 class DungeonStage(models.Model):
     objects = BulkUpdateOrCreateQuerySet.as_manager()
 
-    stage = models.IntegerField(null=True, unique=True)
+    stage = models.IntegerField(null=True)
     mob = models.ForeignKey(Placement, on_delete=models.CASCADE)
     player_exp = models.IntegerField()
     coins = models.IntegerField()
     gems = models.IntegerField()
+    dungeon_type = models.IntegerField(choices=[(dungeon.value, dungeon.name) for dungeon in DungeonType], default=DungeonType.CAMPAIGN.value)
+    story_text = models.TextField(default="")
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['stage', 'dungeon_type'], name='unique_stage')
+        ]
 
     def __str__(self):
         return "Stage " + str(self.stage)
@@ -503,15 +510,22 @@ class DungeonStage(models.Model):
 
 class DungeonProgress(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    stage_id = models.IntegerField()
+    campaign_stage = models.IntegerField()
+    tower_stage = models.IntegerField(default=1)
 
     def __str__(self):
-        return "user " + str(self.user.id) + ": stage " + str(self.stage_id)
+        return "user " + str(self.user.id) + ": campaign " + str(self.campaign_stage) + ", tower " + str(self.tower_stage)
 
 
 class DungeonBoss(models.Model):
     stage = models.IntegerField()
     placement = models.ForeignKey(Placement, on_delete=models.CASCADE)
+    dungeon_type = models.IntegerField(choices=[(dungeon.value, dungeon.name) for dungeon in DungeonType], default=DungeonType.CAMPAIGN.value)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['stage', 'dungeon_type'], name='unique_dungeonboss')
+        ]
 
     def __str__(self):
         return "Stage: " + str(self.stage)
@@ -759,7 +773,7 @@ def create_user_info(sender, instance, created, **kwargs):
         UserStats.objects.create(user=instance)
         Inventory.objects.create(user=instance)
         ClanMember.objects.create(userinfo=userinfo)
-        DungeonProgress.objects.create(user=instance, stage_id=1)
+        DungeonProgress.objects.create(user=instance, campaign_stage=1)
         create_user_referral(instance)
 
         # Add quests

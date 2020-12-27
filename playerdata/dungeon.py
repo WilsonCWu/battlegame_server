@@ -12,11 +12,12 @@ from playerdata.models import DungeonProgress, Character, Placement, ServerStatu
 from playerdata.models import DungeonStage
 from playerdata.models import ReferralTracker
 from . import constants, formulas
+from .constants import DungeonType
 
 from .matcher import PlacementSchema
 from .questupdater import QuestUpdater
 from .referral import award_referral
-from .serializers import BooleanSerializer
+from .serializers import BooleanSerializer, ValueSerializer
 
 
 class DungeonProgressSchema(Schema):
@@ -137,12 +138,12 @@ def generate_dungeon_stages(dungeon_bosses_queryset):
             gems = formulas.gems_reward_dungeon(stage_num)
             placement = make_mob_from_boss(boss.placement, i, stage_num)
 
-            stage = DungeonStage(stage=stage_num, mob=placement,
+            stage = DungeonStage(stage=stage_num, mob=placement, dungeon_type=boss.dungeon_type,
                                  coins=coins, gems=gems, player_exp=exp)
             bulk_stages.append(stage)
 
         # create the actual boss stage
-        boss_stage = DungeonStage(stage=boss.stage, mob=boss.placement,
+        boss_stage = DungeonStage(stage=boss.stage, mob=boss.placement, dungeon_type=boss.dungeon_type,
                                   coins=formulas.coins_reward_dungeon(boss.stage),
                                   gems=formulas.gems_reward_dungeon(boss.stage),
                                   player_exp=formulas.player_exp_reward_dungeon(boss.stage))
@@ -181,11 +182,11 @@ class DungeonSetProgressView(APIView):
 
         progress = DungeonProgress.objects.get(user=request.user)
 
-        if progress.stage_id == constants.DUNGEON_REFERRAL_CONVERSION_STAGE:
+        if progress.campaign_stage == constants.DUNGEON_REFERRAL_CONVERSION_STAGE:
             complete_referral_conversion(request.user)
 
         # dungeon rewards
-        dungeon = DungeonStage.objects.get(stage=progress.stage_id)
+        dungeon = DungeonStage.objects.get(stage=progress.campaign_stage)
         inventory = request.user.inventory
         inventory.coins += dungeon.coins
         inventory.gems += dungeon.gems
@@ -195,7 +196,7 @@ class DungeonSetProgressView(APIView):
         userinfo.player_exp += dungeon.player_exp
         userinfo.save()
 
-        progress.stage_id += 1
+        progress.campaign_stage += 1
         progress.save()
 
         QuestUpdater.add_progress_by_type(request.user, constants.REACH_DUNGEON_LEVEL, 1)
@@ -207,17 +208,28 @@ class DungeonSetProgressView(APIView):
 class DungeonStageView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request):
+    def post(self, request):
+        serializer = ValueSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        dungeon_type = int(serializer.validated_data['value'])
+
         dungeon_progress = DungeonProgress.objects.get(user=request.user)
+
+        if dungeon_type == DungeonType.CAMPAIGN.value:
+            stage = dungeon_progress.campaign_stage
+        elif dungeon_type == DungeonType.TOWER.value:
+            stage = dungeon_progress.tower_stage
+        else:
+            return Response({'status': False, 'reason': 'unknown dungeon type'})
 
         dungeon_stage = DungeonStage.objects.select_related('mob__char_1__weapon') \
             .select_related('mob__char_2__weapon') \
             .select_related('mob__char_3__weapon') \
             .select_related('mob__char_4__weapon') \
             .select_related('mob__char_5__weapon') \
-            .filter(stage=dungeon_progress.stage_id).first()
+            .filter(stage=stage, dungeon_type=dungeon_type).first()
 
         if dungeon_stage is None:
-            return Response({'status': False, 'reason': 'unknown stage id', 'stage_id': dungeon_progress.stage_id})
+            return Response({'status': False, 'reason': 'unknown stage id'})
         dungeon_stage_schema = DungeonStageSchema(dungeon_stage)
         return Response(dungeon_stage_schema.data)

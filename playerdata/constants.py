@@ -12,6 +12,11 @@ WEEKLY_QUEST_POOL_IDS = [17, 21, 22, 23, 24, 25, 26, 28, 29, 30, 31, 32]
 
 DUNGEON_REFERRAL_CONVERSION_STAGE = 40
 
+
+class DungeonType(Enum):
+    CAMPAIGN = 0
+    TOWER = 1
+
 # Constant Quest types
 # Comments are for reference of how these quests should track progress / total
 DAMAGE_DEALT = 0  # Tracked / total damage

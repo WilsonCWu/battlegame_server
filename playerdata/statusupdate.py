@@ -125,7 +125,7 @@ class UploadResultView(APIView):
 
             if win:
                 elo_scaler = 50 + math.floor(request.user.userinfo.elo/10)
-                reward_scaler = min(dungeon_progress.stage_id, elo_scaler)
+                reward_scaler = min(dungeon_progress.campaign_stage, elo_scaler)
                 coins = formulas.coins_reward_quickplay(reward_scaler)
                 player_exp = formulas.player_exp_reward_quickplay(reward_scaler)
 
