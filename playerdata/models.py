@@ -773,7 +773,7 @@ def create_user_info(sender, instance, created, **kwargs):
         UserStats.objects.create(user=instance)
         Inventory.objects.create(user=instance)
         ClanMember.objects.create(userinfo=userinfo)
-        DungeonProgress.objects.create(user=instance, stage_id=1)
+        DungeonProgress.objects.create(user=instance, campaign_stage=1)
         create_user_referral(instance)
 
         # Add quests
