@@ -32,7 +32,6 @@ class BaseCharacterSchema(Schema):
     ability_scale = fields.Int()
     ar_scale = fields.Int()
     mr_scale = fields.Int()
-    specs = fields.Str()
     rollable = fields.Bool()
 
 

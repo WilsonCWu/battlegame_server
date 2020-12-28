@@ -82,13 +82,6 @@ class BaseCharacter(models.Model):
     ability_scale = models.IntegerField()
     ar_scale = models.IntegerField()
     mr_scale = models.IntegerField()
-
-    # Document-isque representation of ability / ultimate stats. This will
-    # allow us to hotfix characters. NOTE(yanske1): when we upgrade to Django
-    # 3.1.x, we can use the new JSONField from Django.
-    # TODO: deprecate this.
-    specs = JSONField(blank=True, null=True)
-
     rollable = models.BooleanField(default=False)
 
     class Meta:
