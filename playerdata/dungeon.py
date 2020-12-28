@@ -5,7 +5,6 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from rest_marshmallow import Schema, fields
-from packaging import version
 from django.db import transaction
 
 from playerdata.models import DungeonProgress, Character, Placement, ServerStatus
@@ -167,18 +166,14 @@ class DungeonSetProgressView(APIView):
 
     def post(self, request):
         # Increment Dungeon progress
+        serializer = BooleanSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        # TODO remove once we release 0.0.5
-        latest_version = ServerStatus.objects.filter(event_type='V').latest('creation_time')
-        if version.parse(latest_version.version_number) > version.parse("0.0.4"):
-            serializer = BooleanSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
+        QuestUpdater.add_progress_by_type(request.user, constants.ATTEMPT_DUNGEON_GAMES, 1)
 
-            QuestUpdater.add_progress_by_type(request.user, constants.ATTEMPT_DUNGEON_GAMES, 1)
-
-            is_win = serializer.validated_data['value']
-            if not is_win:
-                return Response({'status': True})
+        is_win = serializer.validated_data['value']
+        if not is_win:
+            return Response({'status': True})
 
         progress = DungeonProgress.objects.get(user=request.user)
 
