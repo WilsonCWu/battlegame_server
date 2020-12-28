@@ -5,7 +5,6 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from rest_marshmallow import Schema, fields
-from packaging import version
 from django.db import transaction
 
 from playerdata.models import DungeonProgress, Character, Placement, ServerStatus

@@ -1,5 +1,4 @@
 from enum import Enum
-from packaging import version
 from django.db import transaction
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
