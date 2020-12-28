@@ -154,6 +154,7 @@ def award_chest_rewards(user, rewards):
                 Item.objects.create(user=user, item_type=base_item)
         else:
             raise Exception("invalid reward_type, sorry friendo")
+    user.inventory.save()
 
 
 class CollectChest(APIView):
