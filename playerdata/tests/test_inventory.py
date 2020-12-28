@@ -179,7 +179,7 @@ class LevelUpAPITestCase(APITestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data['status'])
-        self.assertIn('already hit max level 170', response.data['reason'])
+        self.assertIn('already hit max level ' + str(playerdata.constants.MAX_CHARACTER_LEVEL), response.data['reason'])
 
 
 class PrestigeAPITestCase(APITestCase):
