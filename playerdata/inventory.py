@@ -104,13 +104,6 @@ class TryLevelView(APIView):
         if target_character.level >= constants.MAX_CHARACTER_LEVEL:
             return Response({'status': False, 'reason': 'character has already hit max level ' + str(constants.MAX_CHARACTER_LEVEL) + '!'})
 
-        # We can only level up to the (number of copies owned * 30) + 50.
-        if target_character.level + 1 > target_character.copies * 30 + 50:
-            return Response({
-                'status': False,
-                'reason': 'level cap exceeded given %d copies!' % target_character.copies,
-            })
-
         cur_coins = formulas.char_level_to_coins(target_character.level)
         next_coins = formulas.char_level_to_coins(target_character.level + 1)
         delta_coins = next_coins - cur_coins
