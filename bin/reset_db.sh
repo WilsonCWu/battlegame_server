@@ -1,4 +1,4 @@
 dropdb battlegame
 createdb battlegame
 ./manage.py migrate
-./manage.py loaddata db.json
+./manage.py loaddata playerdata/tests/fixtures.json
