@@ -28,7 +28,7 @@ def coins_reward_dungeon(dungeon_level):
 
 
 def afk_coins_per_min(dungeon_level):
-    return (dungeon_level - 1) / 120 + ((dungeon_level - 1) ** 1.8) / 10
+    return (dungeon_level - 1) / 220 + ((dungeon_level - 1) ** 1.65) / 10
 
 
 def char_level_to_coins(level):
@@ -38,8 +38,8 @@ def char_level_to_coins(level):
 def coins_chest_reward(elo, rarity):
     elo += 20  # light pad on elo for 0 elo case
     base_mult = 50 + (rarity * 5)
-    base_exp = 1.5 + (rarity * 0.1)
-    return math.floor(elo / 120 * base_mult + (elo ** base_exp) / 10)
+    base_exp = 1.6 + ((rarity - 1) * 0.3)
+    return math.floor(elo * base_mult + 500 + (elo ** base_exp))
 
 
 #########################
@@ -112,13 +112,14 @@ def char_level_to_dust(level):
 
 
 def afk_dust_per_min(dungeon_level):
-    return (dungeon_level - 1) * 0.001 + ((dungeon_level - 1) ** 0.45) / 10
+    return (dungeon_level - 1) * 0.001 + ((dungeon_level - 1) ** 0.8) / 20
 
 
 def dust_chest_reward(elo, rarity):
     elo += 20  # light pad on elo for 0 elo case
-    base_mult = 0.5 + (rarity * 0.5)
-    return math.floor(elo * base_mult + (elo ** 1.15) / 10)
+    base_mult = 1 + ((rarity - 1) * 2)
+    base_exp = 1.35 + ((rarity - 1) * 0.1)
+    return math.floor(elo * base_mult + (elo ** base_exp) / 10)
 
 #########################
 ## Gems
