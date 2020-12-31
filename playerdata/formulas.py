@@ -28,7 +28,7 @@ def coins_reward_dungeon(dungeon_level):
 
 
 def afk_coins_per_min(dungeon_level):
-    return (dungeon_level - 1) / 220 + ((dungeon_level - 1) ** 1.45) / 10
+    return (dungeon_level - 1) / 220 + ((dungeon_level - 1) ** 1.65) / 10
 
 
 def char_level_to_coins(level):
