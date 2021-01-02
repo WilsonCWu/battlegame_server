@@ -29,6 +29,7 @@ class DungeonStageSchema(Schema):
     coins = fields.Int()
     gems = fields.Int()
     mob = fields.Nested(PlacementSchema)
+    story_text = fields.Str()
 
 
 def update_char(char: Character, new_char: Character):
