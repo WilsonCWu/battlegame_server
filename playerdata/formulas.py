@@ -112,14 +112,14 @@ def char_level_to_dust(level):
 
 
 def afk_dust_per_min(dungeon_level):
-    return (dungeon_level - 1) * 0.001 + ((dungeon_level - 1) ** 0.8) / 20
+    return ((dungeon_level - 1) ** 2) / 75000
 
 
 def dust_chest_reward(elo, rarity):
     elo += 20  # light pad on elo for 0 elo case
-    base_mult = 1 + ((rarity - 1) * 2)
-    base_exp = 1.35 + ((rarity - 1) * 0.1)
-    return math.floor(elo * base_mult + (elo ** base_exp) / 10)
+    base_mult = 2 - ((rarity - 1) * 1)
+    base_exp = 1.25 + ((rarity - 1) * 0.75)
+    return math.floor(elo / base_mult + (elo ** base_exp) / 2600)
 
 #########################
 ## Gems
