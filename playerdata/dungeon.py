@@ -1,5 +1,6 @@
 import random
 
+from packaging import version
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -16,7 +17,7 @@ from .constants import DungeonType
 from .matcher import PlacementSchema
 from .questupdater import QuestUpdater
 from .referral import award_referral
-from .serializers import BooleanSerializer, ValueSerializer
+from .serializers import BooleanSerializer, ValueSerializer, SetDungeonProgressSerializer
 
 
 class DungeonProgressSchema(Schema):
@@ -170,19 +171,46 @@ class DungeonSetProgressView(APIView):
         serializer = BooleanSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        QuestUpdater.add_progress_by_type(request.user, constants.ATTEMPT_DUNGEON_GAMES, 1)
-
         is_win = serializer.validated_data['value']
+        dungeon_type = constants.DungeonType.CAMPAIGN.value
+
+        # TODO remove once we release 0.0.6
+        latest_version = ServerStatus.objects.filter(event_type='V').latest('creation_time')
+        if version.parse(latest_version.version_number) > version.parse("0.0.5"):
+            serializer = SetDungeonProgressSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            is_win = serializer.validated_data['is_win']
+            dungeon_type = serializer.validated_data['dungeon_type']
+
+        if dungeon_type == constants.DungeonType.CAMPAIGN.value:
+            QuestUpdater.add_progress_by_type(request.user, constants.ATTEMPT_DUNGEON_GAMES, 1)
+        else:
+            QuestUpdater.add_progress_by_type(request.user, constants.ATTEMPT_TOWER_GAMES, 1)
+
         if not is_win:
             return Response({'status': True})
 
         progress = DungeonProgress.objects.get(user=request.user)
 
-        if progress.campaign_stage == constants.DUNGEON_REFERRAL_CONVERSION_STAGE:
-            complete_referral_conversion(request.user)
+        if dungeon_type == constants.DungeonType.CAMPAIGN.value:
+            stage = progress.campaign_stage
+            if progress.campaign_stage == constants.DUNGEON_REFERRAL_CONVERSION_STAGE:
+                complete_referral_conversion(request.user)
+
+            progress.campaign_stage += 1
+            QuestUpdater.add_progress_by_type(request.user, constants.REACH_DUNGEON_LEVEL, 1)
+            QuestUpdater.add_progress_by_type(request.user, constants.WIN_DUNGEON_GAMES, 1)
+        else:
+            stage = progress.tower_stage
+            progress.tower_stage += 1
+            QuestUpdater.add_progress_by_type(request.user, constants.REACH_TOWER_LEVEL, 1)
+            QuestUpdater.add_progress_by_type(request.user, constants.WIN_TOWER_GAMES, 1)
+
+        progress.save()
 
         # dungeon rewards
-        dungeon = DungeonStage.objects.get(stage=progress.campaign_stage)
+        dungeon = DungeonStage.objects.get(stage=stage, dungeon_type=dungeon_type)
         inventory = request.user.inventory
         inventory.coins += dungeon.coins
         inventory.gems += dungeon.gems
@@ -191,12 +219,6 @@ class DungeonSetProgressView(APIView):
         userinfo = request.user.userinfo
         userinfo.player_exp += dungeon.player_exp
         userinfo.save()
-
-        progress.campaign_stage += 1
-        progress.save()
-
-        QuestUpdater.add_progress_by_type(request.user, constants.REACH_DUNGEON_LEVEL, 1)
-        QuestUpdater.add_progress_by_type(request.user, constants.WIN_DUNGEON_GAMES, 1)
 
         return Response({'status': True})
 
@@ -217,6 +239,9 @@ class DungeonStageView(APIView):
             stage = dungeon_progress.tower_stage
         else:
             return Response({'status': False, 'reason': 'unknown dungeon type'})
+
+        if stage > constants.MAX_DUNGEON_STAGE[dungeon_type]:
+            return Response({'status': True, 'stage_id': stage})
 
         dungeon_stage = DungeonStage.objects.select_related('mob__char_1__weapon') \
             .select_related('mob__char_2__weapon') \
