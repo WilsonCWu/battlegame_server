@@ -26,7 +26,7 @@ class GenerateCharactersTestCase(APITestCase):
 
         #assert database is accurate
         for database_char in database_chars:
-            self.assertEqual(char_map[database_char.char_id].count, database_char.copies)
+            self.assertEqual(char_map[database_char.char_id].count - 1, database_char.copies)
 
 
 class PurchaseTestCase(APITestCase):
