@@ -171,8 +171,6 @@ class DungeonSetProgressView(APIView):
         serializer = BooleanSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        QuestUpdater.add_progress_by_type(request.user, constants.ATTEMPT_DUNGEON_GAMES, 1)
-
         is_win = serializer.validated_data['value']
         dungeon_type = constants.DungeonType.CAMPAIGN.value
 
@@ -184,6 +182,11 @@ class DungeonSetProgressView(APIView):
 
             is_win = serializer.validated_data['is_win']
             dungeon_type = serializer.validated_data['dungeon_type']
+
+        if dungeon_type == constants.DungeonType.CAMPAIGN.value:
+            QuestUpdater.add_progress_by_type(request.user, constants.ATTEMPT_DUNGEON_GAMES, 1)
+        else:
+            QuestUpdater.add_progress_by_type(request.user, constants.ATTEMPT_TOWER_GAMES, 1)
 
         if not is_win:
             return Response({'status': True})
