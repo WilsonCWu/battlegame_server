@@ -283,7 +283,7 @@ class Character(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE)
     level = models.IntegerField(default=1)
-    copies = models.IntegerField(default=1)
+    copies = models.IntegerField(default=0)
     prestige = models.IntegerField(default=0)
     total_damage_dealt = models.IntegerField(default=0)
     total_damage_taken = models.IntegerField(default=0)
@@ -490,7 +490,7 @@ class DungeonStage(models.Model):
     coins = models.IntegerField()
     gems = models.IntegerField()
     dungeon_type = models.IntegerField(choices=[(dungeon.value, dungeon.name) for dungeon in DungeonType], default=DungeonType.CAMPAIGN.value)
-    story_text = models.TextField(default="")
+    story_text = models.TextField(default="", blank=True)
 
     class Meta:
         constraints = [

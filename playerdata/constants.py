@@ -17,6 +17,9 @@ class DungeonType(Enum):
     CAMPAIGN = 0
     TOWER = 1
 
+
+MAX_DUNGEON_STAGE = [400, 10]
+
 # Constant Quest types
 # Comments are for reference of how these quests should track progress / total
 DAMAGE_DEALT = 0  # Tracked / total damage

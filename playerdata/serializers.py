@@ -158,3 +158,8 @@ class UnequipItemSerializer(serializers.Serializer):
 class CollectChestSerializer(serializers.Serializer):
     chest_id = serializers.IntegerField(required=True)
     is_skip = serializers.BooleanField(required=True)
+
+
+class SetDungeonProgressSerializer(serializers.Serializer):
+    is_win = serializers.BooleanField(required=True)
+    dungeon_type = serializers.IntegerField(required=True)
