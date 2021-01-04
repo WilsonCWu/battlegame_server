@@ -204,6 +204,8 @@ class DungeonSetProgressView(APIView):
         else:
             stage = progress.tower_stage
             progress.tower_stage += 1
+            QuestUpdater.add_progress_by_type(request.user, constants.REACH_TOWER_LEVEL, 1)
+            QuestUpdater.add_progress_by_type(request.user, constants.WIN_TOWER_GAMES, 1)
 
         progress.save()
 

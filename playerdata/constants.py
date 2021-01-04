@@ -37,10 +37,12 @@ WIN_QUICKPLAY_GAMES = 11  # Tracked / total games
 WIN_DUNGEON_GAMES = 12  # Tracked / total games
 OWN_HEROES = 13  # Tracked / total heroes
 REACH_PLAYER_LEVEL = 14
-REACH_DUNGEON_LEVEL = 15  # Tracked / total dungeon level
+REACH_DUNGEON_LEVEL = 15  # Tracked / total level
 REFERRAL = 16  # Tracked / total referrals
-ATTEMPT_DUNGEON_GAMES = 17
-ATTEMPT_TOWER_GAMES = 18
+ATTEMPT_DUNGEON_GAMES = 17  # Tracked / total games
+ATTEMPT_TOWER_GAMES = 18  # Tracked / total games
+WIN_TOWER_GAMES = 19  # Tracked / total games
+REACH_TOWER_LEVEL = 20  # Tracked / total level
 
 # Namespace: everything in the 100s is a char_id + 100 for a quest 'Win X games' with that char
 # so for Archer (id: 1), quest_type would be 101
