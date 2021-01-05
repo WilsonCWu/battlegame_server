@@ -84,10 +84,15 @@ class UploadResultView(APIView):
             for stat in stats:
                 char_id = stat['id']
                 hero = Character.objects.select_related('char_type__basecharacterusage').get(char_id=char_id)
-                hero.total_damage_dealt += stat['damage_dealt']
-                total_damage_dealt_stat += stat['damage_dealt']
-                hero.total_damage_taken += stat['damage_taken']
-                hero.total_health_healed += stat['health_healed']
+
+                try:
+                    hero.total_damage_dealt += stat['damage_dealt']
+                    total_damage_dealt_stat += stat['damage_dealt']
+                    hero.total_damage_taken += stat['damage_taken']
+                    hero.total_health_healed += stat['health_healed']
+                except OverflowError:
+                    pass
+
                 hero.num_games += 1
                 hero.num_wins += 1 if win else 0
                 hero.save()
