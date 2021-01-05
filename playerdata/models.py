@@ -4,6 +4,7 @@ import string
 from datetime import datetime, date, time, timedelta
 
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import JSONField
 from django.db import IntegrityError
@@ -113,6 +114,8 @@ class BaseCharacterAbility(models.Model):
                                      primary_key=True)
 
     def validate_ability_specs(specs):
+        # TODO: once we decide on how prestige will work, we may need to
+        # support keys such as "prestige_2".
         def is_num(v):
             try:
                 _ = float(v)
@@ -200,7 +203,35 @@ class BaseCharacterUsage(models.Model):
         return self.char_type.name
 
 
-class BaseItem(models.Model):
+class StatModifiers(models.Model):
+    # Basic stat changes.
+    attack_flat = models.IntegerField(blank=True, null=True)
+    attack_mult = models.FloatField(blank=True, null=True)
+    ability_flat = models.IntegerField(blank=True, null=True)
+    ability_mult = models.FloatField(blank=True, null=True)
+    attack_speed_mult = models.FloatField(blank=True, null=True)
+    ar_flat = models.IntegerField(blank=True, null=True)
+    ar_mult = models.FloatField(blank=True, null=True)
+    mr_flat = models.IntegerField(blank=True, null=True)
+    mr_mult = models.FloatField(blank=True, null=True)
+    speed_flat = models.IntegerField(blank=True, null=True)
+    speed_mult = models.FloatField(blank=True, null=True)
+    crit_flat = models.IntegerField(blank=True, null=True)
+    crit_mult = models.FloatField(blank=True, null=True)
+    mana_tick_flat = models.IntegerField(blank=True, null=True)
+    mana_tick_mult = models.FloatField(blank=True, null=True)
+    range_flat = models.IntegerField(blank=True, null=True)
+    max_health_flat = models.IntegerField(blank=True, null=True)
+    max_health_mult = models.FloatField(blank=True, null=True)
+
+    # These are recognized by the client and its effects are encoded there.
+    effect_ids = ArrayField(models.IntegerField(), blank=True, null=True)
+
+    class Meta:
+        abstract = True
+
+
+class BaseItem(StatModifiers):
     GEAR_SLOT_CHOICES = (
         ('H', 'Hat'),
         ('A', 'Armor'),
@@ -221,32 +252,19 @@ class BaseItem(models.Model):
     cost = models.IntegerField()
     is_unique = models.BooleanField(default=False)
 
-    # Stat changes from items.
-    attack_flat = models.IntegerField(blank=True, null=True)
-    attack_mult = models.FloatField(blank=True, null=True)
-    ability_flat = models.IntegerField(blank=True, null=True)
-    ability_mult = models.FloatField(blank=True, null=True)
-    attack_speed_mult = models.FloatField(blank=True, null=True)
-    ar_flat = models.IntegerField(blank=True, null=True)
-    ar_mult = models.FloatField(blank=True, null=True)
-    mr_flat = models.IntegerField(blank=True, null=True)
-    mr_mult = models.FloatField(blank=True, null=True)
-    speed_flat = models.IntegerField(blank=True, null=True)
-    speed_mult = models.FloatField(blank=True, null=True)
-    crit_flat = models.IntegerField(blank=True, null=True)
-    crit_mult = models.FloatField(blank=True, null=True)
-    mana_tick_flat = models.IntegerField(blank=True, null=True)
-    mana_tick_mult = models.FloatField(blank=True, null=True)
-    range_flat = models.IntegerField(blank=True, null=True)
-    max_health_flat = models.IntegerField(blank=True, null=True)
-    max_health_mult = models.FloatField(blank=True, null=True)
-
-    # Effects from items. These are recognized by the client and its effects
-    # are encoded there.
-    effect_ids = ArrayField(models.IntegerField(), blank=True, null=True)
-
     def __str__(self):
         return self.name
+
+
+class BasePrestige(StatModifiers):
+    char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE)
+    level = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(10)])
+
+    class Meta:
+        unique_together = (("char_type", "level"),)
+
+    def __str__(self):
+        return self.char_type.name + ": " + str(self.level)
 
 
 class Item(models.Model):

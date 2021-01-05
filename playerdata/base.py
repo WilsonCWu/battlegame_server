@@ -6,6 +6,7 @@ from rest_marshmallow import Schema, fields
 from playerdata.models import BaseCharacter
 from playerdata.models import BaseCharacterAbility
 from playerdata.models import BaseItem
+from playerdata.models import BasePrestige
 
 
 class UserSchema(Schema):
@@ -43,16 +44,7 @@ class BaseCharacterAbilitySchema(Schema):
     ultimate_specs = fields.Str()
 
 
-class BaseItemSchema(Schema):
-    item_type = fields.Int()
-    name = fields.Str()
-    description = fields.Str()
-    gear_slot = fields.String()
-
-    rarity = fields.Int()
-    cost = fields.Int()
-    is_unique = fields.Bool()
-
+class StatModifierSchema(Schema):
     attack_flat = fields.Int()
     attack_mult = fields.Float()
     ability_flat = fields.Int()
@@ -73,6 +65,22 @@ class BaseItemSchema(Schema):
     max_health_mult = fields.Float()
 
 
+class BaseItemSchema(StatModifierSchema):
+    item_type = fields.Int()
+    name = fields.Str()
+    description = fields.Str()
+    gear_slot = fields.String()
+
+    rarity = fields.Int()
+    cost = fields.Int()
+    is_unique = fields.Bool()
+
+
+class BasePrestigeSchema(StatModifierSchema):
+    char_type = fields.Int(attribute='char_type_id')
+    level = fields.Int()
+
+
 class BaseInfoView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -80,8 +88,10 @@ class BaseInfoView(APIView):
         charSerializer = BaseCharacterSchema(BaseCharacter.objects.all(), many=True)
         specSerializer = BaseCharacterAbilitySchema(BaseCharacterAbility.objects.all(), many=True)
         itemSerializer = BaseItemSchema(BaseItem.objects.all(), many=True)
+        prestigeSerializer = BasePrestigeSchema(BasePrestige.objects.all(), many=True)
         return Response({
             'characters': charSerializer.data,
             'items': itemSerializer.data,
             'specs': specSerializer.data,
+            'prestige': prestigeSerializer.data,
         })
