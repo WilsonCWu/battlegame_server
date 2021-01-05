@@ -1,3 +1,5 @@
+import logging
+
 from django.core.exceptions import ObjectDoesNotExist
 
 from playerdata import constants
@@ -8,32 +10,41 @@ from playerdata.models import CumulativeTracker
 
 
 def add_progress_to_quest_list(progress, quests):
-    for quest in quests:
-        if progress + quest.progress >= quest.base_quest.total:
-            quest.progress = quest.base_quest.total
-            quest.completed = True
-        else:
-            quest.progress += progress
-        quest.save()
+    try:
+        for quest in quests:
+            if progress + quest.progress >= quest.base_quest.total:
+                quest.progress = quest.base_quest.total
+                quest.completed = True
+            else:
+                quest.progress += progress
+            quest.save()
+    except OverflowError:
+        logging.error("stats overflow error")
 
 
 def set_progress_to_quest_list(progress, quests):
-    for quest in quests:
-        if progress + quest.progress >= quest.base_quest.total:
-            quest.progress = quest.base_quest.total
-            quest.completed = True
-        else:
-            quest.progress = progress
-        quest.save()
+    try:
+        for quest in quests:
+            if progress + quest.progress >= quest.base_quest.total:
+                quest.progress = quest.base_quest.total
+                quest.completed = True
+            else:
+                quest.progress = progress
+            quest.save()
+    except OverflowError:
+        logging.error("stats overflow error")
 
 
 def update_cumulative_progress(progress, quests, tracker):
-    tracker.progress += progress
-    tracker.save()
-    for quest in quests:
-        if tracker.progress >= quest.base_quest.total:
-            quest.completed = True
-            quest.save()
+    try:
+        tracker.progress += progress
+        tracker.save()
+        for quest in quests:
+            if tracker.progress >= quest.base_quest.total:
+                quest.completed = True
+                quest.save()
+    except OverflowError:
+        logging.error("stats overflow error")
 
 
 class QuestUpdater:
