@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -91,7 +93,7 @@ class UploadResultView(APIView):
                     hero.total_damage_taken += stat['damage_taken']
                     hero.total_health_healed += stat['health_healed']
                 except OverflowError:
-                    pass
+                    logging.error("stats overflow error")
 
                 hero.num_games += 1
                 hero.num_wins += 1 if win else 0

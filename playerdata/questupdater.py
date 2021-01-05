@@ -1,3 +1,5 @@
+import logging
+
 from django.core.exceptions import ObjectDoesNotExist
 
 from playerdata import constants
@@ -17,7 +19,7 @@ def add_progress_to_quest_list(progress, quests):
                 quest.progress += progress
             quest.save()
     except OverflowError:
-        pass
+        logging.error("stats overflow error")
 
 
 def set_progress_to_quest_list(progress, quests):
@@ -30,7 +32,7 @@ def set_progress_to_quest_list(progress, quests):
                 quest.progress = progress
             quest.save()
     except OverflowError:
-        pass
+        logging.error("stats overflow error")
 
 
 def update_cumulative_progress(progress, quests, tracker):
@@ -42,7 +44,7 @@ def update_cumulative_progress(progress, quests, tracker):
                 quest.completed = True
                 quest.save()
     except OverflowError:
-        pass
+        logging.error("stats overflow error")
 
 
 class QuestUpdater:
