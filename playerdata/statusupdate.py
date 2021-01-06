@@ -65,7 +65,7 @@ def award_chest(user):
 
     return chest_rarity
 
-
+# TODO(daniel): remove on 0.0.6 update
 class UploadResultView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -81,8 +81,37 @@ class UploadResultView(APIView):
 
         if mode == constants.QUICKPLAY:
             return handle_quickplay(request, win, opponent, stats)
-        elif mode == constants.TOURNAMENT:  # tournament
+        elif mode == constants.TOURNAMENT:
             return handle_tourney(request, win, opponent)
+
+
+class UploadQuickplayResultView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = UploadResultSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        valid_data = serializer.validated_data['result']
+
+        win = valid_data['win']
+        opponent = valid_data['opponent_id']
+        stats = valid_data['stats']
+
+        return handle_quickplay(request, win, opponent, stats)
+
+
+class UploadTourneyResultView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = UploadResultSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        valid_data = serializer.validated_data['result']
+
+        win = valid_data['win']
+        opponent = valid_data['opponent_id']
+
+        return handle_tourney(request, win, opponent)
 
 
 def update_stats(user, win, stats):
@@ -90,7 +119,7 @@ def update_stats(user, win, stats):
     user_stats.num_games += 1
     user_stats.num_wins += 1 if win else 0
     user_stats.save()
-    
+
     total_damage_dealt_stat = 0
 
     # Update stats per hero
