@@ -20,6 +20,7 @@ from .models import BaseCharacterUsage
 from .models import BaseCode
 from .models import BaseDeal
 from .models import BaseItem
+from .models import BasePrestige
 from .models import BaseQuest
 from .models import Character
 from .models import Chat
@@ -247,6 +248,7 @@ admin.site.register(DungeonBoss, DungeonBossAdmin)
 admin.site.register(BaseCharacter)
 admin.site.register(BaseCharacterUsage)
 admin.site.register(BaseItem, BaseItemAdmin)
+admin.site.register(BasePrestige)
 admin.site.register(Character)
 admin.site.register(Item)
 
