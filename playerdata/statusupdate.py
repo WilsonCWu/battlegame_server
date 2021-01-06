@@ -86,6 +86,11 @@ class UploadResultView(APIView):
 
 
 def update_stats(user, win, stats):
+    user_stats = UserStats.objects.get(user=user)
+    user_stats.num_games += 1
+    user_stats.num_wins += 1 if win else 0
+    user_stats.save()
+    
     total_damage_dealt_stat = 0
 
     # Update stats per hero
@@ -133,20 +138,14 @@ def handle_quickplay(request, win, opponent, stats):
     coins = 0
     player_exp = 0
 
-    user_stats = UserStats.objects.get(user=request.user)
-    user_stats.num_games += 1
-
     if win:
         chest_rarity = award_chest(request.user)
-        user_stats.num_wins += 1
         QuestUpdater.add_progress_by_type(request.user, constants.WIN_QUICKPLAY_GAMES, 1)
 
         dungeon_progress = DungeonProgress.objects.get(user=request.user)
         elo_scaler = 50 + math.floor(request.user.userinfo.elo / 10)
         reward_scaler = min(dungeon_progress.campaign_stage, elo_scaler)
         player_exp = formulas.player_exp_reward_quickplay(reward_scaler)
-
-    user_stats.save()
 
     # rewards
     original_elo = request.user.userinfo.elo
