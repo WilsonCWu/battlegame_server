@@ -65,7 +65,7 @@ def award_chest(user):
 
     return chest_rarity
 
-
+# TODO(daniel): remove on 0.0.6 update
 class UploadResultView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -80,93 +80,136 @@ class UploadResultView(APIView):
         stats = valid_data['stats']
 
         if mode == constants.QUICKPLAY:
-            total_damage_dealt_stat = 0
+            return handle_quickplay(request, win, opponent, stats)
+        elif mode == constants.TOURNAMENT:
+            return handle_tourney(request, win, opponent)
 
-            # Update stats per hero
-            for stat in stats:
-                char_id = stat['id']
-                hero = Character.objects.select_related('char_type__basecharacterusage').get(char_id=char_id)
 
-                try:
-                    hero.total_damage_dealt += stat['damage_dealt']
-                    total_damage_dealt_stat += stat['damage_dealt']
-                    hero.total_damage_taken += stat['damage_taken']
-                    hero.total_health_healed += stat['health_healed']
-                except OverflowError:
-                    logging.error("stats overflow error")
+class UploadQuickplayResultView(APIView):
+    permission_classes = (IsAuthenticated,)
 
-                hero.num_games += 1
-                hero.num_wins += 1 if win else 0
-                hero.save()
+    def post(self, request):
+        serializer = UploadResultSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        valid_data = serializer.validated_data['result']
 
-                hero.char_type.basecharacterusage.num_games += 1
-                hero.char_type.basecharacterusage.num_wins += 1 if win else 0
-                hero.char_type.basecharacterusage.save()
+        win = valid_data['win']
+        opponent = valid_data['opponent_id']
+        stats = valid_data['stats']
 
-                if win:
-                    QuestUpdater.game_won_by_char_id(request.user, hero.char_type.char_type)
+        return handle_quickplay(request, win, opponent, stats)
 
-            QuestUpdater.add_progress_by_type(request.user, constants.DAMAGE_DEALT, total_damage_dealt_stat)
 
-        response = {}
+class UploadTourneyResultView(APIView):
+    permission_classes = (IsAuthenticated,)
 
-        if mode == constants.QUICKPLAY:  # quickplay
-            user_stats = UserStats.objects.get(user=request.user)
+    def post(self, request):
+        serializer = UploadResultSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        valid_data = serializer.validated_data['result']
 
-            user_stats.num_games += 1
-            chest_rarity = 0
+        win = valid_data['win']
+        opponent = valid_data['opponent_id']
 
-            if win:
-                chest_rarity = award_chest(request.user)
-                user_stats.num_wins += 1
-                QuestUpdater.add_progress_by_type(request.user, constants.WIN_QUICKPLAY_GAMES, 1)
+        return handle_tourney(request, win, opponent)
 
-            user_stats.save()
 
-            other_user = get_user_model().objects.select_related('userinfo').get(id=opponent)
+def update_stats(user, win, stats):
+    user_stats = UserStats.objects.get(user=user)
+    user_stats.num_games += 1
+    user_stats.num_wins += 1 if win else 0
+    user_stats.save()
 
-            dungeon_progress = DungeonProgress.objects.get(user=request.user)
+    total_damage_dealt_stat = 0
 
-            coins = 0
-            player_exp = 0
+    # Update stats per hero
+    for stat in stats:
+        char_id = stat['id']
+        hero = Character.objects.select_related('char_type__basecharacterusage').get(char_id=char_id)
 
-            if win:
-                elo_scaler = 50 + math.floor(request.user.userinfo.elo/10)
-                reward_scaler = min(dungeon_progress.campaign_stage, elo_scaler)
-                player_exp = formulas.player_exp_reward_quickplay(reward_scaler)
+        try:
+            hero.total_damage_dealt += stat['damage_dealt']
+            total_damage_dealt_stat += stat['damage_dealt']
+            hero.total_damage_taken += stat['damage_taken']
+            hero.total_health_healed += stat['health_healed']
+        except OverflowError:
+            logging.error("stats overflow error")
 
-            prev_elo = request.user.userinfo.elo
-            updated_rating = calculate_elo(request.user.userinfo.elo, other_user.userinfo.elo, win)
+        hero.num_games += 1
+        hero.num_wins += 1 if win else 0
+        hero.save()
 
-            request.user.userinfo.elo = updated_rating
-            request.user.userinfo.player_exp += player_exp
-            request.user.userinfo.save()
+        hero.char_type.basecharacterusage.num_games += 1
+        hero.char_type.basecharacterusage.num_wins += 1 if win else 0
+        hero.char_type.basecharacterusage.save()
 
-            # update enemy elo
-            other_user.userinfo.elo = calculate_elo(other_user.userinfo.elo, prev_elo, not win)
-            other_user.userinfo.save()
+        if win:
+            QuestUpdater.game_won_by_char_id(user, hero.char_type.char_type)
 
-            response = {"elo": updated_rating, 'prev_elo': prev_elo, 'coins': coins, 'player_exp': player_exp, 'chest_rarity': chest_rarity}
+    QuestUpdater.add_progress_by_type(user, constants.DAMAGE_DEALT, total_damage_dealt_stat)
 
-        elif mode == constants.TOURNAMENT:  # tournament
-            tournament_member = TournamentMember.objects.filter(user=request.user).first()
-            if tournament_member is None:
-                return Response({'status': False, 'reason': 'not competing in current tournament'})
-            if tournament_member.fights_left <= 0:
-                return Response({'status': False, 'reason': 'no fights left'})
-            opponent_member = TournamentMember.objects.get(user_id=opponent)
-            match_round = tournament_member.tournament.round - 1
-            TournamentMatch.objects.filter(attacker=tournament_member, defender=opponent_member,
-                                           round=match_round).update(is_win=win, has_played=True)
-            tournament_member.fights_left -= 1
-            if win:
-                tournament_member.num_wins += 1
-                tournament_member.rewards_left += 1
-                opponent_member.num_losses += 1
-            else:
-                tournament_member.num_losses += 1
-                opponent_member.num_wins += 1
-            tournament_member.save()
-            opponent_member.save()
 
-        return Response(response)
+def update_rating(original_elo, opponent, win):
+    other_user = get_user_model().objects.select_related('userinfo').get(id=opponent)
+    updated_rating = calculate_elo(original_elo, other_user.userinfo.elo, win)
+
+    # update enemy elo
+    other_user.userinfo.elo = calculate_elo(other_user.userinfo.elo, original_elo, not win)
+    other_user.userinfo.save()
+
+    return updated_rating
+
+
+def handle_quickplay(request, win, opponent, stats):
+    update_stats(request.user, win, stats)
+
+    chest_rarity = 0
+    coins = 0
+    player_exp = 0
+
+    if win:
+        chest_rarity = award_chest(request.user)
+        QuestUpdater.add_progress_by_type(request.user, constants.WIN_QUICKPLAY_GAMES, 1)
+
+        dungeon_progress = DungeonProgress.objects.get(user=request.user)
+        elo_scaler = 50 + math.floor(request.user.userinfo.elo / 10)
+        reward_scaler = min(dungeon_progress.campaign_stage, elo_scaler)
+        player_exp = formulas.player_exp_reward_quickplay(reward_scaler)
+
+    # rewards
+    original_elo = request.user.userinfo.elo
+    updated_rating = update_rating(original_elo, opponent, win)
+
+    request.user.userinfo.elo = updated_rating
+    request.user.userinfo.player_exp += player_exp
+    request.user.userinfo.save()
+
+    return Response({"elo": updated_rating, 'prev_elo': original_elo, 'coins': coins,
+                     'player_exp': player_exp, 'chest_rarity': chest_rarity})
+
+
+def handle_tourney(request, win, opponent):
+    tournament_member = TournamentMember.objects.filter(user=request.user).first()
+
+    if tournament_member is None:
+        return Response({'status': False, 'reason': 'not competing in current tournament'})
+    if tournament_member.fights_left <= 0:
+        return Response({'status': False, 'reason': 'no fights left'})
+
+    opponent_member = TournamentMember.objects.get(user_id=opponent)
+    match_round = tournament_member.tournament.round - 1
+    TournamentMatch.objects.filter(attacker=tournament_member, defender=opponent_member,
+                                   round=match_round).update(is_win=win, has_played=True)
+    tournament_member.fights_left -= 1
+
+    if win:
+        tournament_member.num_wins += 1
+        tournament_member.rewards_left += 1
+        opponent_member.num_losses += 1
+    else:
+        tournament_member.num_losses += 1
+        opponent_member.num_wins += 1
+    tournament_member.save()
+    opponent_member.save()
+
+    return Response({'status': True})
