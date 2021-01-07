@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'django_prometheus',
     'bulk_admin',
 
+    'analytics',
     'chat',
     'playerdata',
 ]
