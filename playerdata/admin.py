@@ -241,11 +241,16 @@ class BaseCharacterAbilityAdmin(admin.ModelAdmin):
     }
 
 
+@admin.register(BaseCharacter)
+class BaseCharacterAdmin(admin.ModelAdmin):
+    list_display = ('char_type', 'name', 'rollable', 'rarity')
+    list_filter = ('rollable', 'rarity')
+
+
 admin.site.register(DungeonStage, DungeonStageAdmin)
 admin.site.register(DungeonProgress)
 admin.site.register(DungeonBoss, DungeonBossAdmin)
 
-admin.site.register(BaseCharacter)
 admin.site.register(BaseCharacterUsage)
 admin.site.register(BaseItem, BaseItemAdmin)
 admin.site.register(BasePrestige)
