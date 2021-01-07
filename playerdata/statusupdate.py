@@ -213,3 +213,16 @@ def handle_tourney(request, win, opponent):
     opponent_member.save()
 
     return Response({'status': True})
+
+
+class SkipCostView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        if request.user.inventory.gems < constants.SKIP_GEM_COST:
+            return Response({'status': False, 'reason': 'not enough gems to skip!'})
+
+        request.user.inventory.gems -= 2
+        request.user.inventory.save()
+
+        return Response({'status': True})
