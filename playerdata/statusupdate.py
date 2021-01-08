@@ -213,3 +213,34 @@ def handle_tourney(request, win, opponent):
     opponent_member.save()
 
     return Response({'status': True})
+
+
+class SkipCostView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        coins_cost = formulas.coins_chest_reward(request.user.userinfo.elo, 1) / 30
+        gems_cost = 0
+
+        if request.user.inventory.coins < coins_cost:
+            coins_cost = 0
+            gems_cost = 2
+
+        return Response({'coins_cost': coins_cost, 'gems_cost': gems_cost})
+
+
+class SkipView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        cost = formulas.coins_chest_reward(request.user.userinfo.elo, 1) / 30
+
+        if request.user.inventory.coins >= cost:
+            request.user.inventory.coins -= cost
+        elif request.user.inventory.gems >= constants.SKIP_GEM_COST:
+            request.user.inventory.gems -= constants.SKIP_GEM_COST
+        else:
+            return Response({'status': False, 'reason': 'not enough gems to skip!'})
+
+        request.user.inventory.save()
+        return Response({'status': True})
