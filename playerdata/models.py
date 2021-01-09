@@ -76,7 +76,7 @@ class BaseCharacter(models.Model):
     ar = models.IntegerField()
     mr = models.IntegerField()
     attack_range = models.IntegerField()
-    rarity = models.IntegerField()
+    rarity = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(4)])
     crit_chance = models.IntegerField()
     health_scale = models.IntegerField()
     attack_scale = models.IntegerField()
@@ -258,10 +258,21 @@ class BaseItem(StatModifiers):
 
 class BasePrestige(StatModifiers):
     char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE)
-    level = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(10)])
+    level = models.IntegerField()
 
     class Meta:
         unique_together = (("char_type", "level"),)
+
+    def clean(self):
+        # Clean will ensure that all prestige levels are within bounds.
+        rarity = self.char_type.rarity
+
+        # For common characters, they start off with 0 star level, which means
+        # that they won't need prestige-0, which is used for padding star
+        # levels given by base rarity.
+        bounds = (1 if rarity == 1 else 0, constants.PRESTIGE_CAP_BY_RARITY[rarity])
+        if self.level < bounds[0] or self.level > bounds[1]:
+            raise ValidationError("Expected prestige for char rarity %d to be between %s" % (rarity, bounds))
 
     def __str__(self):
         return self.char_type.name + ": " + str(self.level)
@@ -300,7 +311,7 @@ class Character(models.Model):
     char_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE)
-    level = models.IntegerField(default=1)
+    level = models.IntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(constants.MAX_CHARACTER_LEVEL)])
     copies = models.IntegerField(default=0)
     prestige = models.IntegerField(default=0)
     total_damage_dealt = models.BigIntegerField(default=0)
