@@ -141,7 +141,7 @@ class TryPrestigeView(APIView):
         target_character = Character.objects.get(char_id=target_char_id)
         if target_character.user != request.user:
             return Response({'status': False, 'reason': 'character does not belong to user!'})
-        if target_character.prestige >= constants.PRESTIGE_CAP_BY_RARITY[target_character.char_type.rarity - 1]:
+        if target_character.prestige >= constants.PRESTIGE_CAP_BY_RARITY[target_character.char_type.rarity]:
             return Response({'status': False, 'reason': 'character has already hit max prestige!'})
 
         copies_required = formulas.next_prestige_copies(target_character.prestige)

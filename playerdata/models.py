@@ -266,15 +266,11 @@ class BasePrestige(StatModifiers):
     def clean(self):
         # Clean will ensure that all prestige levels are within bounds.
         rarity = self.char_type.rarity
-        if rarity == 1:
-            bounds = (1, 10)
-        elif rarity == 2:
-            bounds = (0, 9)
-        elif rarity == 3:
-            bounds = (0, 7)
-        elif rarity == 4:
-            bounds = (0, 5)
 
+        # For common characters, they start off with 0 star level, which means
+        # that they won't need prestige-0, which is used for padding star
+        # levels given by base rarity.
+        bounds = (1 if rarity == 1 else 0, constants.PRESTIGE_CAP_BY_RARITY[rarity])
         if self.level < bounds[0] or self.level > bounds[1]:
             raise ValidationError("Expected prestige for char rarity %d to be between %s" % (rarity, bounds))
 
@@ -315,7 +311,7 @@ class Character(models.Model):
     char_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE)
-    level = models.IntegerField(default=1)
+    level = models.IntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(constants.MAX_CHARACTER_LEVEL)])
     copies = models.IntegerField(default=0)
     prestige = models.IntegerField(default=0)
     total_damage_dealt = models.BigIntegerField(default=0)
