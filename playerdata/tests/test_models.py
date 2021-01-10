@@ -77,11 +77,14 @@ class BaseCharacterAbilityTestCase(TestCase):
         }
         specs.full_clean()
 
-    def test_off_indexed_level_spec(self):
+    def test_missing_key_spec(self):
         specs = BaseCharacterAbility.objects.create(char_type=self.base_char)
         specs.ability1_specs = {
-            "12": {
+            "1": {
                 "foo": 1,
+            },
+            "21": {
+                "bar": 1,
             },
         }
 
@@ -147,9 +150,10 @@ class BaseCharacterAbilityTestCase(TestCase):
         specs.ability1_specs = {
             "1": {
                 "foo": 1,
+                "bar": 0.1,
             },
             "prestige-1": {
-                "foo": 2,
+                "fo00000o": 2,
             },
         }
         specs.full_clean()
@@ -158,6 +162,19 @@ class BaseCharacterAbilityTestCase(TestCase):
         specs = BaseCharacterAbility.objects.create(char_type=self.base_char)
         specs.ability1_specs = {
             "prestige-12": {
+                "foo": 1,
+            },
+        }
+        with self.assertRaises(ValidationError):
+            specs.full_clean()
+
+    def test_overlapping_prestiged_key_spec(self):
+        specs = BaseCharacterAbility.objects.create(char_type=self.base_char)
+        specs.ability1_specs = {
+            "1": {
+                "foo": 2,
+            },
+            "prestige-1": {
                 "foo": 1,
             },
         }

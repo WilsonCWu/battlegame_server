@@ -125,6 +125,7 @@ class BaseCharacterAbility(models.Model):
 
     def validate_ability_specs(specs):
         seen_levels = set()
+        seen_ability_level_keys, seen_prestige_level_keys = set(), set()
         for unlock_level in specs:
             # We only expect keys to be unlock_levels.
             if not BaseCharacterAbility.is_num_key(unlock_level) and not BaseCharacterAbility.is_prestige_key(unlock_level):
@@ -148,6 +149,25 @@ class BaseCharacterAbility(models.Model):
                 if not BaseCharacterAbility.is_num_key(v):
                     raise ValidationError('inner specs can only have numeric '
                                           'values.')
+
+            # Validate that ability leveling and prestige leveling have the
+            # same keys, but they don't overlap.
+            if BaseCharacterAbility.is_num_key(unlock_level):
+                if not seen_ability_level_keys:
+                    seen_ability_level_keys = set(specs[unlock_level])
+                elif seen_ability_level_keys != set(specs[unlock_level]):
+                    raise ValidationError('ability levels must have identical keys!')
+            else:
+                if not seen_prestige_level_keys:
+                    seen_prestige_level_keys = set(specs[unlock_level])
+                elif seen_prestige_level_keys != set(specs[unlock_level]):
+                    raise ValidationError('prestige levels must have identical keys!')
+
+        if seen_ability_level_keys and seen_prestige_level_keys:
+            if seen_ability_level_keys.intersection(seen_prestige_level_keys):
+                raise ValidationError('ability level keys and prestige keys ',
+                                      'should not intersect.')
+
 
     ability1_specs = JSONField(blank=True, null=True,
                                validators=[validate_ability_specs])
