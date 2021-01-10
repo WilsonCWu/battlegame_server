@@ -113,25 +113,26 @@ class BaseCharacterAbility(models.Model):
     char_type = models.OneToOneField(BaseCharacter, on_delete=models.CASCADE,
                                      primary_key=True)
 
-    def validate_ability_specs(specs):
-        # TODO: once we decide on how prestige will work, we may need to
-        # support keys such as "prestige_2".
-        def is_num(v):
-            try:
-                _ = float(v)
-                return True
-            except:
-                return False
+    def is_num_key(v):
+        try:
+            _ = float(v)
+            return True
+        except:
+            return False
 
+    def is_prestige_key(v):
+        return v.startswith("prestige-") and BaseCharacterAbility.is_num_key(v.lstrip("prestige-"))
+
+    def validate_ability_specs(specs):
         seen_levels = set()
         for unlock_level in specs:
             # We only expect keys to be unlock_levels.
-            if not is_num(unlock_level):
-                raise ValidationError('unlock level %s should be a number.'
+            if not BaseCharacterAbility.is_num_key(unlock_level) and not BaseCharacterAbility.is_prestige_key(unlock_level):
+                raise ValidationError('unlock level %s should be a number or a prestige.'
                                       % unlock_level)
 
             # Abilities should only be unlocked in increments of 20.
-            if int(unlock_level) % 20 != 1:
+            if BaseCharacterAbility.is_num_key(unlock_level) and int(unlock_level) % 20 != 1:
                 raise ValidationError('unlock levels should be in increments '
                                       'of 20.')
 
@@ -144,7 +145,7 @@ class BaseCharacterAbility(models.Model):
             # All specs themselves must be a one layer flat list of strings
             # to numbers.
             for v in specs[unlock_level].values():
-                if not is_num(v):
+                if not BaseCharacterAbility.is_num_key(v):
                     raise ValidationError('inner specs can only have numeric '
                                           'values.')
 
@@ -173,16 +174,25 @@ class BaseCharacterAbility(models.Model):
                 continue
 
             try:
-                levels_in_spec = {int(lvl) for lvl in specs}
+                levels_in_spec = {int(lvl) for lvl in specs
+                                  if not BaseCharacterAbility.is_prestige_key(lvl)}
             except:
-                raise ValidationError('levels must be integers')
+                raise ValidationError('ability levels must be integers')
 
-            # There should be no duplicate levels.
+            # There should be no duplicate levels, unless it is for prestige.
             if seen_levels.intersection(levels_in_spec):
                 raise ValidationError('two ability specs have the same '
                                       'unlock level.')
-
             seen_levels.update(levels_in_spec)
+
+            # Ensure that our prestige levels are under the cap for the character
+            # rarity.
+            prestige_levels_in_spec = {lvl for lvl in specs
+                                    if BaseCharacterAbility.is_prestige_key(lvl)}
+            for prestige_level in prestige_levels_in_spec:
+                int_level = int(prestige_level.lstrip("prestige-"))
+                if int_level > constants.PRESTIGE_CAP_BY_RARITY[self.char_type.rarity]:
+                    raise ValidationError('prestige level %d exceeds cap.' % int_level)
 
         for i in range(len(seen_levels)):
             expected_level = i * 20 + 1
