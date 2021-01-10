@@ -176,6 +176,8 @@ def handle_quickplay(request, win, opponent, stats):
         reward_scaler = min(dungeon_progress.campaign_stage, elo_scaler)
         player_exp = formulas.player_exp_reward_quickplay(reward_scaler)
 
+        coins = formulas.coins_chest_reward(request.user.userinfo.elo, 1) / 20
+
     # rewards
     original_elo = request.user.userinfo.elo
     updated_rating = update_rating(original_elo, opponent, win)
