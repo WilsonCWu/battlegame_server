@@ -182,6 +182,9 @@ def handle_quickplay(request, win, opponent, stats):
     original_elo = request.user.userinfo.elo
     updated_rating = update_rating(original_elo, opponent, win)
 
+    request.user.inventory.coins += coins
+    request.user.inventory.save()
+
     request.user.userinfo.elo = updated_rating
     request.user.userinfo.player_exp += player_exp
     request.user.userinfo.save()
