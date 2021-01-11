@@ -8,6 +8,7 @@ from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 from django_json_widget.widgets import JSONEditorWidget
 
 from battlegame.cron import next_round, setup_tournament, end_tourney
+from .constants import MAX_PRESTIGE_LEVEL, PRESTIGE_CAP_BY_RARITY
 from .dungeon import generate_dungeon_stages
 from .matcher import generate_bots_from_users, generate_bots_bulk
 from .models import ActiveCumulativeQuest
@@ -243,8 +244,35 @@ class BaseCharacterAbilityAdmin(admin.ModelAdmin):
 
 @admin.register(BaseCharacter)
 class BaseCharacterAdmin(admin.ModelAdmin):
+    actions = ('generate_usage_and_prestige',)
     list_display = ('char_type', 'name', 'rollable', 'rarity')
     list_filter = ('rollable', 'rarity')
+
+    def generate_usage_and_prestige(self, request, queryset):
+        for base_char in queryset:
+            # Create BaseCharacterUsage for characters that currently
+            # don't have it.
+            if not hasattr(base_char, "basecharacterusage"):
+                BaseCharacterUsage.objects.create(char_type=base_char)
+
+            # Create BasePrestige for characters that currently don't have
+            # any.
+            if not BasePrestige.objects.filter(char_type=base_char).exists():
+                for i in range(PRESTIGE_CAP_BY_RARITY[base_char.rarity] + 1):
+                    # Don't need to backfill for common characters.
+                    if base_char.rarity == 1 and i == 0: continue
+
+                    levels_to_backfill = MAX_PRESTIGE_LEVEL - PRESTIGE_CAP_BY_RARITY[base_char.rarity]
+                    star_level = i + levels_to_backfill
+                    BasePrestige.objects.create(
+                        char_type=base_char,
+                        level=i,
+                        attack_mult=(1.07 ** star_level),
+                        ability_mult=(1.07 ** star_level),
+                        ar_mult=(1.07 ** star_level),
+                        mr_mult=(1.07 ** star_level),
+                        max_health_mult=(1.07 ** star_level),
+                    )
 
 
 admin.site.register(DungeonStage, DungeonStageAdmin)
