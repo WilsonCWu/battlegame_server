@@ -19,6 +19,8 @@ class DungeonType(Enum):
 
 
 MAX_DUNGEON_STAGE = [400, 10]
+NUM_DUNGEON_SUBSTAGES = [20, 5]
+CHAR_LEVEL_DIFF_BETWEEN_STAGES = [1, 5]
 
 # Constant Quest types
 # Comments are for reference of how these quests should track progress / total

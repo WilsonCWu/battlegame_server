@@ -8,6 +8,7 @@ from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 from django_json_widget.widgets import JSONEditorWidget
 
 from battlegame.cron import next_round, setup_tournament, end_tourney
+from . import constants
 from .constants import MAX_PRESTIGE_LEVEL, PRESTIGE_CAP_BY_RARITY
 from .dungeon import generate_dungeon_stages
 from .matcher import generate_bots_from_users, generate_bots_bulk

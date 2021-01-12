@@ -66,15 +66,16 @@ def shuffle_positions(len_chars, positions: []):
 
 
 # creates or updates a placement for stage_num based on the boss_placement
-def make_mob_from_boss(boss_placement: Placement, i: int, stage_num: int):
+def make_mob_from_boss(boss_placement: Placement, i: int, stage_num: int, dungeon_type: int):
 
     # `battlegame` user is the owner for all our dungeon mobs
     dungeon_user_id = 1
-    char1 = None if boss_placement.char_1 is None else Character(user_id=dungeon_user_id, char_type=boss_placement.char_1.char_type, level=max(boss_placement.char_1.level - i, 1))
-    char2 = None if boss_placement.char_2 is None else Character(user_id=dungeon_user_id, char_type=boss_placement.char_2.char_type, level=max(boss_placement.char_2.level - i, 1))
-    char3 = None if boss_placement.char_3 is None else Character(user_id=dungeon_user_id, char_type=boss_placement.char_3.char_type, level=max(boss_placement.char_3.level - i, 1))
-    char4 = None if boss_placement.char_4 is None else Character(user_id=dungeon_user_id, char_type=boss_placement.char_4.char_type, level=max(boss_placement.char_4.level - i, 1))
-    char5 = None if boss_placement.char_5 is None else Character(user_id=dungeon_user_id, char_type=boss_placement.char_5.char_type, level=max(boss_placement.char_5.level - i, 1))
+    level_multiplier = constants.CHAR_LEVEL_DIFF_BETWEEN_STAGES[dungeon_type]
+    char1 = None if boss_placement.char_1 is None else Character(user_id=dungeon_user_id, char_type=boss_placement.char_1.char_type, level=max(boss_placement.char_1.level - i * level_multiplier, 1))
+    char2 = None if boss_placement.char_2 is None else Character(user_id=dungeon_user_id, char_type=boss_placement.char_2.char_type, level=max(boss_placement.char_2.level - i * level_multiplier, 1))
+    char3 = None if boss_placement.char_3 is None else Character(user_id=dungeon_user_id, char_type=boss_placement.char_3.char_type, level=max(boss_placement.char_3.level - i * level_multiplier, 1))
+    char4 = None if boss_placement.char_4 is None else Character(user_id=dungeon_user_id, char_type=boss_placement.char_4.char_type, level=max(boss_placement.char_4.level - i * level_multiplier, 1))
+    char5 = None if boss_placement.char_5 is None else Character(user_id=dungeon_user_id, char_type=boss_placement.char_5.char_type, level=max(boss_placement.char_5.level - i * level_multiplier, 1))
 
     pos1 = boss_placement.pos_1
     pos2 = boss_placement.pos_2
@@ -95,7 +96,7 @@ def make_mob_from_boss(boss_placement: Placement, i: int, stage_num: int):
     positions = shuffle_positions(len_chars,  positions)
 
     # if placement already exists for this stage, we update
-    dungeon_stage = DungeonStage.objects.filter(stage=stage_num).first()
+    dungeon_stage = DungeonStage.objects.filter(stage=stage_num, dungeon_type=dungeon_type).first()
     if dungeon_stage is not None:
         placement = dungeon_stage.mob
 
@@ -132,12 +133,13 @@ def generate_dungeon_stages(dungeon_bosses_queryset):
 
     bulk_stages = []
     for boss in dungeon_bosses_queryset:
-        for i in range(1, 20):
+        num_substages = constants.NUM_DUNGEON_SUBSTAGES[boss.dungeon_type]
+        for i in range(1, num_substages):
             stage_num = boss.stage - i
             exp = formulas.player_exp_reward_dungeon(stage_num)
-            coins = formulas.coins_reward_dungeon(stage_num)
-            gems = formulas.gems_reward_dungeon(stage_num)
-            placement = make_mob_from_boss(boss.placement, i, stage_num)
+            coins = formulas.coins_reward_dungeon(stage_num, boss.dungeon_type)
+            gems = formulas.gems_reward_dungeon(stage_num, boss.dungeon_type)
+            placement = make_mob_from_boss(boss.placement, i, stage_num, boss.dungeon_type)
 
             stage = DungeonStage(stage=stage_num, mob=placement, dungeon_type=boss.dungeon_type,
                                  coins=coins, gems=gems, player_exp=exp)
@@ -145,12 +147,12 @@ def generate_dungeon_stages(dungeon_bosses_queryset):
 
         # create the actual boss stage
         boss_stage = DungeonStage(stage=boss.stage, mob=boss.placement, dungeon_type=boss.dungeon_type,
-                                  coins=formulas.coins_reward_dungeon(boss.stage),
-                                  gems=formulas.gems_reward_dungeon(boss.stage),
+                                  coins=formulas.coins_reward_dungeon(boss.stage, boss.dungeon_type),
+                                  gems=formulas.gems_reward_dungeon(boss.stage, boss.dungeon_type),
                                   player_exp=formulas.player_exp_reward_dungeon(boss.stage))
         bulk_stages.append(boss_stage)
 
-    DungeonStage.objects.bulk_update_or_create(bulk_stages, ['mob', 'coins', 'gems', 'player_exp'], match_field='stage')
+    DungeonStage.objects.bulk_update_or_create(bulk_stages, ['mob', 'coins', 'gems', 'player_exp'], match_field=['stage', 'dungeon_type'])
 
 
 def complete_referral_conversion(user):

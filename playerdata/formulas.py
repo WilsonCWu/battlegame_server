@@ -20,8 +20,9 @@ def coins_reward_quickplay(dungeon_level):
 
 
 # FLOOR((level / 3) * 50 + ((level-1)^2))+ 500
-def coins_reward_dungeon(dungeon_level):
+def coins_reward_dungeon(dungeon_level, dungeon_type: int):
     # more on a boss level
+    dungeon_level = dungeon_level * constants.CHAR_LEVEL_DIFF_BETWEEN_STAGES[dungeon_type]
     if dungeon_level % 20 == 0:
         return dungeon_level * 1000
     return math.floor(dungeon_level / 3 * 50 + (dungeon_level - 1) ** 2 + 500)
@@ -125,7 +126,10 @@ def dust_chest_reward(elo, rarity):
 ## Gems
 
 
-def gems_reward_dungeon(dungeon_level):
+def gems_reward_dungeon(dungeon_level, dungeon_type: int):
+    if dungeon_type == constants.DungeonType.TOWER.value:
+        return 750
+
     if dungeon_level % 5 == 0:
         return 100
     return 0
