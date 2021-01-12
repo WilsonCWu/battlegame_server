@@ -24,7 +24,7 @@ def coins_reward_dungeon(dungeon_level, dungeon_type: int):
     # more on a boss level
     dungeon_level = dungeon_level * constants.CHAR_LEVEL_DIFF_BETWEEN_STAGES[dungeon_type]
     if dungeon_level % 20 == 0:
-        return dungeon_level * 1000
+        return dungeon_level * 3
     return math.floor(dungeon_level / 3 * 50 + (dungeon_level - 1) ** 2 + 500)
 
 
