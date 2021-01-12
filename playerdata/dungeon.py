@@ -40,6 +40,7 @@ def update_char(char: Character, new_char: Character):
 
     char.char_type = new_char.char_type
     char.level = new_char.level
+    char.prestige = new_char.prestige
     char.save()
     return char
 
@@ -65,17 +66,33 @@ def shuffle_positions(len_chars, positions: []):
     return new_positions
 
 
+def make_char(user_id: int, char: Character, iteration: int, dungeon_type: int):
+    if char is None:
+        return None
+
+    level_multiplier = constants.CHAR_LEVEL_DIFF_BETWEEN_STAGES[dungeon_type]
+
+    if dungeon_type == constants.DungeonType.TOWER.value:
+        prestige = constants.PRESTIGE_CAP_BY_RARITY[char.char_type.rarity]
+    else:
+        prestige = 0
+
+    return Character(user_id=user_id,
+                     char_type=char.char_type,
+                     level=max(char.level - iteration * level_multiplier, 1),
+                     prestige=prestige)
+
+
 # creates or updates a placement for stage_num based on the boss_placement
 def make_mob_from_boss(boss_placement: Placement, i: int, stage_num: int, dungeon_type: int):
 
     # `battlegame` user is the owner for all our dungeon mobs
     dungeon_user_id = 1
-    level_multiplier = constants.CHAR_LEVEL_DIFF_BETWEEN_STAGES[dungeon_type]
-    char1 = None if boss_placement.char_1 is None else Character(user_id=dungeon_user_id, char_type=boss_placement.char_1.char_type, level=max(boss_placement.char_1.level - i * level_multiplier, 1))
-    char2 = None if boss_placement.char_2 is None else Character(user_id=dungeon_user_id, char_type=boss_placement.char_2.char_type, level=max(boss_placement.char_2.level - i * level_multiplier, 1))
-    char3 = None if boss_placement.char_3 is None else Character(user_id=dungeon_user_id, char_type=boss_placement.char_3.char_type, level=max(boss_placement.char_3.level - i * level_multiplier, 1))
-    char4 = None if boss_placement.char_4 is None else Character(user_id=dungeon_user_id, char_type=boss_placement.char_4.char_type, level=max(boss_placement.char_4.level - i * level_multiplier, 1))
-    char5 = None if boss_placement.char_5 is None else Character(user_id=dungeon_user_id, char_type=boss_placement.char_5.char_type, level=max(boss_placement.char_5.level - i * level_multiplier, 1))
+    char1 = make_char(dungeon_user_id, boss_placement.char_1, i, dungeon_type)
+    char2 = make_char(dungeon_user_id, boss_placement.char_2, i, dungeon_type)
+    char3 = make_char(dungeon_user_id, boss_placement.char_3, i, dungeon_type)
+    char4 = make_char(dungeon_user_id, boss_placement.char_4, i, dungeon_type)
+    char5 = make_char(dungeon_user_id, boss_placement.char_5, i, dungeon_type)
 
     pos1 = boss_placement.pos_1
     pos2 = boss_placement.pos_2
@@ -88,7 +105,7 @@ def make_mob_from_boss(boss_placement: Placement, i: int, stage_num: int, dungeo
     positions = [pos1, pos2, pos3, pos4, pos5]
 
     # 1 random peasant from level 1 - 24
-    if stage_num <= 24:
+    if dungeon_type == constants.DungeonType.CAMPAIGN.value and stage_num <= 24:
         char_to_replace = random.randint(0, len_chars - 1)
         rand_peasant_type = random.randint(1, 3)
         chars[char_to_replace] = Character(user_id=dungeon_user_id, char_type_id=rand_peasant_type, level=chars[char_to_replace].level)
