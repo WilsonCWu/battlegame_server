@@ -95,6 +95,7 @@ urlpatterns = [
     path('bots/', matcher.BotsView.as_view()),
     path('bots/uploadresults/', matcher.PostBotResultsView.as_view()),
     path('matcher/', matcher.MatcherView.as_view()),
+    path('matchhistory/', matcher.GetMatchHistoryView.as_view()),
     path('placements/', matcher.PlacementsView.as_view()),
     path('inventoryinfo/', inventory.InventoryView.as_view()),
     path('inventoryheader/', inventory.InventoryHeaderView.as_view()),
