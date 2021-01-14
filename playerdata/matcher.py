@@ -14,11 +14,13 @@ from playerdata.models import BaseCharacter
 from playerdata.models import Character
 from playerdata.models import Placement
 from playerdata.models import UserInfo
+from playerdata.models import Match
 from .inventory import CharacterSchema
 from .serializers import GetOpponentsSerializer
 from .serializers import GetUserSerializer
 from .serializers import UpdatePlacementSerializer
 from .serializers import BotResultsSerializer
+from .serializers import GetMatchHistorySerializer
 from .statusupdate import calculate_elo
 
 
@@ -59,6 +61,17 @@ class LightUserInfoSchema(Schema):
     name = fields.Str()
     profile_picture = fields.Int()
     clan = fields.Str(attribute='clanmember.clan_id')
+
+
+class LightUserSchema(Schema):
+    userinfo = fields.Nested(LightUserInfoSchema)
+
+
+class MatchHistorySchema(Schema):
+    attacker = fields.Nested(LightUserSchema)
+    defender = fields.Nested(LightUserSchema)
+    is_win = fields.Bool()
+    uploaded_at = fields.DateTime()
 
 
 class MatcherView(APIView):
@@ -226,6 +239,26 @@ class PostBotResultsView(APIView):
             user2.userinfo.save()
 
         return Response({'status': True})
+
+
+class GetMatchHistoryView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        serializer = GetMatchHistorySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        attacker_query = Match.objects.filter(attacker=request.user) \
+            .select_related('attacker__userinfo') \
+            .select_related('defender__userinfo')
+        defender_query = Match.objects.filter(defender=request.user) \
+            .select_related('attacker__userinfo') \
+            .select_related('defender__userinfo')
+
+        limit = serializer.validated_data['count']
+        query = (attacker_query | defender_query).order_by('-uploaded_at')[:limit]
+        matches = MatchHistorySchema(query, many=True)
+        return Response({'matches': matches.data})
+
 
 class BotsView(APIView):
     permission_classes = (IsAuthenticated,)
