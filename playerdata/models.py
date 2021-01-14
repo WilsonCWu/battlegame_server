@@ -433,6 +433,28 @@ class UserStats(models.Model):
         return self.user.userinfo.name + '(' + str(self.user.id) + ')'
 
 
+class Match(models.Model):
+    """Match represents a QuickPlay match.
+
+    This differs from Tournament matches which reference tournament members
+    instead of users.
+    """
+    attacker = models.ForeignKey(User, on_delete=models.CASCADE)
+    defender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='opponent')
+    is_win = models.BooleanField()
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['attacker', 'defender', 'uploaded_at']),
+        ]
+
+    def __str__(self):
+        return "%s (%s) vs %s" % (self.attacker.userinfo.name,
+                                  "W" if self.is_win else "L",
+                                  self.defender.userinfo.name)
+
+
 class Chest(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     rarity = models.IntegerField()

@@ -10,7 +10,7 @@ from .purchases import weighted_pick_from_buckets
 from .questupdater import QuestUpdater
 from .serializers import UploadResultSerializer
 
-from playerdata.models import Character, DungeonProgress, Chest
+from playerdata.models import Character, DungeonProgress, Chest, Match
 from playerdata.models import UserStats
 from playerdata.models import TournamentMember
 from playerdata.models import TournamentMatch
@@ -160,8 +160,15 @@ def update_rating(original_elo, opponent, win):
     return updated_rating
 
 
+def update_match_history(attacker, defender_id, win):
+    # In the future there will be more processing for TTL, long-term retention,
+    # caching and what not, but for now, let's keep it simple.
+    Match.objects.create(attacker=attacker, defender_id=defender_id, is_win=win)
+
+
 def handle_quickplay(request, win, opponent, stats):
     update_stats(request.user, win, stats)
+    update_match_history(request.user, opponent, win)
 
     chest_rarity = 0
     coins = 0
@@ -188,6 +195,7 @@ def handle_quickplay(request, win, opponent, stats):
     request.user.userinfo.elo = updated_rating
     request.user.userinfo.player_exp += player_exp
     request.user.userinfo.save()
+
 
     return Response({"elo": updated_rating, 'prev_elo': original_elo, 'coins': coins,
                      'player_exp': player_exp, 'chest_rarity': chest_rarity})

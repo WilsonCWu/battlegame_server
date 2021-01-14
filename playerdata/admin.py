@@ -40,6 +40,7 @@ from .models import FriendRequest
 from .models import InvalidReceipt
 from .models import Inventory
 from .models import Item
+from .models import Match
 from .models import Placement
 from .models import PlayerQuestCumulative
 from .models import PlayerQuestDaily
@@ -289,6 +290,7 @@ admin.site.register(Item)
 admin.site.register(Placement, PlacementAdmin)
 admin.site.register(UserInfo, UserInfoAdmin)
 admin.site.register(UserStats)
+admin.site.register(Match)
 admin.site.register(Inventory)
 
 admin.site.register(Chat)
