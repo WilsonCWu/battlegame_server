@@ -187,7 +187,7 @@ class GetDeals(APIView):
         deal_schema.context = request.user
         curr_time = datetime.now()
 
-        purchased_deals_ids = list(PurchasedTracker.objects.filter(user=request.user).values_list('deal__base_deal_id', flat=True))
+        purchased_deals_ids = set(PurchasedTracker.objects.filter(user=request.user).values_list('deal__base_deal_id', flat=True))
 
         daily_deals = deal_schema.dump(
             ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
