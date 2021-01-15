@@ -3,10 +3,12 @@ import secrets
 from decouple import config
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import (
+    HTTP_401_UNAUTHORIZED,
     HTTP_404_NOT_FOUND,
 )
 from rest_framework.views import APIView
@@ -14,6 +16,7 @@ from rest_framework.views import APIView
 from .serializers import AuthTokenSerializer
 from .serializers import CreateNewUserSerializer
 from .serializers import ChangeNameSerializer
+from .serializers import RecoverAccountSerializer
 
 from .models import UserInfo
 
@@ -30,6 +33,10 @@ class CreateNewUser(APIView):
     throttle_classes = ()
     permission_classes = ()
 
+    @staticmethod
+    def generate_password():
+        return secrets.token_urlsafe(35)
+
     def post(self, request):
         serializer = CreateNewUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -39,7 +46,7 @@ class CreateNewUser(APIView):
             return Response({'detail': 'Invalid Credentials. Please contact support.'}, status=HTTP_404_NOT_FOUND)
 
         latest_id = get_user_model().objects.latest('id').id + 1
-        password = secrets.token_urlsafe(35)
+        password = CreateNewUser.generate_password()
 
         user = get_user_model().objects.create_user(username=latest_id, password=password)
 
@@ -85,3 +92,42 @@ class ObtainAuthToken(APIView):
         token = Token.objects.create(user=user)
 
         return Response({'token': token.key, 'user_id': user.id})
+
+
+class UserRecoveryTokenGenerator(PasswordResetTokenGenerator):
+    def _make_hash_value(self, user, timestamp):
+        """Overwrite the hash value to exclude logged-in boolean.
+
+        For our recovery token, we track state based on whether the password
+        was changed or not.
+        """
+        return str(user.pk) + user.password + str(timestamp)
+
+
+class RecoverAccount(APIView):
+    def post(self, request):
+        serializer = RecoverAccountSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            user_id = serializer.validated_data['user_id']
+            user = get_user_model().objects.get(id=user_id)
+        except:
+            return Response({'reason': 'failed to get user with id=%s' % user_id}, status=HTTP_404_NOT_FOUND)
+
+        generator = UserRecoveryTokenGenerator()
+        if generator.check_token(user, serializer.validated_data['token']):
+            new_password = CreateNewUser.generate_password()
+            user.password = new_password
+            user.save()
+            return Response({'password': new_password})
+        else:
+            return Response({'reason': 'invalid token!'}, status=HTTP_401_UNAUTHORIZED)
+
+
+class GetRecoveryToken(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        generator = UserRecoveryTokenGenerator()
+        return Response({'token': generator.make_token(request.user)})

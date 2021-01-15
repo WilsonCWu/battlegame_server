@@ -104,6 +104,8 @@ urlpatterns = [
     path('baseinfo/', base.BaseInfoView.as_view()),
     path('test/', login.HelloView.as_view()),
     path('login/', login.ObtainAuthToken.as_view()),
+    path('recover/', login.RecoverAccount.as_view()),
+    path('recoverytoken/', login.GetRecoveryToken.as_view()),
     path('createnewuser/', login.CreateNewUser.as_view()),
     path('changename/', login.ChangeName.as_view()),
     path('dungeon/stage', dungeon.DungeonStageView.as_view()),
