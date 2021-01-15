@@ -176,11 +176,7 @@ class DealSchema(Schema):
     order = fields.Int(attribute='base_deal.order')
     gems_cost = fields.Int(attribute='base_deal.gems_cost')
     expiration_date = fields.DateTime()
-
-    is_available = fields.Method("get_availability")
-
-    def get_availability(self, deal):
-        return PurchasedTracker.objects.filter(user=self.context, deal=deal).first() is None
+    is_available = fields.Bool()
 
 
 class GetDeals(APIView):
@@ -191,10 +187,13 @@ class GetDeals(APIView):
         deal_schema.context = request.user
         curr_time = datetime.now()
 
+        purchased_deals_ids = list(PurchasedTracker.objects.filter(user=request.user).values_list('deal__base_deal_id', flat=True))
+
         daily_deals = deal_schema.dump(
             ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
                 base_deal__deal_type=DealType.DAILY.value,
                 expiration_date__gt=curr_time).order_by('base_deal__order'))
+
         weekly_deals = deal_schema.dump(
             ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
                 base_deal__deal_type=DealType.WEEKLY.value,
@@ -204,6 +203,11 @@ class GetDeals(APIView):
             ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
                 base_deal__deal_type=DealType.GEMS_COST.value,
                 expiration_date__gt=curr_time).order_by('base_deal__order'))
+
+        all_deals = daily_deals + weekly_deals + gemscost_deals
+
+        for deal in all_deals:
+            deal["is_available"] = deal["id"] not in purchased_deals_ids
 
         return Response({"daily_deals": daily_deals, 'weekly_deals': weekly_deals, 'gemcost_deals': gemscost_deals})
 
