@@ -85,7 +85,6 @@ urlpatterns = [
     path('refund/', inventory.RefundCharacter.as_view()),
     path('retire/', inventory.RetireCharacter.as_view()),
     path('retire/auto/', inventory.SetAutoRetire.as_view()),
-    path('uploadresult/', statusupdate.UploadResultView.as_view()),
     path('uploadresult/quickplay/', statusupdate.UploadQuickplayResultView.as_view()),
     path('uploadresult/tourney/', statusupdate.UploadTourneyResultView.as_view()),
     path('skip/cost/', statusupdate.SkipCostView.as_view()),

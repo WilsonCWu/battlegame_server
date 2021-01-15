@@ -187,20 +187,11 @@ class DungeonSetProgressView(APIView):
 
     def post(self, request):
         # Increment Dungeon progress
-        serializer = BooleanSerializer(data=request.data)
+        serializer = SetDungeonProgressSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        is_win = serializer.validated_data['value']
-        dungeon_type = constants.DungeonType.CAMPAIGN.value
-
-        # TODO remove once we release 0.0.6
-        latest_version = ServerStatus.objects.filter(event_type='V').latest('creation_time')
-        if version.parse(latest_version.version_number) > version.parse("0.0.5"):
-            serializer = SetDungeonProgressSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-
-            is_win = serializer.validated_data['is_win']
-            dungeon_type = serializer.validated_data['dungeon_type']
+        is_win = serializer.validated_data['is_win']
+        dungeon_type = serializer.validated_data['dungeon_type']
 
         if dungeon_type == constants.DungeonType.CAMPAIGN.value:
             QuestUpdater.add_progress_by_type(request.user, constants.ATTEMPT_DUNGEON_GAMES, 1)
