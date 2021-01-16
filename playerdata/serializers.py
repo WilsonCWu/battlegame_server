@@ -10,6 +10,11 @@ class TokenSerializer(serializers.Serializer):
     token = serializers.CharField(required=True)
 
 
+class RecoverAccountSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField(required=True)
+    token = serializers.CharField(required=True)
+
+
 class CreateNewUserSerializer(serializers.Serializer):
     token = serializers.CharField(required=True)
 
