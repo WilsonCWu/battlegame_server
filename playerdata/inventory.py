@@ -273,6 +273,8 @@ def unequip_item(item, target_slot):
             char = item.trinket_1
             target_slot = SlotType.TRINKET_1.value
         if hasattr(item, 'trinket_2'):
+            if char:
+                Exception("item already equipped in 2 trinket spots: " + str(item.item_id))
             char = item.trinket_2
             target_slot = SlotType.TRINKET_2.value
     else:
@@ -304,6 +306,7 @@ class EquipItemView(APIView):
     permission_classes = (IsAuthenticated,)
 
     # Note that this also unequips the item if already equipped.
+    @transaction.atomic
     def post(self, request):
         serializer = EquipItemSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -347,12 +350,10 @@ class EquipItemView(APIView):
             if target_slot in (SlotType.TRINKET_1.value, SlotType.TRINKET_2.value):
                 # clean() validates unique trinkets across slots.
                 char.clean()
-
-            # We want to handle failures gracefully here -- especially ones
-            # caused by unique key duplication from the 1-1 relationships.
-            char.save()
         except Exception as e:
             return Response({'status': False, 'reason': str(e)})
+
+        char.save()
         return Response({'status': True, 'unequip_char_id': unequip_char_id, 'unequip_slot': unequip_slot})
 
 class UnequipItemView(APIView):
