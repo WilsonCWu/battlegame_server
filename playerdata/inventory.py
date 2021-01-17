@@ -328,9 +328,8 @@ class EquipItemView(APIView):
 
         # Unequip item if already equipped.
         unequip_char_id, unequip_slot = unequip_item(item, target_slot)
-        if unequip_char_id != -1:
+        if unequip_char_id == char.char_id:
             char.refresh_from_db()
-            item.refresh_from_db()
 
         # Equip the item to the character.
         if target_slot == SlotType.HAT.value:
