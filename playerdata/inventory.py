@@ -248,10 +248,62 @@ class SlotType(Enum):
     TRINKET_1 = 'T1'
     TRINKET_2 = 'T2'
 
+# returns id of char item is unequipped from, and its slot
+# assumes slot is valid, and item belongs to user
+# for trinkets, will unequip from both
+# assumes T1/T2 for trinkets, not T
+def unequip_item(item, target_slot):
+    char = None
+    # TODO: hasattr is pretty gross, but catching exception method is worse, espec with trinkets
+    if target_slot == SlotType.HAT.value:
+        if hasattr(item, 'hat'):
+            char = item.hat
+    elif target_slot == SlotType.ARMOR.value:
+        if hasattr(item, 'armor'):
+            char = item.armor
+    elif target_slot == SlotType.BOOTS.value:
+        if hasattr(item, 'boots'):
+            char = item.boots
+    elif target_slot == SlotType.WEAPON.value:
+        if hasattr(item, 'weapon'):
+            char = item.weapon
+    elif target_slot == SlotType.TRINKET_1.value or target_slot == SlotType.TRINKET_2.value:
+        # assuming trinket is in valid state, and not doubly equipped
+        if hasattr(item, 'trinket_1'):
+            char = item.trinket_1
+            target_slot = SlotType.TRINKET_1.value
+        if hasattr(item, 'trinket_2'):
+            char = item.trinket_2
+            target_slot = SlotType.TRINKET_2.value
+    else:
+        raise Exception("invalid target_slot " + target_slot)
+    
+    if char:
+        unequip_item_from_char(char, target_slot)
+        return char.char_id, target_slot
+    else:
+        return -1, ""
+
+def unequip_item_from_char(char, slot):
+    if slot == SlotType.HAT.value:
+        char.hat = None
+    elif slot == SlotType.ARMOR.value:
+        char.armor = None
+    elif slot == SlotType.BOOTS.value:
+        char.boots = None
+    elif slot == SlotType.WEAPON.value:
+        char.weapon = None
+    elif slot == SlotType.TRINKET_1.value:
+        char.trinket_1 = None
+    elif slot == SlotType.TRINKET_2.value:
+        char.trinket_2 = None
+
+    char.save()
 
 class EquipItemView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    # Note that this also unequips the item if already equipped.
     def post(self, request):
         serializer = EquipItemSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -270,6 +322,12 @@ class EquipItemView(APIView):
 
         if item.item_type.gear_slot != target_slot[0]:
             return Response({'status': False, 'reason': 'item does not belong in the slot'})
+
+        # Unequip item if already equipped.
+        unequip_char_id, unequip_slot = unequip_item(item, target_slot)
+        if unequip_char_id != -1:
+            char.refresh_from_db()
+            item.refresh_from_db()
 
         # Equip the item to the character.
         if target_slot == SlotType.HAT.value:
@@ -295,12 +353,12 @@ class EquipItemView(APIView):
             char.save()
         except Exception as e:
             return Response({'status': False, 'reason': str(e)})
-        return Response({'status': True})
-
+        return Response({'status': True, 'unequip_char_id': unequip_char_id, 'unequip_slot': unequip_slot})
 
 class UnequipItemView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = UnequipItemSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -312,19 +370,5 @@ class UnequipItemView(APIView):
         if char.user != request.user:
             return Response({'status': False, 'reason': 'user does not own the character'})
 
-        # Unequip the item to the character.
-        if target_slot == SlotType.HAT.value:
-            char.hat = None
-        elif target_slot == SlotType.ARMOR.value:
-            char.armor = None
-        elif target_slot == SlotType.BOOTS.value:
-            char.boots = None
-        elif target_slot == SlotType.WEAPON.value:
-            char.weapon = None
-        elif target_slot == SlotType.TRINKET_1.value:
-            char.trinket_1 = None
-        elif target_slot == SlotType.TRINKET_2.value:
-            char.trinket_2 = None
-
-        char.save()
+        unequip_item_from_char(char, target_slot)
         return Response({'status': True})
