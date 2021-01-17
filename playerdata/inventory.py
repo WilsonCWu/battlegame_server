@@ -9,6 +9,7 @@ from playerdata import constants
 from playerdata.models import Character, UserInfo, ServerStatus
 from playerdata.models import Item
 from . import formulas
+from .questupdater import QuestUpdater
 from .serializers import EquipItemSerializer, UnequipItemSerializer, ValueSerializer
 from .serializers import TargetCharSerializer
 
@@ -125,6 +126,8 @@ class TryLevelView(APIView):
 
         inventory.save()
         target_character.save()
+
+        QuestUpdater.add_progress_by_type(request.user, constants.LEVEL_UP_A_HERO, 1)
 
         return Response({'status': True})
 
