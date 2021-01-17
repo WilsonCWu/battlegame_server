@@ -118,7 +118,7 @@ class RecoverAccount(APIView):
         generator = UserRecoveryTokenGenerator()
         if generator.check_token(user, serializer.validated_data['token']):
             new_password = CreateNewUser.generate_password()
-            user.password = new_password
+            user.set_password(new_password)
             user.save()
             return Response({'password': new_password})
         else:
