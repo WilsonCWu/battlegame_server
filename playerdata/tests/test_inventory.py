@@ -50,6 +50,7 @@ class EquipItemAPITestCase(APITestCase):
         self.owned_archer.refresh_from_db()
         self.assertIsNone(self.owned_archer.hat)
         self.assertIsNone(self.owned_archer.weapon)
+        self.assertEqual(response.data['unequip_char_id'], -1)
 
     def test_equipping_equipped_item(self):
         self.owned_archer.weapon = self.owned_bow
