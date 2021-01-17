@@ -36,6 +36,7 @@ class EquipItemAPITestCase(APITestCase):
         self.assertTrue(response.data['status'])
         self.owned_archer.refresh_from_db()
         self.assertEqual(self.owned_archer.weapon, self.owned_bow)
+        self.assertEqual(response.data['unequip_char_id'], -1)
 
     def test_equipping_item_wrong_slot(self):
         response = self.client.post('/inventory/equipitem/', {
@@ -59,8 +60,6 @@ class EquipItemAPITestCase(APITestCase):
             char_type=self.owned_archer.char_type,
         )
 
-        # This request will result in a DB transactional failure, as we have
-        # one-to-one setup for character and items.
         response = self.client.post('/inventory/equipitem/', {
             'target_slot': 'W',
             'target_char_id': owned_archer_2.char_id,
@@ -68,7 +67,14 @@ class EquipItemAPITestCase(APITestCase):
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(response.data['status'])
+        self.assertTrue(response.data['status'])
+        self.owned_archer.refresh_from_db()
+        owned_archer_2.refresh_from_db()
+        self.assertEqual(response.data['unequip_char_id'], self.owned_archer.char_id)
+        self.assertEqual(response.data['unequip_slot'], 'W')
+        self.assertIsNone(self.owned_archer.weapon)
+        self.assertEqual(owned_archer_2.weapon, self.owned_bow)
+
 
     def test_equipping_duplicate_trinkets(self):
         base_trinket = BaseItem.objects.create(
@@ -94,16 +100,19 @@ class EquipItemAPITestCase(APITestCase):
         self.owned_archer.refresh_from_db()
         self.assertEqual(self.owned_archer.trinket_1, trinket)
 
-        # Equipping same trinket on different slot fails.
+        # Equipping same trinket on different slot succeeds.
         response = self.client.post('/inventory/equipitem/', {
             'target_slot': 'T2',
             'target_char_id': self.owned_archer.char_id,
             'target_item_id': trinket.item_id,
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(response.data['status'])
+        self.assertTrue(response.data['status'])
         self.owned_archer.refresh_from_db()
-        self.assertIsNone(self.owned_archer.trinket_2)
+        self.assertEqual(response.data['unequip_char_id'], self.owned_archer.char_id)
+        self.assertEqual(response.data['unequip_slot'], 'T1')
+        self.assertIsNone(self.owned_archer.trinket_1)
+        self.assertEqual(self.owned_archer.trinket_2, trinket)
 
         # Equipping same trinket on different character fails.
         owned_archer_2 = Character.objects.create(
@@ -116,9 +125,13 @@ class EquipItemAPITestCase(APITestCase):
             'target_item_id': trinket.item_id,
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(response.data['status'])
+        self.assertTrue(response.data['status'])
         owned_archer_2.refresh_from_db()
-        self.assertIsNone(owned_archer_2.trinket_2)
+        self.owned_archer.refresh_from_db()
+        self.assertEqual(response.data['unequip_char_id'], self.owned_archer.char_id)
+        self.assertEqual(response.data['unequip_slot'], 'T2')
+        self.assertIsNone(self.owned_archer.trinket_2)
+        self.assertEqual(owned_archer_2.trinket_2, trinket)
 
 
 class UnequipItemAPITestCase(APITestCase):
