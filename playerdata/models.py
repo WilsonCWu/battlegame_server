@@ -39,6 +39,7 @@ class ServerStatus(models.Model):
     # Fields for Maintenance events.
     maintenance_start = models.DateTimeField(blank=True, null=True)
     expected_end = models.DateTimeField(blank=True, null=True)
+    patch_notes = models.TextField(default="", blank=True)
 
     class Meta:
         indexes = [
