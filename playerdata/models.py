@@ -39,7 +39,6 @@ class ServerStatus(models.Model):
     # Fields for Maintenance events.
     maintenance_start = models.DateTimeField(blank=True, null=True)
     expected_end = models.DateTimeField(blank=True, null=True)
-    patch_notes = models.TextField(default="", blank=True)
 
     class Meta:
         indexes = [
@@ -487,7 +486,7 @@ class Inventory(models.Model):
 
 
 class Chat(models.Model):
-    chat_name = models.CharField(default='', max_length=40)
+    chat_name = models.TextField(default='')
 
     def __str__(self):
         return self.chat_name + '(' + str(self.id) + ')'
@@ -495,7 +494,7 @@ class Chat(models.Model):
 
 class ChatMessage(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
-    message = models.CharField(max_length=255)
+    message = models.TextField()
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
     time_send = models.DateTimeField(auto_now_add=True)
 
@@ -536,8 +535,8 @@ class FriendRequest(models.Model):
 
 
 class Clan(models.Model):
-    name = models.CharField(primary_key=True, max_length=20)
-    description = models.CharField(default='A description has not been set.', max_length=255)
+    name = models.TextField(primary_key=True)
+    description = models.TextField(default='A description has not been set.')
     chat = models.ForeignKey(Chat, null=True, on_delete=models.SET_NULL)
     time_started = models.DateTimeField(auto_now_add=True)
     elo = models.IntegerField(default=0)
@@ -607,7 +606,7 @@ class DungeonBoss(models.Model):
 
 
 class BaseQuest(models.Model):
-    title = models.CharField(max_length=100)
+    title = models.TextField()
     type = models.IntegerField()
     total = models.BigIntegerField()
     gems = models.IntegerField(default=0)
@@ -686,7 +685,7 @@ class ActiveDailyQuest(models.Model):
 
 
 class BaseCode(models.Model):
-    code = models.CharField(max_length=50)
+    code = models.TextField()
     gems = models.IntegerField(default=0)
     coins = models.IntegerField(default=0)
     items = ArrayField(models.IntegerField(), blank=True, null=True)
@@ -710,7 +709,7 @@ class ClaimedCode(models.Model):
 
 class UserReferral(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    referral_code = models.CharField(unique=True, max_length=12)
+    referral_code = models.TextField(unique=True)
 
     def __str__(self):
         return str(self.user) + ": " + str(self.referral_code)
@@ -719,7 +718,7 @@ class UserReferral(models.Model):
 class ReferralTracker(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     referral = models.ForeignKey(UserReferral, on_delete=models.CASCADE)
-    device_id = models.CharField(max_length=255)
+    device_id = models.TextField()
     converted = models.BooleanField(default=False)
 
     def __str__(self):
@@ -780,9 +779,9 @@ class TournamentSelectionCards(models.Model):
 
 class InvalidReceipt(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    order_number = models.CharField(max_length=255)
+    order_number = models.TextField()
     date = models.IntegerField()
-    product_id = models.CharField(max_length=255)
+    product_id = models.TextField()
 
 
 class BaseDeal(models.Model):
@@ -813,8 +812,8 @@ class ActiveDeal(models.Model):
 class PurchasedTracker(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     deal = models.ForeignKey(ActiveDeal, on_delete=models.CASCADE, blank=True, null=True)
-    purchase_id = models.CharField(default='', max_length=255)
-    transaction_id = models.CharField(default='', max_length=255)
+    purchase_id = models.TextField(default='')
+    transaction_id = models.TextField(default='')
     purchase_time = models.DateTimeField(default=timezone.now)
 
     class Meta:
