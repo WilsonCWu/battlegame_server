@@ -35,6 +35,10 @@ jobs:
           command: |
             echo -e "SECRET_KEY=foo\nPOSTGRES_PASSWORD=postgres\nDEVELOPMENT=on" >> .env
       - run:
+          name: "No deleted migrations"
+          command: |
+            git diff master --name-status | grep -E 'D    [a-z]+/migrations'; test $? -eq 1
+      - run:
           name: "No pending migrations"
           command: |
             . venv/bin/activate
