@@ -81,37 +81,66 @@ class MatcherView(APIView):
         return Response({'test': 'value'})
 
 
+def userinfo_with_items():
+    return UserInfo.objects \
+        .select_related('default_placement__char_1__weapon') \
+        .select_related('default_placement__char_2__weapon') \
+        .select_related('default_placement__char_3__weapon') \
+        .select_related('default_placement__char_4__weapon') \
+        .select_related('default_placement__char_5__weapon') \
+        .select_related('default_placement__char_1__hat') \
+        .select_related('default_placement__char_2__hat') \
+        .select_related('default_placement__char_3__hat') \
+        .select_related('default_placement__char_4__hat') \
+        .select_related('default_placement__char_5__hat') \
+        .select_related('default_placement__char_1__armor') \
+        .select_related('default_placement__char_2__armor') \
+        .select_related('default_placement__char_3__armor') \
+        .select_related('default_placement__char_4__armor') \
+        .select_related('default_placement__char_5__armor') \
+        .select_related('default_placement__char_1__boots') \
+        .select_related('default_placement__char_2__boots') \
+        .select_related('default_placement__char_3__boots') \
+        .select_related('default_placement__char_4__boots') \
+        .select_related('default_placement__char_5__boots') \
+        .select_related('default_placement__char_1__trinket_1') \
+        .select_related('default_placement__char_2__trinket_1') \
+        .select_related('default_placement__char_3__trinket_1') \
+        .select_related('default_placement__char_4__trinket_1') \
+        .select_related('default_placement__char_5__trinket_1') \
+        .select_related('default_placement__char_1__trinket_2') \
+        .select_related('default_placement__char_2__trinket_2') \
+        .select_related('default_placement__char_3__trinket_2') \
+        .select_related('default_placement__char_4__trinket_2') \
+        .select_related('default_placement__char_5__trinket_2')
+
+
+def userinfo_preloaded():
+    return userinfo_with_items() \
+        .select_related('clanmember') \
+        .select_related('user__userstats')
+
+
 class GetUserView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    # TODO(yanke): do we need equippables for these queries?
+    @staticmethod
+    def _get_userinfo(user_id):
+        query = userinfo_preloaded() \
+            .get(user_id=user_id)
+        return UserInfoSchema(query)
+
+    # TODO(yanke): split up usecases for user infos that need placements and
+    # all its equips.
     def get(self, request):
-        query = UserInfo.objects.select_related('default_placement__char_1__weapon') \
-            .select_related('default_placement__char_2__weapon') \
-            .select_related('default_placement__char_3__weapon') \
-            .select_related('default_placement__char_4__weapon') \
-            .select_related('default_placement__char_5__weapon') \
-            .select_related('clanmember') \
-            .select_related('user__userstats') \
-            .get(user_id=request.user.id)
-        user_info = UserInfoSchema(query)
-        return Response(user_info.data)
+        return Response(GetUserView._get_userinfo(request.user.id).data)
 
     def post(self, request):
         """Post returns the user view of another user."""
         serializer = GetUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         target_user = serializer.validated_data['target_user']
-        # TODO(yanke): this query is about to get ugly with the item preloads.
-        query = UserInfo.objects.select_related('default_placement__char_1__weapon') \
-            .select_related('default_placement__char_2__weapon') \
-            .select_related('default_placement__char_3__weapon') \
-            .select_related('default_placement__char_4__weapon') \
-            .select_related('default_placement__char_5__weapon') \
-            .select_related('user__userstats') \
-            .get(user_id=target_user)
-        target_user_info = UserInfoSchema(query)
-        return Response(target_user_info.data)
+        return Response(GetUserView._get_userinfo(target_user).data)
 
 
 class GetOpponentsView(APIView):
@@ -135,12 +164,8 @@ class GetOpponentsView(APIView):
         bound = search_count*constants.MATCHER_INCREASE_RANGE+constants.MATCHER_START_RANGE
         user_ids = GetOpponentsView._get_random_opponents(request.user.id, constants.MATCHER_DEFAULT_COUNT, cur_elo - bound, cur_elo + bound)
 
-        query = UserInfo.objects.select_related('default_placement__char_1__weapon') \
-                    .select_related('default_placement__char_2__weapon') \
-                    .select_related('default_placement__char_3__weapon') \
-                    .select_related('default_placement__char_4__weapon') \
-                    .select_related('default_placement__char_5__weapon') \
-                    .filter(user_id__in=user_ids) \
+        query = userinfo_preloaded() \
+            .filter(user_id__in=user_ids)
 
         enemies = UserInfoSchema(query, many=True)
         return Response({'users': enemies.data})
