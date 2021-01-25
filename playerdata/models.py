@@ -462,6 +462,10 @@ class Chest(models.Model):
     locked_until = models.DateTimeField(blank=True, null=True)
 
 
+def get_default_afk_datetime():
+    return timezone.now() - timedelta(hours=12)
+
+
 class Inventory(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     char_limit = models.IntegerField(default=50)
@@ -471,7 +475,7 @@ class Inventory(models.Model):
     essence = models.IntegerField(default=0)
     hero_exp = models.IntegerField(default=0)
     is_auto_retire = models.BooleanField(default=False)
-    last_collected_rewards = models.DateTimeField(default=timezone.now)
+    last_collected_rewards = models.DateTimeField(default=get_default_afk_datetime)
 
     chest_slot_1 = models.ForeignKey(Chest, null=True, blank=True,
                                      on_delete=models.SET_NULL, related_name='chest_slot_1')
