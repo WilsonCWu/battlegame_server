@@ -14,11 +14,12 @@ class MaintenanceSchema(Schema):
 class ServerStatusView(APIView):
     def get(self, request):
         latest_version = ServerStatus.objects.filter(event_type='V').latest('creation_time')
+        latest_required = ServerStatus.objects.filter(event_type='V', require_update=True).latest('creation_time')
         upcoming_maintenances = ServerStatus.objects.filter(event_type='M').filter(maintenance_start__gte=timezone.now())
 
         return Response({
             'version': latest_version.version_number,
             'patch_notes': latest_version.patch_notes,
-            'require_update': latest_version.require_update,
+            'last_required_update_version': latest_required.version_number,
             'upcoming_maintenances': [MaintenanceSchema(m).data for m in upcoming_maintenances],
         })
