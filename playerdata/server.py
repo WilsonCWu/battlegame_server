@@ -19,5 +19,6 @@ class ServerStatusView(APIView):
         return Response({
             'version': latest_version.version_number,
             'patch_notes': latest_version.patch_notes,
+            'require_update': latest_version.require_update,
             'upcoming_maintenances': [MaintenanceSchema(m).data for m in upcoming_maintenances],
         })
