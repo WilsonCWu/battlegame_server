@@ -215,14 +215,16 @@ class BaseCharacterAbility(models.Model):
                                       'unlock level.')
             seen_levels.update(levels_in_spec)
 
-            # Ensure that our prestige levels are under the cap for the character
-            # rarity.
+            # Prestiges can only grant ability buffs from starlevel 5-10.
             prestige_levels_in_spec = {lvl for lvl in specs
-                                    if BaseCharacterAbility.is_prestige_key(lvl)}
+                                       if BaseCharacterAbility.is_prestige_key(lvl)}
             for prestige_level in prestige_levels_in_spec:
                 int_level = int(prestige_level.lstrip("prestige-"))
-                if int_level > constants.PRESTIGE_CAP_BY_RARITY[self.char_type.rarity]:
+                prestige_cap = constants.PRESTIGE_CAP_BY_RARITY[self.char_type.rarity]
+                if int_level > prestige_cap:
                     raise ValidationError('prestige level %d exceeds cap.' % int_level)
+                if int_level <= prestige_cap - 5:
+                    raise ValidationError('prestige level %d should not have ability bonuses.' % int_level)
 
         for i in range(len(seen_levels)):
             expected_level = i * 20 + 1

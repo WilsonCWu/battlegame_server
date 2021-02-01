@@ -152,7 +152,7 @@ class BaseCharacterAbilityTestCase(TestCase):
                 "foo": 1,
                 "bar": 0.1,
             },
-            "prestige-1": {
+            "prestige-5": {
                 "foo_bonus": 2,
             },
         }
@@ -164,8 +164,22 @@ class BaseCharacterAbilityTestCase(TestCase):
             "1": {
                 "foo:": 1,
             },
-            "prestige-12": {
+            "prestige-10": {
                 "foo_bonus": 1,
+            },
+        }
+        with self.assertRaises(ValidationError):
+            specs.full_clean()
+
+    def test_under_prestiged_spec(self):
+        specs = BaseCharacterAbility.objects.create(char_type=self.base_char)
+        specs.ability1_specs = {
+            "1": {
+                "foo": 1,
+                "bar": 0.1,
+            },
+            "prestige-4": {
+                "foo_bonus": 2,
             },
         }
         with self.assertRaises(ValidationError):
@@ -177,7 +191,7 @@ class BaseCharacterAbilityTestCase(TestCase):
             "1": {
                 "bar": 2,
             },
-            "prestige-1": {
+            "prestige-5": {
                 "foo_bonus": 1,
             },
         }
@@ -190,7 +204,7 @@ class BaseCharacterAbilityTestCase(TestCase):
             "1": {
                 "bar": 2,
             },
-            "prestige-1": {
+            "prestige-5": {
                 "foo": 1,
             },
         }
