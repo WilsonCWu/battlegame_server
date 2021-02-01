@@ -5,8 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from . import constants, formulas
-from .purchases import weighted_pick_from_buckets
+from . import constants, formulas, rolls
 from .questupdater import QuestUpdater
 from .serializers import UploadResultSerializer
 
@@ -49,7 +48,7 @@ def award_chest(user):
     if all(chest is not None for chest in slots):
         return 0
 
-    chest_rarity = weighted_pick_from_buckets(constants.CHEST_ODDS) + 1
+    chest_rarity = rolls.weighted_pick_from_buckets(constants.CHEST_ODDS) + 1
     chest = Chest.objects.create(user=user, rarity=chest_rarity)
 
     if user.inventory.chest_slot_1 is None:
