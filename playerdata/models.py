@@ -103,6 +103,9 @@ class BaseCharacterAbility(models.Model):
     unlocked). Each character has a max of four abilities. The ability specs
     are encoded in JSON for flexibility.
 
+    In addition to unlocking levels, they can be unlocked with prestiges. The
+    prestige specs must be bonuses of specs unlocked by character levels.
+
     Within each ability spec, we expect JSON in the following format: {
         <unlock_level>: {
             "damage": 1,
@@ -168,6 +171,12 @@ class BaseCharacterAbility(models.Model):
             if seen_ability_level_keys.intersection(seen_prestige_level_keys):
                 raise ValidationError('ability level keys and prestige keys ',
                                       'should not intersect.')
+            for prestige_key in seen_prestige_level_keys:
+                if not prestige_key.endswith('_bonus'):
+                    raise ValidationError('prestige key must end with _bonus.')
+                if not prestige_key[:-len('_bonus')] in seen_ability_level_keys:
+                    raise ValidationError('prestige key must be bonuses of ',
+                                          'level keys.')
 
 
     ability1_specs = JSONField(blank=True, null=True,
