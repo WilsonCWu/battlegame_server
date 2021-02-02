@@ -152,8 +152,8 @@ class BaseCharacterAbilityTestCase(TestCase):
                 "foo": 1,
                 "bar": 0.1,
             },
-            "prestige-1": {
-                "fo00000o": 2,
+            "prestige-5": {
+                "foo_bonus": 2,
             },
         }
         specs.full_clean()
@@ -161,20 +161,50 @@ class BaseCharacterAbilityTestCase(TestCase):
     def test_over_prestiged_spec(self):
         specs = BaseCharacterAbility.objects.create(char_type=self.base_char)
         specs.ability1_specs = {
-            "prestige-12": {
-                "foo": 1,
+            "1": {
+                "foo:": 1,
+            },
+            "prestige-10": {
+                "foo_bonus": 1,
             },
         }
         with self.assertRaises(ValidationError):
             specs.full_clean()
 
-    def test_overlapping_prestiged_key_spec(self):
+    def test_under_prestiged_spec(self):
         specs = BaseCharacterAbility.objects.create(char_type=self.base_char)
         specs.ability1_specs = {
             "1": {
-                "foo": 2,
+                "foo": 1,
+                "bar": 0.1,
             },
-            "prestige-1": {
+            "prestige-4": {
+                "foo_bonus": 2,
+            },
+        }
+        with self.assertRaises(ValidationError):
+            specs.full_clean()
+
+    def test_missing_bonus_prestiged_key_spec(self):
+        specs = BaseCharacterAbility.objects.create(char_type=self.base_char)
+        specs.ability1_specs = {
+            "1": {
+                "bar": 2,
+            },
+            "prestige-5": {
+                "foo_bonus": 1,
+            },
+        }
+        with self.assertRaises(ValidationError):
+            specs.full_clean()
+
+    def test_non_bonus_prestiged_key_spec(self):
+        specs = BaseCharacterAbility.objects.create(char_type=self.base_char)
+        specs.ability1_specs = {
+            "1": {
+                "bar": 2,
+            },
+            "prestige-5": {
                 "foo": 1,
             },
         }
