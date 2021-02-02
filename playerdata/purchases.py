@@ -283,6 +283,26 @@ def count_char_copies(chars):
     return count
 
 
+def handle_purchase_chest(user, purchase_id):
+    rewards = []
+    if purchase_id == "MYTHIC_CHEST":
+        char_copies = count_char_copies(Character.objects.filter(user=user))
+        if char_copies == 3:
+            char_id_1 = rolls.get_rand_base_char_from_rarity(2).char_type
+            char_id_2 = rolls.get_rand_base_char_from_rarity(3).char_type
+
+            rewards.append(chests.ChestReward(reward_type='char_id', value=char_id_1))
+            rewards.append(chests.ChestReward(reward_type='char_id', value=char_id_2))
+            rewards.append(chests.pick_resource_reward(user, 'coins', constants.ChestType.MYTHICAL.value))
+            rewards.append(chests.pick_resource_reward(user, 'gems', constants.ChestType.MYTHICAL.value))
+            rewards.append(chests.pick_resource_reward(user, 'essence', constants.ChestType.MYTHICAL.value))
+        else:
+            rewards = chests.generate_chest_rewards(constants.ChestType.MYTHICAL.value, user)
+
+    chests.award_chest_rewards(user, rewards)
+    return rewards
+
+
 class PurchaseItemView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -314,20 +334,11 @@ class PurchaseItemView(APIView):
         char_copies = count_char_copies(Character.objects.filter(user=request.user))
 
         if server.is_server_version_higher("0.1.0"):
-            if char_copies == 3:
-                rewards = []
-                char_id_1 = rolls.get_rand_base_char_from_rarity(2).char_type
-                char_id_2 = rolls.get_rand_base_char_from_rarity(3).char_type
+            rewards = []
 
-                rewards.append(chests.ChestReward(reward_type='char_id', value=char_id_1))
-                rewards.append(chests.ChestReward(reward_type='char_id', value=char_id_2))
-                rewards.append(chests.pick_resource_reward(user, 'coins', constants.ChestType.MYTHICAL.value))
-                rewards.append(chests.pick_resource_reward(user, 'gems', constants.ChestType.MYTHICAL.value))
-                rewards.append(chests.pick_resource_reward(user, 'essence', constants.ChestType.MYTHICAL.value))
-            else:
-                rewards = chests.generate_chest_rewards(constants.ChestType.MYTHICAL.value, request.user)
-
-            chests.award_chest_rewards(request.user, rewards)
+            # can support more types of purchases as we add more
+            if purchase_item_id.endswith("CHEST"):
+                rewards = handle_purchase_chest(request.user, purchase_item_id)
 
             reward_schema = chests.ChestRewardSchema(rewards, many=True)
             return Response({'status': True, 'rewards': reward_schema.data})
