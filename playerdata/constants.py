@@ -174,7 +174,7 @@ REWARD_TYPE_INDEX = ['coins', 'gems', 'essence', 'char_id', 'item_id']
 RESOURCE_TYPE_ODDS_PER_CHEST = [
     [500, 250, 250, 0, 0],  # SILVER
     [400, 300, 300, 0, 0],  # GOLD
-    [200, 200, 200, 400, ],  # MYTHICAL
+    [200, 200, 200, 400, 0],  # MYTHICAL
     [200, 200, 100, 300, 200],  # EPIC
     [200, 200, 100, 300, 200],  # LEGENDARY
 ]
