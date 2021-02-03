@@ -54,9 +54,13 @@ WIN_X_GAMES_WITH_CHAR_NAMESPACE = 100
 TOURNEY_SIZE = 8
 
 # Purchases constants
+class PurchaseID(Enum):
+    MYTHIC_CHEST = "MYTHIC_CHEST"
+
 SUMMON_GEM_COST = {
     "SUMMON1": 300,
     "SUMMON10": 2700,
+    "MYTHIC_CHEST": 2700
 }
 
 SUMMON_COUNT = {
@@ -162,7 +166,7 @@ class ChestType(Enum):
 
 
 CHEST_ODDS = [750, 250, 0, 0, 0]
-MIN_REWARDS_PER_CHEST = [3, 6, 7, 6, 5]
+MIN_REWARDS_PER_CHEST = [3, 6, 10, 6, 5]
 MAX_REWARDS_PER_CHEST = [4, 6, 10, 7, 6]
 
 REWARD_TYPE_INDEX = ['coins', 'gems', 'essence', 'char_id', 'item_id']
@@ -173,7 +177,7 @@ REWARD_TYPE_INDEX = ['coins', 'gems', 'essence', 'char_id', 'item_id']
 RESOURCE_TYPE_ODDS_PER_CHEST = [
     [500, 250, 250, 0, 0],  # SILVER
     [400, 300, 300, 0, 0],  # GOLD
-    [200, 200, 100, 300, 200],  # MYTHICAL
+    [200, 200, 200, 400, 0],  # MYTHICAL
     [200, 200, 100, 300, 200],  # EPIC
     [200, 200, 100, 300, 200],  # LEGENDARY
 ]
@@ -181,14 +185,14 @@ RESOURCE_TYPE_ODDS_PER_CHEST = [
 CHEST_GEMS_PER_HOUR = 120
 
 # Number of guaranteed summons per chest rarity
-GUARANTEED_SUMMONS = [1, 3, 0, 0, 0]
+GUARANTEED_SUMMONS = [1, 3, 6, 0, 0]
 
 # The number of chars of each char_rarity guaranteed for a chest_rarity
 # Ex: CHAR_RARITY_GUARANTEE[0][0] is number of guaranteed rarity=1 chars for a SILVER chest
 GUARANTEED_CHARS_PER_RARITY_PER_CHEST = [
     [0, 0, 0, 0],  # SILVER
     [0, 0, 0, 0],  # GOLD
-    [0, 2, 2, 0],  # MYTHICAL
+    [0, 0, 1, 0],  # MYTHICAL
     [0, 0, 5, 0],  # EPIC
     [0, 0, 4, 1],  # LEGENDARY
 ]
@@ -198,7 +202,7 @@ GUARANTEED_CHARS_PER_RARITY_PER_CHEST = [
 REGULAR_CHAR_ODDS_PER_CHEST = [
     [0, 890, 100, 10],  # SILVER
     [0, 890, 100, 10],  # GOLD
-    [200, 350, 450, 0],  # MYTHICAL
+    [0, 770, 200, 30],  # MYTHICAL
     [0, 0, 1000, 0],  # EPIC
     [0, 100, 550, 350],  # LEGENDARY
 ]
@@ -208,7 +212,7 @@ REGULAR_CHAR_ODDS_PER_CHEST = [
 REGULAR_ITEM_ODDS_PER_CHEST = [
     [400, 400, 200, 0, 0],  # SILVER
     [300, 400, 300, 0, 0],  # GOLD
-    [200, 350, 450, 0, 0],  # MYTHICAL
+    [420, 350, 200, 30],  # MYTHICAL
     [0, 0, 0, 1000, 0],  # EPIC
     [0, 0, 100, 550, 350],  # LEGENDARY
 ]

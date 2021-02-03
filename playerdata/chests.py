@@ -9,11 +9,9 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_marshmallow import Schema, fields
 
-from playerdata import constants, formulas
+from playerdata import constants, formulas, rolls
 from playerdata.constants import ChestType
 from playerdata.models import Chest, BaseItem, Item, UserInfo
-from playerdata.purchases import get_rand_base_char_from_rarity, get_weighted_odds_character, get_weighted_odds_item, \
-    insert_character, weighted_pick_from_buckets
 from playerdata.serializers import ValueSerializer, CollectChestSerializer
 
 
@@ -106,11 +104,11 @@ def pick_resource_reward(user, resource_type, chest_rarity):
 # randomly pick item from rarity buckets
 def pick_reward_item(user, chest_rarity):
     rarity_odds = constants.REGULAR_ITEM_ODDS_PER_CHEST[chest_rarity - 1]
-    item = get_weighted_odds_item(rarity_odds)
+    item = rolls.get_weighted_odds_item(rarity_odds)
 
     # check for unique items
     if item.is_unique and Item.objects.filter(user=user, item_type=item).exists():
-        item = get_weighted_odds_item(rarity_odds)
+        item = rolls.get_weighted_odds_item(rarity_odds)
 
         # we'll just give them a char if we roll a dup unique item twice
         if item.is_unique and Item.objects.filter(user=user, item_type=item).exists():
@@ -122,7 +120,7 @@ def pick_reward_item(user, chest_rarity):
 # randomly pick char from rarity buckets
 def pick_reward_char(chest_rarity):
     rarity_odds = constants.REGULAR_CHAR_ODDS_PER_CHEST[chest_rarity - 1]
-    char_id = get_weighted_odds_character(rarity_odds).char_type
+    char_id = rolls.get_weighted_odds_character(rarity_odds).char_type
     return ChestReward(reward_type='char_id', value=char_id)
 
 
@@ -132,7 +130,7 @@ def roll_guaranteed_char_rewards(char_guarantees):
     for i in range(len(char_guarantees)):
         # roll that many guaranteed chars
         for j in range(char_guarantees[i]):
-            char_id = get_rand_base_char_from_rarity(i + 1).char_type
+            char_id = rolls.get_rand_base_char_from_rarity(i + 1).char_type
             char_reward = ChestReward(reward_type='char_id', value=char_id)
             rewards.append(char_reward)
     return rewards
@@ -147,7 +145,7 @@ def award_chest_rewards(user, rewards):
         elif reward.reward_type == 'essence':
             user.inventory.dust += reward.value
         elif reward.reward_type == 'char_id':
-            insert_character(user, reward.value)
+            rolls.insert_character(user, reward.value)
         elif reward.reward_type == 'item_id':
             base_item = BaseItem.objects.get(item_type=reward.value)
             if not base_item.is_unique:
@@ -155,6 +153,43 @@ def award_chest_rewards(user, rewards):
         else:
             raise Exception("invalid reward_type, sorry friendo")
     user.inventory.save()
+
+
+def generate_chest_rewards(chest_rarity: int, user):
+    rewards = []
+    num_rewards = random.randint(constants.MIN_REWARDS_PER_CHEST[chest_rarity - 1],
+                                 constants.MAX_REWARDS_PER_CHEST[chest_rarity - 1])
+
+    # Get the odds for getting each type of reward for respective chest rarity
+    resource_reward_odds = constants.RESOURCE_TYPE_ODDS_PER_CHEST[chest_rarity - 1]
+
+    # pick guaranteed char rarities
+    char_guarantees = constants.GUARANTEED_CHARS_PER_RARITY_PER_CHEST[chest_rarity - 1]
+    guaranteed_char_rewards = roll_guaranteed_char_rewards(char_guarantees)
+    rewards.extend(guaranteed_char_rewards)
+    num_rewards -= len(guaranteed_char_rewards)
+
+    # pick guaranteed number of summons
+    num_guaranteed_summons = constants.GUARANTEED_SUMMONS[chest_rarity - 1] - len(guaranteed_char_rewards)
+    for i in range(0, num_guaranteed_summons):
+        reward = pick_reward_char(chest_rarity)
+        rewards.append(reward)
+    num_rewards -= num_guaranteed_summons
+
+    # roll the rest of the rewards based on resource_reward_odds
+    for i in range(0, num_rewards):
+        rand_reward_type = constants.REWARD_TYPE_INDEX[rolls.weighted_pick_from_buckets(resource_reward_odds)]
+        if rand_reward_type == 'coins' or rand_reward_type == 'gems' or rand_reward_type == 'essence':
+            reward = pick_resource_reward(user, rand_reward_type, chest_rarity)
+        elif rand_reward_type == 'item_id':
+            reward = pick_reward_item(user, chest_rarity)
+        elif rand_reward_type == 'char_id':
+            reward = pick_reward_char(chest_rarity)
+        else:
+            raise Exception("invalid reward_type, sorry friendo")
+
+        rewards.append(reward)
+    return rewards
 
 
 class CollectChest(APIView):
@@ -187,41 +222,7 @@ class CollectChest(APIView):
             if datetime.now(timezone.utc) < chest.locked_until:
                 return Response({'status': False, 'reason': 'chest is not ready to open'})
 
-        rewards = []
-        num_rewards = random.randint(constants.MIN_REWARDS_PER_CHEST[chest.rarity - 1],
-                                     constants.MAX_REWARDS_PER_CHEST[chest.rarity - 1])
-
-        # Get the odds for getting each type of reward for respective chest rarity
-        resource_reward_odds = constants.RESOURCE_TYPE_ODDS_PER_CHEST[chest.rarity - 1]
-
-        # pick guaranteed char rarities
-        char_guarantees = constants.GUARANTEED_CHARS_PER_RARITY_PER_CHEST[chest.rarity - 1]
-        guaranteed_char_rewards = roll_guaranteed_char_rewards(char_guarantees)
-        rewards.extend(guaranteed_char_rewards)
-        num_rewards -= len(guaranteed_char_rewards)
-
-        # pick guaranteed number of summons
-        num_guaranteed_summons = constants.GUARANTEED_SUMMONS[chest.rarity - 1] - len(guaranteed_char_rewards)
-        for i in range(0, num_guaranteed_summons):
-            reward = pick_reward_char(chest.rarity)
-            rewards.append(reward)
-        num_rewards -= num_guaranteed_summons
-
-        # roll the rest of the rewards based on resource_reward_odds
-        for i in range(0, num_rewards):
-            rand_reward_type = constants.REWARD_TYPE_INDEX[weighted_pick_from_buckets(resource_reward_odds)]
-            if rand_reward_type == 'coins' or rand_reward_type == 'gems' or rand_reward_type == 'essence':
-                reward = pick_resource_reward(request.user, rand_reward_type, chest.rarity)
-            elif rand_reward_type == 'item_id':
-                reward = pick_reward_item(request.user, chest.rarity)
-            elif rand_reward_type == 'char_id':
-                reward = pick_reward_char(chest.rarity)
-            else:
-                raise Exception("invalid reward_type, sorry friendo")
-
-            rewards.append(reward)
-
-        # award chest rewards
+        rewards = generate_chest_rewards(chest.rarity, request.user)
         award_chest_rewards(request.user, rewards)
         chest.delete()
 

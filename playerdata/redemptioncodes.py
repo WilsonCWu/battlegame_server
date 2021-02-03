@@ -8,8 +8,7 @@ from django.utils import timezone
 from playerdata.models import Item
 from playerdata.models import BaseCode
 from playerdata.models import ClaimedCode
-
-from .purchases import insert_character
+from . import rolls
 
 from .serializers import RedeemCodeSerializer
 
@@ -38,7 +37,7 @@ def award_code(user, base_code):
     Item.objects.bulk_create(items_list)
 
     if base_code.char_type:
-        insert_character(user, base_code.char_type)
+        rolls.insert_character(user, base_code.char_type)
 
     if base_code.num_left != -1:
         base_code.num_left -= 1

@@ -1,4 +1,5 @@
 from django.utils import timezone
+from packaging import version
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
@@ -9,6 +10,11 @@ from playerdata.models import ServerStatus
 class MaintenanceSchema(Schema):
     maintenance_start = fields.DateTime()
     expected_end = fields.DateTime()
+
+
+def is_server_version_higher(version_num):
+    latest_version = ServerStatus.objects.filter(event_type='V').latest('creation_time')
+    return version.parse(latest_version.version_number) > version.parse(version_num)
 
 
 class ServerStatusView(APIView):
