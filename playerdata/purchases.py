@@ -279,7 +279,7 @@ def generate_and_insert_characters(user, char_count, rarity_odds=None):
 def count_char_copies(chars):
     count = 0
     for char in chars:
-        count += char.copies
+        count += char.copies + 1  # for first copy (which isn't counted now)
     return count
 
 
