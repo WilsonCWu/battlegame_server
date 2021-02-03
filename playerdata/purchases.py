@@ -285,8 +285,10 @@ def count_char_copies(chars):
 
 def handle_purchase_chest(user, purchase_id):
     rewards = []
-    if purchase_id == "MYTHIC_CHEST":
+    if purchase_id == constants.PurchaseID.MYTHIC_CHEST.value:
         char_copies = count_char_copies(Character.objects.filter(user=user))
+
+        # This is to rig the first roll for tutorial
         if char_copies == 3:
             char_id_1 = rolls.get_rand_base_char_from_rarity(2).char_type
             char_id_2 = rolls.get_rand_base_char_from_rarity(3).char_type

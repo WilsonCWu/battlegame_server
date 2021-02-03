@@ -54,6 +54,9 @@ WIN_X_GAMES_WITH_CHAR_NAMESPACE = 100
 TOURNEY_SIZE = 8
 
 # Purchases constants
+class PurchaseID(Enum):
+    MYTHIC_CHEST = "MYTHIC_CHEST"
+
 SUMMON_GEM_COST = {
     "SUMMON1": 300,
     "SUMMON10": 2700,
