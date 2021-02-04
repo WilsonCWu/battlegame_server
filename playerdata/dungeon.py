@@ -1,23 +1,20 @@
 import random
 
-from packaging import version
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-
-from rest_marshmallow import Schema, fields
 from django.db import transaction
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_marshmallow import Schema, fields
 
-from playerdata.models import DungeonProgress, Character, Placement, ServerStatus
+from playerdata.models import DungeonProgress, Character, Placement
 from playerdata.models import DungeonStage
 from playerdata.models import ReferralTracker
 from . import constants, formulas
 from .constants import DungeonType
-
 from .matcher import PlacementSchema
 from .questupdater import QuestUpdater
 from .referral import award_referral
-from .serializers import BooleanSerializer, ValueSerializer, SetDungeonProgressSerializer
+from .serializers import ValueSerializer, SetDungeonProgressSerializer
 
 
 class DungeonProgressSchema(Schema):
@@ -169,7 +166,7 @@ def generate_dungeon_stages(dungeon_bosses_queryset):
                                   player_exp=formulas.player_exp_reward_dungeon(boss.stage))
         bulk_stages.append(boss_stage)
 
-    DungeonStage.objects.bulk_update_or_create(bulk_stages, ['mob', 'coins', 'gems', 'player_exp'], match_field=['stage', 'dungeon_type'])
+    DungeonStage.objects.bulk_update_or_create(bulk_stages, ['mob', 'coins', 'gems', 'player_exp', 'story_text'], match_field=['stage', 'dungeon_type'])
 
 
 def complete_referral_conversion(user):
