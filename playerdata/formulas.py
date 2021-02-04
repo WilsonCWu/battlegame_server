@@ -39,9 +39,9 @@ def char_level_to_coins(level):
 
 def coins_chest_reward(elo, rarity):
     elo += 20  # light pad on elo for 0 elo case
-    base_mult = 50 + (rarity * 5)
-    base_exp = 1.6 + ((rarity - 1) * 0.3)
-    return math.floor(elo * base_mult + 500 + (elo ** base_exp))
+    base_mult = rarity
+    base_exp = 1.45 + ((rarity - 1) * 0.2)
+    return math.floor(elo * base_mult + 200 + (elo ** base_exp))
 
 
 #########################
