@@ -14,18 +14,16 @@ Scaling Formulas
 ## Coins
 
 
-# FLOOR((level / 3) * 50 + ((level-1)^2))+ 500
 def coins_reward_quickplay(dungeon_level):
-    return math.floor(dungeon_level / 3 * 50 + (dungeon_level - 1) ** 2 + 500)
+    return math.floor(dungeon_level + (dungeon_level - 1) ** 1.7 + 100)
 
 
-# FLOOR((level / 3) * 50 + ((level-1)^2))+ 500
 def coins_reward_dungeon(dungeon_level, dungeon_type: int):
-    # more on a boss level
-    dungeon_level = dungeon_level * constants.CHAR_LEVEL_DIFF_BETWEEN_STAGES[dungeon_type]
-    coins = math.floor(dungeon_level / 3 * 50 + (dungeon_level - 1) ** 2 + 500)
-    if dungeon_level % 20 == 0:
-        return coins * 3
+    adjusted_dungeon_level = dungeon_level * constants.CHAR_LEVEL_DIFF_BETWEEN_STAGES[dungeon_type]
+    coins = math.floor(adjusted_dungeon_level + (adjusted_dungeon_level - 1) ** 1.7 + 100)
+    # boss level bonus
+    if adjusted_dungeon_level % 20 == 0:
+        return coins * 4
     return coins
 
 
