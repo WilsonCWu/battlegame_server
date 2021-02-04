@@ -14,23 +14,21 @@ Scaling Formulas
 ## Coins
 
 
-# FLOOR((level / 3) * 50 + ((level-1)^2))+ 500
 def coins_reward_quickplay(dungeon_level):
-    return math.floor(dungeon_level / 3 * 50 + (dungeon_level - 1) ** 2 + 500)
+    return math.floor(dungeon_level + (dungeon_level - 1) ** 1.7 + 100)
 
 
-# FLOOR((level / 3) * 50 + ((level-1)^2))+ 500
 def coins_reward_dungeon(dungeon_level, dungeon_type: int):
-    # more on a boss level
-    dungeon_level = dungeon_level * constants.CHAR_LEVEL_DIFF_BETWEEN_STAGES[dungeon_type]
-    coins = math.floor(dungeon_level / 3 * 50 + (dungeon_level - 1) ** 2 + 500)
-    if dungeon_level % 20 == 0:
-        return coins * 3
+    adjusted_dungeon_level = dungeon_level * constants.CHAR_LEVEL_DIFF_BETWEEN_STAGES[dungeon_type]
+    coins = math.floor(adjusted_dungeon_level + (adjusted_dungeon_level - 1) ** 1.7 + 100)
+    # boss level bonus
+    if dungeon_level % constants.NUM_DUNGEON_SUBSTAGES[dungeon_type] == 0:
+        return coins * 4
     return coins
 
 
 def afk_coins_per_min(dungeon_level):
-    return (dungeon_level - 1) / 220 + ((dungeon_level - 1) ** 1.65) / 10
+    return ((dungeon_level - 1) ** 1.55) / 120
 
 
 def char_level_to_coins(level):
@@ -39,9 +37,9 @@ def char_level_to_coins(level):
 
 def coins_chest_reward(elo, rarity):
     elo += 20  # light pad on elo for 0 elo case
-    base_mult = 50 + (rarity * 5)
-    base_exp = 1.6 + ((rarity - 1) * 0.3)
-    return math.floor(elo * base_mult + 500 + (elo ** base_exp))
+    base_mult = rarity
+    base_exp = 1.45 + ((rarity - 1) * 0.2)
+    return math.floor(elo * base_mult + 200 + (elo ** base_exp))
 
 
 #########################
