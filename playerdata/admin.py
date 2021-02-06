@@ -67,8 +67,8 @@ class BaseCodeAdmin(admin.ModelAdmin, DynamicArrayMixin):
 
 
 class BaseItemAdmin(admin.ModelAdmin, DynamicArrayMixin):
-    list_display = ('name', 'item_type', 'rarity', 'gear_slot', 'cost', 'description')
-    list_filter = ('gear_slot', 'rarity', 'cost')
+    list_display = ('rollable', 'name', 'item_type', 'rarity', 'gear_slot', 'cost', 'description')
+    list_filter = ('rollable', 'gear_slot', 'rarity', 'cost')
 
 
 class DungeonStageAdmin(bulk_admin.BulkModelAdmin):

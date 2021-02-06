@@ -294,6 +294,10 @@ class BaseItem(StatModifiers):
     cost = models.IntegerField()
     is_unique = models.BooleanField(default=False)
 
+    # TODO: need to ensure we don't return non-rollable items.
+    # TODO: we should add level limits per rarity.
+    rollable = models.BooleanField(default=False)
+
     def __str__(self):
         return self.name
 
