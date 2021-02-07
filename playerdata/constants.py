@@ -213,7 +213,7 @@ REGULAR_CHAR_ODDS_PER_CHEST = [
 REGULAR_ITEM_ODDS_PER_CHEST = [
     [0, 890, 100, 10],  # SILVER
     [0, 890, 100, 10],  # GOLD
-    [0, 770, 200, 30],  # MYTHICAL
+    [420, 350, 200, 30],  # MYTHICAL
     [0, 0, 0, 1000, 0],  # EPIC
     [0, 0, 100, 550, 350],  # LEGENDARY
 ]
