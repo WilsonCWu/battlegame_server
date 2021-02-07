@@ -178,7 +178,7 @@ REWARD_TYPE_INDEX = ['coins', 'gems', 'essence', 'char_id', 'item_id']
 RESOURCE_TYPE_ODDS_PER_CHEST = [
     [500, 250, 250, 0, 0],  # SILVER
     [400, 300, 300, 0, 0],  # GOLD
-    [200, 200, 200, 400, 0],  # MYTHICAL
+    [200, 200, 200, 200, 200],  # MYTHICAL
     [200, 200, 100, 300, 200],  # EPIC
     [200, 200, 100, 300, 200],  # LEGENDARY
 ]
@@ -211,9 +211,9 @@ REGULAR_CHAR_ODDS_PER_CHEST = [
 # Odds of getting each rarity item on non-guaranteed roll
 # NOTE: each row should total to 1000
 REGULAR_ITEM_ODDS_PER_CHEST = [
-    [400, 400, 200, 0, 0],  # SILVER
-    [300, 400, 300, 0, 0],  # GOLD
-    [420, 350, 200, 30],  # MYTHICAL
+    [0, 890, 100, 10],  # SILVER
+    [0, 890, 100, 10],  # GOLD
+    [0, 770, 200, 30],  # MYTHICAL
     [0, 0, 0, 1000, 0],  # EPIC
     [0, 0, 100, 550, 350],  # LEGENDARY
 ]
