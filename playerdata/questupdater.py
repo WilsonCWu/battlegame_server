@@ -25,11 +25,10 @@ def add_progress_to_quest_list(progress, quests):
 def set_progress_to_quest_list(progress, quests):
     try:
         for quest in quests:
-            if progress + quest.progress >= quest.base_quest.total:
-                quest.progress = quest.base_quest.total
+            if progress >= quest.base_quest.total:
                 quest.completed = True
-            else:
-                quest.progress = progress
+
+            quest.progress = progress
             quest.save()
     except OverflowError:
         logging.error("stats overflow error")
@@ -52,7 +51,7 @@ class QuestUpdater:
     @staticmethod
     def add_progress_by_type(user, UPDATE_TYPE, amount):
         if amount < 0:
-            # Error log negative progress
+            logging.error("negative progress on quest type: " + UPDATE_TYPE)
             return
 
         cumulative_quests = PlayerQuestCumulative.objects.select_related('base_quest').filter(user=user,
@@ -74,6 +73,23 @@ class QuestUpdater:
 
         add_progress_to_quest_list(amount, weekly_quests)
         add_progress_to_quest_list(amount, daily_quests)
+
+
+    @staticmethod
+    def set_progress_by_type(user, UPDATE_TYPE, amount):
+        if amount < 0:
+            logging.error("negative progress on quest type: " + UPDATE_TYPE)
+            return
+
+        weekly_quests = PlayerQuestWeekly.objects.select_related('base_quest').filter(user=user,
+                                                                                      base_quest__type=UPDATE_TYPE,
+                                                                                      completed=False, claimed=False)
+        daily_quests = PlayerQuestDaily.objects.select_related('base_quest').filter(user=user,
+                                                                                    base_quest__type=UPDATE_TYPE,
+                                                                                    completed=False, claimed=False)
+
+        set_progress_to_quest_list(amount, weekly_quests)
+        set_progress_to_quest_list(amount, daily_quests)
 
     @staticmethod
     def game_won_by_char_id(user, char_id):

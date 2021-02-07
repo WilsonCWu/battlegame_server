@@ -99,6 +99,7 @@ def update_stats(user, win, stats):
     user_stats.num_games += 1
     user_stats.num_wins += 1 if win else 0
     user_stats.win_streak = 0 if not win else user_stats.win_streak + 1
+    QuestUpdater.set_progress_by_type(user, constants.WIN_STREAK, user_stats.win_streak)
     user_stats.longest_win_streak = max(user_stats.win_streak, user_stats.longest_win_streak)
     user_stats.save()
 
