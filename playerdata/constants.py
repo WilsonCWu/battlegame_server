@@ -211,8 +211,8 @@ REGULAR_CHAR_ODDS_PER_CHEST = [
 # Odds of getting each rarity item on non-guaranteed roll
 # NOTE: each row should total to 1000
 REGULAR_ITEM_ODDS_PER_CHEST = [
-    [0, 890, 100, 10],  # SILVER
-    [0, 890, 100, 10],  # GOLD
+    [400, 400, 200, 0, 0],  # SILVER
+    [300, 400, 300, 0, 0],  # GOLD
     [420, 350, 200, 30],  # MYTHICAL
     [0, 0, 0, 1000, 0],  # EPIC
     [0, 0, 100, 550, 350],  # LEGENDARY
