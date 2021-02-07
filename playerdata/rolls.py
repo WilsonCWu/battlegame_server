@@ -28,8 +28,7 @@ def get_weighted_odds_item(rarity_odds=None):
 
 
 def get_rand_base_item_from_rarity(rarity):
-    base_items = BaseItem.objects.filter(rarity=rarity,
-                                         item_type__in=constants.COIN_SHOP_ITEMS)
+    base_items = BaseItem.objects.filter(rarity=rarity, rollable=True)
     num_items = base_items.count()
     chosen_item = base_items[random.randrange(num_items)]
     return chosen_item

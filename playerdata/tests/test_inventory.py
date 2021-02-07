@@ -23,6 +23,7 @@ class EquipItemAPITestCase(APITestCase):
         self.owned_archer = Character.objects.create(
             user=self.u,
             char_type=base_archer,
+            level=201,
         )
 
     def test_equipping_item(self):
@@ -58,6 +59,7 @@ class EquipItemAPITestCase(APITestCase):
         owned_archer_2 = Character.objects.create(
             user=self.u,
             char_type=self.owned_archer.char_type,
+            level=201,
         )
 
         response = self.client.post('/inventory/equipitem/', {
@@ -113,25 +115,6 @@ class EquipItemAPITestCase(APITestCase):
         self.assertEqual(response.data['unequip_slot'], 'T1')
         self.assertIsNone(self.owned_archer.trinket_1)
         self.assertEqual(self.owned_archer.trinket_2, trinket)
-
-        # Equipping same trinket on different character fails.
-        owned_archer_2 = Character.objects.create(
-            user=self.u,
-            char_type=self.owned_archer.char_type,
-        )
-        response = self.client.post('/inventory/equipitem/', {
-            'target_slot': 'T2',
-            'target_char_id': owned_archer_2.char_id,
-            'target_item_id': trinket.item_id,
-        })
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(response.data['status'])
-        owned_archer_2.refresh_from_db()
-        self.owned_archer.refresh_from_db()
-        self.assertEqual(response.data['unequip_char_id'], self.owned_archer.char_id)
-        self.assertEqual(response.data['unequip_slot'], 'T2')
-        self.assertIsNone(self.owned_archer.trinket_2)
-        self.assertEqual(owned_archer_2.trinket_2, trinket)
 
 
 class UnequipItemAPITestCase(APITestCase):
