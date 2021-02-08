@@ -170,6 +170,7 @@ CHEST_ODDS = [750, 250, 0, 0, 0]
 MIN_REWARDS_PER_CHEST = [3, 6, 10, 6, 5]
 MAX_REWARDS_PER_CHEST = [4, 6, 10, 7, 6]
 
+# Index for chest reward types corresponding to the values in the RESOURCE_TYPE_ODDS_PER_CHEST buckets
 REWARD_TYPE_INDEX = ['coins', 'gems', 'essence', 'char_id', 'item_id']
 
 # The odds for getting each type of reward for respective chest rarity
