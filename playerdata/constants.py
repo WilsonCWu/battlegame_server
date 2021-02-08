@@ -170,15 +170,17 @@ CHEST_ODDS = [750, 250, 0, 0, 0]
 MIN_REWARDS_PER_CHEST = [3, 6, 10, 6, 5]
 MAX_REWARDS_PER_CHEST = [4, 6, 10, 7, 6]
 
+# Index for chest reward types corresponding to the values in the RESOURCE_TYPE_ODDS_PER_CHEST buckets
 REWARD_TYPE_INDEX = ['coins', 'gems', 'essence', 'char_id', 'item_id']
 
 # The odds for getting each type of reward for respective chest rarity
+# Each column represents: ['coins', 'gems', 'essence', 'char_id', 'item_id']
 # Ex: RESOURCE_TYPE_ODDS[0][0] are the odds to get a 'coins' reward for a SILVER chest
 # NOTE: each row should total to 1000
 RESOURCE_TYPE_ODDS_PER_CHEST = [
     [500, 250, 250, 0, 0],  # SILVER
     [400, 300, 300, 0, 0],  # GOLD
-    [200, 200, 200, 400, 0],  # MYTHICAL
+    [200, 200, 200, 200, 200],  # MYTHICAL
     [200, 200, 100, 300, 200],  # EPIC
     [200, 200, 100, 300, 200],  # LEGENDARY
 ]
