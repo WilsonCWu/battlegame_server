@@ -173,6 +173,7 @@ MAX_REWARDS_PER_CHEST = [4, 6, 10, 7, 6]
 REWARD_TYPE_INDEX = ['coins', 'gems', 'essence', 'char_id', 'item_id']
 
 # The odds for getting each type of reward for respective chest rarity
+# Each column represents: ['coins', 'gems', 'essence', 'char_id', 'item_id']
 # Ex: RESOURCE_TYPE_ODDS[0][0] are the odds to get a 'coins' reward for a SILVER chest
 # NOTE: each row should total to 1000
 RESOURCE_TYPE_ODDS_PER_CHEST = [
