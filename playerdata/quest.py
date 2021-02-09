@@ -168,7 +168,7 @@ def refresh_quests(PlayerQuestModel, ActiveQuestModel, num_quests, days_interval
     PlayerQuestModel.objects.all().delete()
 
     # pull new ones and make them for every user
-    active_quests = ActiveQuestModel.objects.reverse()[:num_quests]
+    active_quests = ActiveQuestModel.objects.all()[:num_quests]
     expiry_date = get_expiration_date(days_interval)
     users = User.objects.all()
     bulk_quests = []
