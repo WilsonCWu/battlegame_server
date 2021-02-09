@@ -183,10 +183,12 @@ def refresh_quests(PlayerQuestModel, ActiveQuestModel, num_quests, days_interval
 # refresh quests: deletes the previous ActiveQuests and uses new ones to propagate to users
 def refresh_daily_quests():
     refresh_quests(PlayerQuestDaily, ActiveDailyQuest, constants.NUM_DAILY_QUESTS, 1)
+    queue_active_daily_quests()
 
 
 def refresh_weekly_quests():
     refresh_quests(PlayerQuestWeekly, ActiveWeeklyQuest, constants.NUM_WEEKLY_QUESTS, 7)
+    queue_active_weekly_quests()
 
 
 # randomly sample from pool of quest ids to populate ActiveQuest
