@@ -59,7 +59,7 @@ from .models import UserInfo
 from .models import UserReferral
 from .models import UserStats
 from .purchases import refresh_daily_deals_cronjob, refresh_weekly_deals_cronjob
-from .quest import queue_active_weekly_quests, queue_active_daily_quests
+from .quest import queue_active_weekly_quests, queue_active_daily_quests, refresh_weekly_quests, refresh_daily_quests
 
 
 class BaseCodeAdmin(admin.ModelAdmin, DynamicArrayMixin):
@@ -132,17 +132,23 @@ class ActiveCumulativeQuestAdmin(bulk_admin.BulkModelAdmin):
 
 
 class ActiveDailyQuestAdmin(bulk_admin.BulkModelAdmin):
-    actions = ['add_quests']
+    actions = ['add_quests', 'refresh']
 
     def add_quests(self, request, queryset):
         queue_active_daily_quests()
 
+    def refresh(self, request, queryset):
+        refresh_daily_quests()
+
 
 class ActiveWeeklyQuestAdmin(bulk_admin.BulkModelAdmin):
-    actions = ['add_quests']
+    actions = ['add_quests', 'refresh']
 
     def add_quests(self, request, queryset):
         queue_active_weekly_quests()
+
+    def refresh(self, request, queryset):
+        refresh_weekly_quests()
 
 
 class ActiveDealAdmin(admin.ModelAdmin):

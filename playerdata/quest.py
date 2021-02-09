@@ -168,7 +168,7 @@ def refresh_quests(PlayerQuestModel, ActiveQuestModel, num_quests, days_interval
     PlayerQuestModel.objects.all().delete()
 
     # pull new ones and make them for every user
-    active_quests = ActiveQuestModel.objects.all()[:num_quests]
+    active_quests = ActiveQuestModel.objects.reverse()[:num_quests]
     expiry_date = get_expiration_date(days_interval)
     users = User.objects.all()
     bulk_quests = []
@@ -183,10 +183,12 @@ def refresh_quests(PlayerQuestModel, ActiveQuestModel, num_quests, days_interval
 # refresh quests: deletes the previous ActiveQuests and uses new ones to propagate to users
 def refresh_daily_quests():
     refresh_quests(PlayerQuestDaily, ActiveDailyQuest, constants.NUM_DAILY_QUESTS, 1)
+    queue_active_daily_quests()
 
 
 def refresh_weekly_quests():
     refresh_quests(PlayerQuestWeekly, ActiveWeeklyQuest, constants.NUM_WEEKLY_QUESTS, 7)
+    queue_active_weekly_quests()
 
 
 # randomly sample from pool of quest ids to populate ActiveQuest
