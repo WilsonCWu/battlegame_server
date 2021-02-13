@@ -305,6 +305,14 @@ def unequip_item_from_char(char, slot):
 
     char.save()
 
+
+ITEM_RARITY_MIN_LEVEL = {
+    0: 20,
+    1: 80,
+    2: 140,
+    3: 200,
+}
+    
 class EquipItemView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -328,6 +336,9 @@ class EquipItemView(APIView):
 
         if item.item_type.gear_slot != target_slot[0]:
             return Response({'status': False, 'reason': 'item does not belong in the slot'})
+
+        if char.level < ITEM_RARITY_MIN_LEVEL[item.item_type.rarity]:
+            return Response({'status': False, 'reason': 'character not high enough level to equip item'})
 
         # Unequip item if already equipped.
         unequip_char_id, unequip_slot = unequip_item(item, target_slot)
