@@ -10,8 +10,7 @@ from playerdata.models import TournamentMember
 from playerdata.models import TournamentRegistration
 from playerdata.models import UserInfo
 from playerdata.purchases import refresh_daily_deals_cronjob, refresh_weekly_deals_cronjob
-from playerdata.quest import refresh_daily_quests, refresh_weekly_quests, queue_active_daily_quests, \
-    queue_active_weekly_quests
+from playerdata.quest import refresh_daily_quests, refresh_weekly_quests
 from playerdata.statusupdate import calculate_tourney_elo
 from playerdata.tournament import get_next_round_time, TOURNAMENT_BOTS, get_random_char_set
 
@@ -36,20 +35,6 @@ def weekly_quests_cron():
     # remove top 5 from weekly
     print("running weekly quest refresh cronjob")
     refresh_weekly_quests()
-    print("done!")
-
-
-def queue_daily_quests_cron():
-    # remove top 3 from daily
-    print("running daily quest queue cronjob")
-    queue_active_daily_quests()
-    print("done!")
-
-
-def queue_weekly_quests_cron():
-    # remove top 5 from weekly
-    print("running weekly quest queue cronjob")
-    queue_active_weekly_quests()
     print("done!")
 
 

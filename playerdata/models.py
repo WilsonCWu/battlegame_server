@@ -442,6 +442,8 @@ class UserStats(models.Model):
     num_games = models.IntegerField(default=0)
     num_wins = models.IntegerField(default=0)
     time_started = models.DateTimeField(auto_now_add=True)
+    win_streak = models.IntegerField(default=0)
+    longest_win_streak = models.IntegerField(default=0)
 
     def __str__(self):
         return self.user.userinfo.name + '(' + str(self.user.id) + ')'

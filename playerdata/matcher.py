@@ -49,6 +49,7 @@ class UserInfoSchema(Schema):
     num_wins = fields.Int(attribute='user.userstats.num_wins')
     num_games = fields.Int(attribute='user.userstats.num_games')
     time_started = fields.Str(attribute='user.userstats.time_started')
+    longest_win_streak = fields.Int(attribute='user.userstats.longest_win_streak')
     default_placement = fields.Nested(PlacementSchema)
     clan = fields.Str(attribute='clanmember.clan_id')
     player_level = fields.Function(lambda userinfo: formulas.exp_to_level(userinfo.player_exp))
