@@ -1,13 +1,14 @@
-<!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset='utf-8'>
-      <meta name='viewport' content='width=device-width'>
-      <title>Privacy Policy</title>
-      <style> body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding:1em; } </style>
-    </head>
-    <body>
-    <strong>Privacy Policy</strong> <p>
+{% extends "base.html" %}
+
+{% block header %}
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width'>
+    <title>Privacy Policy</title>
+    <style> body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding:1em; } </style>
+{% endblock header %}
+
+{% block content %}
+   <strong>Privacy Policy</strong> <p>
                   Salutation Studio built the Tiny Titans app as
                   a Free app. This SERVICE is provided by
                   Salutation Studio at no cost and is intended for use as
@@ -112,6 +113,4 @@
                   If you have any questions or suggestions about our
                   Privacy Policy, do not hesitate to contact us at privacy@salutationstudio.com.
                 </p>
-    </body>
-    </html>
-      
+{% endblock content %}
