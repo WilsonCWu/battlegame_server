@@ -69,6 +69,7 @@ class BaseCharacter(models.Model):
     char_type = models.AutoField(primary_key=True)
     name = models.CharField(max_length=30, unique=True)
     health = models.IntegerField()
+    starting_mana = models.IntegerField()
     mana = models.IntegerField()
     speed = models.IntegerField()
     attack_damage = models.IntegerField()
