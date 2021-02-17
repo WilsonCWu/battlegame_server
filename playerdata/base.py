@@ -18,6 +18,7 @@ class BaseCharacterSchema(Schema):
     char_type = fields.Int()
     name = fields.Str()
     health = fields.Int()
+    starting_mana = fields.Int()
     mana = fields.Int()
     speed = fields.Int()
     attack_damage = fields.Int()
