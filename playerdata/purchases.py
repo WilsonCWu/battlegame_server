@@ -1,23 +1,22 @@
-import random
 import json
-from datetime import datetime, timezone
+import random
 from collections import namedtuple
+from datetime import datetime, timezone, timedelta
 
-from django.db import IntegrityError, transaction
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError, transaction
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-
-from rest_marshmallow import Schema, fields
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_marshmallow import Schema, fields
 
 from battlegame.settings import SERVICE_ACCOUNT_FILE
-from playerdata.models import BaseCharacter, PurchasedTracker, Item, ActiveDeal, BaseItem, BaseDeal, get_expiration_date
-from playerdata.models import InvalidReceipt
 from playerdata.models import Character
+from playerdata.models import InvalidReceipt
 from playerdata.models import Inventory
+from playerdata.models import PurchasedTracker, Item, ActiveDeal, BaseDeal, get_expiration_date
 from . import constants, chests, server, rolls
 from .base import BaseItemSchema, BaseCharacterSchema
 from .constants import DealType
@@ -146,7 +145,7 @@ def handle_purchase_deal(user, purchase_id, transaction_id):
     # check if Purchase was recorded from validate/ (don't check if it was the free daily deal)
     purchase_tracker = PurchasedTracker.objects.filter(user=user, transaction_id=transaction_id).first()
     if purchase_id == constants.DEAL_DAILY_0:
-        purchase_tracker = PurchasedTracker.objects.create(user=user)
+        purchase_tracker, created = PurchasedTracker.objects.update_or_create(user=user, purchase_id=constants.DEAL_DAILY_0, defaults={'purchase_time': curr_time})
     elif purchase_tracker is None:
         return Response({'status': False, 'reason': 'purchase not found in our records'})
 
@@ -175,6 +174,7 @@ class DealSchema(Schema):
     deal_type = fields.Int(attribute='base_deal.deal_type')
     order = fields.Int(attribute='base_deal.order')
     gems_cost = fields.Int(attribute='base_deal.gems_cost')
+    purchase_id = fields.Str(attribute='base_deal.purchase_id')
     expiration_date = fields.DateTime()
     is_available = fields.Bool()
 
@@ -187,7 +187,11 @@ class GetDeals(APIView):
         deal_schema.context = request.user
         curr_time = datetime.now()
 
-        purchased_deals_ids = set(PurchasedTracker.objects.filter(user=request.user).values_list('deal__base_deal_id', flat=True))
+        daily_expiration_date = get_expiration_date(1) - timedelta(days=1)
+        weekly_expiration_date = get_expiration_date(7) - timedelta(days=7)
+
+        daily_purchased_deals_ids = set(PurchasedTracker.objects.filter(user=request.user, purchase_time__gt=daily_expiration_date).values_list('purchase_id', flat=True))
+        weekly_purchased_deals_ids = set(PurchasedTracker.objects.filter(user=request.user, purchase_time__gt=weekly_expiration_date).values_list('purchase_id', flat=True))
 
         daily_deals = deal_schema.dump(
             ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
@@ -199,17 +203,21 @@ class GetDeals(APIView):
                 base_deal__deal_type=DealType.WEEKLY.value,
                 expiration_date__gt=curr_time).order_by('base_deal__order'))
 
-        gemscost_deals = deal_schema.dump(
-            ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
-                base_deal__deal_type=DealType.GEMS_COST.value,
-                expiration_date__gt=curr_time).order_by('base_deal__order'))
+        # gemscost_deals = deal_schema.dump(
+        #     ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
+        #         base_deal__deal_type=DealType.GEMS_COST.value,
+        #         expiration_date__gt=curr_time).order_by('base_deal__order'))
 
-        all_deals = daily_deals + weekly_deals + gemscost_deals
+        for deal in daily_deals:
+            deal["is_available"] = deal["purchase_id"] not in daily_purchased_deals_ids
 
-        for deal in all_deals:
-            deal["is_available"] = deal["id"] not in purchased_deals_ids
+        for deal in weekly_deals:
+            deal["is_available"] = deal["purchase_id"] not in weekly_purchased_deals_ids
 
-        return Response({"daily_deals": daily_deals, 'weekly_deals': weekly_deals, 'gemcost_deals': gemscost_deals})
+        # for deal in gemscost_deals:
+        #     deal["is_available"] = deal["purchase_id"] not in daily_purchased_deals_ids
+
+        return Response({"daily_deals": daily_deals, 'weekly_deals': weekly_deals, 'gemcost_deals': []})
 
 
 def make_deals(deal_type: int):
