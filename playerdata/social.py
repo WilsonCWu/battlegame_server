@@ -113,6 +113,9 @@ class CreateFriendRequestView(APIView):
         serializer.is_valid(raise_exception=True)
         target_user_id = serializer.validated_data['value']
 
+        if not target_user_id.isnumeric():
+            return Response({'status': False, 'reason': "user id should be numeric"})
+        
         target_user = get_user_model().objects.filter(id=target_user_id).first()
         if target_user is None:
             return Response({'status': False, 'reason': "user id doesn't exist"})
@@ -460,6 +463,7 @@ class ClanRequestSchema(Schema):
 class CreateClanRequestView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = ValueSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -468,11 +472,19 @@ class CreateClanRequestView(APIView):
 
         userinfo = request.user.userinfo
 
-        if userinfo.clanmember.clan or ClanRequest.objects.filter(clan=target_clan, userinfo=userinfo):
+        if userinfo.clanmember.clan:
+            return Response({'status': False, 'reason': 'User already part of a clan.'})
+
+        # This model is 1-1 on userinfo, so this can only be 0 or 1 request.
+        existing_request = ClanRequest.objects.filter(userinfo=userinfo).first()
+        if existing_request.clan == target_clan:
             return Response({'status': False, 'reason': 'Clan request already exists'})
+        elif existing_request:
+            existing_request.clan = target_clan
+            existing_request.save()
+            return Response({'status': True, 'message': 'overwritten existing request'})
 
         ClanRequest.objects.create(userinfo=userinfo, clan=target_clan)
-
         return Response({'status': True})
 
 
