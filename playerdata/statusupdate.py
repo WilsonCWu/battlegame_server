@@ -136,9 +136,10 @@ def update_rating(original_elo, opponent, win):
     other_user = get_user_model().objects.select_related('userinfo').get(id=opponent)
     updated_rating = calculate_elo(original_elo, other_user.userinfo.elo, win)
 
-    # update enemy elo
-    other_user.userinfo.elo = calculate_elo(other_user.userinfo.elo, original_elo, not win)
-    other_user.userinfo.save()
+    # update enemy elo if not a bot
+    if not other_user.userinfo.is_bot:
+        other_user.userinfo.elo = calculate_elo(other_user.userinfo.elo, original_elo, not win)
+        other_user.userinfo.save()
 
     return updated_rating
 
