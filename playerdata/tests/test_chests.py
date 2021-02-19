@@ -25,7 +25,6 @@ class ChestAPITestCase(APITestCase):
         BaseItem.objects.create(name="Bow1", rarity=1, gear_slot='W', item_type=constants.COIN_SHOP_ITEMS[1], cost=100, rollable=True)
         BaseItem.objects.create(name="Bow2", rarity=2, gear_slot='W', item_type=constants.COIN_SHOP_ITEMS[2], cost=100, rollable=True)
         BaseItem.objects.create(name="Bow3", rarity=3, gear_slot='W', item_type=constants.COIN_SHOP_ITEMS[3], cost=100, rollable=True)
-        BaseItem.objects.create(name="Bow4", rarity=4, gear_slot='W', item_type=constants.COIN_SHOP_ITEMS[4], cost=100, rollable=True)
 
     def test_unlock_chests(self):
         self.assertIsNone(self.chest1.locked_until)
