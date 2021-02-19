@@ -815,6 +815,7 @@ class BaseDeal(models.Model):
     deal_type = models.IntegerField(choices=[(deal.value, deal.name) for deal in DealType])
     order = models.IntegerField(default=0)
     gems_cost = models.IntegerField(default=0)
+    purchase_id = models.TextField(default='')
 
     def __str__(self):
         return "ID: " + str(self.id) + " Type: " + str(self.deal_type) + " Order: " + str(self.order)
@@ -832,7 +833,7 @@ class ActiveDeal(models.Model):
 
 class PurchasedTracker(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    deal = models.ForeignKey(ActiveDeal, on_delete=models.CASCADE, blank=True, null=True)
+    deal = models.ForeignKey(ActiveDeal, on_delete=models.SET_NULL, blank=True, null=True)
     purchase_id = models.TextField(default='')
     transaction_id = models.TextField(default='')
     purchase_time = models.DateTimeField(default=timezone.now)

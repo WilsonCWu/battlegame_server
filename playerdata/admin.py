@@ -163,7 +163,7 @@ class ActiveDealAdmin(admin.ModelAdmin):
 
 
 class BaseDealAdmin(admin.ModelAdmin):
-    list_display = ('id', 'order', 'deal_type', 'gems', 'coins', 'dust', 'item', 'char_type')
+    list_display = ('id', 'order', 'deal_type', 'gems', 'coins', 'dust', 'item', 'char_type', 'purchase_id')
     list_filter = ('order', 'deal_type')
 
 
