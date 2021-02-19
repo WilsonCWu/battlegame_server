@@ -23,7 +23,7 @@ def get_weighted_odds_item(rarity_odds=None):
     if rarity_odds is None:
         rarity_odds = constants.REGULAR_ITEM_ODDS_PER_CHEST[0]  # default SILVER chest rarity odds
 
-    rarity = constants.RARITY_INDEX[weighted_pick_from_buckets(rarity_odds)]
+    rarity = constants.ITEM_RARITY_INDEX[weighted_pick_from_buckets(rarity_odds)]
     return get_rand_base_item_from_rarity(rarity)
 
 
@@ -39,7 +39,7 @@ def get_weighted_odds_character(rarity_odds=None):
     if rarity_odds is None:
         rarity_odds = constants.SUMMON_RARITY_BASE
 
-    rarity = constants.RARITY_INDEX[weighted_pick_from_buckets(rarity_odds)]
+    rarity = constants.CHAR_RARITY_INDEX[weighted_pick_from_buckets(rarity_odds)]
     return get_rand_base_char_from_rarity(rarity)
 
 

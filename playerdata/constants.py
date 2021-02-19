@@ -105,7 +105,8 @@ _MOBS = [
     15,  # Deckhand
 ]
 
-RARITY_INDEX = [1, 2, 3, 4]
+CHAR_RARITY_INDEX = [1, 2, 3, 4]
+ITEM_RARITY_INDEX = [0, 1, 2, 3]
 
 # Summon rarity constants
 SUMMON_RARITY_BASE = [500, 350, 100, 50]
@@ -215,7 +216,7 @@ REGULAR_CHAR_ODDS_PER_CHEST = [
 REGULAR_ITEM_ODDS_PER_CHEST = [
     [400, 400, 200, 0, 0],  # SILVER
     [300, 400, 300, 0, 0],  # GOLD
-    [420, 350, 200, 30],  # MYTHICAL
+    [420, 350, 200, 30, 0],  # MYTHICAL
     [0, 0, 0, 1000, 0],  # EPIC
     [0, 0, 100, 550, 350],  # LEGENDARY
 ]
