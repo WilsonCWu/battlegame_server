@@ -145,7 +145,7 @@ def handle_purchase_deal(user, purchase_id, transaction_id):
     # check if Purchase was recorded from validate/ (don't check if it was the free daily deal)
     purchase_tracker = PurchasedTracker.objects.filter(user=user, transaction_id=transaction_id).first()
     if purchase_id == constants.DEAL_DAILY_0:
-        purchase_tracker, created = PurchasedTracker.objects.update_or_create(user=user, purchase_id=constants.DEAL_DAILY_0, defaults={'purchase_time': curr_time})
+        purchase_tracker = PurchasedTracker.objects.create(user=user)
     elif purchase_tracker is None:
         return Response({'status': False, 'reason': 'purchase not found in our records'})
 
@@ -250,6 +250,7 @@ def make_deals(deal_type: int):
 @transaction.atomic()
 def refresh_daily_deals_cronjob():
     ActiveDeal.objects.filter(base_deal__deal_type=constants.DealType.DAILY.value).delete()
+    PurchasedTracker.objects.filter(purchase_id=constants.DEAL_DAILY_0).delete()
     make_deals(constants.DealType.DAILY.value)
 
 
