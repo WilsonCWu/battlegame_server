@@ -1,4 +1,5 @@
 import logging
+import multiprocessing
 
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticated
@@ -94,7 +95,7 @@ class UploadTourneyResultView(APIView):
         return handle_tourney(request, win, opponent)
 
 
-def update_stats(user, win, stats):
+def update_stats(user, win, stats, _):
     user_stats = UserStats.objects.get(user=user)
     user_stats.num_games += 1
     user_stats.num_wins += 1 if win else 0
@@ -132,57 +133,85 @@ def update_stats(user, win, stats):
     QuestUpdater.add_progress_by_type(user, constants.DAMAGE_DEALT, total_damage_dealt_stat)
 
 
-def update_rating(original_elo, opponent, win):
-    other_user = get_user_model().objects.select_related('userinfo').get(id=opponent)
-    updated_rating = calculate_elo(original_elo, other_user.userinfo.elo, win)
-
-    # update enemy elo if not a bot
-    if not other_user.userinfo.is_bot:
-        other_user.userinfo.elo = calculate_elo(other_user.userinfo.elo, original_elo, not win)
-        other_user.userinfo.save()
-
-    return updated_rating
-
-
-def update_match_history(attacker, defender_id, win):
+def update_match_history(attacker, defender_id, win, _):
     # In the future there will be more processing for TTL, long-term retention,
     # caching and what not, but for now, let's keep it simple.
     Match.objects.create(attacker=attacker, defender_id=defender_id, is_win=win)
 
 
-def handle_quickplay(request, win, opponent, stats):
-    update_stats(request.user, win, stats)
-    update_match_history(request.user, opponent, win)
+def update_rewards(user, elo, win, result_queue):
+    """ Give the user chests and coins on victory."""
+    if not win:
+        result_queue.put({'coins': 0, 'chest_rarity': 0})
+        return
 
-    chest_rarity = 0
-    coins = 0
-    player_exp = 0
+    chest_rarity = award_chest(user)
+    QuestUpdater.add_progress_by_type(user, constants.WIN_QUICKPLAY_GAMES, 1)
 
+    coins = formulas.coins_chest_reward(elo, 1) / 20
+    user.inventory.coins += coins
+    user.inventory.save()
+    result_queue.put({'coins': coins, 'chest_rarity': chest_rarity})
+    
+
+def update_elo_and_exp(user, win, opponent_id, result_queue):
+    """ Update userinfo elo and player experience based on the match."""
     if win:
-        chest_rarity = award_chest(request.user)
-        QuestUpdater.add_progress_by_type(request.user, constants.WIN_QUICKPLAY_GAMES, 1)
-
-        dungeon_progress = DungeonProgress.objects.get(user=request.user)
-        elo_scaler = 50 + math.floor(request.user.userinfo.elo / 10)
+        dungeon_progress = DungeonProgress.objects.get(user=user)
+        elo_scaler = 50 + math.floor(user.userinfo.elo / 10)
         reward_scaler = min(dungeon_progress.campaign_stage, elo_scaler)
         player_exp = formulas.player_exp_reward_quickplay(reward_scaler)
+    else:
+        player_exp = 0
 
-        coins = formulas.coins_chest_reward(request.user.userinfo.elo, 1) / 20
+    opponent = get_user_model().objects.select_related('userinfo').get(id=opponent_id)
+    updated_rating = calculate_elo(user.userinfo.elo, opponent.userinfo.elo, win)
 
-    # rewards
-    original_elo = request.user.userinfo.elo
-    updated_rating = update_rating(original_elo, opponent, win)
+    # Update enemy elo if not a bot.
+    if not opponent.userinfo.is_bot:
+        opponent.userinfo.elo = calculate_elo(opponent.userinfo.elo, user.userinfo.elo, not win)
+        opponent.userinfo.save()
 
-    request.user.inventory.coins += coins
-    request.user.inventory.save()
+    result_queue.put({'prev_elo': user.userinfo.elo})
 
-    request.user.userinfo.elo = updated_rating
-    request.user.userinfo.player_exp += player_exp
-    request.user.userinfo.save()
+    # Update our own elo and exp.
+    user.userinfo.elo = updated_rating
+    user.userinfo.player_exp += player_exp
+    user.userinfo.save()
+    result_queue.put({'elo': updated_rating, 'player_exp': player_exp})
 
+    
+def handle_quickplay(request, win, opponent, stats):
+    jobs = []
+    result_queue = multiprocessing.Queue()
 
-    return Response({"elo": updated_rating, 'prev_elo': original_elo, 'coins': coins,
-                     'player_exp': player_exp, 'chest_rarity': chest_rarity})
+    # update_stats(request.user, win, stats, result_queue)
+    # update_match_history(request.user, opponent, win, result_queue)
+    # update_rewards(request.user, request.user.userinfo.elo, win, result_queue)
+    # update_elo_and_exp(request.user, win, opponent, result_queue)
+    
+    jobs.append(multiprocessing.Process(target=update_stats,
+                                        args=(request.user, win, stats, result_queue)))
+    jobs.append(multiprocessing.Process(target=update_match_history,
+                                        args=(request.user, opponent, win, result_queue)))
+    jobs.append(multiprocessing.Process(target=update_rewards,
+                                        args=(request.user, request.user.userinfo.elo, win, result_queue)))
+    jobs.append(multiprocessing.Process(target=update_elo_and_exp,
+                                        args=(request.user, win, opponent, result_queue)))
+    for j in jobs:
+        j.start()
+
+    res = {}
+    for _ in range(3):
+    # while not result_queue.empty():
+         partial_res = result_queue.get()
+         res.update(partial_res)
+
+    for j in jobs:
+        j.join()
+
+    print(res)
+    return Response(res)
 
 
 def handle_tourney(request, win, opponent):
