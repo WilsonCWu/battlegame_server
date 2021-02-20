@@ -55,7 +55,7 @@ class ReferralView(APIView):
 
             return Response({'status': False, 'reason': 'Your account has been banned due to suspicion of fraud. If you believe this is a mistake, please contact our customer support.'})
 
-        # Award requesting user
+        # Award both users
         award_referral(request.user, 5000)
         award_referral(user_ref.user, 2500)
         ReferralTracker.objects.create(user=request.user, referral=user_ref, device_id=device_id)
