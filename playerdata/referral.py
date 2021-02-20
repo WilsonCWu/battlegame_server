@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_marshmallow import Schema, fields
+from django.db import transaction
 
 from playerdata.models import UserReferral
 from playerdata.models import ReferralTracker
@@ -26,7 +27,7 @@ class ReferralView(APIView):
         referral_schema = ReferralSchema(user_ref)
         return Response(referral_schema.data)
 
-
+    @transaction.atomic
     def post(self, request):
         serializer = ClaimReferralSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
