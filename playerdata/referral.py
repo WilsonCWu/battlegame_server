@@ -13,8 +13,8 @@ class ReferralSchema(Schema):
     referral_code = fields.Str()
 
 
-def award_referral(user):
-    user.inventory.gems += 5000
+def award_referral(user, amount):
+    user.inventory.gems += amount
     user.inventory.save()
 
 
@@ -56,7 +56,8 @@ class ReferralView(APIView):
             return Response({'status': False, 'reason': 'Your account has been banned due to suspicion of fraud. If you believe this is a mistake, please contact our customer support.'})
 
         # Award requesting user
-        award_referral(request.user)
+        award_referral(request.user, 5000)
+        award_referral(user_ref.user, 2500)
         ReferralTracker.objects.create(user=request.user, referral=user_ref, device_id=device_id)
 
         return Response({'status': True})
