@@ -28,7 +28,7 @@ def coins_reward_dungeon(dungeon_level, dungeon_type: int):
 
 
 def afk_coins_per_min(dungeon_level):
-    return ((dungeon_level - 1) ** 1.55) / 48
+    return (dungeon_level * 16 + (dungeon_level - 1) ** 1.45) / 48
 
 
 def char_level_to_coins(level):
@@ -37,8 +37,8 @@ def char_level_to_coins(level):
 
 def coins_chest_reward(elo, rarity):
     elo += 20  # light pad on elo for 0 elo case
-    base_mult = rarity
-    base_exp = 1.45 + ((rarity - 1) * 0.2)
+    base_mult = 0.5 + ((rarity - 1) * 0.5)
+    base_exp = 1.4 + ((rarity - 1) * 0.2)
     return math.floor(elo * base_mult + 200 + (elo ** base_exp))
 
 
