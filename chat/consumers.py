@@ -10,8 +10,10 @@ from playerdata.models import ChatLastReadMessage
 
 class MessageSchema(Schema):
     message = fields.Str()
+    #TODO: this is quite expensive, should not be in here
     sender = fields.Str(attribute='sender.userinfo.name')
     sender_id = fields.Int(attribute='sender_id')
+    sender_profile_picture_id = fields.Int(attribute='sender_profile_picture_id')
     time_send = fields.DateTime()
 
 class ChatConsumer(WebsocketConsumer):
@@ -52,6 +54,7 @@ class ChatConsumer(WebsocketConsumer):
 
         if message_type == 'msg':
             message = text_data_json['message']
+            pfp_id = self.user.userinfo.profile_picture
 
             # Send message to room group
             async_to_sync(self.channel_layer.group_send)(
@@ -60,12 +63,13 @@ class ChatConsumer(WebsocketConsumer):
                     'type': 'chat_message',
                     'message': message,
                     'sender_id': self.user.id,
-                    'sender': self.user.userinfo.name
+                    'sender': self.user.userinfo.name,
+                    'sender_profile_picture_id': pfp_id
                 }
             )
 
             # save to db
-            chat_message = ChatMessage.objects.create(chat=self.chat, message=message, sender=self.user)
+            chat_message = ChatMessage.objects.create(chat=self.chat, message=message, sender=self.user, sender_profile_picture_id=pfp_id)
             ChatLastReadMessage.objects.update_or_create(chat=self.chat,
                                                          user=self.user,
                                                          defaults={"time_send": chat_message.time_send}
@@ -110,9 +114,11 @@ class ChatConsumer(WebsocketConsumer):
         message = event['message']
         sender_id = event['sender_id']
         sender = event['sender']
+        sender_profile_picture_id = event['sender_profile_picture_id']
         # Send message to WebSocket
         self.send(text_data=json.dumps({
             'message': message,
             'sender_id': sender_id,
-            'sender': sender
+            'sender': sender,
+            'sender_profile_picture_id':sender_profile_picture_id
         }))
