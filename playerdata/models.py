@@ -493,6 +493,8 @@ class Inventory(models.Model):
     is_auto_retire = models.BooleanField(default=False)
     last_collected_rewards = models.DateTimeField(default=get_default_afk_datetime)
 
+    gems_bought = models.IntegerField(default=0)
+
     chest_slot_1 = models.ForeignKey(Chest, null=True, blank=True,
                                      on_delete=models.SET_NULL, related_name='chest_slot_1')
     chest_slot_2 = models.ForeignKey(Chest, null=True, blank=True,

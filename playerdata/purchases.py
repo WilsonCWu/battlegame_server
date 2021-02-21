@@ -97,6 +97,7 @@ def handle_purchase_gems(user, purchase_id, transaction_id):
 
     if purchase_id in constants.IAP_GEMS_AMOUNT:
         user.inventory.gems += constants.IAP_GEMS_AMOUNT[purchase_id]
+        user.inventory.gems_bought += constants.IAP_GEMS_AMOUNT[purchase_id]
     else:
         return Response({'status': False, 'reason': 'invalid purchase_id ' + purchase_id})
 
@@ -113,6 +114,7 @@ def reward_deal(user, inventory, base_deal):
 
     inventory.coins += base_deal.coins
     inventory.gems += base_deal.gems
+    inventory.gems_bought += base_deal.gems
     inventory.dust += base_deal.dust
 
     inventory.save()
