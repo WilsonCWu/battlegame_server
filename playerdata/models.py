@@ -519,6 +519,7 @@ class ChatMessage(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
     message = models.TextField()
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
+    sender_profile_picture_id = models.IntegerField(default=0)
     time_send = models.DateTimeField(auto_now_add=True)
 
     class Meta:
