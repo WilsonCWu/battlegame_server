@@ -58,7 +58,7 @@ class RedeemCodeView(APIView):
     def post(self, request):
         serializer = RedeemCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        code = serializer.validated_data['code']
+        code = serializer.validated_data['code'].lower()
 
         if ClaimedCode.objects.filter(user=request.user, code__code=code).exists():
             return Response({'status': False, 'reason': 'code has been redeemed already'})
