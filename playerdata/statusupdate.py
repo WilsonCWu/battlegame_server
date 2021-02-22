@@ -75,9 +75,8 @@ class UploadQuickplayResultView(APIView):
 
         win = valid_data['win']
         opponent = valid_data['opponent_id']
-        stats = valid_data['stats']
 
-        return handle_quickplay(request, win, opponent, stats)
+        return handle_quickplay(request, win, opponent)
 
 
 class UploadTourneyResultView(APIView):
@@ -94,7 +93,7 @@ class UploadTourneyResultView(APIView):
         return handle_tourney(request, win, opponent)
 
 
-def update_stats(user, win, stats):
+def update_stats(user, win):
     user_stats = UserStats.objects.get(user=user)
     user_stats.num_games += 1
     user_stats.num_wins += 1 if win else 0
@@ -102,34 +101,6 @@ def update_stats(user, win, stats):
     QuestUpdater.set_progress_by_type(user, constants.WIN_STREAK, user_stats.win_streak)
     user_stats.longest_win_streak = max(user_stats.win_streak, user_stats.longest_win_streak)
     user_stats.save()
-
-    total_damage_dealt_stat = 0
-
-    # Update stats per hero
-    for stat in stats:
-        char_id = stat['id']
-        hero = Character.objects.select_related('char_type__basecharacterusage').get(char_id=char_id)
-
-        try:
-            hero.total_damage_dealt += stat['damage_dealt']
-            total_damage_dealt_stat += stat['damage_dealt']
-            hero.total_damage_taken += stat['damage_taken']
-            hero.total_health_healed += stat['health_healed']
-        except OverflowError:
-            logging.error("stats overflow error")
-
-        hero.num_games += 1
-        hero.num_wins += 1 if win else 0
-        hero.save()
-
-        hero.char_type.basecharacterusage.num_games += 1
-        hero.char_type.basecharacterusage.num_wins += 1 if win else 0
-        hero.char_type.basecharacterusage.save()
-
-        if win:
-            QuestUpdater.game_won_by_char_id(user, hero.char_type.char_type)
-
-    QuestUpdater.add_progress_by_type(user, constants.DAMAGE_DEALT, total_damage_dealt_stat)
 
 
 def update_rating(original_elo, opponent, win):
@@ -150,8 +121,8 @@ def update_match_history(attacker, defender_id, win):
     Match.objects.create(attacker=attacker, defender_id=defender_id, is_win=win)
 
 
-def handle_quickplay(request, win, opponent, stats):
-    update_stats(request.user, win, stats)
+def handle_quickplay(request, win, opponent):
+    update_stats(request.user, win)
     update_match_history(request.user, opponent, win)
 
     chest_rarity = 0
