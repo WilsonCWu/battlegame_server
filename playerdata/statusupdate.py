@@ -75,8 +75,9 @@ class UploadQuickplayResultView(APIView):
 
         win = valid_data['win']
         opponent = valid_data['opponent_id']
+        stats = valid_data['stats']
 
-        return handle_quickplay(request, win, opponent)
+        return handle_quickplay(request, win, opponent, stats)
 
 
 class UploadTourneyResultView(APIView):
@@ -93,7 +94,7 @@ class UploadTourneyResultView(APIView):
         return handle_tourney(request, win, opponent)
 
 
-def update_stats(user, win):
+def update_stats(user, win, stats):
     user_stats = UserStats.objects.get(user=user)
     user_stats.num_games += 1
     user_stats.num_wins += 1 if win else 0
@@ -101,6 +102,11 @@ def update_stats(user, win):
     QuestUpdater.set_progress_by_type(user, constants.WIN_STREAK, user_stats.win_streak)
     user_stats.longest_win_streak = max(user_stats.win_streak, user_stats.longest_win_streak)
     user_stats.save()
+
+    total_damage_dealt_stat = 0
+    for stat in stats:
+        total_damage_dealt_stat += stat['damage_dealt']
+    QuestUpdater.add_progress_by_type(user, constants.DAMAGE_DEALT, total_damage_dealt_stat)
 
 
 def update_rating(original_elo, opponent, win):
@@ -121,8 +127,8 @@ def update_match_history(attacker, defender_id, win):
     Match.objects.create(attacker=attacker, defender_id=defender_id, is_win=win)
 
 
-def handle_quickplay(request, win, opponent):
-    update_stats(request.user, win)
+def handle_quickplay(request, win, opponent, stats):
+    update_stats(request.user, win, stats)
     update_match_history(request.user, opponent, win)
 
     chest_rarity = 0
