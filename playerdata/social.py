@@ -208,6 +208,9 @@ class GetAllChatsView(APIView):
         chat_list.extend(getGlobalChats())
 
         for friend_query in query1:
+            # TODO: temp until we fix chat
+            if '(Titan)' not in friend_query.user_2.userinfo.name:
+                continue
             friend_chat = {
                 'chat_id': friend_query.chat.id,
                 'chat_name': friend_query.user_2.userinfo.name
@@ -215,6 +218,9 @@ class GetAllChatsView(APIView):
             chat_list.append(friend_chat)
 
         for friend_query in query2:
+            # TODO: temp until we fix chat
+            if '(Titan)' not in friend_query.user_1.userinfo.name:
+                continue
             friend_chat = {
                 'chat_id': friend_query.chat.id,
                 'chat_name': friend_query.user_1.userinfo.name
