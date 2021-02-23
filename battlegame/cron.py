@@ -1,8 +1,11 @@
+from datetime import timedelta
+from django.utils import timezone
 import random
 import statistics
 
 from playerdata.constants import TOURNEY_SIZE
 from playerdata.models import Character, TournamentTeam
+from playerdata.models import Match
 from playerdata.models import Placement
 from playerdata.models import Tournament
 from playerdata.models import TournamentMatch
@@ -49,6 +52,9 @@ def weekly_deals_cron():
     refresh_weekly_deals_cronjob()
     print("done!")
 
+
+def daily_clean_matches_cron():
+    Match.objects.filter(uploaded_at__lte=timezone.now() - timedelta(days=14)).delete()
 
 # Take all registered users
 # Sort by elo
