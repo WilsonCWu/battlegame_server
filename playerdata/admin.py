@@ -3,6 +3,8 @@ from django.contrib import admin
 from django.contrib import messages
 from django.contrib.admin.models import LogEntry
 from django.contrib.postgres.fields import JSONField
+from django.core import serializers
+from django.http import HttpResponse
 from django.utils.translation import ngettext
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 from django_json_widget.widgets import JSONEditorWidget
@@ -60,6 +62,7 @@ from .models import UserReferral
 from .models import UserStats
 from .purchases import refresh_daily_deals_cronjob, refresh_weekly_deals_cronjob
 from .quest import queue_active_weekly_quests, queue_active_daily_quests, refresh_weekly_quests, refresh_daily_quests
+from .login import UserRecoveryTokenGenerator
 
 
 class BaseCodeAdmin(admin.ModelAdmin, DynamicArrayMixin):
@@ -89,7 +92,8 @@ class DungeonBossAdmin(bulk_admin.BulkModelAdmin):
 
 class UserInfoAdmin(admin.ModelAdmin):
     list_display = ('user_id', 'name', 'elo')
-    actions = ['generate_bots_from_users', 'generate_bots_bulk']
+    actions = ('generate_bots_from_users', 'generate_bots_bulk', 'create_otp',
+               'inventory_transfer_forward', 'inventory_transfer_reverse')
     search_fields = ('name',)
 
     def generate_bots_from_users(self, request, queryset):
@@ -97,6 +101,83 @@ class UserInfoAdmin(admin.ModelAdmin):
 
     def generate_bots_bulk(self, request, queryset):
         generate_bots_bulk()
+
+    def create_otp(self, request, queryset):
+        token_generator = UserRecoveryTokenGenerator()
+        res = {}
+        for userinfo in queryset:
+            res[userinfo.user_id] = '%d-%s' % (userinfo.user_id,
+                                               token_generator.make_token(userinfo.user))
+        response = HttpResponse(str(res))
+        return response
+
+    def inventory_transfer(source_userinfo, target_userinfo):
+        original_user_id = source_userinfo.user_id
+        original_description = source_userinfo.description
+
+        source_userinfo.description = "[TRANSFERRED] " + original_description
+        source_userinfo.save()
+
+        # Fix the new user's placement.
+        Placement.objects.filter(user_id = target_userinfo.user_id).delete()
+        placement = Placement.objects.create()
+        placement.user_id = target_userinfo.user_id
+        placement.pos_1 = -1
+        placement.char_1 = None
+        placement.pos_2 = -1
+        placement.char_2 = None
+        placement.pos_3 = -1
+        placement.char_3 = None
+        placement.pos_4 = -1
+        placement.char_4 = None
+        placement.pos_5 = -1
+        placement.char_5 = None
+        placement.save()
+
+        # TODO: if this is something that happens frequently, we should consider
+        # account deactivation.
+        source_userinfo.user = target_userinfo.user
+        source_userinfo.description = original_description
+        source_userinfo.default_placement = placement
+        source_userinfo.save()
+
+        # Fix the new user's inventory.
+        old_inventory = Inventory.objects.get(user_id = original_user_id)
+        inventory = Inventory.objects.get(user_id = target_userinfo.user_id)
+        inventory.coins = old_inventory.coins
+        inventory.gems = old_inventory.gems
+        inventory.dust = old_inventory.dust
+        inventory.essence = old_inventory.essence
+        inventory.hero_exp = old_inventory.hero_exp
+        inventory.save()
+
+        Character.objects.filter(user_id = target_userinfo.user_id).delete()
+        for c in Character.objects.filter(user_id = original_user_id):
+            Character.objects.create(user_id = target_userinfo.user_id,
+                                     char_type = c.char_type,
+                                     level = c.level,
+                                     copies = c.copies,
+                                     prestige = c.prestige)
+            
+        Item.objects.filter(user_id = target_userinfo.user_id).delete()
+        for i in Item.objects.filter(user_id = original_user_id):
+            Item.objects.create(user_id = target_userinfo.user_id,
+                                item_type = i.item_type,
+                                exp = i.exp)
+        
+    def inventory_transfer_forward(self, request, queryset):
+        if len(queryset) != 2:
+            raise Exception("Can only select 2 users for Inventory Transfer!")
+
+        ordered = queryset.order_by('user_id')
+        UserInfoAdmin.inventory_transfer(ordered[0], ordered[1])
+
+    def inventory_transfer_reverse(self, request, queryset):
+        if len(queryset) != 2:
+            raise Exception("Can only select 2 users for Inventory Transfer!")
+
+        ordered = queryset.order_by('user_id')
+        UserInfoAdmin.inventory_transfer(ordered[1], ordered[0])
 
 
 class PlacementAdmin(admin.ModelAdmin):
