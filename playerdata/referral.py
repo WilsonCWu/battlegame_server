@@ -14,7 +14,7 @@ class ReferralSchema(Schema):
 
 
 def award_referral(user):
-    user.inventory.gems += 5000
+    user.inventory.gems += 2500
     user.inventory.save()
 
 
