@@ -151,6 +151,13 @@ class UserInfoAdmin(admin.ModelAdmin):
         inventory.hero_exp = old_inventory.hero_exp
         inventory.save()
 
+        # Clone dungeon progress.
+        old_progress = DungeonProgress.objects.get(user_id=original_user_id)
+        progress = DungeonProgress.objects.get(user_id=target_userinfo.user_id)
+        progress.campaign_stage = old_progress.campaign_stage
+        progress.tower_stage = old_progress.tower_stage
+        progress.save()
+
         Character.objects.filter(user_id = target_userinfo.user_id).delete()
         for c in Character.objects.filter(user_id = original_user_id):
             Character.objects.create(user_id = target_userinfo.user_id,
