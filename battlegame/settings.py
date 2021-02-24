@@ -177,6 +177,8 @@ CRONJOBS = [
 
     ('0 0 * * *', 'battlegame.cron.daily_deals_cron', '>> /tmp/daily_deals_job.log'),
 
+    ('0 0 * * *', 'battlegame.cron.daily_clean_matches_cron', '>> /tmp/daily_clean_matches.log'),
+
     # ('0 0 * * MON', 'battlegame.cron.weekly_deals_cron', '>> /tmp/weekly_deals_job.log'),
     # ('0 16 * * THU', 'battlegame.cron.setup_tournament', '>> /tmp/setup_tournament_scheduled_job.log'),
     # ('0 16 * * 5-7', 'battlegame.cron.next_round', '>> /tmp/next_round_scheduled_job.log'),
