@@ -5,6 +5,7 @@ import statistics
 
 from playerdata.constants import TOURNEY_SIZE
 from playerdata.models import Character, TournamentTeam
+from playerdata.models import Inventory
 from playerdata.models import Match
 from playerdata.models import Placement
 from playerdata.models import Tournament
@@ -55,6 +56,24 @@ def weekly_deals_cron():
 
 def daily_clean_matches_cron():
     Match.objects.filter(uploaded_at__lte=timezone.now() - timedelta(days=14)).delete()
+
+
+MAX_DAILY_DUNGEON_TICKET = 3
+MAX_DAILY_DUNGEON_GOLDEN_TICKET = 1
+    
+def daily_dungeon_golden_ticket_drop():
+    to_inc = Inventory.objects.filter(daily_dungeon_golden_ticket__lt=MAX_DAILY_DUNGEON_GOLDEN_TICKET)
+    for inv in to_inc:
+        inv.daily_dungeon_golden_ticket += 1
+    Inventory.objects.bulk_update(to_inc, ['daily_dungeon_golden_ticket'])
+
+
+def daily_dungeon_ticket_drop():
+    to_inc = Inventory.objects.filter(daily_dungeon_ticket__lt=MAX_DAILY_DUNGEON_TICKET)
+    for inv in to_inc:
+        inv.daily_dungeon_ticket += 1
+    Inventory.objects.bulk_update(to_inc, ['daily_dungeon_ticket'])
+ 
 
 # Take all registered users
 # Sort by elo

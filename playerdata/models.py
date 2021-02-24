@@ -489,6 +489,8 @@ class Inventory(models.Model):
     gems = models.IntegerField(default=5000)
     dust = models.IntegerField(default=100)
     essence = models.IntegerField(default=0)
+    daily_dungeon_ticket = models.IntegerField(default=0)
+    daily_dungeon_golden_ticket = models.IntegerField(default=0)
     hero_exp = models.IntegerField(default=0)
     is_auto_retire = models.BooleanField(default=False)
     last_collected_rewards = models.DateTimeField(default=get_default_afk_datetime)
