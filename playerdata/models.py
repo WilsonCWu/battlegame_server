@@ -472,6 +472,20 @@ class Match(models.Model):
                                   self.defender.userinfo.name)
 
 
+class DailyDungeonStatus(models.Model):
+    """DailyDungeonStatus represents a user's progress (or lack of progress)
+    in a single daily dungeon run. A user can only have one daily dungeon run
+    at a time.
+    """
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    is_golden = models.BooleanField(default=False)
+    # Stage 0 implies that the player is currently NOT in a daily dungeon run.
+    stage = models.IntegerField(default=0)
+    # We expect character state to be in the format of
+    # {<character_id>: <character_health>}.
+    character_state = JSONField(blank=True, null=True)
+
+
 class Chest(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     rarity = models.IntegerField()
