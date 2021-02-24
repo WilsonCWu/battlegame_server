@@ -118,7 +118,7 @@ def afk_dust_per_min(dungeon_level):
 def dust_chest_reward(elo, rarity):
     elo += 20  # light pad on elo for 0 elo case
     base_mult = 0.5 + ((rarity - 1) * 0.5)
-    base_exp = 1.25 + ((rarity - 1) * 0.75)
+    base_exp = 1.2 + ((rarity - 1) * 0.4)
     return math.floor(elo * base_mult + (elo ** base_exp) / 2600)
 
 #########################
