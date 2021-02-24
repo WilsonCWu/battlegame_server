@@ -14,7 +14,7 @@ class ReferralSchema(Schema):
 
 
 def award_referral(user):
-    user.inventory.gems += 5000
+    user.inventory.gems += 2500
     user.inventory.save()
 
 
@@ -45,7 +45,7 @@ class ReferralView(APIView):
         # check device id for fraud
         device_referrals = ReferralTracker.objects.filter(device_id=device_id, referral=user_ref)
         # if the save device has redeemed referral for the same user
-        if device_referrals.count() > 3:
+        if device_referrals.count() > 2:
             # ban device user + referral user
             request.user.is_active = False
             request.user.save()
