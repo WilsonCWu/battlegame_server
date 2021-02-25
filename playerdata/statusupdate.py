@@ -98,6 +98,7 @@ def update_stats(user, win, stats):
     user_stats = UserStats.objects.get(user=user)
     user_stats.num_games += 1
     user_stats.num_wins += 1 if win else 0
+    user_stats.daily_wins += 1 if win else 0
     user_stats.win_streak = 0 if not win else user_stats.win_streak + 1
     QuestUpdater.set_progress_by_type(user, constants.WIN_STREAK, user_stats.win_streak)
     user_stats.longest_win_streak = max(user_stats.win_streak, user_stats.longest_win_streak)
@@ -144,14 +145,14 @@ def handle_quickplay(request, win, opponent, stats):
         reward_scaler = min(dungeon_progress.campaign_stage, elo_scaler)
         player_exp = formulas.player_exp_reward_quickplay(reward_scaler)
 
-        coins = formulas.coins_chest_reward(request.user.userinfo.elo, 1) / 20
-
     # rewards
     original_elo = request.user.userinfo.elo
     updated_rating = update_rating(original_elo, opponent, win)
 
-    request.user.inventory.coins += coins
-    request.user.inventory.save()
+    if request.user.userstats.daily_wins <= 50 and win:
+        coins = formulas.coins_chest_reward(request.user.userinfo.elo, 1) / 20
+        request.user.inventory.coins += coins
+        request.user.inventory.save()
 
     request.user.userinfo.elo = updated_rating
     request.user.userinfo.player_exp += player_exp
