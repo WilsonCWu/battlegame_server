@@ -149,7 +149,7 @@ def handle_quickplay(request, win, opponent, stats):
     original_elo = request.user.userinfo.elo
     updated_rating = update_rating(original_elo, opponent, win)
 
-    if request.user.userstats.daily_wins <= 50 and win:
+    if request.user.userstats.daily_wins <= constants.MAX_DAILY_QUICKPLAY_WINS_FOR_GOLD and win:
         coins = formulas.coins_chest_reward(request.user.userinfo.elo, 1) / 20
         request.user.inventory.coins += coins
         request.user.inventory.save()
