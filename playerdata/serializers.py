@@ -30,10 +30,12 @@ class GetUserSerializer(serializers.Serializer):
 class GetOpponentsSerializer(serializers.Serializer):
     search_count = serializers.IntegerField(required=True)
 
+
 class BotResultsSerializer(serializers.Serializer):
     id1s = serializers.ListField(child=serializers.IntegerField(), required=True)
     id2s = serializers.ListField(child=serializers.IntegerField(), required=True)
     wons = serializers.ListField(child=serializers.BooleanField(), required=True)
+
 
 class UpdatePlacementSerializer(serializers.Serializer):
     placement_id = serializers.IntegerField(required=False)
@@ -45,6 +47,16 @@ class UpdatePlacementSerializer(serializers.Serializer):
 
 class UploadResultSerializer(serializers.Serializer):
     result = serializers.JSONField()
+
+
+class DailyDungeonStartSerializer(serializers.Serializer):
+    is_golden = serializers.BooleanField(required=True)
+    characters = serializers.JSONField(required=True)
+
+
+class DailyDungeonResultSerializer(serializers.Serializer):
+    is_loss = serializers.BooleanField(required=True)
+    characters = serializers.JSONField(required=True)
 
 
 class TargetCharSerializer(serializers.Serializer):
