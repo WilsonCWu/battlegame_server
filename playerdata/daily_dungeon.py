@@ -1,3 +1,5 @@
+from django.db import transaction
+
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -15,6 +17,7 @@ def daily_dungeon_stage_generator(stage):
 class DailyDungeonStartView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = DailyDungeonStartSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -84,6 +87,7 @@ def daily_dungeon_reward(is_golden, stage):
 class DailyDungeonResultView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = DailyDungeonResultSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
