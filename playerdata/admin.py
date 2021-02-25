@@ -204,6 +204,8 @@ class BaseQuestAdmin(bulk_admin.BulkModelAdmin):
             for user in users:
                 progress_tracker, _ = CumulativeTracker.objects.get_or_create(user=user, type=quest.type)
                 player_quest = PlayerQuestCumulative(base_quest=quest, user=user, progress=progress_tracker)
+                if progress_tracker.progress >= quest.total:
+                    player_quest.completed = True
                 bulk_quests.append(player_quest)
 
         PlayerQuestCumulative.objects.bulk_create(bulk_quests)
