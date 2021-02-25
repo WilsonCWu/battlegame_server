@@ -4,7 +4,7 @@ import random
 import statistics
 
 from playerdata.constants import TOURNEY_SIZE
-from playerdata.models import Character, TournamentTeam
+from playerdata.models import Character, TournamentTeam, UserStats
 from playerdata.models import Inventory
 from playerdata.models import Match
 from playerdata.models import Placement
@@ -56,6 +56,11 @@ def weekly_deals_cron():
 
 def daily_clean_matches_cron():
     Match.objects.filter(uploaded_at__lte=timezone.now() - timedelta(days=14)).delete()
+
+    userstats = UserStats.objects.all()
+    for stat in userstats:
+        stat.daily_wins = 0
+    UserStats.objects.bulk_update(userstats, ['daily_wins'])
 
 
 MAX_DAILY_DUNGEON_TICKET = 3
