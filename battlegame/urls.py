@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path
 from playerdata import login
 from playerdata import base
+from playerdata import daily_dungeon
 from playerdata import matcher
 from playerdata import statusupdate
 from playerdata import purchases
@@ -35,6 +36,9 @@ from playerdata import coin_shop
 from playerdata import chests
 
 urlpatterns = [
+    path('dailydungeon/start/', daily_dungeon.DailyDungeonStartView.as_view()),
+    path('dailydungeon/status', daily_dungeon.DailyDungeonStatusView.as_view()),
+    path('dailydungeon/result/', daily_dungeon.DailyDungeonResultView.as_view()),
     path('coinshop/buyitem/', coin_shop.TryBuyItemView.as_view()),
     path('coinshop/getitems/', coin_shop.GetItemsView.as_view()),
     path('tournament/matchhistory', tournament.TournamentMatchHistory.as_view()),
