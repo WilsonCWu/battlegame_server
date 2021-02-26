@@ -3,6 +3,7 @@ import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from rest_marshmallow import Schema, fields
+from better_profanity import profanity
 
 from playerdata.models import ChatMessage
 from playerdata.models import Chat
@@ -53,7 +54,7 @@ class ChatConsumer(WebsocketConsumer):
         message_type = text_data_json['message_type']
 
         if message_type == 'msg':
-            message = text_data_json['message']
+            message = profanity.censor(text_data_json['message'])
             pfp_id = self.user.userinfo.profile_picture
 
             # Send message to room group
