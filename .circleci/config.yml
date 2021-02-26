@@ -4,7 +4,7 @@ jobs:
   build-and-test:
     working_directory: ~/battlegame_server
     docker:
-      - image: circleci/python:3.6.4
+      - image: circleci/python:3.8.0
         environment:
           PIPENV_VENV_IN_PROJECT: true
           DATABASE_URL: postgresql://root@localhost/circle_test?sslmode=disable
@@ -25,6 +25,8 @@ jobs:
           command: |
             python3 -m venv venv
             . venv/bin/activate
+            pip install --upgrade pip
+            pip install --upgrade setuptools
             pip install -r requirements.txt
       - save_cache:
           key: deps9-{{ .Branch }}-{{ checksum "requirements.txt" }}
