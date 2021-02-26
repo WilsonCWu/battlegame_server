@@ -3,10 +3,12 @@ import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from rest_marshmallow import Schema, fields
+from profanity_filter import ProfanityFilter
 
 from playerdata.models import ChatMessage
 from playerdata.models import Chat
 from playerdata.models import ChatLastReadMessage
+
 
 class MessageSchema(Schema):
     message = fields.Str()
@@ -16,7 +18,10 @@ class MessageSchema(Schema):
     sender_profile_picture_id = fields.Int(attribute='sender_profile_picture_id')
     time_send = fields.DateTime()
 
+
 class ChatConsumer(WebsocketConsumer):
+    pf = ProfanityFilter()
+
     def connect(self):
         self.user = self.scope["user"]
         self.room_name = self.scope['url_route']['kwargs']['room_name']
@@ -53,7 +58,7 @@ class ChatConsumer(WebsocketConsumer):
         message_type = text_data_json['message_type']
 
         if message_type == 'msg':
-            message = text_data_json['message']
+            message = pf.censor(text_data_json['message'])
             pfp_id = self.user.userinfo.profile_picture
 
             # Send message to room group
