@@ -62,13 +62,17 @@ class InventorySchema(Schema):
     chest_slot_2 = fields.Nested(ChestSchema)
     chest_slot_3 = fields.Nested(ChestSchema)
     chest_slot_4 = fields.Nested(ChestSchema)
+    #TODO: delete this on 0.1.2
+    player_level = fields.Method("get_player_lvl")
+    player_exp = fields.Method("get_player_exp")
 
-    player_level = fields.Method("get_player_exp")
-
-    def get_player_exp(self, inventory):
+    def get_player_lvl(self, inventory):
         userinfo = UserInfo.objects.get(user_id=inventory.user_id)
         return formulas.exp_to_level(userinfo.player_exp)
 
+    def get_player_exp(self, inventory):
+        userinfo = UserInfo.objects.get(user_id=inventory.user_id)
+        return userinfo.player_exp
 
 class InventoryView(APIView):
     permission_classes = (IsAuthenticated,)
