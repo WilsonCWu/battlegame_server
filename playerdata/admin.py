@@ -208,7 +208,7 @@ class BaseQuestAdmin(bulk_admin.BulkModelAdmin):
                     player_quest.completed = True
                 bulk_quests.append(player_quest)
 
-        PlayerQuestCumulative.objects.bulk_create(bulk_quests)
+        PlayerQuestCumulative.objects.bulk_update_or_create(bulk_quests, ['progress'], match_field=['base_quest', 'user', 'progress'])
         self.message_user(request, ngettext(
             '%d cumulative BaseQuest successfully propagated.',
             '%d cumulative BaseQuests successfully propagated.',

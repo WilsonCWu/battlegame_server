@@ -670,6 +670,8 @@ class CumulativeTracker(models.Model):
 
 
 class PlayerQuestCumulative(models.Model):
+    objects = BulkUpdateOrCreateQuerySet.as_manager()
+
     base_quest = models.ForeignKey(BaseQuest, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     progress = models.ForeignKey(CumulativeTracker, on_delete=models.CASCADE)
