@@ -52,12 +52,15 @@ class ReferralView(APIView):
             request.user.save()
 
             # ban all of the repeated device accounts (device_referrals)
+            num_converted = 0
             for repeat_referral in device_referrals:
+                if repeat_referral.converted:
+                    num_converted += 1
                 repeat_referral.user.is_active = False
                 repeat_referral.user.save()
 
             # subtract earned gems from the repeat accounts on the user_ref side
-            user_ref.user.inventory.gems -= device_referrals.count() * constants.REFFERAL_GEMS_REWARD
+            user_ref.user.inventory.gems -= num_converted * constants.REFFERAL_GEMS_REWARD
 
             return Response({'status': False, 'reason': 'Your account has been banned due to suspicion of fraud. If you believe this is a mistake, please contact our customer support.'})
 
