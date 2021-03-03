@@ -5,6 +5,7 @@ from rest_marshmallow import Schema, fields
 
 from playerdata.models import UserReferral
 from playerdata.models import ReferralTracker
+from . import constants
 
 from .serializers import ClaimReferralSerializer
 
@@ -14,7 +15,7 @@ class ReferralSchema(Schema):
 
 
 def award_referral(user):
-    user.inventory.gems += 2500
+    user.inventory.gems += constants.REFFERAL_GEMS_REWARD
     user.inventory.save()
 
 
@@ -46,12 +47,17 @@ class ReferralView(APIView):
         device_referrals = ReferralTracker.objects.filter(device_id=device_id, referral=user_ref)
         # if the save device has redeemed referral for the same user
         if device_referrals.count() > 2:
-            # ban device user + referral user
+            # ban device user
             request.user.is_active = False
             request.user.save()
 
-            user_ref.user.is_active = False
-            user_ref.user.save()
+            # ban all of the repeated device accounts (device_referrals)
+            for repeat_referral in device_referrals:
+                repeat_referral.user.is_active = False
+                repeat_referral.user.save()
+
+            # subtract earned gems from the repeat accounts on the user_ref side
+            user_ref.user.inventory.gems -= device_referrals.count() * constants.REFFERAL_GEMS_REWARD
 
             return Response({'status': False, 'reason': 'Your account has been banned due to suspicion of fraud. If you believe this is a mistake, please contact our customer support.'})
 
