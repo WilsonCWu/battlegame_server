@@ -179,9 +179,9 @@ REWARD_TYPE_INDEX = ['coins', 'gems', 'essence', 'char_id', 'item_id']
 # Ex: RESOURCE_TYPE_ODDS[0][0] are the odds to get a 'coins' reward for a SILVER chest
 # NOTE: each row should total to 1000
 RESOURCE_TYPE_ODDS_PER_CHEST = [
-    [500, 250, 250, 0, 0],  # SILVER
-    [400, 300, 300, 0, 0],  # GOLD
-    [200, 200, 200, 200, 200],  # MYTHICAL
+    [200, 600, 200, 0, 0],  # SILVER
+    [200, 600, 200, 0, 0],  # GOLD
+    [100, 400, 100, 200, 200],  # MYTHICAL
     [200, 200, 100, 300, 200],  # EPIC
     [200, 200, 100, 300, 200],  # LEGENDARY
 ]
