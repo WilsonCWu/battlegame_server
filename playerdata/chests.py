@@ -163,6 +163,11 @@ def generate_chest_rewards(chest_rarity: int, user):
     # Get the odds for getting each type of reward for respective chest rarity
     resource_reward_odds = constants.RESOURCE_TYPE_ODDS_PER_CHEST[chest_rarity - 1]
 
+    # guarantee a coin and dust drop in any chest
+    rewards.append(pick_resource_reward(user, 'coins', chest_rarity))
+    rewards.append(pick_resource_reward(user, 'essence', chest_rarity))
+    num_rewards -= 2
+
     # pick guaranteed char rarities
     char_guarantees = constants.GUARANTEED_CHARS_PER_RARITY_PER_CHEST[chest_rarity - 1]
     guaranteed_char_rewards = roll_guaranteed_char_rewards(char_guarantees)
