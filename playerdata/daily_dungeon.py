@@ -6,12 +6,15 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from .serializers import DailyDungeonStartSerializer, DailyDungeonResultSerializer
-from .models import DailyDungeonStatus
+from .matcher import PlacementSchema
+from .models import DailyDungeonStatus, Placement
 
 
 def daily_dungeon_stage_generator(stage):
-    # TODO: generate a proper dungeon stage.
-    pass
+    # TODO: generate a proper dungeon stage - this currently just gets a random
+    # placement.
+    # NOTE: this should seed using the current date.
+    return PlacementSchema(Placement.objects.first()).data
 
 
 class DailyDungeonStartView(APIView):
@@ -27,7 +30,7 @@ class DailyDungeonStartView(APIView):
         dd_status_query = DailyDungeonStatus.objects.filter(user=request.user)
         dd_status = dd_status_query[0] if dd_status_query else None
 
-        if dd_status and dd_status.stage != 0:
+        if dd_status and dd_status.is_active():
             return Response({'status': False, 'reason': 'Existing daily dungeon run.'})
 
         # Charge the user for their dungeon run.
@@ -57,9 +60,7 @@ class DailyDungeonStartView(APIView):
                                               is_golden=serializer.validated_data['is_golden'],
                                               character_state=serializer.validated_data['characters'])
 
-        # Return the 1st stage placement. TODO: wrap this in the placement
-        # schema once in place.
-        return Response({'status': True, 'placement': daily_dungeon_stage_generator(1)})
+        return Response({'status': True})
 
 
 class DailyDungeonStatusSchema(Schema):
@@ -73,14 +74,40 @@ class DailyDungeonStatusView(APIView):
 
     def get(self, request):
         # Return status of active dungeon run.
-        query = DailyDungeonStatus.objects.filter(user=request.user, stage__gt=0)
-        if query:
-            return Response({'status': DailyDungeonStatusSchema(query[0]).data})
-        else:
-            return Response({'status': None})
+        dd_status = DailyDungeonStatus.get_active_for_user(request.user)
+        if dd_status:
+            return Response({'status': DailyDungeonStatusSchema(dd_status).data})
+
+        # It is possible that we have uncollected rewards for the user.
+        expired_dd_status = DailyDungeonStatus.get_expired_for_user(request.user)
+        if expired_dd_status:
+            resp = {
+                'status': None,
+                'previous_end': expired_dd_status.stage,
+                'rewards': daily_dungeon_reward(expired_dd_status.is_golden,
+                                                expired_dd_status.sstage)
+            }
+            # Mark it as collected by resetting it.
+            expired_dd_status.stage = 0
+            expired_dd_status.save()
+            return Response(resp)
+
+        return Response({'status': None})
+
+
+class DailyDungeonStageView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        dd_status = DailyDungeonStatus.get_active_for_user(request.user)
+        if not dd_status:
+            return Response({'status': False, 'reason': 'No active dungeon!'})
+
+        return Response({'status': True, 'stage_id': dd_status.stage, 'mob': daily_dungeon_stage_generator(dd_status.user)})
 
 
 def daily_dungeon_reward(is_golden, stage):
+    # TODO: fill out!
     return {'coins': 100}
 
 
@@ -97,9 +124,8 @@ class DailyDungeonResultView(APIView):
             last_stage = dd_status.stage
             dd_status.stage = 0
             dd_status.save()
-            return Response(daily_dungeon_reward(dd_status.is_golden, last_stage))
+            return Response({'status': True, 'rewards': daily_dungeon_reward(dd_status.is_golden, last_stage)})
 
         dd_status.stage += 1
         dd_status.save()
-        # TODO: wrap this in the placement schema once in place.
-        return Response({'placement': daily_dungeon_stage_generator(dd_status.stage)})
+        return Response({'status': True})

@@ -38,6 +38,7 @@ from playerdata import chests
 urlpatterns = [
     path('dailydungeon/start/', daily_dungeon.DailyDungeonStartView.as_view()),
     path('dailydungeon/status', daily_dungeon.DailyDungeonStatusView.as_view()),
+    path('dailydungeon/stage', daily_dungeon.DailyDungeonStageView.as_view()),
     path('dailydungeon/result/', daily_dungeon.DailyDungeonResultView.as_view()),
     path('coinshop/buyitem/', coin_shop.TryBuyItemView.as_view()),
     path('coinshop/getitems/', coin_shop.GetItemsView.as_view()),

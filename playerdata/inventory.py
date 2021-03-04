@@ -66,6 +66,9 @@ class InventorySchema(Schema):
     player_level = fields.Method("get_player_lvl")
     player_exp = fields.Method("get_player_exp")
 
+    daily_dungeon_ticket = fields.Int()
+    daily_dungeon_golden_ticket = fields.Int()
+
     def get_player_lvl(self, inventory):
         userinfo = UserInfo.objects.get(user_id=inventory.user_id)
         return formulas.exp_to_level(userinfo.player_exp)
