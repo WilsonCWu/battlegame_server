@@ -331,7 +331,7 @@ def _generate_bots(num_bots_per_user, elo, char_levels, num_chars=5):
         chosen_chars = random.sample(list(base_chars), num_chars)
 
         bot_placement = Placement.objects.get(user=bot_user)
-        positions = random.sample(range(1, 17), num_chars)
+        positions = random.sample(range(1, 25), num_chars)
 
         for i in range(0, num_chars):
             new_char = Character.objects.create(user=bot_user, char_type=chosen_chars[i])
@@ -358,7 +358,7 @@ def _generate_bots(num_bots_per_user, elo, char_levels, num_chars=5):
                 bot_placement.pos_5 = positions[4]
 
             # generate a character +/- 10 levels of the user's char level
-            level = random.randint(max(1, level - 10), min(120, level + 10))
+            level = random.randint(max(1, level - 10), min(240, level + 10))
             new_char.level = level
             new_char.save()
 

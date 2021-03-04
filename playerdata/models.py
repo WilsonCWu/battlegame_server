@@ -504,6 +504,22 @@ class DailyDungeonStatus(models.Model):
         return q[0] if q else None
 
 
+class DailyDungeonStage(models.Model):
+    """
+    DailyDungeonStage holds the 8 team comps that make up the 8 stages for
+    the day's DailyDungeon run. This is updated by a daily cron job
+    """
+    objects = BulkUpdateOrCreateQuerySet.as_manager()
+
+    stage = models.IntegerField(default=0)
+    # We expect team_comp to be in format of
+    # [ {'char_id': <char_id>, 'position': <position>}, {...}, ... ]
+    team_comp = JSONField(blank=True, null=True)
+
+    def __str__(self):
+        return 'Daily Dungeon Stage: ' + str(self.stage)
+
+
 class Chest(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     rarity = models.IntegerField()

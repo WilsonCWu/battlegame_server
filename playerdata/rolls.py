@@ -35,16 +35,19 @@ def get_rand_base_item_from_rarity(rarity):
 
 
 # returns a random BaseCharacter with weighted odds
-def get_weighted_odds_character(rarity_odds=None):
+def get_weighted_odds_character(rarity_odds=None, available_chars=None):
     if rarity_odds is None:
         rarity_odds = constants.SUMMON_RARITY_BASE
 
     rarity = constants.CHAR_RARITY_INDEX[weighted_pick_from_buckets(rarity_odds)]
-    return get_rand_base_char_from_rarity(rarity)
+    return get_rand_base_char_from_rarity(rarity, available_chars)
 
 
-def get_rand_base_char_from_rarity(rarity):
-    base_chars = BaseCharacter.objects.filter(rarity=rarity, rollable=True)
+def get_rand_base_char_from_rarity(rarity, available_chars=None):
+    if available_chars is None:
+        base_chars = BaseCharacter.objects.filter(rarity=rarity, rollable=True)
+    else:
+        base_chars = BaseCharacter.objects.filter(rarity=rarity, rollable=True, char_type__in=available_chars)
     num_chars = base_chars.count()
     chosen_char = base_chars[random.randrange(num_chars)]
     return chosen_char
