@@ -183,6 +183,7 @@ CRONJOBS = [
 
     ('5 */8 * * *', 'battlegame.cron.daily_dungeon_ticket_drop', '>> /tmp/daily_dungeon_ticket_drop.log'),
     ('30 0 * * *', 'battlegame.cron.daily_dungeon_golden_ticket_drop', '>> /tmp/daily_dungeon_ticket_drop.log'),
+    ('1 0 * * *', 'battlegame.cron.refresh_daily_dungeon', '>> /tmp/refresh_daily_dungeon.log')
 
     # ('0 0 * * MON', 'battlegame.cron.weekly_deals_cron', '>> /tmp/weekly_deals_job.log'),
     # ('0 16 * * THU', 'battlegame.cron.setup_tournament', '>> /tmp/setup_tournament_scheduled_job.log'),

@@ -4,6 +4,7 @@ import random
 import statistics
 
 from playerdata.constants import TOURNEY_SIZE
+from playerdata.daily_dungeon import daily_dungeon_team_gen_cron
 from playerdata.models import Character, TournamentTeam, UserStats
 from playerdata.models import Inventory
 from playerdata.models import Match
@@ -65,7 +66,8 @@ def daily_clean_matches_cron():
 
 MAX_DAILY_DUNGEON_TICKET = 3
 MAX_DAILY_DUNGEON_GOLDEN_TICKET = 1
-    
+
+
 def daily_dungeon_golden_ticket_drop():
     to_inc = Inventory.objects.filter(daily_dungeon_golden_ticket__lt=MAX_DAILY_DUNGEON_GOLDEN_TICKET)
     for inv in to_inc:
@@ -78,6 +80,10 @@ def daily_dungeon_ticket_drop():
     for inv in to_inc:
         inv.daily_dungeon_ticket += 1
     Inventory.objects.bulk_update(to_inc, ['daily_dungeon_ticket'])
+
+
+def refresh_daily_dungeon():
+    daily_dungeon_team_gen_cron()
  
 
 # Take all registered users

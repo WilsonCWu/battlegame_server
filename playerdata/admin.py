@@ -12,9 +12,10 @@ from django_json_widget.widgets import JSONEditorWidget
 from battlegame.cron import next_round, setup_tournament, end_tourney
 from . import constants
 from .constants import MAX_PRESTIGE_LEVEL, PRESTIGE_CAP_BY_RARITY
+from .daily_dungeon import daily_dungeon_team_gen_cron
 from .dungeon import generate_dungeon_stages
 from .matcher import generate_bots_from_users, generate_bots_bulk
-from .models import ActiveCumulativeQuest
+from .models import ActiveCumulativeQuest, DailyDungeonStatus, DailyDungeonStage
 from .models import ActiveDailyQuest
 from .models import ActiveDeal
 from .models import ActiveWeeklyQuest
@@ -166,13 +167,13 @@ class UserInfoAdmin(admin.ModelAdmin):
                                      level = c.level,
                                      copies = c.copies,
                                      prestige = c.prestige)
-            
+
         Item.objects.filter(user_id = target_userinfo.user_id).delete()
         for i in Item.objects.filter(user_id = original_user_id):
             Item.objects.create(user_id = target_userinfo.user_id,
                                 item_type = i.item_type,
                                 exp = i.exp)
-        
+
     def inventory_transfer_forward(self, request, queryset):
         if len(queryset) != 2:
             raise Exception("Can only select 2 users for Inventory Transfer!")
@@ -252,6 +253,12 @@ class ActiveDealAdmin(admin.ModelAdmin):
 
     def refresh_weekly_deals(self, request, queryset):
         refresh_weekly_deals_cronjob()
+
+class DailyDungeonStageAdmin(admin.ModelAdmin):
+    actions = ['refresh_stages']
+
+    def refresh_stages(self, request, queryset):
+        daily_dungeon_team_gen_cron()
 
 
 class BaseDealAdmin(admin.ModelAdmin):
@@ -432,3 +439,4 @@ admin.site.register(LogEntry, LogEntryAdmin)
 admin.site.register(Chest)
 
 admin.site.register(DailyDungeonStatus)
+admin.site.register(DailyDungeonStage, DailyDungeonStageAdmin)

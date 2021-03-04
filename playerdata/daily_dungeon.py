@@ -1,3 +1,5 @@
+import random
+
 from django.db import transaction
 
 from rest_framework.permissions import IsAuthenticated
@@ -5,9 +7,62 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
+from . import rolls
 from .serializers import DailyDungeonStartSerializer, DailyDungeonResultSerializer
 from .matcher import PlacementSchema
-from .models import DailyDungeonStatus, Placement
+from .models import DailyDungeonStatus, DailyDungeonStage, Placement
+
+
+class DailyDungeonCharModel:
+    def __init__(self, char_id, position):
+        self.char_id = char_id
+        self.position = position
+
+
+class DailyDungeonTeamCompSchema(Schema):
+    char_id = fields.Int()
+    position = fields.Int()
+
+
+def pick_line(available_positions, available_chars, num_chars):
+    char_list = []
+    positions = random.sample(available_positions, num_chars)
+    for i in range(0, num_chars):
+        # TODO: rarity should be commoner on lower stages, more rare on higher stages
+        rarity_odds = [0, 350, 400, 250]
+        char_id = rolls.get_weighted_odds_character(rarity_odds, available_chars).char_type
+        char_list.append(DailyDungeonCharModel(char_id, positions[i]))
+
+    return char_list
+
+
+def daily_dungeon_team_gen_cron():
+    teams_list = []
+
+    available_positions_front = range(1, 16)
+    available_positions_back = range(16, 26)
+
+    available_chars_front = [0, 4, 5, 6, 8, 11, 13, 19, 24]
+    available_chars_back = [7, 9, 10, 12, 16, 17, 18, 21, 22, 23]
+
+    num_frontline = random.randint(2, 3)
+    num_backline = 5 - num_frontline
+
+    for n in range(0, 8):
+        char_list = []
+
+        # Pick frontliners and set their positions
+        char_list.extend(pick_line(available_positions_front, available_chars_front, num_frontline))
+
+        # Pick backliners and set their positions
+        char_list.extend(pick_line(available_positions_back, available_chars_back, num_backline))
+
+        stage = DailyDungeonStage(stage=n + 1, team_comp=DailyDungeonTeamCompSchema(many=True).dump(char_list))
+        teams_list.append(stage)
+
+    # save char_list to a stage
+    DailyDungeonStage.objects.all().delete()
+    DailyDungeonStage.objects.bulk_create(teams_list)
 
 
 def daily_dungeon_stage_generator(stage):
