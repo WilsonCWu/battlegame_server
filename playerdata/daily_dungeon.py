@@ -24,6 +24,8 @@ class DDCharSchema(Schema):
     position = fields.Int()
 
 
+# Picks a set of chars based on available chars and positions to choose from
+# For picking backline / frontline
 def pick_line(available_positions, available_chars, num_chars):
     char_list = []
     positions = random.sample(available_positions, num_chars)
@@ -36,6 +38,8 @@ def pick_line(available_positions, available_chars, num_chars):
     return char_list
 
 
+# Creates a fresh set of 8 bosses that will be used to generate
+# the individual Daily Dungeon stages for the day
 def daily_dungeon_team_gen_cron():
     teams_list = []
 
