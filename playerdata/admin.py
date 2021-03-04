@@ -34,6 +34,7 @@ from .models import Clan
 from .models import ClanMember
 from .models import ClanRequest
 from .models import CumulativeTracker
+from .models import DailyDungeonStatus
 from .models import DungeonBoss
 from .models import DungeonProgress
 from .models import DungeonStage
@@ -429,3 +430,5 @@ admin.site.register(ServerStatus)
 admin.site.register(LogEntry, LogEntryAdmin)
 
 admin.site.register(Chest)
+
+admin.site.register(DailyDungeonStatus)
