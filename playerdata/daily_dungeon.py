@@ -85,7 +85,7 @@ class DailyDungeonStatusView(APIView):
                 'status': None,
                 'previous_end': expired_dd_status.stage,
                 'rewards': daily_dungeon_reward(expired_dd_status.is_golden,
-                                                expired_dd_status.sstage)
+                                                expired_dd_status.stage)
             }
             # Mark it as collected by resetting it.
             expired_dd_status.stage = 0
@@ -107,7 +107,7 @@ class DailyDungeonStageView(APIView):
 
 
 def daily_dungeon_reward(is_golden, stage):
-    # TODO: fill out!
+    # TODO: update user inventory!
     return {'coins': 100}
 
 
