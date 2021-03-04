@@ -13,13 +13,13 @@ from .matcher import PlacementSchema
 from .models import DailyDungeonStatus, DailyDungeonStage, Placement
 
 
-class DailyDungeonCharModel:
+class DDCharModel:
     def __init__(self, char_id, position):
         self.char_id = char_id
         self.position = position
 
 
-class DailyDungeonTeamCompSchema(Schema):
+class DDCharSchema(Schema):
     char_id = fields.Int()
     position = fields.Int()
 
@@ -31,7 +31,7 @@ def pick_line(available_positions, available_chars, num_chars):
         # TODO: rarity should be commoner on lower stages, more rare on higher stages
         rarity_odds = [0, 350, 400, 250]
         char_id = rolls.get_weighted_odds_character(rarity_odds, available_chars).char_type
-        char_list.append(DailyDungeonCharModel(char_id, positions[i]))
+        char_list.append(DDCharModel(char_id, positions[i]))
 
     return char_list
 
@@ -57,7 +57,7 @@ def daily_dungeon_team_gen_cron():
         # Pick backliners and set their positions
         char_list.extend(pick_line(available_positions_back, available_chars_back, num_backline))
 
-        stage = DailyDungeonStage(stage=n + 1, team_comp=DailyDungeonTeamCompSchema(many=True).dump(char_list))
+        stage = DailyDungeonStage(stage=n + 1, team_comp=DDCharSchema(many=True).dump(char_list))
         teams_list.append(stage)
 
     # save char_list to a stage
