@@ -20,7 +20,7 @@ from .models import ActiveDailyQuest
 from .models import ActiveDeal
 from .models import ActiveWeeklyQuest
 from .models import BaseCharacter, Chest
-from .models import BaseCharacterAbility
+from .models import BaseCharacterAbility, BaseCharacterAbility2
 from .models import BaseCharacterUsage
 from .models import BaseCode
 from .models import BaseDeal
@@ -344,6 +344,13 @@ class LogEntryAdmin(admin.ModelAdmin):
 
 @admin.register(BaseCharacterAbility)
 class BaseCharacterAbilityAdmin(admin.ModelAdmin):
+    formfield_overrides = {
+        JSONField: {'widget': JSONEditorWidget}
+    }
+
+
+@admin.register(BaseCharacterAbility2)
+class BaseCharacterAbility2Admin(admin.ModelAdmin):
     formfield_overrides = {
         JSONField: {'widget': JSONEditorWidget}
     }
