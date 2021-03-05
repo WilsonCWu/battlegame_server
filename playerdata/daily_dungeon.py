@@ -1,7 +1,6 @@
 import random
 
 from django.db import transaction
-from django_common.auth_backends import User
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -70,7 +69,7 @@ def daily_dungeon_team_gen_cron():
     DailyDungeonStage.objects.bulk_create(teams_list)
 
 
-# returns a list of 5 levels based on the stage in Daily Dungeons
+# returns a list of 5 levels based on which filler level it is or a boss stage
 def get_levels_for_stage(starting_level, stage_num, boss_stage):
     boss_level = starting_level + (boss_stage * 10)
     position_in_stage = stage_num % 10
@@ -127,7 +126,7 @@ def convert_teamp_comp_to_stage(team_comp, stage_num, boss_stage):
     return placement
 
 
-# Pulls the corresponding
+# Pulls the corresponding boss stage and generates either a filler or boss level
 def daily_dungeon_stage_generator(stage_num):
     boss_stage = (stage_num // 10) + (0 if (stage_num % 10 == 0) else 1)
     team_comp = DailyDungeonStage.objects.get(stage=boss_stage).team_comp
