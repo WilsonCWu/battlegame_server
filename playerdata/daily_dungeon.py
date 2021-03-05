@@ -1,13 +1,16 @@
+import math
 import random
+from datetime import date
 
 from django.db import transaction
+from django_common.auth_backends import User
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from . import rolls
+from . import rolls, constants
 from .serializers import DailyDungeonStartSerializer, DailyDungeonResultSerializer
 from .matcher import PlacementSchema
 from .models import DailyDungeonStatus, DailyDungeonStage, Placement, Character
@@ -43,12 +46,6 @@ def pick_line(available_positions, available_chars, num_chars):
 def daily_dungeon_team_gen_cron():
     teams_list = []
 
-    available_positions_front = range(1, 16)
-    available_positions_back = range(16, 26)
-
-    available_chars_front = [0, 4, 5, 6, 8, 11, 13, 19, 24]
-    available_chars_back = [7, 9, 10, 12, 16, 17, 18, 21, 22, 23]
-
     num_frontline = random.randint(2, 3)
     num_backline = 5 - num_frontline
 
@@ -56,10 +53,10 @@ def daily_dungeon_team_gen_cron():
         char_list = []
 
         # Pick frontliners and set their positions
-        char_list.extend(pick_line(available_positions_front, available_chars_front, num_frontline))
+        char_list.extend(pick_line(constants.FRONTLINE_POS, constants.FRONTLINE_CHARS, num_frontline))
 
         # Pick backliners and set their positions
-        char_list.extend(pick_line(available_positions_back, available_chars_back, num_backline))
+        char_list.extend(pick_line(constants.BACKLINE_POS, constants.BACKLINE_CHARS, num_backline))
 
         stage = DailyDungeonStage(stage=n + 1, team_comp=DDCharSchema(many=True).dump(char_list))
         teams_list.append(stage)
@@ -101,16 +98,35 @@ def get_levels_for_stage(starting_level, stage_num, boss_stage):
 # converts a JSON team_comp (see models DailyDungeonStage for more details)
 # into a fully functional Placement
 def convert_teamp_comp_to_stage(team_comp, stage_num, boss_stage):
+    random.seed(date.today())
     placement = Placement()
     levels = get_levels_for_stage(160, stage_num, boss_stage)
+    available_pos_frontline = [*constants.FRONTLINE_POS]
+    available_pos_backline = [*constants.BACKLINE_POS]
+
+    # if not a boss or mini boss, shuffle positions
+    if stage_num % 5 != 0:
+        for char in team_comp:
+            if char['char_id'] in constants.FRONTLINE_CHARS:
+                char['position'] = random.choice(available_pos_frontline)
+                available_pos_frontline.remove(char['position'])
+            else:
+                char['position'] = random.choice(available_pos_backline)
+                available_pos_backline.remove(char['position'])
 
     for i, char in enumerate(team_comp):
         leveled_char = Character(user_id=1, char_type_id=char['char_id'], level=levels[i], char_id=i + 1)
 
         if i == 0:
+            # if warmup level replace with any peasant
+            if stage_num % 10 in [1, 2, 6, 7]:
+                    leveled_char.char_type_id = random.randint(1, 3)
             placement.char_1 = leveled_char
             placement.pos_1 = char['position']
         elif i == 1:
+            # if warmup level replace with any peasant
+            if stage_num % 10 in [1, 6]:
+                    leveled_char.char_type_id = random.randint(1, 3)
             placement.char_2 = leveled_char
             placement.pos_2 = char['position']
         elif i == 2:
@@ -128,7 +144,7 @@ def convert_teamp_comp_to_stage(team_comp, stage_num, boss_stage):
 
 # Pulls the corresponding boss stage and generates either a filler or boss level
 def daily_dungeon_stage_generator(stage_num):
-    boss_stage = (stage_num // 10) + (0 if (stage_num % 10 == 0) else 1)
+    boss_stage = math.ceil(stage_num/10)
     team_comp = DailyDungeonStage.objects.get(stage=boss_stage).team_comp
     placement = convert_teamp_comp_to_stage(team_comp, stage_num, boss_stage)
 
@@ -214,10 +230,11 @@ class DailyDungeonStatusView(APIView):
 
 
 class DailyDungeonStageView(APIView):
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        dd_status = DailyDungeonStatus.get_active_for_user(request.user)
+        user = User.objects.get(id=21)
+        dd_status = DailyDungeonStatus.get_active_for_user(user)
         if not dd_status:
             return Response({'status': False, 'reason': 'No active dungeon!'})
 
