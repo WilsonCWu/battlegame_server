@@ -3,7 +3,6 @@ import random
 from datetime import date
 
 from django.db import transaction
-from django_common.auth_backends import User
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -231,11 +230,10 @@ class DailyDungeonStatusView(APIView):
 
 
 class DailyDungeonStageView(APIView):
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        user = User.objects.get(id=21)
-        dd_status = DailyDungeonStatus.get_active_for_user(user)
+        dd_status = DailyDungeonStatus.get_active_for_user(request.user)
         if not dd_status:
             return Response({'status': False, 'reason': 'No active dungeon!'})
 
