@@ -106,6 +106,7 @@ urlpatterns = [
     path('inventory/equipitem/', inventory.EquipItemView.as_view()),
     path('inventory/unequipitem/', inventory.UnequipItemView.as_view()),
     path('baseinfo/', base.BaseInfoView.as_view()),
+    path('baseinfo/<str:version>', base.BaseInfoView.as_view()),
     path('test/', login.HelloView.as_view()),
     path('login/', login.ObtainAuthToken.as_view()),
     path('recover/', login.RecoverAccount.as_view()),
