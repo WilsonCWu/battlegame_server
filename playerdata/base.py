@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from playerdata.models import BaseCharacter
-from playerdata.models import BaseCharacterAbility
+from playerdata.models import BaseCharacterAbility2
 from playerdata.models import BaseItem
 from playerdata.models import BasePrestige
 
@@ -85,11 +85,18 @@ class BasePrestigeSchema(StatModifierSchema):
 class BaseInfoView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request):
+    def get(self, request, version=None):
         charSerializer = BaseCharacterSchema(BaseCharacter.objects.all(), many=True)
-        specSerializer = BaseCharacterAbilitySchema(BaseCharacterAbility.objects.all(), many=True)
         itemSerializer = BaseItemSchema(BaseItem.objects.all(), many=True)
         prestigeSerializer = BasePrestigeSchema(BasePrestige.objects.all(), many=True)
+
+        # For specs, check if the client specified a spec version - if not,
+        # just return the latest.
+        if version is not None:
+            specSerializer = BaseCharacterAbilitySchema(BaseCharacterAbility2.get_active_under_version(version), many=True)
+        else:
+            specSerializer = BaseCharacterAbilitySchema(BaseCharacterAbility2.get_active(), many=True)
+
         return Response({
             'characters': charSerializer.data,
             'items': itemSerializer.data,
