@@ -233,6 +233,15 @@ class BaseCharacterAbility2(models.Model):
                 raise ValidationError('specs expected to have level %d.'
                                       % expected_level)
 
+    def get_active():
+        return BaseCharacterAbility2.objects.order_by('char_type', '-version') \
+                                            .distinct('char_type')
+
+    def get_active_under_version(version):
+        return BaseCharacterAbility2.objects.filter(version__lte=version) \
+                                            .order_by('char_type', '-version') \
+                                            .distinct('char_type')
+ 
     class Meta:
         unique_together = ('char_type', 'version')
  

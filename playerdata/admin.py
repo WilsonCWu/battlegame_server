@@ -342,13 +342,6 @@ class LogEntryAdmin(admin.ModelAdmin):
     object_link.short_description = u'Modified Object'
 
 
-@admin.register(BaseCharacterAbility)
-class BaseCharacterAbilityAdmin(admin.ModelAdmin):
-    formfield_overrides = {
-        JSONField: {'widget': JSONEditorWidget}
-    }
-
-
 @admin.register(BaseCharacterAbility2)
 class BaseCharacterAbility2Admin(admin.ModelAdmin):
     formfield_overrides = {
