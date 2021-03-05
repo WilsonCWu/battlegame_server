@@ -237,7 +237,7 @@ class BaseCharacterAbility2(models.Model):
         unique_together = ('char_type', 'version')
  
     def __str__(self):
-        return self.char_type.name
+        return self.char_type.name + ': ' + self.version
     
 
 class BaseCharacterAbility(models.Model):
