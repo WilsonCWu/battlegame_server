@@ -98,7 +98,8 @@ def get_levels_for_stage(starting_level, stage_num, boss_stage):
 # converts a JSON team_comp (see models DailyDungeonStage for more details)
 # into a fully functional Placement
 def convert_teamp_comp_to_stage(team_comp, stage_num, boss_stage):
-    random.seed(date.today())
+    seed_int = date.today().month + date.today().day + stage_num
+    random.seed(seed_int)
     placement = Placement()
     levels = get_levels_for_stage(160, stage_num, boss_stage)
     available_pos_frontline = [*constants.FRONTLINE_POS]
