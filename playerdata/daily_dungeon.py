@@ -98,7 +98,8 @@ def get_levels_for_stage(starting_level, stage_num, boss_stage):
 # into a fully functional Placement
 def convert_teamp_comp_to_stage(team_comp, stage_num, boss_stage):
     seed_int = date.today().month + date.today().day + stage_num
-    random.seed(seed_int)
+    rng = random.Random(seed_int)
+
     placement = Placement()
     levels = get_levels_for_stage(160, stage_num, boss_stage)
     available_pos_frontline = [*constants.FRONTLINE_POS]
@@ -108,10 +109,10 @@ def convert_teamp_comp_to_stage(team_comp, stage_num, boss_stage):
     if stage_num % 5 != 0:
         for char in team_comp:
             if char['char_id'] in constants.FRONTLINE_CHARS:
-                char['position'] = random.choice(available_pos_frontline)
+                char['position'] = rng.choice(available_pos_frontline)
                 available_pos_frontline.remove(char['position'])
             else:
-                char['position'] = random.choice(available_pos_backline)
+                char['position'] = rng.choice(available_pos_backline)
                 available_pos_backline.remove(char['position'])
 
     for i, char in enumerate(team_comp):
@@ -120,13 +121,13 @@ def convert_teamp_comp_to_stage(team_comp, stage_num, boss_stage):
         if i == 0:
             # if warmup level replace with any peasant
             if stage_num % 10 in [1, 2, 6, 7]:
-                    leveled_char.char_type_id = random.randint(1, 3)
+                    leveled_char.char_type_id = rng.randint(1, 3)
             placement.char_1 = leveled_char
             placement.pos_1 = char['position']
         elif i == 1:
             # if warmup level replace with any peasant
             if stage_num % 10 in [1, 6]:
-                    leveled_char.char_type_id = random.randint(1, 3)
+                    leveled_char.char_type_id = rng.randint(1, 3)
             placement.char_2 = leveled_char
             placement.pos_2 = char['position']
         elif i == 2:
