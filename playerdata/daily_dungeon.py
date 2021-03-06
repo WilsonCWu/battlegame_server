@@ -287,8 +287,8 @@ class DailyDungeonResultView(APIView):
 
         if serializer.validated_data['is_loss']:
             dd_status.stage = 0
-            dd_status.save()
+        else:
+            dd_status.stage += 1
 
-        dd_status.stage += 1
         dd_status.save()
         return Response({'status': True, 'rewards': rewards})
