@@ -3,7 +3,6 @@ import random
 from datetime import date
 
 from django.db import transaction
-from django_common.auth_backends import User
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -276,16 +275,15 @@ def daily_dungeon_reward(is_golden, stage, user):
 
 
 class DailyDungeonResultView(APIView):
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
     @transaction.atomic
     def post(self, request):
         serializer = DailyDungeonResultSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        user = User.objects.get(id=21)
-        dd_status = DailyDungeonStatus.objects.get(user=user)
-        rewards = daily_dungeon_reward(dd_status.is_golden, dd_status.stage, user)
+        dd_status = DailyDungeonStatus.objects.get(user=request.user)
+        rewards = daily_dungeon_reward(dd_status.is_golden, dd_status.stage, request.user)
 
         if serializer.validated_data['is_loss']:
             dd_status.stage = 0
