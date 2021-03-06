@@ -37,8 +37,19 @@ def char_level_to_coins(level):
 
 def coins_chest_reward(elo, rarity):
     elo += 20  # light pad on elo for 0 elo case
-    base_mult = 0.5 + ((rarity - 1) * 0.5)
-    base_exp = 1.4 + ((rarity - 1) * 0.2)
+    base_mult = 1
+    base_exp = 1
+
+    if rarity in [constants.ChestType.SILVER.value, constants.ChestType.DAILY_DUNGEON.value]:
+        base_mult = 0.5
+        base_exp = 1.4
+    elif rarity == constants.ChestType.GOLD.value:
+        base_mult = 1
+        base_exp = 1.6
+    elif rarity == constants.ChestType.MYTHICAL.value:
+        base_mult = 1.5
+        base_exp = 1.8
+
     return math.floor(elo * base_mult + 200 + (elo ** base_exp))
 
 
@@ -117,8 +128,19 @@ def afk_dust_per_min(dungeon_level):
 
 def dust_chest_reward(elo, rarity):
     elo += 20  # light pad on elo for 0 elo case
-    base_mult = 0.5 + ((rarity - 1) * 0.5)
-    base_exp = 1.2 + ((rarity - 1) * 0.4)
+    base_mult = 1
+    base_exp = 1
+
+    if rarity in [constants.ChestType.SILVER.value, constants.ChestType.DAILY_DUNGEON.value]:
+        base_mult = 0.5
+        base_exp = 1.2
+    elif rarity == constants.ChestType.GOLD.value:
+        base_mult = 1
+        base_exp = 1.6
+    elif rarity == constants.ChestType.MYTHICAL.value:
+        base_mult = 1.5
+        base_exp = 2
+
     return math.floor(elo * base_mult + (elo ** base_exp) / 2600)
 
 #########################

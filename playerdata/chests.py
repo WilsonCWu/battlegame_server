@@ -11,7 +11,7 @@ from rest_marshmallow import Schema, fields
 
 from playerdata import constants, formulas, rolls
 from playerdata.constants import ChestType
-from playerdata.models import Chest, BaseItem, Item, UserInfo
+from playerdata.models import Chest, BaseItem, Item, UserInfo, DailyDungeonStatus
 from playerdata.serializers import ValueSerializer, CollectChestSerializer
 
 
@@ -155,6 +155,35 @@ def award_chest_rewards(user, rewards):
     user.inventory.save()
 
 
+def get_guaranteed_chars_rarity_odds(chest_rarity: int, user):
+    if chest_rarity == constants.ChestType.DAILY_DUNGEON.value:
+        dd_status = DailyDungeonStatus.get_active_for_user(user)
+
+        # guarantee an epic if finishing stage >60
+        # otherwise a rare
+        if dd_status.stage >= 80:
+            char_guarantees = [0, 3, 1, 0]
+        elif dd_status.stage >= 70:
+            char_guarantees = [0, 2, 1, 0]
+        elif dd_status.stage >= 60:
+            char_guarantees = [0, 1, 1, 0]
+        elif dd_status.stage >= 50:
+            char_guarantees = [0, 3, 0, 0]
+        elif dd_status.stage >= 40:
+            char_guarantees = [0, 2, 0, 0]
+        elif dd_status.stage >= 30:
+            char_guarantees = [0, 2, 0, 0]
+        elif dd_status.stage >= 20:
+            char_guarantees = [0, 1, 0, 0]
+        else:
+            char_guarantees = [0, 1, 0, 0]
+
+    else:
+        char_guarantees = constants.GUARANTEED_CHARS_PER_RARITY_PER_CHEST[chest_rarity - 1]
+
+    return char_guarantees
+
+
 def generate_chest_rewards(chest_rarity: int, user):
     rewards = []
     num_rewards = random.randint(constants.MIN_REWARDS_PER_CHEST[chest_rarity - 1],
@@ -169,7 +198,7 @@ def generate_chest_rewards(chest_rarity: int, user):
     num_rewards -= 2
 
     # pick guaranteed char rarities
-    char_guarantees = constants.GUARANTEED_CHARS_PER_RARITY_PER_CHEST[chest_rarity - 1]
+    char_guarantees = get_guaranteed_chars_rarity_odds(chest_rarity, user)
     guaranteed_char_rewards = roll_guaranteed_char_rewards(char_guarantees)
     rewards.extend(guaranteed_char_rewards)
     num_rewards -= len(guaranteed_char_rewards)
@@ -184,7 +213,7 @@ def generate_chest_rewards(chest_rarity: int, user):
     # roll the rest of the rewards based on resource_reward_odds
     for i in range(0, num_rewards):
         rand_reward_type = constants.REWARD_TYPE_INDEX[rolls.weighted_pick_from_buckets(resource_reward_odds)]
-        if rand_reward_type == 'coins' or rand_reward_type == 'gems' or rand_reward_type == 'essence':
+        if rand_reward_type in ['coins', 'gems', 'essence']:
             reward = pick_resource_reward(user, rand_reward_type, chest_rarity)
         elif rand_reward_type == 'item_id':
             reward = pick_reward_item(user, chest_rarity)
