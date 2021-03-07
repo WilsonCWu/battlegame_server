@@ -4,6 +4,7 @@ from bisect import bisect
 from functools import lru_cache
 
 from playerdata import constants
+from playerdata.models import UserInfo, DailyDungeonStatus
 
 """
 Scaling Formulas
@@ -35,10 +36,26 @@ def char_level_to_coins(level):
     return math.floor((level - 1) * 50 + ((level - 1) ** 3.6) / 10)
 
 
-def coins_chest_reward(elo, rarity):
-    elo += 20  # light pad on elo for 0 elo case
-    base_mult = 0.5 + ((rarity - 1) * 0.5)
-    base_exp = 1.4 + ((rarity - 1) * 0.2)
+def coins_chest_reward(user, rarity):
+    userinfo = UserInfo.objects.get(user=user)
+    elo = userinfo.elo + 20  # light pad on elo for 0 elo case
+    base_mult = 1
+    base_exp = 1
+
+    if rarity == constants.ChestType.DAILY_DUNGEON.value:
+        dd_status = DailyDungeonStatus.get_active_for_user(user)
+        elo = (elo * 0.7) + (elo * 0.05) * (1.025 ** dd_status.stage)
+
+    if rarity in [constants.ChestType.SILVER.value, constants.ChestType.DAILY_DUNGEON.value]:
+        base_mult = 0.5
+        base_exp = 1.4
+    elif rarity == constants.ChestType.GOLD.value:
+        base_mult = 1
+        base_exp = 1.6
+    elif rarity == constants.ChestType.MYTHICAL.value:
+        base_mult = 1.5
+        base_exp = 1.8
+
     return math.floor(elo * base_mult + 200 + (elo ** base_exp))
 
 
@@ -115,10 +132,22 @@ def afk_dust_per_min(dungeon_level):
     return ((dungeon_level - 1) ** 2) / 75000
 
 
-def dust_chest_reward(elo, rarity):
-    elo += 20  # light pad on elo for 0 elo case
-    base_mult = 0.5 + ((rarity - 1) * 0.5)
-    base_exp = 1.2 + ((rarity - 1) * 0.4)
+def dust_chest_reward(user, rarity):
+    userinfo = UserInfo.objects.get(user=user)
+    elo = userinfo.elo + 20  # light pad on elo for 0 elo case
+    base_mult = 1
+    base_exp = 1
+
+    if rarity in [constants.ChestType.SILVER.value, constants.ChestType.DAILY_DUNGEON.value]:
+        base_mult = 0.5
+        base_exp = 1.2
+    elif rarity == constants.ChestType.GOLD.value:
+        base_mult = 1
+        base_exp = 1.6
+    elif rarity == constants.ChestType.MYTHICAL.value:
+        base_mult = 1.5
+        base_exp = 2
+
     return math.floor(elo * base_mult + (elo ** base_exp) / 2600)
 
 #########################
