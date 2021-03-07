@@ -213,20 +213,6 @@ class DailyDungeonStatusView(APIView):
         if dd_status:
             return Response({'status': DailyDungeonStatusSchema(dd_status).data})
 
-        # It is possible that we have uncollected rewards for the user.
-        expired_dd_status = DailyDungeonStatus.get_expired_for_user(request.user)
-        if expired_dd_status:
-            resp = {
-                'status': None,
-                'previous_end': expired_dd_status.stage,
-                'rewards': daily_dungeon_reward(expired_dd_status.is_golden,
-                                                expired_dd_status.stage)
-            }
-            # Mark it as collected by resetting it.
-            expired_dd_status.stage = 0
-            expired_dd_status.save()
-            return Response(resp)
-
         return Response({'status': None})
 
 
@@ -250,7 +236,7 @@ def daily_dungeon_reward(is_golden, stage, user):
     elif stage % 5 == 0:
         rewards.append(chests.pick_resource_reward(user, 'coins', constants.ChestType.DAILY_DUNGEON.value))
 
-    # 3x rewards for golden ticket
+    # 2x rewards for golden ticket
     if is_golden and stage % 5 == 0:
         char_guarantees = [0, 0, 0, 0]
 
@@ -264,10 +250,10 @@ def daily_dungeon_reward(is_golden, stage, user):
             char_guarantees[1] = 1
         rewards.extend(chests.roll_guaranteed_char_rewards(char_guarantees))
 
-        # 3x resource rewards
+        # 2x resource rewards
         for reward in rewards:
             if reward.reward_type in ['coins', 'gems', 'essence']:
-                reward.value = reward.value * 3
+                reward.value = reward.value * 2
 
     chests.award_chest_rewards(user, rewards)
     reward_schema = chests.ChestRewardSchema(rewards, many=True)

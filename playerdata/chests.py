@@ -86,15 +86,12 @@ class UnlockChest(APIView):
 
 
 def pick_resource_reward(user, resource_type, chest_rarity):
-    # scale off of elo
-    userinfo = UserInfo.objects.get(user=user)
-
     if resource_type == 'coins':
-        pivot_amount = formulas.coins_chest_reward(userinfo.elo, chest_rarity)
+        pivot_amount = formulas.coins_chest_reward(user, chest_rarity)
     elif resource_type == 'gems':
         pivot_amount = formulas.gems_chest_reward(chest_rarity)
     else:
-        pivot_amount = formulas.dust_chest_reward(userinfo.elo, chest_rarity)
+        pivot_amount = formulas.dust_chest_reward(user, chest_rarity)
 
     # randomly draw from within +/- 15% of that pivot_amount
     amount = random.randint(math.floor(0.85 * pivot_amount), math.floor(pivot_amount * 1.15))
