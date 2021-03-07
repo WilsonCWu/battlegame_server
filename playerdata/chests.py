@@ -168,11 +168,11 @@ def get_guaranteed_chars_rarity_odds(chest_rarity: int, user):
         elif dd_status.stage >= 60:
             char_guarantees = [0, 1, 1, 0]
         elif dd_status.stage >= 50:
-            char_guarantees = [0, 3, 0, 0]
+            char_guarantees = [0, 2, 0, 0]
         elif dd_status.stage >= 40:
             char_guarantees = [0, 2, 0, 0]
         elif dd_status.stage >= 30:
-            char_guarantees = [0, 2, 0, 0]
+            char_guarantees = [0, 1, 0, 0]
         elif dd_status.stage >= 20:
             char_guarantees = [0, 1, 0, 0]
         else:
