@@ -38,7 +38,7 @@ def char_level_to_coins(level):
 
 def coins_chest_reward(user, rarity):
     userinfo = UserInfo.objects.get(user=user)
-    elo = userinfo.elo + 20
+    elo = userinfo.elo + 20  # light pad on elo for 0 elo case
     base_mult = 1
     base_exp = 1
 
