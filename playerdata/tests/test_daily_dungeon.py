@@ -55,21 +55,21 @@ class DailyDungeonStatusAPITestCase(APITestCase):
         self.client.force_authenticate(user=self.u)
 
     def test_missing_status(self):
-        response = self.client.get('/dailydungeon/status')
+        response = self.client.get('/dailydungeon/status/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['status'], None)
 
     def test_inactive_status(self):
         DailyDungeonStatus.objects.create(user=self.u, stage=0)
 
-        response = self.client.get('/dailydungeon/status')
+        response = self.client.get('/dailydungeon/status/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['status'], None)
 
     def test_existing_status(self):
         DailyDungeonStatus.objects.create(user=self.u, stage=11)
 
-        response = self.client.get('/dailydungeon/status')
+        response = self.client.get('/dailydungeon/status/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['status']['stage'], 11)
 
