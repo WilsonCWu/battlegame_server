@@ -270,7 +270,7 @@ class DailyDungeonResultView(APIView):
         dd_status = DailyDungeonStatus.objects.get(user=request.user)
         rewards = daily_dungeon_reward(dd_status.is_golden, dd_status.stage, request.user)
 
-        if serializer.validated_data['is_loss']:
+        if serializer.validated_data['is_loss'] or dd_status.stage == 80:
             dd_status.stage = 0
         else:
             dd_status.stage += 1
