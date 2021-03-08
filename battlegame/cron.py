@@ -33,17 +33,12 @@ To check what jobs are actually scheduled on crontab: `crontab -l`
 Double check that crontab on the server is running on UTC timezone
 """
 
-def cron(schedule, retries=0):
+def cron(retries=0):
     def cron_logger(s):
         # TODO: we should definately just use the logging package.
         print("[%s] %s" % (datetime.now().strftime("%d/%m/%Y %H:%M:%S"), s))
 
     def inner(func):
-        # Register the cron job.
-        # TODO: use sys.modules to get the current module path.
-        logfile_prefix = '/tmp' if settings.DEVELOPMENT else '/home/battlegame/logs/cronjobs'
-        settings.CRONJOBS.append((schedule, 'battlegame.cron.%s' % func.__name__, '>> %s/%s.log' % (logfile_prefix, func.__name__)))
-
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             attempts = retries + 1
@@ -61,19 +56,19 @@ def cron(schedule, retries=0):
     return inner
 
 
-@cron('0 0 * * *')
+@cron
 def daily_quests_cron():
     # remove top 3 from daily
     refresh_daily_quests()
 
 
-@cron('0 0 * * MON')
+@cron
 def weekly_quests_cron():
     # remove top 5 from weekly
     refresh_weekly_quests()
 
 
-@cron('0 0 * * *')
+@cron
 def daily_deals_cron():
     refresh_daily_deals_cronjob()
 
@@ -81,7 +76,7 @@ def daily_deals_cron():
 def weekly_deals_cron():
     refresh_weekly_deals_cronjob()
 
-@cron('0 2 * * *')
+@cron
 def daily_clean_matches_cron():
     Match.objects.filter(uploaded_at__lte=timezone.now() - timedelta(days=14)).delete()
 
@@ -95,7 +90,7 @@ MAX_DAILY_DUNGEON_TICKET = 3
 MAX_DAILY_DUNGEON_GOLDEN_TICKET = 1
 
 
-@cron('30 0 * * *')
+@cron
 def daily_dungeon_golden_ticket_drop():
     to_inc = Inventory.objects.filter(daily_dungeon_golden_ticket__lt=MAX_DAILY_DUNGEON_GOLDEN_TICKET)
     for inv in to_inc:
@@ -103,7 +98,7 @@ def daily_dungeon_golden_ticket_drop():
     Inventory.objects.bulk_update(to_inc, ['daily_dungeon_golden_ticket'])
 
 
-@cron('5 */8 * * *')
+@cron
 def daily_dungeon_ticket_drop():
     to_inc = Inventory.objects.filter(daily_dungeon_ticket__lt=MAX_DAILY_DUNGEON_TICKET)
     for inv in to_inc:
@@ -111,7 +106,7 @@ def daily_dungeon_ticket_drop():
     Inventory.objects.bulk_update(to_inc, ['daily_dungeon_ticket'])
 
 
-@cron('1 0 * * *')
+@cron
 def refresh_daily_dungeon():
     daily_dungeon_team_gen_cron()
  
