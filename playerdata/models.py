@@ -2,6 +2,7 @@ import json
 import random
 import string
 from datetime import datetime, date, time, timedelta
+from packaging import version
 
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -234,13 +235,23 @@ class BaseCharacterAbility2(models.Model):
                                       % expected_level)
 
     def get_active():
-        return BaseCharacterAbility2.objects.order_by('char_type', '-version') \
-                                            .distinct('char_type')
+        specs = {}
+        for a in BaseCharacterAbility2.objects.all():
+            # We expect server versions to be triplets.
+            if a.char_type not in specs or version.parse(a.version) > version.parse(specs[a.char_type].version):
+                specs[a.char_type] = a
+        return specs.values() 
 
-    def get_active_under_version(version):
-        return BaseCharacterAbility2.objects.filter(version__lte=version) \
-                                            .order_by('char_type', '-version') \
-                                            .distinct('char_type')
+    def get_active_under_version(v):
+        specs = {}
+        for a in BaseCharacterAbility2.objects.all():
+            if version.parse(a.version) > version.parse(v):
+                continue
+            
+            # We expect server versions to be triplets.
+            if a.char_type not in specs or version.parse(a.version) > version.parse(specs[a.char_type].version):
+                specs[a.char_type] = a
+        return specs.values() 
  
     class Meta:
         unique_together = ('char_type', 'version')
