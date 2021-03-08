@@ -173,18 +173,8 @@ REST_FRAMEWORK = {
 # Cron jobs.
 # NOTE: for server performance, we should stagger our cron jobs so they don't
 # all run at the same time.
+# NOTE: let's add jobs using our cron handler: see battlegame.cron.cron.
 CRONJOBS = [
-    ('0 0 * * *', 'battlegame.cron.daily_quests_cron', '>> /tmp/daily_quest_job.log'),
-    ('0 0 * * MON', 'battlegame.cron.weekly_quests_cron', '>> /tmp/weekly_quest_job.log'),
-
-    ('0 0 * * *', 'battlegame.cron.daily_deals_cron', '>> /tmp/daily_deals_job.log'),
-
-    ('0 2 * * *', 'battlegame.cron.daily_clean_matches_cron', '>> /tmp/daily_clean_matches.log'),
-
-    ('5 */8 * * *', 'battlegame.cron.daily_dungeon_ticket_drop', '>> /tmp/daily_dungeon_ticket_drop.log'),
-    ('30 0 * * *', 'battlegame.cron.daily_dungeon_golden_ticket_drop', '>> /tmp/daily_dungeon_ticket_drop.log'),
-    ('1 0 * * *', 'battlegame.cron.refresh_daily_dungeon', '>> /tmp/refresh_daily_dungeon.log')
-
     # ('0 0 * * MON', 'battlegame.cron.weekly_deals_cron', '>> /tmp/weekly_deals_job.log'),
     # ('0 16 * * THU', 'battlegame.cron.setup_tournament', '>> /tmp/setup_tournament_scheduled_job.log'),
     # ('0 16 * * 5-7', 'battlegame.cron.next_round', '>> /tmp/next_round_scheduled_job.log'),

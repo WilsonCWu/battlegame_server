@@ -1,7 +1,12 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 from django.utils import timezone
 import random
 import statistics
+import functools
+
+from sentry_sdk import capture_exception
+
+from . import settings
 
 from playerdata.constants import TOURNEY_SIZE
 from playerdata.daily_dungeon import daily_dungeon_team_gen_cron
@@ -28,33 +33,55 @@ To check what jobs are actually scheduled on crontab: `crontab -l`
 Double check that crontab on the server is running on UTC timezone
 """
 
+def cron(schedule, retries=0):
+    def cron_logger(s):
+        # TODO: we should definately just use the logging package.
+        print("[%s] %s" % (datetime.now().strftime("%d/%m/%Y %H:%M:%S"), s))
 
+    def inner(func):
+        # Register the cron job.
+        # TODO: use sys.modules to get the current module path.
+        logfile_prefix = '/tmp' if settings.DEVELOPMENT else '/home/battlegame/logs/cronjobs'
+        settings.CRONJOBS.append((schedule, 'battlegame.cron.%s' % func.__name__, '>> %s/%s.log' % (logfile_prefix, func.__name__)))
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            attempts = retries + 1
+            for i in range(attempts):
+                cron_logger("Running %s, attempt (%d/%d)." % (func.__name__, i + 1, attempts))
+                try:
+                    ret = func(*args, **kwargs)
+                    cron_logger("Success!")
+                    return ret
+                except Exception as e:
+                    cron_logger("Caught error: %s" % e)
+                    capture_exception(e)
+            return None
+        return wrapper
+    return inner
+
+
+@cron('0 0 * * *')
 def daily_quests_cron():
     # remove top 3 from daily
-    print("running daily quest refresh cronjob")
     refresh_daily_quests()
-    print("done!")
 
 
+@cron('0 0 * * MON')
 def weekly_quests_cron():
     # remove top 5 from weekly
-    print("running weekly quest refresh cronjob")
     refresh_weekly_quests()
-    print("done!")
 
 
+@cron('0 0 * * *')
 def daily_deals_cron():
-    print("running daily deals refresh cronjob")
     refresh_daily_deals_cronjob()
-    print("done!")
 
 
 def weekly_deals_cron():
-    print("running weekly deals refresh cronjob")
     refresh_weekly_deals_cronjob()
-    print("done!")
 
-
+@cron('0 2 * * *')
 def daily_clean_matches_cron():
     Match.objects.filter(uploaded_at__lte=timezone.now() - timedelta(days=14)).delete()
 
@@ -68,6 +95,7 @@ MAX_DAILY_DUNGEON_TICKET = 3
 MAX_DAILY_DUNGEON_GOLDEN_TICKET = 1
 
 
+@cron('30 0 * * *')
 def daily_dungeon_golden_ticket_drop():
     to_inc = Inventory.objects.filter(daily_dungeon_golden_ticket__lt=MAX_DAILY_DUNGEON_GOLDEN_TICKET)
     for inv in to_inc:
@@ -75,6 +103,7 @@ def daily_dungeon_golden_ticket_drop():
     Inventory.objects.bulk_update(to_inc, ['daily_dungeon_golden_ticket'])
 
 
+@cron('5 */8 * * *')
 def daily_dungeon_ticket_drop():
     to_inc = Inventory.objects.filter(daily_dungeon_ticket__lt=MAX_DAILY_DUNGEON_TICKET)
     for inv in to_inc:
@@ -82,6 +111,7 @@ def daily_dungeon_ticket_drop():
     Inventory.objects.bulk_update(to_inc, ['daily_dungeon_ticket'])
 
 
+@cron('1 0 * * *')
 def refresh_daily_dungeon():
     daily_dungeon_team_gen_cron()
  
