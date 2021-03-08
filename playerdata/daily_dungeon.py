@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from . import rolls, constants
+from . import rolls, constants, chests
 from .serializers import DailyDungeonStartSerializer, DailyDungeonResultSerializer
 from .matcher import PlacementSchema
 from .models import DailyDungeonStatus, DailyDungeonStage, Placement, Character
@@ -213,20 +213,6 @@ class DailyDungeonStatusView(APIView):
         if dd_status:
             return Response({'status': DailyDungeonStatusSchema(dd_status).data})
 
-        # It is possible that we have uncollected rewards for the user.
-        expired_dd_status = DailyDungeonStatus.get_expired_for_user(request.user)
-        if expired_dd_status:
-            resp = {
-                'status': None,
-                'previous_end': expired_dd_status.stage,
-                'rewards': daily_dungeon_reward(expired_dd_status.is_golden,
-                                                expired_dd_status.stage)
-            }
-            # Mark it as collected by resetting it.
-            expired_dd_status.stage = 0
-            expired_dd_status.save()
-            return Response(resp)
-
         return Response({'status': None})
 
 
@@ -241,9 +227,37 @@ class DailyDungeonStageView(APIView):
         return Response({'status': True, 'stage_id': dd_status.stage, 'mob': daily_dungeon_stage_generator(dd_status.stage)})
 
 
-def daily_dungeon_reward(is_golden, stage):
-    # TODO: update user inventory!
-    return {'coins': 100}
+def daily_dungeon_reward(is_golden, stage, user):
+    rewards = []
+    if stage == 30:
+        rewards.append(chests.ChestReward('gems', 100))
+    elif stage % 10 == 0:
+        rewards = chests.generate_chest_rewards(constants.ChestType.DAILY_DUNGEON.value, user)
+    elif stage % 5 == 0:
+        rewards.append(chests.pick_resource_reward(user, 'coins', constants.ChestType.DAILY_DUNGEON.value))
+
+    # 2x rewards for golden ticket
+    if is_golden and stage % 5 == 0:
+        char_guarantees = [0, 0, 0, 0]
+
+        # TODO: tune how much we give in terms of heroes for golden ticket
+        if stage >= 60:
+            # +1 rare, +1 epic
+            char_guarantees[1] = 1
+            char_guarantees[2] = 1
+        else:
+            # +1 rare
+            char_guarantees[1] = 1
+        rewards.extend(chests.roll_guaranteed_char_rewards(char_guarantees))
+
+        # 2x resource rewards
+        for reward in rewards:
+            if reward.reward_type in ['coins', 'gems', 'essence']:
+                reward.value = reward.value * 2
+
+    chests.award_chest_rewards(user, rewards)
+    reward_schema = chests.ChestRewardSchema(rewards, many=True)
+    return reward_schema.data
 
 
 class DailyDungeonResultView(APIView):
@@ -255,12 +269,12 @@ class DailyDungeonResultView(APIView):
         serializer.is_valid(raise_exception=True)
 
         dd_status = DailyDungeonStatus.objects.get(user=request.user)
-        if serializer.validated_data['is_loss']:
-            last_stage = dd_status.stage
-            dd_status.stage = 0
-            dd_status.save()
-            return Response({'status': True, 'rewards': daily_dungeon_reward(dd_status.is_golden, last_stage)})
+        rewards = daily_dungeon_reward(dd_status.is_golden, dd_status.stage, request.user)
 
-        dd_status.stage += 1
+        if serializer.validated_data['is_loss']:
+            dd_status.stage = 0
+        else:
+            dd_status.stage += 1
+
         dd_status.save()
-        return Response({'status': True})
+        return Response({'status': True, 'rewards': rewards})

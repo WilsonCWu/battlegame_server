@@ -172,11 +172,12 @@ class ChestType(Enum):
     MYTHICAL = 3
     EPIC = 4
     LEGENDARY = 5
+    DAILY_DUNGEON = 6
 
 
-CHEST_ODDS = [750, 250, 0, 0, 0]
-MIN_REWARDS_PER_CHEST = [3, 6, 10, 6, 5]
-MAX_REWARDS_PER_CHEST = [4, 6, 10, 7, 6]
+CHEST_ODDS = [750, 250, 0, 0, 0, 0]
+MIN_REWARDS_PER_CHEST = [3, 6, 10, 6, 5, 3]
+MAX_REWARDS_PER_CHEST = [4, 6, 10, 7, 6, 3]
 
 # Index for chest reward types corresponding to the values in the RESOURCE_TYPE_ODDS_PER_CHEST buckets
 REWARD_TYPE_INDEX = ['coins', 'gems', 'essence', 'char_id', 'item_id']
@@ -191,12 +192,13 @@ RESOURCE_TYPE_ODDS_PER_CHEST = [
     [100, 400, 100, 200, 200],  # MYTHICAL
     [200, 200, 100, 300, 200],  # EPIC
     [200, 200, 100, 300, 200],  # LEGENDARY
+    [350, 0, 350, 150, 150],  # DAILY_DUNGEON
 ]
 
 CHEST_GEMS_PER_HOUR = 120
 
 # Number of guaranteed summons per chest rarity
-GUARANTEED_SUMMONS = [1, 3, 6, 0, 0]
+GUARANTEED_SUMMONS = [1, 3, 6, 0, 0, 1]
 
 # The number of chars of each char_rarity guaranteed for a chest_rarity
 # Ex: CHAR_RARITY_GUARANTEE[0][0] is number of guaranteed rarity=1 chars for a SILVER chest
@@ -206,6 +208,7 @@ GUARANTEED_CHARS_PER_RARITY_PER_CHEST = [
     [0, 0, 1, 0],  # MYTHICAL
     [0, 0, 5, 0],  # EPIC
     [0, 0, 4, 1],  # LEGENDARY
+    [0, 0, 0, 0],  # DAILY_DUNGEON
 ]
 
 # Odds of getting each rarity char on non-guaranteed roll
@@ -216,6 +219,7 @@ REGULAR_CHAR_ODDS_PER_CHEST = [
     [0, 770, 200, 30],  # MYTHICAL
     [0, 0, 1000, 0],  # EPIC
     [0, 100, 550, 350],  # LEGENDARY
+    [0, 890, 100, 10],  # DAILY_DUNGEON
 ]
 
 # Odds of getting each rarity item on non-guaranteed roll
@@ -226,6 +230,7 @@ REGULAR_ITEM_ODDS_PER_CHEST = [
     [420, 350, 200, 30, 0],  # MYTHICAL
     [0, 0, 0, 1000, 0],  # EPIC
     [0, 0, 100, 550, 350],  # LEGENDARY
+    [400, 400, 200, 0, 0],  # DAILY_DUNGEON
 ]
 
 SKIP_GEM_COST = 2

@@ -150,7 +150,7 @@ def handle_quickplay(request, win, opponent, stats):
     updated_rating = update_rating(original_elo, opponent, win)
 
     if request.user.userstats.daily_wins <= constants.MAX_DAILY_QUICKPLAY_WINS_FOR_GOLD and win:
-        coins = formulas.coins_chest_reward(request.user.userinfo.elo, 1) / 20
+        coins = formulas.coins_chest_reward(request.user, constants.ChestType.SILVER.value) / 20
         request.user.inventory.coins += coins
         request.user.inventory.save()
 
@@ -194,7 +194,7 @@ class SkipCostView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        coins_cost = formulas.coins_chest_reward(request.user.userinfo.elo, 1) / 30
+        coins_cost = formulas.coins_chest_reward(request.user, constants.ChestType.SILVER.value) / 30
         gems_cost = 0
 
         if request.user.inventory.coins < coins_cost:
@@ -208,7 +208,7 @@ class SkipView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
-        cost = formulas.coins_chest_reward(request.user.userinfo.elo, 1) / 30
+        cost = formulas.coins_chest_reward(request.user, constants.ChestType.SILVER.value) / 30
 
         if request.user.inventory.coins >= cost:
             request.user.inventory.coins -= cost
