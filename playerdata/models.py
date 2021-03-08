@@ -2,6 +2,7 @@ import json
 import random
 import string
 from datetime import datetime, date, time, timedelta
+from packaging import version
 
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -233,26 +234,22 @@ class BaseCharacterAbility2(models.Model):
                 raise ValidationError('specs expected to have level %d.'
                                       % expected_level)
 
-    def version_tuple(self):
-        return tuple([int(n) for n in self.version.split('.')])
-
     def get_active():
         specs = {}
         for a in BaseCharacterAbility2.objects.all():
             # We expect server versions to be triplets.
-            if a.char_type not in specs or a.version_tuple() > specs[a.char_type].version_tuple():
+            if a.char_type not in specs or version.parse(a.version) > version.parse(specs[a.char_type].version):
                 specs[a.char_type] = a
         return specs.values() 
 
-    def get_active_under_version(version):
+    def get_active_under_version(v):
         specs = {}
-        version_tuple = tuple([int(n) for n in version.split('.')])
         for a in BaseCharacterAbility2.objects.all():
-            if a.version_tuple() > version_tuple:
+            if version.parse(a.version) > version.parse(v):
                 continue
             
             # We expect server versions to be triplets.
-            if a.char_type not in specs or a.version_tuple() > specs[a.char_type].version_tuple():
+            if a.char_type not in specs or version.parse(a.version) > version.parse(specs[a.char_type].version):
                 specs[a.char_type] = a
         return specs.values() 
  
