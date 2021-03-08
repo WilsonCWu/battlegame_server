@@ -187,13 +187,13 @@ class DailyDungeonStartView(APIView):
         if dd_status:
             dd_status.stage = 1
             dd_status.is_golden = serializer.validated_data['is_golden']
-            dd_status.character_state = serializer.validated_data['characters']
+            dd_status.character_state = "" 
             dd_status.save()
         else:
             DailyDungeonStatus.objects.create(user=request.user,
                                               stage=1,
                                               is_golden=serializer.validated_data['is_golden'],
-                                              character_state=serializer.validated_data['characters'])
+                                              character_state="")
 
         return Response({'status': True})
 
@@ -275,6 +275,7 @@ class DailyDungeonResultView(APIView):
             dd_status.stage = 0
         else:
             dd_status.stage += 1
-
+        # always save state, since we might have retries in the future
+        dd_status.character_state = serializer.validated_data['characters']
         dd_status.save()
         return Response({'status': True, 'rewards': rewards})
