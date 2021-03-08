@@ -347,6 +347,27 @@ class BaseCharacterAbility2Admin(admin.ModelAdmin):
     formfield_overrides = {
         JSONField: {'widget': JSONEditorWidget}
     }
+    list_filter = ('char_type', 'version')
+    actions = ('generate_next_patch',)
+
+    def generate_next_patch(self, request, queryset):
+        for a in queryset:
+            next_patch = a.version.split('.')
+            next_patch[-1] = str(int(next_patch[-1]) + 1)
+            next_patch_str = '.'.join(next_patch)
+            
+            BaseCharacterAbility2.objects.create(
+                char_type = a.char_type,
+                version = next_patch_str,
+                ability1_specs = a.ability1_specs,
+                ability1_desc = a.ability1_desc,
+                ability2_specs = a.ability2_specs,
+                ability2_desc = a.ability2_desc,
+                ability3_specs = a.ability3_specs,
+                ability3_desc = a.ability3_desc,
+                ultimate_specs = a.ultimate_specs,
+                ultimate_desc = a.ultimate_desc,
+            )
 
 
 @admin.register(BaseCharacter)
