@@ -67,32 +67,31 @@ def daily_dungeon_team_gen_cron():
 
 # returns a list of 5 levels based on which filler level it is or a boss stage
 def get_levels_for_stage(starting_level, stage_num, boss_stage):
-    boss_level = starting_level + (boss_stage * 10)
+    boss_level = starting_level + (boss_stage * 25)
     position_in_stage = stage_num % 10
 
     # TODO: this is hardcoded level progression for the 10 filler stages
     # makes it much easier to tune and change for now
-    if position_in_stage == 0:
-        return [boss_level] * 5
-    elif position_in_stage == 1:
-        return [boss_level - 13] * 5
+    if position_in_stage == 1:
+        return [boss_level - 27] * 5
     elif position_in_stage == 2:
-        return [(boss_level - 10)] * 3 + [(boss_level - 9)] * 2
+        return [(boss_level - 24)] * 3 + [(boss_level - 23)] * 2
     elif position_in_stage == 3:
-        return [(boss_level - 9)] * 3 + [(boss_level - 8)] * 2
+        return [(boss_level - 21)] * 3 + [(boss_level - 19)] * 2
     elif position_in_stage == 4:
-        return [(boss_level - 8)] * 3 + [(boss_level - 6)] * 2
+        return [(boss_level - 18)] * 3 + [(boss_level - 15)] * 2
     elif position_in_stage == 5:
-        return [boss_level - 5] * 5
+        return [boss_level - 12] * 5
     elif position_in_stage == 6:
-        return [(boss_level - 8)] * 3 + [(boss_level - 6)] * 2
+        return [(boss_level - 14)] * 3 + [(boss_level - 11)] * 2
     elif position_in_stage == 7:
-        return [(boss_level - 7)] * 3 + [(boss_level - 5)] * 2
+        return [(boss_level - 11)] * 3 + [(boss_level - 7)] * 2
     elif position_in_stage == 8:
-        return [(boss_level - 6)] * 3 + [(boss_level - 3)] * 2
+        return [(boss_level - 8)] * 3 + [(boss_level - 4)] * 2
+    elif position_in_stage == 9:
+        return [(boss_level - 5)] * 3 + [(boss_level - 1)] * 2
     else:
-        return [(boss_level - 3)] * 3 + [(boss_level - 1)] * 2
-
+        return [boss_level] * 5
 
 # converts a JSON team_comp (see models DailyDungeonStage for more details)
 # into a fully functional Placement
@@ -101,7 +100,7 @@ def convert_teamp_comp_to_stage(team_comp, stage_num, boss_stage):
     rng = random.Random(seed_int)
 
     placement = Placement()
-    levels = get_levels_for_stage(160, stage_num, boss_stage)
+    levels = get_levels_for_stage(10, stage_num, boss_stage)
     available_pos_frontline = [*constants.FRONTLINE_POS]
     available_pos_backline = [*constants.BACKLINE_POS]
 
@@ -187,13 +186,13 @@ class DailyDungeonStartView(APIView):
         if dd_status:
             dd_status.stage = 1
             dd_status.is_golden = serializer.validated_data['is_golden']
-            dd_status.character_state = serializer.validated_data['characters']
+            dd_status.character_state = "" 
             dd_status.save()
         else:
             DailyDungeonStatus.objects.create(user=request.user,
                                               stage=1,
                                               is_golden=serializer.validated_data['is_golden'],
-                                              character_state=serializer.validated_data['characters'])
+                                              character_state="")
 
         return Response({'status': True})
 
@@ -271,10 +270,11 @@ class DailyDungeonResultView(APIView):
         dd_status = DailyDungeonStatus.objects.get(user=request.user)
         rewards = daily_dungeon_reward(dd_status.is_golden, dd_status.stage, request.user)
 
-        if serializer.validated_data['is_loss']:
+        if serializer.validated_data['is_loss'] or dd_status.stage == 80:
             dd_status.stage = 0
         else:
             dd_status.stage += 1
-
+        # always save state, since we might have retries in the future
+        dd_status.character_state = serializer.validated_data['characters']
         dd_status.save()
         return Response({'status': True, 'rewards': rewards})
