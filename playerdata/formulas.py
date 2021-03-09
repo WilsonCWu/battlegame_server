@@ -29,7 +29,7 @@ def coins_reward_dungeon(dungeon_level, dungeon_type: int):
 
 
 def afk_coins_per_min(dungeon_level):
-    return (dungeon_level * 16 + (dungeon_level - 1) ** 1.45) / 48
+    return (dungeon_level * 12 + (dungeon_level - 1) ** 1.4) / 48
 
 
 def char_level_to_coins(level):
@@ -48,13 +48,13 @@ def coins_chest_reward(user, rarity):
 
     if rarity in [constants.ChestType.SILVER.value, constants.ChestType.DAILY_DUNGEON.value]:
         base_mult = 0.5
-        base_exp = 1.4
+        base_exp = 1.35
     elif rarity == constants.ChestType.GOLD.value:
         base_mult = 1
-        base_exp = 1.6
+        base_exp = 1.55
     elif rarity == constants.ChestType.MYTHICAL.value:
         base_mult = 1.5
-        base_exp = 1.8
+        base_exp = 1.7
 
     return math.floor(elo * base_mult + 200 + (elo ** base_exp))
 
@@ -167,6 +167,8 @@ def gems_chest_reward(rarity):
     mult = 1
     if rarity == constants.ChestType.GOLD.value:
         mult = 3
+    elif rarity == constants.ChestType.MYTHICAL.value:
+        return 270
     return 20 * mult
 
 
