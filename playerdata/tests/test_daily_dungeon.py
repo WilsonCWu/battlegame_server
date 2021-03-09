@@ -13,9 +13,6 @@ class DailyDungeonStartAPITestCase(APITestCase):
         self.client.force_authenticate(user=self.u)
 
     def test_start(self):
-        self.u.inventory.daily_dungeon_ticket += 1
-        self.u.inventory.save()
-
         response = self.client.post('/dailydungeon/start/', {
             'is_golden': False,
             'characters': '{"11": 1}',
@@ -24,7 +21,10 @@ class DailyDungeonStartAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
 
-    def test_start_no_ticket(self):
+    def test_no_ticket(self):
+        self.u.inventory.daily_dungeon_ticket = 0
+        self.u.inventory.save()
+
         response = self.client.post('/dailydungeon/start/', {
             'is_golden': False,
             'characters': '{"11": 1}',
