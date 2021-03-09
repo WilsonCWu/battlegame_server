@@ -86,7 +86,7 @@ def daily_clean_matches_cron():
     UserStats.objects.bulk_update(userstats, ['daily_wins'])
 
 
-MAX_DAILY_DUNGEON_TICKET = 3
+MAX_DAILY_DUNGEON_TICKET = 1
 MAX_DAILY_DUNGEON_GOLDEN_TICKET = 1
 
 
