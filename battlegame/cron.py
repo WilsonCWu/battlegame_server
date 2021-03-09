@@ -56,19 +56,19 @@ def cron(retries=0):
     return inner
 
 
-@cron
+@cron()
 def daily_quests_cron():
     # remove top 3 from daily
     refresh_daily_quests()
 
 
-@cron
+@cron()
 def weekly_quests_cron():
     # remove top 5 from weekly
     refresh_weekly_quests()
 
 
-@cron
+@cron()
 def daily_deals_cron():
     refresh_daily_deals_cronjob()
 
@@ -76,7 +76,7 @@ def daily_deals_cron():
 def weekly_deals_cron():
     refresh_weekly_deals_cronjob()
 
-@cron
+@cron()
 def daily_clean_matches_cron():
     Match.objects.filter(uploaded_at__lte=timezone.now() - timedelta(days=14)).delete()
 
@@ -90,7 +90,7 @@ MAX_DAILY_DUNGEON_TICKET = 3
 MAX_DAILY_DUNGEON_GOLDEN_TICKET = 1
 
 
-@cron
+@cron()
 def daily_dungeon_golden_ticket_drop():
     to_inc = Inventory.objects.filter(daily_dungeon_golden_ticket__lt=MAX_DAILY_DUNGEON_GOLDEN_TICKET)
     for inv in to_inc:
@@ -98,7 +98,7 @@ def daily_dungeon_golden_ticket_drop():
     Inventory.objects.bulk_update(to_inc, ['daily_dungeon_golden_ticket'])
 
 
-@cron
+@cron()
 def daily_dungeon_ticket_drop():
     to_inc = Inventory.objects.filter(daily_dungeon_ticket__lt=MAX_DAILY_DUNGEON_TICKET)
     for inv in to_inc:
@@ -106,7 +106,7 @@ def daily_dungeon_ticket_drop():
     Inventory.objects.bulk_update(to_inc, ['daily_dungeon_ticket'])
 
 
-@cron
+@cron()
 def refresh_daily_dungeon():
     daily_dungeon_team_gen_cron()
  
