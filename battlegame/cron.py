@@ -76,17 +76,21 @@ def daily_deals_cron():
 def weekly_deals_cron():
     refresh_weekly_deals_cronjob()
 
+
 @cron()
 def daily_clean_matches_cron():
     Match.objects.filter(uploaded_at__lte=timezone.now() - timedelta(days=14)).delete()
 
+
+@cron()
+def reset_daily_wins_cron():
     userstats = UserStats.objects.all()
     for stat in userstats:
         stat.daily_wins = 0
     UserStats.objects.bulk_update(userstats, ['daily_wins'])
 
 
-MAX_DAILY_DUNGEON_TICKET = 3
+MAX_DAILY_DUNGEON_TICKET = 1
 MAX_DAILY_DUNGEON_GOLDEN_TICKET = 1
 
 
