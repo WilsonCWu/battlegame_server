@@ -49,6 +49,8 @@ def get_rand_base_char_from_rarity(rarity, available_chars=None):
     else:
         base_chars = BaseCharacter.objects.filter(rarity=rarity, rollable=True, char_type__in=available_chars)
     num_chars = base_chars.count()
+    if num_chars == 0:
+        return None
     chosen_char = base_chars[random.randrange(num_chars)]
     return chosen_char
 
