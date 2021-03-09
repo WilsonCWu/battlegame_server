@@ -76,10 +76,14 @@ def daily_deals_cron():
 def weekly_deals_cron():
     refresh_weekly_deals_cronjob()
 
+
 @cron()
 def daily_clean_matches_cron():
     Match.objects.filter(uploaded_at__lte=timezone.now() - timedelta(days=14)).delete()
 
+
+@cron()
+def reset_daily_wins_cron():
     userstats = UserStats.objects.all()
     for stat in userstats:
         stat.daily_wins = 0

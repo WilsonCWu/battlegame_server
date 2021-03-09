@@ -179,11 +179,12 @@ CRONJOBS = [
 
     ('0 0 * * *', 'battlegame.cron.daily_deals_cron', '>> /tmp/daily_deals_job.log'),
 
-    ('0 2 * * *', 'battlegame.cron.daily_clean_matches_cron', '>> /tmp/daily_clean_matches.log'),
+    ('0 5 * * *', 'battlegame.cron.daily_clean_matches_cron', '>> /tmp/daily_clean_matches.log'),
+    ('0 0 * * *', 'battlegame.cron.reset_daily_wins_cron', '>> /tmp/reset_daily_wins_cron.log'),
 
-    ('5 0 * * *', 'battlegame.cron.daily_dungeon_ticket_drop', '>> /tmp/daily_dungeon_ticket_drop.log'),
-    ('30 0 * * 2', 'battlegame.cron.daily_dungeon_golden_ticket_drop', '>> /tmp/daily_dungeon_ticket_drop.log'),
-    ('1 0 * * *', 'battlegame.cron.refresh_daily_dungeon', '>> /tmp/refresh_daily_dungeon.log'),
+    ('0 0 * * *', 'battlegame.cron.daily_dungeon_ticket_drop', '>> /tmp/daily_dungeon_ticket_drop.log'),
+    ('0 0 * * 2,5', 'battlegame.cron.daily_dungeon_golden_ticket_drop', '>> /tmp/daily_dungeon_ticket_drop.log'),
+    ('0 0 * * *', 'battlegame.cron.refresh_daily_dungeon', '>> /tmp/refresh_daily_dungeon.log'),
     # ('0 16 * * THU', 'battlegame.cron.setup_tournament', '>> /tmp/setup_tournament_scheduled_job.log'),
     # ('0 16 * * 5-7', 'battlegame.cron.next_round', '>> /tmp/next_round_scheduled_job.log'),
     # ('5 16 * * TUE', 'battlegame.cron.end_tourney', '>> /tmp/end_tourney_scheduled_job.log')
