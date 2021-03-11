@@ -287,3 +287,17 @@ class DailyDungeonResultView(APIView):
         dd_status.character_state = serializer.validated_data['characters']
         dd_status.save()
         return Response({'status': True, 'rewards': rewards})
+
+
+class DailyDungeonForfeitView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        dd_status = DailyDungeonStatus.get_active_for_user(request.user)
+        if not dd_status:
+            return Response({'status': False, 'reason': 'No active dungeon!'})
+
+        dd_status.stage = 0
+        dd_status.save()
+
+        return Response({'status': True})

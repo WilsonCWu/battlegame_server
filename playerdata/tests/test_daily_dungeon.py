@@ -102,3 +102,29 @@ class DailyDungeonResultAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         dd_status.refresh_from_db()
         self.assertEqual(dd_status.stage, 0)
+
+
+class DailyDungeonForfeitAPITestCase(APITestCase):
+    fixtures = ['playerdata/tests/fixtures.json']
+
+    def setUp(self):
+        self.u = User.objects.get(username='battlegame')
+        self.client.force_authenticate(user=self.u)
+
+    def test_forfeit(self):
+        dd_status = DailyDungeonStatus.objects.create(user=self.u, stage=11)
+        response = self.client.get('/dailydungeon/forfeit/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+        dd_status.refresh_from_db()
+        self.assertEqual(dd_status.stage, 0)
+
+    def test_invalid_forfeit(self):
+        dd_status = DailyDungeonStatus.objects.create(user=self.u, stage=0)
+        response = self.client.get('/dailydungeon/forfeit/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['status'])
+        dd_status.refresh_from_db()
+        self.assertEqual(dd_status.stage, 0)
