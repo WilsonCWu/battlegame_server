@@ -64,15 +64,13 @@ class QuestUpdater:
 
         try:
             tracker = CumulativeTracker.objects.get(user=user, type=UPDATE_TYPE)
-            try:
-                tracker.progress += amount
-                tracker.save()
-            except OverflowError:
-                logging.error("stats overflow error")
-
+            tracker.progress += amount
+            tracker.save()
             update_cumulative_progress(cumulative_quests, tracker)
         except ObjectDoesNotExist:
             pass
+        except OverflowError:
+            logging.error("stats overflow error")
 
         add_progress_to_quest_list(amount, weekly_quests)
         add_progress_to_quest_list(amount, daily_quests)
