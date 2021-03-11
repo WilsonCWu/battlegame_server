@@ -34,16 +34,13 @@ def set_progress_to_quest_list(progress, quests):
         logging.error("stats overflow error")
 
 
-def update_cumulative_progress(progress, quests, tracker):
-    try:
-        tracker.progress += progress
-        tracker.save()
-        for quest in quests:
-            if tracker.progress >= quest.base_quest.total:
-                quest.completed = True
-                quest.save()
-    except OverflowError:
-        logging.error("stats overflow error")
+def update_cumulative_progress(quests, tracker):
+    for quest in quests:
+        if tracker.progress >= quest.base_quest.total:
+            quest.completed = True
+
+    PlayerQuestCumulative.objects.bulk_update(quests, ['completed'])
+
 
 
 class QuestUpdater:
@@ -67,9 +64,13 @@ class QuestUpdater:
 
         try:
             tracker = CumulativeTracker.objects.get(user=user, type=UPDATE_TYPE)
-            update_cumulative_progress(amount, cumulative_quests, tracker)
+            tracker.progress += amount
+            tracker.save()
+            update_cumulative_progress(cumulative_quests, tracker)
         except ObjectDoesNotExist:
             pass
+        except OverflowError:
+            logging.error("stats overflow error")
 
         add_progress_to_quest_list(amount, weekly_quests)
         add_progress_to_quest_list(amount, daily_quests)
@@ -81,12 +82,24 @@ class QuestUpdater:
             logging.error("negative progress on quest type: " + UPDATE_TYPE)
             return
 
+        cumulative_quests = PlayerQuestCumulative.objects.select_related('base_quest').filter(user=user,
+                                                                                              base_quest__type=UPDATE_TYPE,
+                                                                                              completed=False,
+                                                                                              claimed=False)
         weekly_quests = PlayerQuestWeekly.objects.select_related('base_quest').filter(user=user,
                                                                                       base_quest__type=UPDATE_TYPE,
                                                                                       completed=False, claimed=False)
         daily_quests = PlayerQuestDaily.objects.select_related('base_quest').filter(user=user,
                                                                                     base_quest__type=UPDATE_TYPE,
                                                                                     completed=False, claimed=False)
+
+        try:
+            tracker = CumulativeTracker.objects.get(user=user, type=UPDATE_TYPE)
+            tracker.progress = amount
+            tracker.save()
+            update_cumulative_progress(cumulative_quests, tracker)
+        except ObjectDoesNotExist:
+            pass
 
         set_progress_to_quest_list(amount, weekly_quests)
         set_progress_to_quest_list(amount, daily_quests)
