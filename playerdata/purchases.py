@@ -312,6 +312,7 @@ def handle_purchase_chest(user, purchase_id):
         else:
             rewards = chests.generate_chest_rewards(constants.ChestType.MYTHICAL.value, user)
 
+    QuestUpdater.add_progress_by_type(user, constants.CHESTS_OPENED, 1)
     chests.award_chest_rewards(user, rewards)
     return rewards
 

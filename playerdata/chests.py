@@ -12,6 +12,7 @@ from rest_marshmallow import Schema, fields
 from playerdata import constants, formulas, rolls
 from playerdata.constants import ChestType
 from playerdata.models import Chest, BaseItem, Item, UserInfo, DailyDungeonStatus
+from playerdata.questupdater import QuestUpdater
 from playerdata.serializers import ValueSerializer, CollectChestSerializer
 
 
@@ -256,6 +257,8 @@ class CollectChest(APIView):
         rewards = generate_chest_rewards(chest.rarity, request.user)
         award_chest_rewards(request.user, rewards)
         chest.delete()
+
+        QuestUpdater.add_progress_by_type(request.user, constants.CHESTS_OPENED, 1)
 
         reward_schema = ChestRewardSchema(rewards, many=True)
         return Response({'status': True, 'rewards': reward_schema.data})

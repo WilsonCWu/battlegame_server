@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from . import rolls, constants, chests
+from .questupdater import QuestUpdater
 from .serializers import DailyDungeonStartSerializer, DailyDungeonResultSerializer
 from .matcher import PlacementSchema
 from .models import DailyDungeonStatus, DailyDungeonStage, Placement, Character
@@ -262,6 +263,9 @@ def daily_dungeon_reward(is_golden, stage, user):
         for reward in rewards:
             if reward.reward_type in ['coins', 'gems', 'essence']:
                 reward.value = reward.value * 2
+
+    if len(rewards) != 0:
+        QuestUpdater.add_progress_by_type(user, constants.CHESTS_OPENED, 1)
 
     chests.award_chest_rewards(user, rewards)
     reward_schema = chests.ChestRewardSchema(rewards, many=True)
