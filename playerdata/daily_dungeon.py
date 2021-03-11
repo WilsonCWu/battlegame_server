@@ -283,6 +283,8 @@ class DailyDungeonResultView(APIView):
             dd_status.stage = 0
         else:
             # Check if this is the best that the user has ever done in DD.
+            # TODO: refactor this as an auxiliary, non-critical path (e.g.
+            # for quests / stat updates).
             userinfo = request.user.userinfo
             if userinfo.best_daily_dungeon_stage < dd_status.stage:
                 userinfo.best_daily_dungeon_stage = dd_status.stage
