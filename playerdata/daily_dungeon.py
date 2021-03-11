@@ -282,7 +282,16 @@ class DailyDungeonResultView(APIView):
         if serializer.validated_data['is_loss'] or dd_status.stage == 80:
             dd_status.stage = 0
         else:
+            # Check if this is the best that the user has ever done in DD.
+            # TODO: refactor this as an auxiliary, non-critical path (e.g.
+            # for quests / stat updates).
+            userinfo = request.user.userinfo
+            if userinfo.best_daily_dungeon_stage < dd_status.stage:
+                userinfo.best_daily_dungeon_stage = dd_status.stage
+                userinfo.save()
+
             dd_status.stage += 1
+
         # always save state, since we might have retries in the future
         dd_status.character_state = serializer.validated_data['characters']
         dd_status.save()
