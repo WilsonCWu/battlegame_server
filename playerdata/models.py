@@ -582,9 +582,6 @@ class Placement(models.Model):
 
 class UserInfo(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    elo = models.IntegerField(default=0)
-    tourney_elo = models.IntegerField(default=0)
-    prev_tourney_elo = models.IntegerField(default=0)
     name = models.CharField(max_length=20, default='new player')
     description = models.TextField(default='A description has not been set.')
     profile_picture = models.IntegerField(default=0)
@@ -592,6 +589,12 @@ class UserInfo(models.Model):
     player_exp = models.IntegerField(default=0)
     is_bot = models.BooleanField(default=False)
 
+    # Player skills ranking.
+    elo = models.IntegerField(default=0)
+    tourney_elo = models.IntegerField(default=0)
+    prev_tourney_elo = models.IntegerField(default=0)
+    best_daily_dungeon_stage = models.IntegerField(default=0)
+    
     class Meta:
         indexes = [
             models.Index(fields=['elo', ]),
