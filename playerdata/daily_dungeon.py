@@ -264,9 +264,6 @@ def daily_dungeon_reward(is_golden, stage, user):
             if reward.reward_type in ['coins', 'gems', 'essence']:
                 reward.value = reward.value * 2
 
-    if len(rewards) != 0:
-        QuestUpdater.add_progress_by_type(user, constants.CHESTS_OPENED, 1)
-
     chests.award_chest_rewards(user, rewards)
     reward_schema = chests.ChestRewardSchema(rewards, many=True)
     return reward_schema.data

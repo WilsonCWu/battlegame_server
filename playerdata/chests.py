@@ -151,6 +151,7 @@ def award_chest_rewards(user, rewards):
         else:
             raise Exception("invalid reward_type, sorry friendo")
     user.inventory.save()
+    QuestUpdater.add_progress_by_type(user, constants.CHESTS_OPENED, 1)
 
 
 def get_guaranteed_chars_rarity_odds(chest_rarity: int, user):
@@ -257,8 +258,6 @@ class CollectChest(APIView):
         rewards = generate_chest_rewards(chest.rarity, request.user)
         award_chest_rewards(request.user, rewards)
         chest.delete()
-
-        QuestUpdater.add_progress_by_type(request.user, constants.CHESTS_OPENED, 1)
 
         reward_schema = ChestRewardSchema(rewards, many=True)
         return Response({'status': True, 'rewards': reward_schema.data})
