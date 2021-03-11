@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from . import rolls, constants, chests
+from .questupdater import QuestUpdater
 from .serializers import DailyDungeonStartSerializer, DailyDungeonResultSerializer
 from .matcher import PlacementSchema
 from .models import DailyDungeonStatus, DailyDungeonStage, Placement, Character

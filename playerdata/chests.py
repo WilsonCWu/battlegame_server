@@ -12,6 +12,7 @@ from rest_marshmallow import Schema, fields
 from playerdata import constants, formulas, rolls
 from playerdata.constants import ChestType
 from playerdata.models import Chest, BaseItem, Item, UserInfo, DailyDungeonStatus
+from playerdata.questupdater import QuestUpdater
 from playerdata.serializers import ValueSerializer, CollectChestSerializer
 
 
@@ -150,6 +151,7 @@ def award_chest_rewards(user, rewards):
         else:
             raise Exception("invalid reward_type, sorry friendo")
     user.inventory.save()
+    QuestUpdater.add_progress_by_type(user, constants.CHESTS_OPENED, 1)
 
 
 def get_guaranteed_chars_rarity_odds(chest_rarity: int, user):

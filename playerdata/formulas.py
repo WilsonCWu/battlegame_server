@@ -157,9 +157,6 @@ def dust_chest_reward(user, rarity):
 def gems_reward_dungeon(dungeon_level, dungeon_type: int):
     if dungeon_type == constants.DungeonType.TOWER.value:
         return 750
-
-    if dungeon_level % 5 == 0:
-        return 100
     return 0
 
 

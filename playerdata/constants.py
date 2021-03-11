@@ -7,8 +7,8 @@ TOURNAMENT = 2
 
 NUM_DAILY_QUESTS = 3
 NUM_WEEKLY_QUESTS = 5
-DAILY_QUEST_POOL_IDS = [9, 10, 13, 44]
-WEEKLY_QUEST_POOL_IDS = [34, 45, 46]
+DAILY_QUEST_POOL_IDS = [9, 10, 13, 44, 150]
+WEEKLY_QUEST_POOL_IDS = [34, 45, 46, 151]
 
 DUNGEON_REFERRAL_CONVERSION_STAGE = 120
 REFFERAL_GEMS_REWARD = 2500
@@ -40,13 +40,14 @@ WIN_QUICKPLAY_GAMES = 11  # Tracked / total games
 WIN_DUNGEON_GAMES = 12  # Tracked / total games
 OWN_HEROES = 13  # Tracked / total heroes
 REACH_PLAYER_LEVEL = 14
-REACH_DUNGEON_LEVEL = 15  # Tracked / total level
+COMPLETE_DUNGEON_LEVEL = 15  # Tracked / total level
 REFERRAL = 16  # Tracked / total referrals
 ATTEMPT_DUNGEON_GAMES = 17  # Tracked / total games
 ATTEMPT_TOWER_GAMES = 18  # Tracked / total games
 WIN_TOWER_GAMES = 19  # Tracked / total games
-REACH_TOWER_LEVEL = 20  # Tracked / total level
+COMPLETE_TOWER_LEVEL = 20  # Tracked / total level
 WIN_STREAK = 21  # Tracked / winstreak
+CHESTS_OPENED = 22  # Tracked / chests opened
 
 # Namespace: everything in the 100s is a char_id + 100 for a quest 'Win X games' with that char
 # so for Archer (id: 1), quest_type would be 101
