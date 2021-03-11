@@ -1119,7 +1119,7 @@ def create_cumulative_quests(user):
     cumulative_quests = []
     active_quests = ActiveCumulativeQuest.objects.all()
     for quest in active_quests:
-        if quest.base_quest.type is constants.REACH_DUNGEON_LEVEL:
+        if quest.base_quest.type is constants.COMPLETE_DUNGEON_LEVEL:
             progress_tracker, _ = CumulativeTracker.objects.get_or_create(user=user, type=quest.base_quest.type, progress=1)
         else:
             progress_tracker, _ = CumulativeTracker.objects.get_or_create(user=user, type=quest.base_quest.type)

@@ -40,12 +40,12 @@ WIN_QUICKPLAY_GAMES = 11  # Tracked / total games
 WIN_DUNGEON_GAMES = 12  # Tracked / total games
 OWN_HEROES = 13  # Tracked / total heroes
 REACH_PLAYER_LEVEL = 14
-REACH_DUNGEON_LEVEL = 15  # Tracked / total level
+COMPLETE_DUNGEON_LEVEL = 15  # Tracked / total level
 REFERRAL = 16  # Tracked / total referrals
 ATTEMPT_DUNGEON_GAMES = 17  # Tracked / total games
 ATTEMPT_TOWER_GAMES = 18  # Tracked / total games
 WIN_TOWER_GAMES = 19  # Tracked / total games
-REACH_TOWER_LEVEL = 20  # Tracked / total level
+COMPLETE_TOWER_LEVEL = 20  # Tracked / total level
 WIN_STREAK = 21  # Tracked / winstreak
 CHESTS_OPENED = 22  # Tracked / chests opened
 

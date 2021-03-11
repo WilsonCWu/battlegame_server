@@ -205,14 +205,15 @@ class DungeonSetProgressView(APIView):
             if progress.campaign_stage == constants.DUNGEON_REFERRAL_CONVERSION_STAGE:
                 complete_referral_conversion(request.user)
 
-            progress.campaign_stage += 1
-            QuestUpdater.add_progress_by_type(request.user, constants.REACH_DUNGEON_LEVEL, 1)
+            QuestUpdater.set_progress_by_type(request.user, constants.COMPLETE_DUNGEON_LEVEL, progress.campaign_stage)
             QuestUpdater.add_progress_by_type(request.user, constants.WIN_DUNGEON_GAMES, 1)
+            progress.campaign_stage += 1
         else:
             stage = progress.tower_stage
-            progress.tower_stage += 1
-            QuestUpdater.add_progress_by_type(request.user, constants.REACH_TOWER_LEVEL, 1)
+
+            QuestUpdater.set_progress_by_type(request.user, constants.COMPLETE_TOWER_LEVEL, progress.tower_stage)
             QuestUpdater.add_progress_by_type(request.user, constants.WIN_TOWER_GAMES, 1)
+            progress.tower_stage += 1
 
         progress.save()
 
