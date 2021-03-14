@@ -50,6 +50,7 @@ class StatModifierSchema(Schema):
     attack_mult = fields.Float()
     ability_flat = fields.Int()
     ability_mult = fields.Float()
+    attack_speed_flat = fields.Float()
     attack_speed_mult = fields.Float()
     ar_flat = fields.Int()
     ar_mult = fields.Float()

@@ -415,6 +415,8 @@ class StatModifiers(models.Model):
     attack_mult = models.FloatField(blank=True, null=True)
     ability_flat = models.IntegerField(blank=True, null=True)
     ability_mult = models.FloatField(blank=True, null=True)
+    attack_speed_flat = models.FloatField(blank=True, null=True)
+    # TODO: deprecated.
     attack_speed_mult = models.FloatField(blank=True, null=True)
     ar_flat = models.IntegerField(blank=True, null=True)
     ar_mult = models.FloatField(blank=True, null=True)
@@ -423,6 +425,7 @@ class StatModifiers(models.Model):
     speed_flat = models.IntegerField(blank=True, null=True)
     speed_mult = models.FloatField(blank=True, null=True)
     crit_flat = models.IntegerField(blank=True, null=True)
+    # TODO: deprecated.
     crit_mult = models.FloatField(blank=True, null=True)
     mana_tick_flat = models.IntegerField(blank=True, null=True)
     mana_tick_mult = models.FloatField(blank=True, null=True)
