@@ -78,10 +78,10 @@ def is_legendary(char_id: int):
 
 # Remember to update as we add new legendaries
 LEGENDARY_CHAR_IDS = [6, 7, 9, 13, 22, 23]
-# Pity caps currently around 38% lower than the legendary roll rate
-LEGENDARY_PITY_CAP_MYTHICAL = 54
-LEGENDARY_PITY_CAP_SILVER = 161
-LEGENDARY_PITY_CAP_GOLD = 161
+# Pity caps guarantee in how many rolls we guarantee a legendary
+LEGENDARY_PITY_CAP_MYTHICAL = 50
+LEGENDARY_PITY_CAP_SILVER = 160
+LEGENDARY_PITY_CAP_GOLD = 160
 
 DUSTING_GEMS_COST = 100
 ESSENCE_PER_COMMON_CHAR_RETIRE = 100

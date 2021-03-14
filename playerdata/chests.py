@@ -89,18 +89,18 @@ class UnlockChest(APIView):
 def give_some_pity(user, rewards, chest_type: int):
     # if no legendaries increment the pity counters per chest
     # if there are, reset the counter
-    if chest_type == constants.ChestType.SILVER.value:
-        pity_counter = user.userstats.silver_pity_counter
-        pity_attr = 'silver_pity_counter'
-        pity_cap = constants.LEGENDARY_PITY_CAP_SILVER
-    elif chest_type == constants.ChestType.GOLD.value:
-        pity_counter = user.userstats.gold_pity_counter
-        pity_attr = 'gold_pity_counter'
-        pity_cap = constants.LEGENDARY_PITY_CAP_GOLD
-    elif chest_type == constants.ChestType.MYTHICAL.value:
+    if chest_type == constants.ChestType.MYTHICAL.value:
         pity_counter = user.userstats.mythic_pity_counter
         pity_attr = 'mythic_pity_counter'
         pity_cap = constants.LEGENDARY_PITY_CAP_MYTHICAL
+    # elif chest_type == constants.ChestType.SILVER.value:
+    #     pity_counter = user.userstats.silver_pity_counter
+    #     pity_attr = 'silver_pity_counter'
+    #     pity_cap = constants.LEGENDARY_PITY_CAP_SILVER
+    # elif chest_type == constants.ChestType.GOLD.value:
+    #     pity_counter = user.userstats.gold_pity_counter
+    #     pity_attr = 'gold_pity_counter'
+    #     pity_cap = constants.LEGENDARY_PITY_CAP_GOLD
     else:
         # otherwise we don't count pity for this type of chest
         return rewards
