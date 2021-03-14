@@ -71,8 +71,19 @@ SUMMON_COUNT = {
     "SUMMON10": 10,
 }
 
-DUSTING_GEMS_COST = 100
 
+def is_legendary(char_id: int):
+    return char_id in LEGENDARY_CHAR_IDS
+
+
+# Remember to update as we add new legendaries
+LEGENDARY_CHAR_IDS = [6, 7, 9, 13, 22, 23]
+# Pity caps currently around 38% lower than the legendary roll rate
+LEGENDARY_PITY_CAP_MYTHICAL = 54
+LEGENDARY_PITY_CAP_SILVER = 138
+LEGENDARY_PITY_CAP_GOLD = 138
+
+DUSTING_GEMS_COST = 100
 ESSENCE_PER_COMMON_CHAR_RETIRE = 100
 
 DEAL_DAILY_0 = 'com.salutationstudio.tinytitans.deal.daily0'

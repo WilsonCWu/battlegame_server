@@ -86,6 +86,40 @@ class UnlockChest(APIView):
         return Response({'status': True, 'locked_until': unlock_time})
 
 
+def give_some_pity(user, rewards, chest_type: int):
+    # if no legendaries increment the pity counters per chest
+    # if there are, reset the counter
+    if chest_type == constants.ChestType.SILVER.value:
+        pity_counter = user.userstats.silver_pity_counter
+        pity_attr = 'silver_pity_counter'
+        pity_cap = constants.LEGENDARY_PITY_CAP_SILVER
+    elif chest_type == constants.ChestType.GOLD.value:
+        pity_counter = user.userstats.gold_pity_counter
+        pity_attr = 'gold_pity_counter'
+        pity_cap = constants.LEGENDARY_PITY_CAP_GOLD
+    elif chest_type == constants.ChestType.MYTHICAL.value:
+        pity_counter = user.userstats.mythic_pity_counter
+        pity_attr = 'mythic_pity_counter'
+        pity_cap = constants.LEGENDARY_PITY_CAP_MYTHICAL
+    else:
+        # otherwise we don't count pity for this type of chest
+        return rewards
+
+    for reward in rewards:
+        if reward.reward_type == 'char_id':
+            if constants.is_legendary(reward.value):
+                pity_counter = 0
+            else:
+                pity_counter += 1
+                if pity_counter >= pity_cap:
+                    reward.value = random.choice(constants.LEGENDARY_CHAR_IDS)
+                    pity_counter = 0
+
+    setattr(user.userstats, pity_attr, pity_counter)
+    user.userstats.save()
+    return rewards
+
+
 def pick_resource_reward(user, resource_type, chest_rarity):
     if resource_type == 'coins':
         pivot_amount = formulas.coins_chest_reward(user, chest_rarity)
@@ -222,6 +256,8 @@ def generate_chest_rewards(chest_rarity: int, user):
             raise Exception("invalid reward_type, sorry friendo")
 
         rewards.append(reward)
+
+    rewards = give_some_pity(user, rewards, chest_rarity)
     return rewards
 
 
