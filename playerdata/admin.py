@@ -220,6 +220,11 @@ class BaseQuestAdmin(bulk_admin.BulkModelAdmin):
     propagate_quests.short_description = "Propagate cumulative BaseQuest to all Users"
 
 
+class CumulativeTrackerAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'progress', 'type')
+    search_fields = ('user__id',)
+
+
 class ActiveCumulativeQuestAdmin(bulk_admin.BulkModelAdmin):
     pass
 
@@ -431,7 +436,7 @@ admin.site.register(BaseQuest, BaseQuestAdmin)
 admin.site.register(PlayerQuestCumulative)
 admin.site.register(PlayerQuestDaily)
 admin.site.register(PlayerQuestWeekly)
-admin.site.register(CumulativeTracker)
+admin.site.register(CumulativeTracker, CumulativeTrackerAdmin)
 
 admin.site.register(ActiveCumulativeQuest, ActiveCumulativeQuestAdmin)
 admin.site.register(ActiveDailyQuest, ActiveDailyQuestAdmin)

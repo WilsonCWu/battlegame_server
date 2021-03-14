@@ -612,6 +612,9 @@ class UserStats(models.Model):
     win_streak = models.IntegerField(default=0)
     longest_win_streak = models.IntegerField(default=0)
     daily_wins = models.IntegerField(default=0)
+    mythic_pity_counter = models.IntegerField(default=0)
+    silver_pity_counter = models.IntegerField(default=0)
+    gold_pity_counter = models.IntegerField(default=0)
 
     def __str__(self):
         return self.user.userinfo.name + '(' + str(self.user.id) + ')'
