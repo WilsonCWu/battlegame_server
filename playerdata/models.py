@@ -1031,6 +1031,7 @@ class InvalidReceipt(models.Model):
     order_number = models.TextField()
     date = models.IntegerField()
     product_id = models.TextField()
+    receipt = models.TextField(default='')
 
 
 class BaseDeal(models.Model):
