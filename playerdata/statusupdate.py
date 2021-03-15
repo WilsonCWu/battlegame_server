@@ -49,6 +49,15 @@ def award_chest(user):
         return 0
 
     chest_rarity = rolls.weighted_pick_from_buckets(constants.CHEST_ODDS) + 1
+
+    # chest cycle: drop 4 mythical chests in 240 quickplay chests
+    user.userstats.chest_counter += 1
+    if user.userstats.chest_counter in [60, 120, 180, 240]:
+        chest_rarity = constants.ChestType.MYTHICAL.value
+    if user.userstats.chest_counter >= 240:
+        user.userstats.chest_counter = 0
+    user.userstats.save()
+
     chest = Chest.objects.create(user=user, rarity=chest_rarity)
 
     if user.inventory.chest_slot_1 is None:
