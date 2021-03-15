@@ -81,8 +81,8 @@ def validate_google(request, receipt_raw):
                                         transaction_id=receipt['orderId'])
         return Response({'status': True})
     except Exception:
-        InvalidReceipt.objects.create(user=request.user, order_number=receipt['orderId'],
-                                      date=receipt['purchaseTime'], product_id=receipt['productId'])
+        InvalidReceipt.objects.create(user=request.user, order_number=str(receipt['orderId']),
+                                      date=receipt['purchaseTime'], product_id=receipt['productId'], receipt=receipt_raw)
         return Response({'status': False})
 
 
