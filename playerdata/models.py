@@ -618,6 +618,7 @@ class UserStats(models.Model):
     mythic_pity_counter = models.IntegerField(default=0)
     silver_pity_counter = models.IntegerField(default=0)
     gold_pity_counter = models.IntegerField(default=0)
+    chest_counter = models.IntegerField(default=0)
 
     def __str__(self):
         return self.user.userinfo.name + '(' + str(self.user.id) + ')'
