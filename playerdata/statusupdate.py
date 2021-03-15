@@ -52,7 +52,7 @@ def award_chest(user):
 
     # chest cycle: drop 4 mythical chests in 240 quickplay chests
     user.userstats.chest_counter += 1
-    if user.userstats.chest_counter in [60, 120, 180, 240]:
+    if user.userstats.chest_counter in [28, 91, 153, 212]:
         chest_rarity = constants.ChestType.MYTHICAL.value
     if user.userstats.chest_counter >= 240:
         user.userstats.chest_counter = 0
