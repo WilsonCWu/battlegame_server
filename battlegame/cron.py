@@ -3,6 +3,7 @@ from django.utils import timezone
 import random
 import statistics
 import functools
+import requests
 
 from sentry_sdk import capture_exception
 
@@ -33,7 +34,14 @@ To check what jobs are actually scheduled on crontab: `crontab -l`
 Double check that crontab on the server is running on UTC timezone
 """
 
-def cron(retries=0):
+def cron(uuid=None, retries=0):
+    def notify_success():
+        if uuid is not None and not settings.DEVELOPMENT:
+            try:
+                requests.get("https://hc-ping.com/%s" % uuid, timeout=10)
+            except requests.RequestException as e:
+                cron_logger("Failed to ping hc: %s" % e)
+    
     def cron_logger(s):
         # TODO: we should definately just use the logging package.
         print("[%s] %s" % (datetime.now().strftime("%d/%m/%Y %H:%M:%S"), s))
@@ -47,6 +55,7 @@ def cron(retries=0):
                 try:
                     ret = func(*args, **kwargs)
                     cron_logger("Success!")
+                    notify_success()
                     return ret
                 except Exception as e:
                     cron_logger("Caught error: %s" % e)
@@ -56,19 +65,18 @@ def cron(retries=0):
     return inner
 
 
-@cron()
+@cron(uuid="75a7e314-2bb2-48e8-b319-1f813dd86999")
 def daily_quests_cron():
     # remove top 3 from daily
     refresh_daily_quests()
 
 
-@cron()
 def weekly_quests_cron():
     # remove top 5 from weekly
     refresh_weekly_quests()
 
 
-@cron()
+@cron(uuid="3f6f9ed0-ef95-4a56-b27d-968e2bf3678d")
 def daily_deals_cron():
     refresh_daily_deals_cronjob()
 
@@ -77,12 +85,12 @@ def weekly_deals_cron():
     refresh_weekly_deals_cronjob()
 
 
-@cron()
+@cron(uuid="222e1a79-98e1-4d9f-8d74-6dcf31cb00bd")
 def daily_clean_matches_cron():
     Match.objects.filter(uploaded_at__lte=timezone.now() - timedelta(days=14)).delete()
 
 
-@cron()
+@cron(uuid="cb651e8b-e227-4be1-a786-acd6fcac037c")
 def reset_daily_wins_cron():
     userstats = UserStats.objects.all()
     for stat in userstats:
@@ -94,7 +102,7 @@ MAX_DAILY_DUNGEON_TICKET = 1
 MAX_DAILY_DUNGEON_GOLDEN_TICKET = 1
 
 
-@cron()
+@cron(uuid="8c7cdffd-d2bb-4fff-8a12-57666965db8c")
 def daily_dungeon_golden_ticket_drop():
     to_inc = Inventory.objects.filter(daily_dungeon_golden_ticket__lt=MAX_DAILY_DUNGEON_GOLDEN_TICKET)
     for inv in to_inc:
@@ -102,7 +110,7 @@ def daily_dungeon_golden_ticket_drop():
     Inventory.objects.bulk_update(to_inc, ['daily_dungeon_golden_ticket'])
 
 
-@cron()
+@cron(uuid="f7ca56fc-0970-4ba7-9b18-80fa81833e3e")
 def daily_dungeon_ticket_drop():
     to_inc = Inventory.objects.filter(daily_dungeon_ticket__lt=MAX_DAILY_DUNGEON_TICKET)
     for inv in to_inc:
@@ -110,7 +118,7 @@ def daily_dungeon_ticket_drop():
     Inventory.objects.bulk_update(to_inc, ['daily_dungeon_ticket'])
 
 
-@cron()
+@cron(uuid="b843e92a-fb04-4332-831f-e086cc4ffe5e")
 def refresh_daily_dungeon():
     daily_dungeon_team_gen_cron()
  
