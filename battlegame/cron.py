@@ -36,7 +36,7 @@ Double check that crontab on the server is running on UTC timezone
 
 def cron(uuid=None, retries=0):
     def notify_success():
-        if uuid is not None:
+        if uuid is not None and not settings.DEVELOPMENT:
             try:
                 requests.get("https://hc-ping.com/%s" % uuid, timeout=10)
             except requests.RequestException as e:
