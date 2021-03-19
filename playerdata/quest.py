@@ -98,7 +98,7 @@ def handle_claim_quest(request, quest_class):
     try:
         quest = quest_class.objects.get(user=request.user, id=quest_id)
     except ObjectDoesNotExist:
-        return Response({'status': False, 'reason': 'invalid quest_id: ' + quest_id})
+        return Response({'status': False, 'reason': 'invalid quest_id: %d' % quest_id})
 
     if quest_class is PlayerQuestCumulative:
         progress = quest.progress.progress
