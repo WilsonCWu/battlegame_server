@@ -149,11 +149,6 @@ def handle_quickplay(request, win, opponent, stats):
         chest_rarity = award_chest(request.user)
         QuestUpdater.add_progress_by_type(request.user, constants.WIN_QUICKPLAY_GAMES, 1)
 
-        dungeon_progress = DungeonProgress.objects.get(user=request.user)
-        elo_scaler = 50 + math.floor(request.user.userinfo.elo / 10)
-        reward_scaler = min(dungeon_progress.campaign_stage, elo_scaler)
-        player_exp = formulas.player_exp_reward_quickplay(reward_scaler)
-
     # rewards
     original_elo = request.user.userinfo.elo
     updated_rating = update_rating(original_elo, opponent, win)
@@ -162,6 +157,11 @@ def handle_quickplay(request, win, opponent, stats):
         coins = formulas.coins_chest_reward(request.user, constants.ChestType.SILVER.value) / 20
         request.user.inventory.coins += coins
         request.user.inventory.save()
+
+        dungeon_progress = DungeonProgress.objects.get(user=request.user)
+        elo_scaler = 50 + math.floor(request.user.userinfo.elo / 10)
+        reward_scaler = min(dungeon_progress.campaign_stage, elo_scaler)
+        player_exp = formulas.player_exp_reward_quickplay(reward_scaler)
 
     request.user.userinfo.elo = updated_rating
     request.user.userinfo.player_exp += player_exp
