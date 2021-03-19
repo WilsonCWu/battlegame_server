@@ -273,8 +273,8 @@ class CollectChest(APIView):
 
         try:
             chest = Chest.objects.get(user=request.user, id=chest_id)
-        except Model.DoesNotExist as e:
-            return Response({'status': False, 'reason': 'chest_id does not exist ' + chest_id})
+        except Chest.DoesNotExist:
+            return Response({'status': False, 'reason': 'chest_id does not exist %d' % chest_id})
 
         if chest.locked_until is None and not is_skip:
             return Response({'status': False, 'reason': 'chest needs to be unlocked first'})
