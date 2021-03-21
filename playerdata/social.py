@@ -80,14 +80,18 @@ class FriendRequestView(APIView):
 class AcceptFriendRequestView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = AcceptFriendRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         target_fr_id = serializer.validated_data['target_id']
         accept = serializer.validated_data['accept']
 
-        friend_request = FriendRequest.objects.get(id=target_fr_id)
-
+        try:
+            friend_request = FriendRequest.objects.get(id=target_fr_id)
+        except FriendRequest.DoesNotExist:
+            return Response({'status': False, 'reason': "friend request does not exist"})
+        
         if friend_request.target != request.user:
             return Response({'status': False, 'reason': "friend request not for target user"})
 
