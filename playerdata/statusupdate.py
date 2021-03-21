@@ -24,7 +24,8 @@ def calculate_elo(r1, r2, s1, k=50):
     R2 = 10 ** (r2 / 400)
     E1 = R1 / (R1 + R2)
     new_r1 = r1 + k * (s1 - E1)
-    return max(new_r1, 0)
+    min_r1 = max(new_r1, 0)
+    return min(min_r1, 3500)  # cap off elo at 3500
 
 
 # standing is zero-based integer
