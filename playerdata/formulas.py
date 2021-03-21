@@ -85,7 +85,8 @@ class ExpToLevel:
 
 
 def player_exp_reward_quickplay(dungeon_level):
-    return math.floor((dungeon_level / 5) * 6) + 6
+    exp = math.floor((dungeon_level / 5) * 6) + 6
+    return max(exp, 3250)
 
 
 def player_exp_reward_dungeon(dungeon_level):
