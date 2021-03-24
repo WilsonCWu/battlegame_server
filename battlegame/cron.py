@@ -98,8 +98,8 @@ def reset_daily_wins_cron():
     UserStats.objects.bulk_update(userstats, ['daily_wins'])
 
 
-MAX_DAILY_DUNGEON_TICKET = 1
-MAX_DAILY_DUNGEON_GOLDEN_TICKET = 1
+MAX_DAILY_DUNGEON_TICKET = 5
+MAX_DAILY_DUNGEON_GOLDEN_TICKET = 3
 
 
 @cron(uuid="8c7cdffd-d2bb-4fff-8a12-57666965db8c")
