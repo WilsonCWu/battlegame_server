@@ -32,7 +32,7 @@ from .models import Character
 from .models import Chat
 from .models import ChatMessage
 from .models import ClaimedCode
-from .models import Clan
+from .models import Clan, Clan2
 from .models import ClanMember
 from .models import ClanRequest
 from .models import CumulativeTracker
@@ -472,6 +472,7 @@ admin.site.register(ChatMessage)
 admin.site.register(Friend)
 admin.site.register(FriendRequest)
 admin.site.register(Clan)
+admin.site.register(Clan2)
 admin.site.register(ClanMember)
 admin.site.register(ClanRequest)
 
