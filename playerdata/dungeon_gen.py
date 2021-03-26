@@ -72,27 +72,14 @@ def convert_teamp_comp_to_stage(team_comp, stage_num, levels, prestiges, seed_in
 
 # returns a list of 5 levels based on which filler level it is or a boss stage
 def get_campaign_levels_for_stage(starting_level, stage_num, boss_stage):
-    # Hard stuck stages, the boss level increases by 10 instead of by 5
-    if 320 < stage_num <= 360:
-        boss_level = 90
-    elif 460 < stage_num <= 480:
-        boss_level = 120
-    elif 580 < stage_num <= 600:
-        boss_level = 150
-    elif 700 < stage_num <= 720:
-        boss_level = 180
-    elif 820 < stage_num <= 840:
-        boss_level = 210
-    elif 940 < stage_num <= 960:
-        boss_level = 228
-
-    # Filler / Easier stages
-    elif stage_num < 800:
+    if stage_num <= 840:
         boss_level = boss_stage / 4
 
     # Here we slow down the level increments as we approach the end
     # Prestige here is around 9/10 stars and we expect this ramp to be just as difficult
     # Items also ramp up here to compensate for the smaller stat increases
+    elif 940 < stage_num <= 960:
+        boss_level = 228
     elif stage_num < 940:
         boss_level = (boss_stage - 860) / 10 + 212
     elif stage_num < 1060:
@@ -234,7 +221,7 @@ def stage_generator(stage_num, dungeon_type):
         prestiges = [0] * 5
         placement = convert_teamp_comp_to_stage(team_comp, stage_num, levels, prestiges, seed_int)
         placement = swap_in_peasants(stage_num, placement, prestiges, seed_int)
-        
+
     else:
         raise Exception("invalid dungeon type")
 
