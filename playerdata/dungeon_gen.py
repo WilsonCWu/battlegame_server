@@ -234,6 +234,7 @@ def stage_generator(stage_num, dungeon_type):
         prestiges = [0] * 5
         placement = convert_teamp_comp_to_stage(team_comp, stage_num, levels, prestiges, seed_int)
         placement = swap_in_peasants(stage_num, placement, prestiges, seed_int)
+        
     else:
         raise Exception("invalid dungeon type")
 
