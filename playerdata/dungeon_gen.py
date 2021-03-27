@@ -223,6 +223,7 @@ def stage_generator(stage_num, dungeon_type):
 
     return PlacementSchema(placement).data
 
+
 # To print out all the dungeon levels:
 # python manage.py shell_plus
 # from playerdata import dungeon_gen
