@@ -597,6 +597,7 @@ class UserInfo(models.Model):
     tourney_elo = models.IntegerField(default=0)
     prev_tourney_elo = models.IntegerField(default=0)
     best_daily_dungeon_stage = models.IntegerField(default=0)
+    best_moevasion_stage = models.IntegerField(default=0)
     
     class Meta:
         indexes = [
@@ -692,6 +693,29 @@ class DailyDungeonStage(models.Model):
     def __str__(self):
         return 'Daily Dungeon Stage: ' + str(self.stage)
 
+
+class MoevasionStatus(models.Model):
+    """MoevasionStatus represents a user's progress (or lack of progress) in
+    a single Moevasion run. NOTE: if we have more similar gamemodes like this
+    in the future, we can look to consolidate the logic between this and
+    daily dungeons.
+    """
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    # Stage 0 implies that the player is currently NOT in a daily dungeon run.
+    stage = models.IntegerField(default=0)
+    # We expect character state to be in the format of
+    # {<character_id>: <character_health>}.
+    character_state = JSONField(blank=True, null=True)
+
+    def is_active(self):
+        return self.stage > 0
+
+    def start(self):
+        self.stage = 1
+
+    def end(self):
+        self.stage = 0
+        
 
 class Chest(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

@@ -58,6 +58,11 @@ class DailyDungeonResultSerializer(serializers.Serializer):
     characters = serializers.JSONField(required=True)
 
 
+class MoevasionResultSerializer(serializers.Serializer):
+    is_loss = serializers.BooleanField(required=True)
+    characters = serializers.JSONField(required=True)
+
+
 class TargetCharSerializer(serializers.Serializer):
     target_char_id = serializers.IntegerField(required=True)
 
