@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('auth', '0011_update_proxy_permissions'),
-        ('playerdata', '0129_auto_20210324_2219'),
+        ('playerdata', '0130_auto_20210326_2047'),
     ]
 
     operations = [
