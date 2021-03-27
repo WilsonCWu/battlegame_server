@@ -1,3 +1,4 @@
+import json
 import math
 import random
 from datetime import date
@@ -226,3 +227,38 @@ def stage_generator(stage_num, dungeon_type):
         raise Exception("invalid dungeon type")
 
     return PlacementSchema(placement).data
+
+# To print out all the dungeon levels:
+# python manage.py shell_plus
+# from playerdata import dungeon_gen
+# dungeon_gen.dump_stage_info()
+def dump_stage_info():
+    test_comp_str = u'[{"char_id": 0, "position": 6}, {"char_id": 1, "position": 10}, {"char_id": 8, "position": 15}, {"char_id": 16, "position": 16}, {"char_id": 12, "position": 22}]'
+    team_comp = json.loads(test_comp_str)
+
+    for stage_num in range(1, 1201):
+        boss_stage = math.ceil(stage_num / constants.NUM_DUNGEON_SUBSTAGES[0]) * constants.NUM_DUNGEON_SUBSTAGES[0]
+
+        seed_int = stage_num
+        levels = get_campaign_levels_for_stage(1, stage_num, boss_stage)
+        prestiges = get_campaign_prestige(boss_stage)
+
+        placement = convert_teamp_comp_to_stage(team_comp, stage_num, levels, prestiges, seed_int)
+        placement = swap_in_peasants(stage_num, placement, prestiges, seed_int)
+
+        print("lvl:", stage_num,
+              " Charlvl: [",
+              int(placement.char_1.level),
+              int(placement.char_2.level),
+              int(placement.char_3.level),
+              int(placement.char_4.level),
+              int(placement.char_5.level),
+              "]",
+              "  Prestige: [",  # star level would add whatever is the adjustment per rarity
+              int(placement.char_1.prestige),
+              int(placement.char_2.prestige),
+              int(placement.char_3.prestige),
+              int(placement.char_4.prestige),
+              int(placement.char_5.prestige),
+              "]",
+              sep=' ')
