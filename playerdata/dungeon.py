@@ -9,7 +9,7 @@ from rest_marshmallow import Schema, fields
 from playerdata.models import DungeonProgress, Character, Placement
 from playerdata.models import DungeonStage
 from playerdata.models import ReferralTracker
-from . import constants, formulas
+from . import constants, formulas, server, dungeon_gen
 from .constants import DungeonType
 from .matcher import PlacementSchema
 from .questupdater import QuestUpdater
@@ -260,5 +260,15 @@ class DungeonStageView(APIView):
 
         if dungeon_stage is None:
             return Response({'status': False, 'reason': 'unknown stage id'})
+
+        if server.is_server_version_higher("0.3.0"):
+            return Response({'status': True,
+                             'stage_id': dungeon_stage.stage,
+                             'player_exp': formulas.player_exp_reward_dungeon(dungeon_stage.stage),
+                             'coins': formulas.coins_reward_dungeon(dungeon_stage.stage, dungeon_type),
+                             'gems': formulas.gems_reward_dungeon(dungeon_stage.stage, dungeon_type),
+                             'mob': dungeon_gen.stage_generator(dungeon_stage.stage, dungeon_type),
+                             'story_text': dungeon_stage.story_text})
+
         dungeon_stage_schema = DungeonStageSchema(dungeon_stage)
         return Response(dungeon_stage_schema.data)

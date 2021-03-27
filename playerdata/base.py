@@ -2,6 +2,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
+from functools import lru_cache
 
 from playerdata.models import BaseCharacter
 from playerdata.models import BaseCharacterAbility2
@@ -81,6 +82,11 @@ class BaseItemSchema(StatModifierSchema):
 class BasePrestigeSchema(StatModifierSchema):
     char_type = fields.Int(attribute='char_type_id')
     level = fields.Int()
+
+
+@lru_cache()
+def get_char_rarity(char_id: int):
+    return BaseCharacter.objects.get(char_type=char_id).rarity
 
 
 class BaseInfoView(APIView):

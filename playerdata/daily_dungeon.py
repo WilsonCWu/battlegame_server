@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from . import rolls, constants, chests
+from . import rolls, constants, chests, dungeon_gen
 from .questupdater import QuestUpdater
 from .serializers import DailyDungeonStartSerializer, DailyDungeonResultSerializer
 from .matcher import PlacementSchema
@@ -75,90 +75,9 @@ def daily_dungeon_team_gen_cron():
     DailyDungeonStage.objects.bulk_create(teams_list)
 
 
-# returns a list of 5 levels based on which filler level it is or a boss stage
-def get_levels_for_stage(starting_level, stage_num, boss_stage):
-    boss_level = starting_level + (boss_stage * 25)
-    position_in_stage = stage_num % 10
-
-    # TODO: this is hardcoded level progression for the 10 filler stages
-    # makes it much easier to tune and change for now
-    if position_in_stage == 1:
-        return [boss_level - 27] * 5
-    elif position_in_stage == 2:
-        return [(boss_level - 24)] * 3 + [(boss_level - 23)] * 2
-    elif position_in_stage == 3:
-        return [(boss_level - 21)] * 3 + [(boss_level - 19)] * 2
-    elif position_in_stage == 4:
-        return [(boss_level - 18)] * 3 + [(boss_level - 15)] * 2
-    elif position_in_stage == 5:
-        return [boss_level - 12] * 5
-    elif position_in_stage == 6:
-        return [(boss_level - 14)] * 3 + [(boss_level - 11)] * 2
-    elif position_in_stage == 7:
-        return [(boss_level - 11)] * 3 + [(boss_level - 7)] * 2
-    elif position_in_stage == 8:
-        return [(boss_level - 8)] * 3 + [(boss_level - 4)] * 2
-    elif position_in_stage == 9:
-        return [(boss_level - 5)] * 3 + [(boss_level - 1)] * 2
-    else:
-        return [boss_level] * 5
-
-# converts a JSON team_comp (see models DailyDungeonStage for more details)
-# into a fully functional Placement
-def convert_teamp_comp_to_stage(team_comp, stage_num, boss_stage):
-    seed_int = date.today().month + date.today().day + stage_num
-    rng = random.Random(seed_int)
-
-    placement = Placement()
-    levels = get_levels_for_stage(10, stage_num, boss_stage)
-    available_pos_frontline = [*constants.FRONTLINE_POS]
-    available_pos_backline = [*constants.BACKLINE_POS]
-
-    # if not a boss or mini boss, shuffle positions
-    if stage_num % 5 != 0:
-        for char in team_comp:
-            if char['char_id'] in constants.FRONTLINE_CHARS:
-                char['position'] = rng.choice(available_pos_frontline)
-                available_pos_frontline.remove(char['position'])
-            else:
-                char['position'] = rng.choice(available_pos_backline)
-                available_pos_backline.remove(char['position'])
-
-    for i, char in enumerate(team_comp):
-        leveled_char = Character(user_id=1, char_type_id=char['char_id'], level=levels[i], char_id=i + 1)
-
-        if i == 0:
-            # if warmup level replace with any peasant
-            if stage_num % 10 in [1, 2, 6, 7]:
-                    leveled_char.char_type_id = rng.randint(1, 3)
-            placement.char_1 = leveled_char
-            placement.pos_1 = char['position']
-        elif i == 1:
-            # if warmup level replace with any peasant
-            if stage_num % 10 in [1, 6]:
-                    leveled_char.char_type_id = rng.randint(1, 3)
-            placement.char_2 = leveled_char
-            placement.pos_2 = char['position']
-        elif i == 2:
-            placement.char_3 = leveled_char
-            placement.pos_3 = char['position']
-        elif i == 3:
-            placement.char_4 = leveled_char
-            placement.pos_4 = char['position']
-        else:
-            placement.char_5 = leveled_char
-            placement.pos_5 = char['position']
-
-    return placement
-
-
 # Pulls the corresponding boss stage and generates either a filler or boss level
 def daily_dungeon_stage_generator(stage_num):
-    boss_stage = math.ceil(stage_num/10)
-    team_comp = DailyDungeonStage.objects.get(stage=boss_stage).team_comp
-    placement = convert_teamp_comp_to_stage(team_comp, stage_num, boss_stage)
-
-    return PlacementSchema(placement).data
+    return dungeon_gen.stage_generator(stage_num, constants.DungeonType.TUNNELS.value)
 
 
 class DailyDungeonStartView(APIView):

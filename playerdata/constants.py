@@ -17,8 +17,9 @@ REFFERAL_GEMS_REWARD = 2500
 class DungeonType(Enum):
     CAMPAIGN = 0
     TOWER = 1
+    TUNNELS = 2
 
-
+# TODO: Update campaign to 1200 after April 1st release
 MAX_DUNGEON_STAGE = [400, 45]
 NUM_DUNGEON_SUBSTAGES = [20, 5]
 CHAR_LEVEL_DIFF_BETWEEN_STAGES = [1, 5]
