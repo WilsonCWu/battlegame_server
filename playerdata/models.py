@@ -884,8 +884,12 @@ class DungeonProgress(models.Model):
 
 class DungeonBoss(models.Model):
     stage = models.IntegerField()
-    placement = models.ForeignKey(Placement, on_delete=models.CASCADE)
+    placement = models.ForeignKey(Placement, on_delete=models.CASCADE, blank=True, null=True)
     dungeon_type = models.IntegerField(choices=[(dungeon.value, dungeon.name) for dungeon in DungeonType], default=DungeonType.CAMPAIGN.value)
+
+    # We expect team_comp to be in format of
+    # [ {'char_id': <char_id>, 'position': <position>}, {...}, ... ]
+    team_comp = JSONField(blank=True, null=True)
 
     class Meta:
         constraints = [
