@@ -10,12 +10,7 @@ from playerdata.models import Placement, Character, DungeonBoss, DailyDungeonSta
 
 # Adjust the prestige based on prestige rarity cap
 def prestige_for_rarity(rarity, prestige):
-    if rarity == 2:
-        prestige -= 1
-    elif rarity == 3:
-        prestige -= 3
-    else:
-        prestige -= 5
+    prestige -= constants.MAX_PRESTIGE_LEVEL - constants.PRESTIGE_CAP_BY_RARITY[rarity]
     return max(prestige, 0)
 
 
