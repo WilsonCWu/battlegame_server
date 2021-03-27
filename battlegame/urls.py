@@ -19,6 +19,7 @@ from django.urls import path
 from playerdata import login
 from playerdata import base
 from playerdata import daily_dungeon
+from playerdata import moevasion
 from playerdata import matcher
 from playerdata import statusupdate
 from playerdata import purchases
@@ -41,6 +42,10 @@ urlpatterns = [
     path('dailydungeon/stage/', daily_dungeon.DailyDungeonStageView.as_view()),
     path('dailydungeon/result/', daily_dungeon.DailyDungeonResultView.as_view()),
     path('dailydungeon/forfeit/', daily_dungeon.DailyDungeonForfeitView.as_view()),
+    path('moevasion/start/', moevasion.StartView.as_view()),
+    path('moevasion/end/', moevasion.EndView.as_view()),
+    path('moevasion/stage/', moevasion.StageView.as_view()),
+    path('moevasion/result/', moevasion.ResultView.as_view()),
     path('coinshop/buyitem/', coin_shop.TryBuyItemView.as_view()),
     path('coinshop/getitems/', coin_shop.GetItemsView.as_view()),
     path('tournament/matchhistory', tournament.TournamentMatchHistory.as_view()),
