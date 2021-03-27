@@ -69,6 +69,9 @@ class ServerStatus(models.Model):
 class BaseCharacter(models.Model):
     char_type = models.AutoField(primary_key=True)
     name = models.CharField(max_length=30, unique=True)
+    rarity = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(4)])
+    rollable = models.BooleanField(default=False)
+
     health = models.IntegerField()
     starting_mana = models.IntegerField()
     mana = models.IntegerField()
@@ -79,14 +82,12 @@ class BaseCharacter(models.Model):
     ar = models.IntegerField()
     mr = models.IntegerField()
     attack_range = models.IntegerField()
-    rarity = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(4)])
     crit_chance = models.IntegerField()
     health_scale = models.IntegerField()
     attack_scale = models.IntegerField()
     ability_scale = models.IntegerField()
     ar_scale = models.IntegerField()
     mr_scale = models.IntegerField()
-    rollable = models.BooleanField(default=False)
 
     class Meta:
         indexes = [
@@ -96,6 +97,57 @@ class BaseCharacter(models.Model):
 
     def __str__(self):
         return str(self.char_type) + ': ' + self.name
+
+
+class BaseCharacterStats(models.Model):
+    char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE)
+    version = models.CharField(max_length=30, default='0.0.0')
+
+    health = models.IntegerField()
+    starting_mana = models.IntegerField()
+    mana = models.IntegerField()
+    speed = models.IntegerField()
+    attack_damage = models.IntegerField()
+    ability_damage = models.IntegerField()
+    attack_speed = models.FloatField()
+    ar = models.IntegerField()
+    mr = models.IntegerField()
+    attack_range = models.IntegerField()
+    crit_chance = models.IntegerField()
+    health_scale = models.IntegerField()
+    attack_scale = models.IntegerField()
+    ability_scale = models.IntegerField()
+    ar_scale = models.IntegerField()
+    mr_scale = models.IntegerField()
+
+    class Meta:
+        unique_together = ('char_type', 'version')
+
+    def __str__(self):
+        return self.char_type.name + ': ' + self.version
+
+    # TODO: remove after deprecation from base.
+    def clone_from_base(base_char, version):
+        return BaseCharacterStats.objects.create(
+            char_type = base_char,
+            version = version,
+            health = base_char.health,
+            starting_mana = base_char.starting_mana,
+            mana = base_char.mana,
+            speed = base_char.speed,
+            attack_damage = base_char.attack_damage,
+            ability_damage = base_char.ability_damage,
+            attack_speed = base_char.attack_speed,
+            ar = base_char.ar,
+            mr = base_char.mr,
+            attack_range = base_char.attack_range,
+            crit_chance = base_char.crit_chance,
+            health_scale = base_char.health_scale,
+            attack_scale = base_char.attack_scale,
+            ability_scale = base_char.ability_scale,
+            ar_scale = base_char.ar_scale,
+            mr_scale = base_char.mr_scale,
+        )
 
 
 class BaseCharacterAbility2(models.Model):
