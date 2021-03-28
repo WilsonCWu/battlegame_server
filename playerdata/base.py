@@ -6,6 +6,7 @@ from functools import lru_cache
 
 from playerdata.models import BaseCharacter
 from playerdata.models import BaseCharacterAbility2
+from playerdata.models import BaseCharacterStats
 from playerdata.models import BaseItem
 from playerdata.models import BasePrestige
 
@@ -18,6 +19,12 @@ class UserSchema(Schema):
 class BaseCharacterSchema(Schema):
     char_type = fields.Int()
     name = fields.Str()
+    rarity = fields.Int()
+    rollable = fields.Bool()
+
+
+class BaseCharacterStatsSchema(Schema):
+    char_type = fields.Int(attribute='char_type_id')
     health = fields.Int()
     starting_mana = fields.Int()
     mana = fields.Int()
@@ -28,14 +35,12 @@ class BaseCharacterSchema(Schema):
     ar = fields.Int()
     mr = fields.Int()
     attack_range = fields.Int()
-    rarity = fields.Int()
     crit_chance = fields.Int()
     health_scale = fields.Int()
     attack_scale = fields.Int()
     ability_scale = fields.Int()
     ar_scale = fields.Int()
     mr_scale = fields.Int()
-    rollable = fields.Bool()
 
 
 class BaseCharacterAbilitySchema(Schema):
@@ -92,8 +97,22 @@ def get_char_rarity(char_id: int):
 class BaseInfoView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    def serialize_base_characters(version):
+        if version is not None:
+            stats = BaseCharacterStats.get_active_under_version(version)
+        else:
+            stats = BaseCharacterStats.get_active()
+            
+        for bc in BaseCharacter.objects.all():
+            serialized = BaseCharacterSchema(bc).data
+
+            char_stats = next(s for s in stats if s.char_type.char_type == bc.char_type)
+            serialized_stats = BaseCharacterStatsSchema(char_stats).data
+            serialized.update(serialized_stats)
+            yield serialized
+
+    
     def get(self, request, version=None):
-        charSerializer = BaseCharacterSchema(BaseCharacter.objects.all(), many=True)
         itemSerializer = BaseItemSchema(BaseItem.objects.all(), many=True)
         prestigeSerializer = BasePrestigeSchema(BasePrestige.objects.all(), many=True)
 
@@ -105,7 +124,7 @@ class BaseInfoView(APIView):
             specSerializer = BaseCharacterAbilitySchema(BaseCharacterAbility2.get_active(), many=True)
 
         return Response({
-            'characters': charSerializer.data,
+            'characters': list(BaseInfoView.serialize_base_characters(version)),
             'items': itemSerializer.data,
             'specs': specSerializer.data,
             'prestige': prestigeSerializer.data,

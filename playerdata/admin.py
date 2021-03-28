@@ -19,7 +19,7 @@ from .models import ActiveCumulativeQuest, DailyDungeonStatus, DailyDungeonStage
 from .models import ActiveDailyQuest
 from .models import ActiveDeal
 from .models import ActiveWeeklyQuest
-from .models import BaseCharacter, Chest
+from .models import BaseCharacter, BaseCharacterStats, Chest
 from .models import BaseCharacterAbility, BaseCharacterAbility2
 from .models import BaseCharacterUsage
 from .models import BaseCode
@@ -372,6 +372,42 @@ class BaseCharacterAbility2Admin(admin.ModelAdmin):
                 ability3_desc = a.ability3_desc,
                 ultimate_specs = a.ultimate_specs,
                 ultimate_desc = a.ultimate_desc,
+            )
+
+
+@admin.register(BaseCharacterStats)
+class BaseCharacterStatsAdmin(admin.ModelAdmin):
+    formfield_overrides = {
+        JSONField: {'widget': JSONEditorWidget}
+    }
+    list_filter = ('char_type', 'version')
+    actions = ('generate_next_patch',)
+
+    def generate_next_patch(self, request, queryset):
+        for a in queryset:
+            next_patch = a.version.split('.')
+            next_patch[-1] = str(int(next_patch[-1]) + 1)
+            next_patch_str = '.'.join(next_patch)
+            
+            BaseCharacterStats.objects.create(
+                char_type = a.char_type,
+                version = next_patch_str,
+                health = a.health,
+                starting_mana = a.starting_mana,
+                mana = a.mana,
+                speed = a.speed,
+                attack_damage = a.attack_damage,
+                ability_damage = a.ability_damage,
+                attack_speed = a.attack_speed,
+                ar = a.ar,
+                mr = a.mr,
+                attack_range = a.attack_range,
+                crit_chance = a.crit_chance,
+                health_scale = a.health_scale,
+                attack_scale = a.attack_scale,
+                ability_scale = a.ability_scale,
+                ar_scale = a.ar_scale,
+                mr_scale = a.mr_scale,
             )
 
 
