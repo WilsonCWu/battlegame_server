@@ -191,7 +191,7 @@ def overlevel_carry(placement, carry_id):
     for attr in charsattrs:
         char = getattr(placement, attr)
         if char.char_type_id == carry_id:
-            char.level = char.level + 10
+            char.level = min(char.level + 10, constants.MAX_CHARACTER_LEVEL)
             setattr(placement, attr, char)
 
     return placement
