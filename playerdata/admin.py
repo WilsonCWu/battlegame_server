@@ -20,7 +20,7 @@ from .models import ActiveDailyQuest
 from .models import ActiveDeal
 from .models import ActiveWeeklyQuest
 from .models import BaseCharacter, BaseCharacterStats, Chest
-from .models import BaseCharacterAbility, BaseCharacterAbility2
+from .models import BaseCharacterAbility2
 from .models import BaseCharacterUsage
 from .models import BaseCode
 from .models import BaseDeal

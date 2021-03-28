@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from playerdata.models import BaseCharacter, BaseCharacterAbility, Character, BaseItem, Item, User
+from playerdata.models import BaseCharacter, BaseCharacterAbility2, Character, BaseItem, Item, User
 
 class CharacterTestCase(TestCase):
     fixtures = ['playerdata/tests/fixtures.json']
@@ -61,7 +61,7 @@ class BaseCharacterAbilityTestCase(TestCase):
         self.base_char = BaseCharacter.objects.get(name='Archer')
 
     def test_valid_spec(self):
-        specs = BaseCharacterAbility.objects.create(char_type=self.base_char)
+        specs = BaseCharacterAbility2.objects.create(char_type=self.base_char)
         specs.ability1_specs = {
             "1": {
                 "foo": 1,
@@ -78,7 +78,7 @@ class BaseCharacterAbilityTestCase(TestCase):
         specs.full_clean()
 
     def test_missing_key_spec(self):
-        specs = BaseCharacterAbility.objects.create(char_type=self.base_char)
+        specs = BaseCharacterAbility2.objects.create(char_type=self.base_char)
         specs.ability1_specs = {
             "1": {
                 "foo": 1,
@@ -92,7 +92,7 @@ class BaseCharacterAbilityTestCase(TestCase):
             specs.full_clean()
 
     def test_non_numeric_inner_spec(self):
-        specs = BaseCharacterAbility.objects.create(char_type=self.base_char)
+        specs = BaseCharacterAbility2.objects.create(char_type=self.base_char)
         specs.ability1_specs = {
             "1": {
                 "foo": "hello",
@@ -103,7 +103,7 @@ class BaseCharacterAbilityTestCase(TestCase):
             specs.full_clean()
 
     def test_duplicate_level_spec(self):
-        specs = BaseCharacterAbility.objects.create(char_type=self.base_char)
+        specs = BaseCharacterAbility2.objects.create(char_type=self.base_char)
         specs.ability1_specs = {
             "1": {
                 "foo": 1,
@@ -119,7 +119,7 @@ class BaseCharacterAbilityTestCase(TestCase):
             specs.full_clean()
 
     def test_missing_level_spec(self):
-        specs = BaseCharacterAbility.objects.create(char_type=self.base_char)
+        specs = BaseCharacterAbility2.objects.create(char_type=self.base_char)
         specs.ability1_specs = {
             "1": {
                 "foo": 1,
@@ -135,7 +135,7 @@ class BaseCharacterAbilityTestCase(TestCase):
             specs.full_clean()
 
     def test_bad_key_spec(self):
-        specs = BaseCharacterAbility.objects.create(char_type=self.base_char)
+        specs = BaseCharacterAbility2.objects.create(char_type=self.base_char)
         specs.ability1_specs = {
             "hello1": {
                 "foo": 1,
@@ -146,7 +146,7 @@ class BaseCharacterAbilityTestCase(TestCase):
             specs.full_clean()
 
     def test_prestige_spec(self):
-        specs = BaseCharacterAbility.objects.create(char_type=self.base_char)
+        specs = BaseCharacterAbility2.objects.create(char_type=self.base_char)
         specs.ability1_specs = {
             "1": {
                 "foo": 1,
@@ -159,7 +159,7 @@ class BaseCharacterAbilityTestCase(TestCase):
         specs.full_clean()
 
     def test_over_prestiged_spec(self):
-        specs = BaseCharacterAbility.objects.create(char_type=self.base_char)
+        specs = BaseCharacterAbility2.objects.create(char_type=self.base_char)
         specs.ability1_specs = {
             "1": {
                 "foo:": 1,
@@ -172,7 +172,7 @@ class BaseCharacterAbilityTestCase(TestCase):
             specs.full_clean()
 
     def test_under_prestiged_spec(self):
-        specs = BaseCharacterAbility.objects.create(char_type=self.base_char)
+        specs = BaseCharacterAbility2.objects.create(char_type=self.base_char)
         specs.ability1_specs = {
             "1": {
                 "foo": 1,
@@ -186,7 +186,7 @@ class BaseCharacterAbilityTestCase(TestCase):
             specs.full_clean()
 
     def test_missing_bonus_prestiged_key_spec(self):
-        specs = BaseCharacterAbility.objects.create(char_type=self.base_char)
+        specs = BaseCharacterAbility2.objects.create(char_type=self.base_char)
         specs.ability1_specs = {
             "1": {
                 "bar": 2,
@@ -199,7 +199,7 @@ class BaseCharacterAbilityTestCase(TestCase):
             specs.full_clean()
 
     def test_non_bonus_prestiged_key_spec(self):
-        specs = BaseCharacterAbility.objects.create(char_type=self.base_char)
+        specs = BaseCharacterAbility2.objects.create(char_type=self.base_char)
         specs.ability1_specs = {
             "1": {
                 "bar": 2,
