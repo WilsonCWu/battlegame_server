@@ -149,6 +149,25 @@ class BaseCharacterStats(models.Model):
             mr_scale = base_char.mr_scale,
         )
 
+    def get_active():
+        stats = {}
+        for s in BaseCharacterStats.objects.all():
+            # We expect server versions to be triplets.
+            if s.char_type not in stats or version.parse(s.version) > version.parse(stats[s.char_type].version):
+                stats[s.char_type] = s
+        return stats.values()
+
+    def get_active_under_version(v):
+        stats = {}
+        for s in BaseCharacterStats.objects.all():
+            if version.parse(s.version) > version.parse(v):
+                continue
+            
+            # We expect server versions to be triplets.
+            if s.char_type not in stats or version.parse(s.version) > version.parse(stats[s.char_type].version):
+                stats[s.char_type] = s
+        return stats.values()
+
 
 class BaseCharacterAbility2(models.Model):
     """Model holding character ability specs which are progressively unlocked.
