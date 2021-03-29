@@ -44,6 +44,7 @@ urlpatterns = [
     path('dailydungeon/forfeit/', daily_dungeon.DailyDungeonForfeitView.as_view()),
     path('moevasion/start/', moevasion.StartView.as_view()),
     path('moevasion/end/', moevasion.EndView.as_view()),
+    path('moevasion/status/', moevasion.StatusView.as_view()),
     path('moevasion/stage/', moevasion.StageView.as_view()),
     path('moevasion/result/', moevasion.ResultView.as_view()),
     path('coinshop/buyitem/', coin_shop.TryBuyItemView.as_view()),

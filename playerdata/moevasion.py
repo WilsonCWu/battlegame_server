@@ -54,9 +54,22 @@ class StageView(APIView):
         # TODO: add in actual stage. This probably can just be hard coded
         # here.
         return Response({'status': True, 'stage_id': status.stage,
-                         'stage': None, 'characters': status.character_state})
+                         'stage': None})
 
 
+class StatusView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        try:
+            status = MoevasionStatus.objects.get(user=request.user)
+        except MoevasionStatus.DoesNotExist:
+            return Response({'status': True, 'stage_id': 0})
+
+        return Response({'status': True, 'stage_id': status.stage,
+                         'characters': status.character_state})
+
+    
 class ResultView(APIView):
     permission_classes = (IsAuthenticated,)
 

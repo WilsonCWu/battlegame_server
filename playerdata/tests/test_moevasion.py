@@ -22,9 +22,11 @@ class MoevasionAPITestCase(APITestCase):
             
     def test_e2e(self):
         self.e2e_flow([
+            ('GET', '/moevasion/status/', {}),
             ('POST', '/moevasion/start/', {}),
             ('GET', '/moevasion/stage/', {}),
             ('POST', '/moevasion/result/', {'is_loss': False, 'characters': '{"11": 10, "5": 100}'}),
+            ('GET', '/moevasion/status/', {}),
             ('GET', '/moevasion/stage/', {}),
             ('POST', '/moevasion/result/', {'is_loss': False, 'characters': '{"11": 5, "5": 100}'}),
             ('GET', '/moevasion/stage/', {}),
@@ -53,4 +55,4 @@ class MoevasionAPITestCase(APITestCase):
             ('POST', '/moevasion/result/', {'is_loss': True, 'characters': '{"11": 0, "5": 0}'}),
         ])
         self.assertFalse(MoevasionStatus.objects.get(user=self.u).is_active())
-        
+
