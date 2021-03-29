@@ -186,18 +186,33 @@ def swap_in_peasants(stage_num, placement, prestiges, seed_int):
     return placement
 
 
+def overlevel_carry(placement, carry_id):
+    charsattrs = ["char_1", "char_2", "char_3", "char_4", "char_5"]
+    for attr in charsattrs:
+        char = getattr(placement, attr)
+        if char.char_type_id == carry_id:
+            char.level = min(char.level + 10, constants.MAX_CHARACTER_LEVEL)
+            setattr(placement, attr, char)
+
+    return placement
+
+
 # Although there's some duplicate code
 # keeping it separate to accommodate easier future changes
 def stage_generator(stage_num, dungeon_type):
     if dungeon_type == constants.DungeonType.CAMPAIGN.value:
         boss_stage = math.ceil(stage_num / constants.NUM_DUNGEON_SUBSTAGES[dungeon_type]) * constants.NUM_DUNGEON_SUBSTAGES[dungeon_type]
-        team_comp = DungeonBoss.objects.get(stage=boss_stage, dungeon_type=dungeon_type).team_comp
+        dungeon_boss = DungeonBoss.objects.get(stage=boss_stage, dungeon_type=dungeon_type)
         seed_int = stage_num
         levels = get_campaign_levels_for_stage(1, stage_num, boss_stage)
         prestiges = get_campaign_prestige(boss_stage)
 
-        placement = convert_teamp_comp_to_stage(team_comp, stage_num, levels, prestiges, seed_int)
+        placement = convert_teamp_comp_to_stage(dungeon_boss.team_comp, stage_num, levels, prestiges, seed_int)
         placement = swap_in_peasants(stage_num, placement, prestiges, seed_int)
+
+        # start to overlevel the carry after world 3
+        if stage_num > 120:
+            placement = overlevel_carry(placement, dungeon_boss.carry_id)
 
     elif dungeon_type == constants.DungeonType.TOWER.value:
         boss_stage = math.ceil(stage_num / constants.NUM_DUNGEON_SUBSTAGES[dungeon_type]) * constants.NUM_DUNGEON_SUBSTAGES[dungeon_type]

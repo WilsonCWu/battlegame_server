@@ -812,6 +812,9 @@ class DungeonBoss(models.Model):
     # [ {'char_id': <char_id>, 'position': <position>}, {...}, ... ]
     team_comp = JSONField(blank=True, null=True)
 
+    # The character id of the carry in that level
+    carry_id = models.IntegerField(default=-1)
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['stage', 'dungeon_type'], name='unique_dungeonboss')
