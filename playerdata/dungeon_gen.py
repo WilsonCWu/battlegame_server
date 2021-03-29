@@ -197,6 +197,29 @@ def overlevel_carry(placement, carry_id):
     return placement
 
 
+def convert_placement_to_json(dungeon_bosses):
+    charsattrs = ["char_1", "char_2", "char_3", "char_4", "char_5"]
+    posattrs = ["pos_1", "pos_2", "pos_3", "pos_4", "pos_5"]
+    for boss in dungeon_bosses:
+        char_list = []
+        placement = boss.placement
+
+        for charattr, posattr in zip(charsattrs, posattrs):
+            pos = getattr(placement, posattr)
+            if pos == -1:
+                continue
+            char = getattr(placement, charattr)
+
+            char_json = {
+                'char_id': char.char_type_id,
+                'position': pos
+            }
+            char_list.append(char_json)
+
+        boss.team_comp = char_list
+        boss.save()
+
+
 # Although there's some duplicate code
 # keeping it separate to accommodate easier future changes
 def stage_generator(stage_num, dungeon_type):
