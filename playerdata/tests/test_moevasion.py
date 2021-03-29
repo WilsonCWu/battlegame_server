@@ -28,14 +28,29 @@ class MoevasionAPITestCase(APITestCase):
             ('GET', '/moevasion/stage/', {}),
             ('POST', '/moevasion/result/', {'is_loss': False, 'characters': '{"11": 5, "5": 100}'}),
             ('GET', '/moevasion/stage/', {}),
-            ('POST', '/moevasion/result/', {'is_loss': True, 'characters': '{"11": 0, "5": 100}'}),
             ('POST', '/moevasion/result/', {'is_loss': False, 'characters': '{"11": 0, "5": 10}'}),
             ('POST', '/moevasion/end/', {}),
         ])
         self.assertEqual(self.u.userinfo.best_moevasion_stage, 3)
+        self.assertFalse(MoevasionStatus.objects.get(user=self.u).is_active())
 
         # Can safely restart a status.
         self.e2e_flow([
             ('POST', '/moevasion/start/', {}),
             ('GET', '/moevasion/stage/', {}),
         ])
+        self.assertTrue(MoevasionStatus.objects.get(user=self.u).is_active())
+
+        # Validate stage and character state.
+        self.e2e_flow([
+            ('POST', '/moevasion/result/', {'is_loss': False, 'characters': '{"11": 10, "5": 100}'}),
+        ])
+        self.assertEqual(MoevasionStatus.objects.get(user=self.u).stage, 2)
+        self.assertDictEqual(MoevasionStatus.objects.get(user=self.u).character_state, {"11": 10, "5": 100})
+ 
+        # Can lose normally.
+        self.e2e_flow([
+            ('POST', '/moevasion/result/', {'is_loss': True, 'characters': '{"11": 0, "5": 0}'}),
+        ])
+        self.assertFalse(MoevasionStatus.objects.get(user=self.u).is_active())
+        
