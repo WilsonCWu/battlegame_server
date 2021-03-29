@@ -48,11 +48,28 @@ class StageView(APIView):
         except MoevasionStatus.DoesNotExist:
             return Response({'status': False, 'reason': 'No existing run.'})
 
+        if not status.is_active():
+            return Response({'status': False, 'reason': 'No existing run.'})
+
         # TODO: add in actual stage. This probably can just be hard coded
         # here.
-        return Response({'status': True, 'stage_id': status.stage, 'stage': None})
+        return Response({'status': True, 'stage_id': status.stage,
+                         'stage': None})
 
 
+class StatusView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        try:
+            status = MoevasionStatus.objects.get(user=request.user)
+        except MoevasionStatus.DoesNotExist:
+            return Response({'status': True, 'stage_id': 0})
+
+        return Response({'status': True, 'stage_id': status.stage,
+                         'characters': status.character_state})
+
+    
 class ResultView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -66,10 +83,9 @@ class ResultView(APIView):
         except MoevasionStatus.DoesNotExist:
             return Response({'status': False, 'reason': 'No existing run.'})
 
-        # We will allow teams to keep going as long as they have some
-        # characters (or if they FF). The client should FF for the player
-        # if they have no more characters.
-        if not serializer.validated_data['is_loss']:
+        if serializer.validated_data['is_loss']:
+            status.end()
+        else:
             userinfo = request.user.userinfo
             if userinfo.best_moevasion_stage < status.stage:
                 userinfo.best_moevasion_stage = status.stage
