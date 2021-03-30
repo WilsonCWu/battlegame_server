@@ -59,6 +59,7 @@ class UserInfoSchema(Schema):
 class LightUserInfoSchema(Schema):
     user_id = fields.Int(attribute='user_id')
     elo = fields.Int()
+    best_moevasion_stage = fields.Int()
     name = fields.Str()
     profile_picture = fields.Int()
     clan = fields.Str(attribute='clanmember.clan_id')

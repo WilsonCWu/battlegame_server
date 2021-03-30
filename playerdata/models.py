@@ -518,11 +518,12 @@ class UserInfo(models.Model):
     tourney_elo = models.IntegerField(default=0)
     prev_tourney_elo = models.IntegerField(default=0)
     best_daily_dungeon_stage = models.IntegerField(default=0)
-    best_moevasion_stage = models.IntegerField(default=0)
+    best_moevasion_stage = models.BigIntegerField(default=0)
     
     class Meta:
         indexes = [
             models.Index(fields=['elo', ]),
+            models.Index(fields=['best_moevasion_stage', ]),
         ]
 
     def __str__(self):
@@ -627,6 +628,7 @@ class MoevasionStatus(models.Model):
     # We expect character state to be in the format of
     # {<character_id>: <character_health>}.
     character_state = JSONField(blank=True, null=True)
+    damage = models.BigIntegerField(default=0)
 
     def is_active(self):
         return self.stage > 0
@@ -636,6 +638,7 @@ class MoevasionStatus(models.Model):
 
     def end(self):
         self.stage = 0
+        self.damage = 0
         
 
 class Chest(models.Model):

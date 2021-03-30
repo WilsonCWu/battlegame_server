@@ -260,6 +260,10 @@ class GetLeaderboardView(APIView):
             top_clan_set = Clan.objects.all().order_by('-elo')[:100]
             clans = ClanSchema(top_clan_set, many=True)
             return Response({'clans': clans.data})
+        if leaderboard_type == 'moevasion_top_100':
+            top_moevasion_set = UserInfo.objects.all().order_by('-best_moevasion_stage')[:100]
+            players = LightUserInfoSchema(top_moevasion_set, many=True)
+            return Response({'players': players.data})
         else:
             return Response({'detail': 'leaderboard ' + leaderboard_type + ' does not exist'},
                             status=HTTP_404_NOT_FOUND)
