@@ -55,4 +55,5 @@ class MoevasionAPITestCase(APITestCase):
             ('POST', '/moevasion/result/', {'is_loss': True, 'characters': '{"11": 0, "5": 0}', 'damage': 10}),
         ])
         self.assertFalse(MoevasionStatus.objects.get(user=self.u).is_active())
+        self.assertEqual(self.u.userinfo.best_moevasion_stage, 1000000110)
 
