@@ -187,14 +187,34 @@ def swap_in_peasants(stage_num, placement, prestiges, seed_int):
 
 
 def overlevel_carry(placement, carry_id):
-    charsattrs = ["char_1", "char_2", "char_3", "char_4", "char_5"]
-    for attr in charsattrs:
+    for attr in constants.CHARATTRS:
         char = getattr(placement, attr)
         if char.char_type_id == carry_id:
             char.level = min(char.level + 10, constants.MAX_CHARACTER_LEVEL)
             setattr(placement, attr, char)
 
     return placement
+
+
+def convert_placement_to_json(dungeon_bosses):
+    for boss in dungeon_bosses:
+        char_list = []
+        placement = boss.placement
+
+        for charattr, posattr in zip(constants.CHARATTRS, constants.POSATTRS):
+            pos = getattr(placement, posattr)
+            if pos == -1:
+                continue
+            char = getattr(placement, charattr)
+
+            char_json = {
+                'char_id': char.char_type_id,
+                'position': pos
+            }
+            char_list.append(char_json)
+
+        boss.team_comp = char_list
+        boss.save()
 
 
 # Although there's some duplicate code

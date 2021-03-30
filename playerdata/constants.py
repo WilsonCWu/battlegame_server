@@ -119,6 +119,9 @@ _MOBS = [
     15,  # Deckhand
 ]
 
+CHARATTRS = ["char_1", "char_2", "char_3", "char_4", "char_5"]
+POSATTRS = ["pos_1", "pos_2", "pos_3", "pos_4", "pos_5"]
+
 CHAR_RARITY_INDEX = [1, 2, 3, 4]
 ITEM_RARITY_INDEX = [0, 1, 2, 3]
 
