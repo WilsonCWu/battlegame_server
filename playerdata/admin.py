@@ -14,6 +14,7 @@ from . import constants
 from .constants import MAX_PRESTIGE_LEVEL, PRESTIGE_CAP_BY_RARITY
 from .daily_dungeon import daily_dungeon_team_gen_cron
 from .dungeon import generate_dungeon_stages
+from .dungeon_gen import convert_placement_to_json
 from .matcher import generate_bots_from_users, generate_bots_bulk
 from .models import ActiveCumulativeQuest, DailyDungeonStatus, DailyDungeonStage
 from .models import ActiveDailyQuest
@@ -83,13 +84,16 @@ class DungeonStageAdmin(bulk_admin.BulkModelAdmin):
 
 
 class DungeonBossAdmin(bulk_admin.BulkModelAdmin):
-    actions = ['generate_stages']
+    actions = ['generate_stages', 'convert_json']
     raw_id_fields = ("placement",)
     list_display = ('stage', 'dungeon_type')
     list_filter = ('dungeon_type',)
 
     def generate_stages(self, request, queryset):
         generate_dungeon_stages(queryset)
+
+    def convert_json(self, request, queryset):
+        convert_placement_to_json(queryset)
 
 
 class UserInfoAdmin(admin.ModelAdmin):
