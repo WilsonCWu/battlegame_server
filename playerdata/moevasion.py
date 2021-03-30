@@ -86,14 +86,16 @@ class ResultView(APIView):
         if serializer.validated_data['is_loss']:
             status.end()
         else:
-            userinfo = request.user.userinfo
-            if userinfo.best_moevasion_stage < status.stage:
-                userinfo.best_moevasion_stage = status.stage
-                userinfo.save()
-
             status.stage += 1
 
+        status.damage += serializer.validated_data['damage']
         status.character_state = serializer.validated_data['characters']
         status.save()
+
+        userinfo = request.user.userinfo
+        if userinfo.best_moevasion_stage < status.damage:
+            userinfo.best_moevasion_stage = status.damage
+            userinfo.save()
+
         return Response({'status': True, 'rewards': None})
         

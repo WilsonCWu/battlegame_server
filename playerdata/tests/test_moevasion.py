@@ -25,15 +25,15 @@ class MoevasionAPITestCase(APITestCase):
             ('GET', '/moevasion/status/', {}),
             ('POST', '/moevasion/start/', {}),
             ('GET', '/moevasion/stage/', {}),
-            ('POST', '/moevasion/result/', {'is_loss': False, 'characters': '{"11": 10, "5": 100}'}),
+            ('POST', '/moevasion/result/', {'is_loss': False, 'characters': '{"11": 10, "5": 100}', 'damage': 10}),
             ('GET', '/moevasion/status/', {}),
             ('GET', '/moevasion/stage/', {}),
-            ('POST', '/moevasion/result/', {'is_loss': False, 'characters': '{"11": 5, "5": 100}'}),
+            ('POST', '/moevasion/result/', {'is_loss': False, 'characters': '{"11": 5, "5": 100}', 'damage': 100}),
             ('GET', '/moevasion/stage/', {}),
-            ('POST', '/moevasion/result/', {'is_loss': False, 'characters': '{"11": 0, "5": 10}'}),
+            ('POST', '/moevasion/result/', {'is_loss': False, 'characters': '{"11": 0, "5": 10}', 'damage': 1000000000}),
             ('POST', '/moevasion/end/', {}),
         ])
-        self.assertEqual(self.u.userinfo.best_moevasion_stage, 3)
+        self.assertEqual(self.u.userinfo.best_moevasion_stage, 1000000110)
         self.assertFalse(MoevasionStatus.objects.get(user=self.u).is_active())
 
         # Can safely restart a status.
@@ -45,14 +45,14 @@ class MoevasionAPITestCase(APITestCase):
 
         # Validate stage and character state.
         self.e2e_flow([
-            ('POST', '/moevasion/result/', {'is_loss': False, 'characters': '{"11": 10, "5": 100}'}),
+            ('POST', '/moevasion/result/', {'is_loss': False, 'characters': '{"11": 10, "5": 100}', 'damage': 2}),
         ])
         self.assertEqual(MoevasionStatus.objects.get(user=self.u).stage, 2)
         self.assertDictEqual(MoevasionStatus.objects.get(user=self.u).character_state, {"11": 10, "5": 100})
  
         # Can lose normally.
         self.e2e_flow([
-            ('POST', '/moevasion/result/', {'is_loss': True, 'characters': '{"11": 0, "5": 0}'}),
+            ('POST', '/moevasion/result/', {'is_loss': True, 'characters': '{"11": 0, "5": 0}', 'damage': 10}),
         ])
         self.assertFalse(MoevasionStatus.objects.get(user=self.u).is_active())
 
