@@ -66,6 +66,8 @@ class InventorySchema(Schema):
     player_level = fields.Method("get_player_lvl")
     player_exp = fields.Method("get_player_exp")
 
+    profile_pics = fields.List(fields.Int())
+
     daily_dungeon_ticket = fields.Int()
     daily_dungeon_golden_ticket = fields.Int()
 

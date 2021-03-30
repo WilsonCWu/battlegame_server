@@ -98,4 +98,3 @@ class ResultView(APIView):
             userinfo.save()
 
         return Response({'status': True, 'rewards': None})
-        
