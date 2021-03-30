@@ -68,6 +68,9 @@ from .quest import queue_active_weekly_quests, queue_active_daily_quests, refres
 from .login import UserRecoveryTokenGenerator
 
 
+class InventoryAdmin(admin.ModelAdmin, DynamicArrayMixin):
+    pass
+
 class BaseCodeAdmin(admin.ModelAdmin, DynamicArrayMixin):
     pass
 
@@ -462,7 +465,7 @@ admin.site.register(Placement, PlacementAdmin)
 admin.site.register(UserInfo, UserInfoAdmin)
 admin.site.register(UserStats)
 admin.site.register(Match)
-admin.site.register(Inventory)
+admin.site.register(Inventory, InventoryAdmin)
 
 admin.site.register(Chat)
 admin.site.register(ChatMessage)

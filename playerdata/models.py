@@ -663,6 +663,7 @@ class Inventory(models.Model):
     hero_exp = models.IntegerField(default=0)
     is_auto_retire = models.BooleanField(default=False)
     last_collected_rewards = models.DateTimeField(default=get_default_afk_datetime)
+    profile_pics = ArrayField(models.IntegerField(), blank=True, null=True)
 
     gems_bought = models.IntegerField(default=0)
 
