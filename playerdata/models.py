@@ -639,6 +639,7 @@ class MoevasionStatus(models.Model):
     def end(self):
         self.stage = 0
         self.damage = 0
+        self.character_state = None
         
 
 class Chest(models.Model):
