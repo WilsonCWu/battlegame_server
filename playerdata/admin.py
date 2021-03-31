@@ -16,7 +16,7 @@ from .daily_dungeon import daily_dungeon_team_gen_cron
 from .dungeon import generate_dungeon_stages
 from .dungeon_gen import convert_placement_to_json
 from .matcher import generate_bots_from_users, generate_bots_bulk
-from .models import ActiveCumulativeQuest, DailyDungeonStatus, DailyDungeonStage
+from .models import ActiveCumulativeQuest, DailyDungeonStatus, DailyDungeonStage, MoevasionStatus
 from .models import ActiveDailyQuest
 from .models import ActiveDeal
 from .models import ActiveWeeklyQuest
@@ -509,3 +509,5 @@ admin.site.register(Chest)
 
 admin.site.register(DailyDungeonStatus)
 admin.site.register(DailyDungeonStage, DailyDungeonStageAdmin)
+
+admin.site.register(MoevasionStatus)

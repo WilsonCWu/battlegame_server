@@ -111,6 +111,7 @@ class ResultView(APIView):
             elif prev_stage == 10:
                 rewards.append(chests.ChestReward('gems', 2699))
                 rewards.append(chests.ChestReward('char_id', 1))  # award a Moe
+                rewards.append(chests.ChestReward('profile_pic', 14))
             else:
                 rewards.append(chests.ChestReward('gems', 1))
 
