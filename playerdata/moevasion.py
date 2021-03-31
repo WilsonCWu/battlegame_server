@@ -84,18 +84,19 @@ class ResultView(APIView):
         except MoevasionStatus.DoesNotExist:
             return Response({'status': False, 'reason': 'No existing run.'})
 
-        if serializer.validated_data['is_loss']:
-            status.end()
-        else:
-            status.stage += 1
-
         status.damage += serializer.validated_data['damage']
         status.character_state = serializer.validated_data['characters']
-        status.save()
 
         userinfo = request.user.userinfo
         if userinfo.best_moevasion_stage < status.damage:
             userinfo.best_moevasion_stage = status.damage
             userinfo.save()
+        
+        if serializer.validated_data['is_loss']:
+            status.end()
+        else:
+            status.stage += 1
+
+        status.save()
 
         return Response({'status': True, 'rewards': None})
