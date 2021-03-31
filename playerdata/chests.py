@@ -182,6 +182,8 @@ def award_chest_rewards(user, rewards):
             base_item = BaseItem.objects.get(item_type=reward.value)
             if not base_item.is_unique:
                 Item.objects.create(user=user, item_type=base_item)
+        elif reward.reward_type == 'profile_pic':
+            user.inventory.profile_pics.append(reward.value)
         else:
             raise Exception("invalid reward_type, sorry friendo")
     user.inventory.save()
