@@ -67,7 +67,7 @@ class StatusView(APIView):
             return Response({'status': True, 'stage_id': 0})
 
         return Response({'status': True, 'stage_id': status.stage,
-                         'characters': status.character_state,
+                         'characters': str(status.character_state) if status.character_state else '',
                          'damage': status.damage})
 
     
