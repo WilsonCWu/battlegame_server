@@ -519,6 +519,7 @@ class UserInfo(models.Model):
     prev_tourney_elo = models.IntegerField(default=0)
     best_daily_dungeon_stage = models.IntegerField(default=0)
     best_moevasion_stage = models.BigIntegerField(default=0)
+    highest_moevasion_reward_collected = models.IntegerField(default=0)
     
     class Meta:
         indexes = [
