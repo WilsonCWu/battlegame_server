@@ -1096,9 +1096,14 @@ def create_user_info(sender, instance, created, **kwargs):
             # TODO(advait): add db-level constraint to prevent duplicate friend pairs
             Friend.objects.create(user_1=instance, user_2=devUser, chat=chat)
             welcomeMessage1 = "Hey there %s! I'm %s, one of the creators of the game. Thanks so much for giving Early Access a shot, you're one of the first people to play it!\n\nPlease note that we're still in active development, and many things may break or change in the process." % (userName, devUserName)
-            welcomeMessage2 = "That being said, Early Access users will receive double their gems in our starter pack once we release 1.0.\n\nWe also have a growing community on " + """<link="https://discord.gg/bQR8DZW"><u><color=#0EB7FF>Discord</color></u></link>""" + " - please join us!"
+            welcomeMessage2 = "That being said, Early Access users will receive double all gems bought or collected from the shop once we release 1.0. And all progress on your account carries over after Beta."
+            welcomeMessage3 = "We also have a big and growing community on " + """<link="https://discord.gg/bQR8DZW"><u><color=#0EB7FF>Discord</color></u></link>""" + " - please join us!\n\nNote that I won't be able to keep track of all messages sent here, but all us devs are super active on Discord!"
+            welcomeMessage4 = "Again, thanks for trying out the game, and please send us all your feedback. Battle on!"
+
             ChatMessage.objects.create(chat=chat, message=welcomeMessage1, sender=devUser)
             ChatMessage.objects.create(chat=chat, message=welcomeMessage2, sender=devUser)
+            ChatMessage.objects.create(chat=chat, message=welcomeMessage3, sender=devUser)
+            ChatMessage.objects.create(chat=chat, message=welcomeMessage4, sender=devUser)
 
 
 def create_cumulative_quests(user):
