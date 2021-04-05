@@ -9,6 +9,9 @@ from playerdata.models import ChatMessage
 from playerdata.models import Chat
 from playerdata.models import ChatLastReadMessage
 
+
+profanity.load_censor_words(whitelist_words=['omg', 'lmao', 'god', 'goddamn', 'pee', 'poop', 'suck', 'sucked', 'crap', 'turd', 'piss', 'ugly', 'vulgar', 'womb', 'virgin', 'retard', 'moron'])
+
 class MessageSchema(Schema):
     message = fields.Str()
     #TODO: this is quite expensive, should not be in here
