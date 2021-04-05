@@ -261,7 +261,7 @@ class DungeonStageView(APIView):
         if dungeon_stage is None:
             return Response({'status': False, 'reason': 'unknown stage id'})
 
-        if server.is_server_version_higher("0.3.0"):
+        if server.is_server_version_higher("0.2.1") or request.user.id == 21:
             return Response({'status': True,
                              'stage_id': dungeon_stage.stage,
                              'player_exp': formulas.player_exp_reward_dungeon(dungeon_stage.stage),

@@ -5,13 +5,19 @@ from datetime import date
 
 from playerdata import constants, base
 from playerdata.matcher import PlacementSchema
-from playerdata.models import Placement, Character, DungeonBoss, DailyDungeonStage
+from playerdata.models import Placement, Character, DungeonBoss, DailyDungeonStage, Item
 
 
 # Adjust the prestige based on prestige rarity cap
 def prestige_for_rarity(rarity, prestige):
     prestige -= constants.MAX_PRESTIGE_LEVEL - constants.PRESTIGE_CAP_BY_RARITY[rarity]
     return max(prestige, 0)
+
+
+def new_item(item_type_id):
+    if item_type_id is None:
+        return None
+    return Item(user_id=1, item_type_id=item_type_id, item_id=item_type_id)  # item_id can be anything / not used
 
 
 """
@@ -45,7 +51,14 @@ def convert_teamp_comp_to_stage(team_comp, stage_num, levels, prestiges, seed_in
                                  char_type_id=char['char_id'],
                                  level=max(levels[i], 1),
                                  prestige=prestige_for_rarity(char_rarity, prestiges[i]),
-                                 char_id=i + 1)
+                                 char_id=i + 1,
+                                 hat=new_item(char.get('hat_id', None)),
+                                 armor=new_item(char.get('armor_id', None)),
+                                 boots=new_item(char.get('boots_id', None)),
+                                 weapon=new_item(char.get('weapon_id', None)),
+                                 trinket_1=new_item(char.get('trinket_1_id', None)),
+                                 trinket_2=new_item(char.get('trinket_2_id', None))
+                                 )
 
         if i == 0:
             placement.char_1 = leveled_char
