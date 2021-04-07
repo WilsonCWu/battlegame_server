@@ -558,21 +558,15 @@ class UserMatchState(models.Model):
     and progress fully tracked.
 
     This model's main focus is to facilitate replay interactions, such as
-    forfeiting or force-exiting. Individual states are tracked in a string
+    forfeiting or force-exiting. Individual states are tracked in a JSON
     field for each game mode for flexibility.
     """
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    campaign_state = models.TextField(default='')
-    tower_state = models.TextField(default='')
-    tunnels_state = models.TextField(default='')
-    dailydungeon_state = models.TextField(default='')
-    moevasion_state = models.TextField(default='')
-
-    def decode_state(state_str):
-        return {p.split(':')[0]: p.split(':')[1] for p in state_str.split(',')}
-
-    def encode_state(state):
-        return ','.join([k + ':' + str(v) for k, v in state.items()])
+    campaign_state = JSONField(blank=True, null=True)
+    tower_state = JSONField(blank=True, null=True)
+    tunnels_state = JSONField(blank=True, null=True)
+    dailydungeon_state = JSONField(blank=True, null=True)
+    moevasion_state = JSONField(blank=True, null=True)
 
 
 class Match(models.Model):
