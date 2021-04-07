@@ -251,7 +251,7 @@ class DungeonStageView(APIView):
         if stage > constants.MAX_DUNGEON_STAGE[dungeon_type]:
             return Response({'status': True, 'stage_id': stage})
 
-        if server.is_server_version_higher("0.2.1") or request.user.id == 21:
+        if server.is_server_version_higher("0.2.1") or request.user.id in (21, 2832, 2833):
             story_text = ""
             dungeon_stage = DungeonStage.objects.filter(stage=stage, dungeon_type=dungeon_type).first()
             if dungeon_stage is not None:
