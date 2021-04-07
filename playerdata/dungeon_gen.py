@@ -81,41 +81,44 @@ def convert_teamp_comp_to_stage(team_comp, stage_num, levels, prestiges, seed_in
 
 # returns a list of 5 levels based on which filler level it is or a boss stage
 def get_campaign_levels_for_stage(starting_level, stage_num, boss_stage):
-    if stage_num <= 620:
-        boss_level = starting_level + 7 * math.floor(stage_num / 20)
 
+    if stage_num <= 620:
+        boss_level = starting_level + 7 * (math.ceil(stage_num / 20) - 1)
+        level_dip = 10 / 2  # keeping this to know we actually dip 10 on 20 stages, but half for half the stage
     # Here we slow down the level increments as we approach the end
     else:
         boss_level = math.floor((boss_stage - 620) / 20) * 4 + 224
+        level_dip = 6 / 2
+
 
     # Here we treat each stage of 20 levels as two halves, with a mini boss at the 10th stage
     position_in_stage = stage_num % 20
     if 1 <= position_in_stage <= 10:
         # A mini boss that's half as strong as the final one
-        boss_level = max(boss_level - 3, 3)
+        boss_level = max(boss_level - level_dip, level_dip)  # the max is only for the first few stages when it would go negative
     else:
         position_in_stage -= 10
 
     # TODO: this is hardcoded level progression for the 10 filler stages
     # makes it much easier to tune and change for now
     if position_in_stage == 1:
-        return [boss_level - 5] * 5
+        return [boss_level - level_dip] * 5
     elif position_in_stage == 2:
-        return [(boss_level - 4)] * 3 + [(boss_level - 5)] * 2
+        return [(boss_level - math.floor(level_dip * 0.9))] * 3 + [(boss_level - level_dip)] * 2
     elif position_in_stage == 3:
-        return [(boss_level - 4)] * 4 + [(boss_level - 3)]
+        return [(boss_level - math.floor(level_dip * 0.9))] * 4 + [(boss_level - math.floor(level_dip * 0.8))]
     elif position_in_stage == 4:
-        return [(boss_level - 3)] * 3 + [(boss_level - 4)] * 2
+        return [(boss_level - math.floor(level_dip * 0.6))] * 3 + [(boss_level - math.floor(level_dip * 0.5))] * 2
     elif position_in_stage == 5:
-        return [boss_level - 3] * 5
+        return [boss_level - math.floor(level_dip * 0.5)] * 5
     elif position_in_stage == 6:
-        return [(boss_level - 2)] * 4 + [(boss_level - 3)]
+        return [(boss_level - math.floor(level_dip * 0.4))] * 3 + [(boss_level - math.floor(level_dip * 0.3))] * 2
     elif position_in_stage == 7:
-        return [(boss_level - 1)] * 3 + [(boss_level - 2)] * 2
+        return [(boss_level - math.floor(level_dip * 0.3))] * 3 + [(boss_level - math.floor(level_dip * 0.4))] * 2
     elif position_in_stage == 8:
-        return [(boss_level - 1)] * 4 + [(boss_level - 2)]
+        return [(boss_level - math.floor(level_dip * 0.2))] * 4 + [(boss_level - math.floor(level_dip * 0.3))]
     elif position_in_stage == 9:
-        return [(boss_level - 1)] * 4 + [boss_level]
+        return [(boss_level - math.floor(level_dip * 0.1))] * 2 + [(boss_level - math.floor(level_dip * 0.2))] * 2 + [boss_level]
     else:
         return [boss_level] * 5
 
@@ -276,7 +279,7 @@ def dump_stage_info():
         boss_stage = math.ceil(stage_num / constants.NUM_DUNGEON_SUBSTAGES[0]) * constants.NUM_DUNGEON_SUBSTAGES[0]
 
         seed_int = stage_num
-        levels = get_campaign_levels_for_stage(1, stage_num, boss_stage)
+        levels = get_campaign_levels_for_stage(10, stage_num, boss_stage)
         prestiges = get_campaign_prestige(boss_stage)
 
         placement = convert_teamp_comp_to_stage(team_comp, stage_num, levels, prestiges, seed_int)
