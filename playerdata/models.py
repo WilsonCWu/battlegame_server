@@ -548,6 +548,29 @@ class UserStats(models.Model):
         return self.user.userinfo.name + '(' + str(self.user.id) + ')'
 
 
+class UserMatchState(models.Model):
+    """UserMatchState represents a user's PvE match states.
+
+    A staged state represents a match that has started (with results uploaded),
+    but not yet reached the end of the count down.
+
+    A committed state represents a match that has been recorded, with rewards
+    and progress fully tracked.
+
+    This model's main focus is to facilitate replay interactions, such as
+    forfeiting or force-exiting. Individual states are tracked in a string
+    field for each game mode for flexibility.
+    """
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    dungeon_state = models.TextField(default='')
+
+    def decode_state(state_str):
+        return {p.split(':')[0]: p.split(':')[1] for p in state_str.split(',')}
+
+    def encode_state(state):
+        return ','.join([k + ':' + str(v) for k, v in state.items()])
+
+
 class Match(models.Model):
     """Match represents a QuickPlay match.
 

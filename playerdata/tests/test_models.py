@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from playerdata.models import BaseCharacter, BaseCharacterAbility2, Character, BaseItem, Item, User
+from playerdata.models import BaseCharacter, BaseCharacterAbility2, Character, BaseItem, Item, User, UserMatchState
 
 class CharacterTestCase(TestCase):
     fixtures = ['playerdata/tests/fixtures.json']
@@ -210,3 +210,17 @@ class BaseCharacterAbilityTestCase(TestCase):
         }
         with self.assertRaises(ValidationError):
             specs.full_clean()
+
+
+class UserMatchStateTestCase(TestCase):
+    def test_decode(self):
+        raw = 'timestamp:321321,win:0,stage:2'
+        decoded = UserMatchState.decode_state(raw)
+        self.assertDictEqual(decoded,
+                             {'timestamp': '321321', 'win': '0', 'stage': '2'})
+
+    def test_encode(self):
+        state = {'timestamp': '123', 'win': 0}
+        encoded = UserMatchState.encode_state(state)
+        # Could be either due to dictionary's random iteration sequencing.
+        self.assertTrue(encoded in ['timestamp:123,win:0', 'win:0,timestamp:123'])
