@@ -118,7 +118,7 @@ def get_campaign_levels_for_stage(starting_level, stage_num, boss_stage):
     elif position_in_stage == 8:
         return [(boss_level - math.floor(level_dip * 0.2))] * 4 + [(boss_level - math.floor(level_dip * 0.3))]
     elif position_in_stage == 9:
-        return [(boss_level - math.floor(level_dip * 0.1))] * 4 + [boss_level]
+        return [(boss_level - math.floor(level_dip * 0.1))] * 2 + [(boss_level - math.floor(level_dip * 0.2))] * 2 + [boss_level]
     else:
         return [boss_level] * 5
 
