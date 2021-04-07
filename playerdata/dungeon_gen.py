@@ -81,20 +81,12 @@ def convert_teamp_comp_to_stage(team_comp, stage_num, levels, prestiges, seed_in
 
 # returns a list of 5 levels based on which filler level it is or a boss stage
 def get_campaign_levels_for_stage(starting_level, stage_num, boss_stage):
-    if stage_num <= 840:
-        boss_level = boss_stage / 4
+    if stage_num <= 620:
+        boss_level = starting_level + 7 * math.floor((stage_num - 20) / 20)
 
     # Here we slow down the level increments as we approach the end
-    # Prestige here is around 9/10 stars and we expect this ramp to be just as difficult
-    # Items also ramp up here to compensate for the smaller stat increases
-    elif 940 < stage_num <= 960:
-        boss_level = 228
-    elif stage_num < 940:
-        boss_level = (boss_stage - 860) / 10 + 212
-    elif stage_num < 1060:
-        boss_level = (boss_stage - 980) / 10 + 212
     else:
-        boss_level = constants.MAX_CHARACTER_LEVEL
+        boss_level = math.floor((boss_stage - 620) / 20) * 4 + 224
 
     # Here we treat each stage of 20 levels as two halves, with a mini boss at the 10th stage
     position_in_stage = stage_num % 20
@@ -237,7 +229,7 @@ def stage_generator(stage_num, dungeon_type):
         boss_stage = math.ceil(stage_num / constants.NUM_DUNGEON_SUBSTAGES[dungeon_type]) * constants.NUM_DUNGEON_SUBSTAGES[dungeon_type]
         dungeon_boss = DungeonBoss.objects.get(stage=boss_stage, dungeon_type=dungeon_type)
         seed_int = stage_num
-        levels = get_campaign_levels_for_stage(1, stage_num, boss_stage)
+        levels = get_campaign_levels_for_stage(10, stage_num, boss_stage)
         prestiges = get_campaign_prestige(boss_stage)
 
         placement = convert_teamp_comp_to_stage(dungeon_boss.team_comp, stage_num, levels, prestiges, seed_int)
