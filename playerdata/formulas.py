@@ -21,7 +21,7 @@ def coins_reward_quickplay(dungeon_level):
 
 def coins_reward_dungeon(dungeon_level, dungeon_type: int):
     adjusted_dungeon_level = dungeon_level * constants.CHAR_LEVEL_DIFF_BETWEEN_STAGES[dungeon_type]
-    coins = math.floor(adjusted_dungeon_level + (adjusted_dungeon_level - 1) ** 1.7 + 100)
+    coins = math.floor((adjusted_dungeon_level + (adjusted_dungeon_level - 1) ** 1.7 + 100) / 2)
     # boss level bonus
     if dungeon_level % constants.NUM_DUNGEON_SUBSTAGES[dungeon_type] == 0:
         return coins * 4
@@ -29,7 +29,7 @@ def coins_reward_dungeon(dungeon_level, dungeon_type: int):
 
 
 def afk_coins_per_min(dungeon_level):
-    return (dungeon_level * 16 + (dungeon_level - 1) ** 1.45) / 48
+    return (dungeon_level * 16 + (dungeon_level - 1) ** 1.45) / 30 + 80
 
 
 def char_level_to_coins(level):
@@ -89,7 +89,7 @@ def player_exp_reward_quickplay(dungeon_level):
 
 
 def player_exp_reward_dungeon(dungeon_level):
-    return math.floor((dungeon_level / 5) * 9) + 10
+    return math.floor((dungeon_level / 5) * 4) + 10
 
 
 def afk_exp_per_min(dungeon_level):
