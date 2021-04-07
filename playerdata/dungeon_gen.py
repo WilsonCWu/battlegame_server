@@ -81,10 +81,8 @@ def convert_teamp_comp_to_stage(team_comp, stage_num, levels, prestiges, seed_in
 
 # returns a list of 5 levels based on which filler level it is or a boss stage
 def get_campaign_levels_for_stage(starting_level, stage_num, boss_stage):
-    if stage_num <= 20:
-        boss_level = starting_level
-    elif stage_num <= 620:
-        boss_level = starting_level + 7 * math.floor((stage_num - 20) / 20)
+    if stage_num <= 620:
+        boss_level = starting_level + 7 * math.floor(stage_num / 20)
 
     # Here we slow down the level increments as we approach the end
     else:
