@@ -26,7 +26,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# TODO: consolidate this with DEVELOPMENT flag.
+DEBUG = config('DEVELOPMENT', False)
 
 SERVICE_ACCOUNT_FILE = '/home/battlegame/battlegame/.google-service-account.json'
 
