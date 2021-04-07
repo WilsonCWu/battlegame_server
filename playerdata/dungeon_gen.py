@@ -275,7 +275,7 @@ def dump_stage_info():
     test_comp_str = u'[{"char_id": 0, "position": 6}, {"char_id": 1, "position": 10}, {"char_id": 8, "position": 15}, {"char_id": 16, "position": 16}, {"char_id": 12, "position": 22}]'
     team_comp = json.loads(test_comp_str)
 
-    for stage_num in range(180, 220):
+    for stage_num in range(1, 1201):
         boss_stage = math.ceil(stage_num / constants.NUM_DUNGEON_SUBSTAGES[0]) * constants.NUM_DUNGEON_SUBSTAGES[0]
 
         seed_int = stage_num
