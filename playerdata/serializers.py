@@ -185,6 +185,7 @@ class CollectChestSerializer(serializers.Serializer):
 class SetDungeonProgressSerializer(serializers.Serializer):
     is_win = serializers.BooleanField(required=True)
     dungeon_type = serializers.IntegerField(required=True)
+    token = serializers.CharField(required=False)
 
 
 class GetMatchHistorySerializer(serializers.Serializer):
