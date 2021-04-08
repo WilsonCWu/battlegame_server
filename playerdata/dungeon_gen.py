@@ -246,7 +246,7 @@ def stage_generator(stage_num, dungeon_type):
         boss_stage = math.ceil(stage_num / constants.NUM_DUNGEON_SUBSTAGES[dungeon_type]) * constants.NUM_DUNGEON_SUBSTAGES[dungeon_type]
         team_comp = DungeonBoss.objects.get(stage=boss_stage, dungeon_type=dungeon_type).team_comp
         seed_int = stage_num
-        levels = get_tower_levels_for_stage(20, stage_num, boss_stage)
+        levels = get_tower_levels_for_stage(5, stage_num, boss_stage)
         prestiges = [10] * 5
 
         placement = convert_teamp_comp_to_stage(team_comp, stage_num, levels, prestiges, seed_int)
