@@ -326,14 +326,13 @@ class DungeonSetProgressView(APIView):
         progress.save()
 
         # dungeon rewards
-        dungeon = DungeonStage.objects.get(stage=stage, dungeon_type=dungeon_type)
         inventory = request.user.inventory
-        inventory.coins += dungeon.coins
-        inventory.gems += dungeon.gems
+        inventory.coins += formulas.coins_reward_dungeon(stage, dungeon_type)
+        inventory.gems += formulas.gems_reward_dungeon(stage, dungeon_type)
         inventory.save()
 
         userinfo = request.user.userinfo
-        userinfo.player_exp += dungeon.player_exp
+        userinfo.player_exp += formulas.player_exp_reward_dungeon(stage)
         userinfo.save()
 
         return Response({'status': True})
@@ -359,7 +358,7 @@ class DungeonStageView(APIView):
         if stage > constants.MAX_DUNGEON_STAGE[dungeon_type]:
             return Response({'status': True, 'stage_id': stage})
 
-        if server.is_server_version_higher("0.2.1") or request.user.id == 21:
+        if server.is_server_version_higher("0.2.1") or request.user.id in (21, 2832, 2833, 2024):
             story_text = ""
             dungeon_stage = DungeonStage.objects.filter(stage=stage, dungeon_type=dungeon_type).first()
             if dungeon_stage is not None:

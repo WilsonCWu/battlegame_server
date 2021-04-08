@@ -671,7 +671,7 @@ class Chest(models.Model):
 
 
 def get_default_afk_datetime():
-    return timezone.now() - timedelta(hours=12)
+    return timezone.now() - timedelta(hours=1)
 
 
 class Inventory(models.Model):
