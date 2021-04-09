@@ -129,26 +129,22 @@ def char_level_to_dust(level):
 
 
 def afk_dust_per_min(dungeon_level):
-    return ((dungeon_level - 1) ** 2) / 75000
+    return dungeon_level * 0.0025 + 0.025
 
 
 def dust_chest_reward(user, rarity):
     userinfo = UserInfo.objects.get(user=user)
     elo = min(userinfo.elo + 20, constants.MAX_ELO)  # light pad on elo for 0 elo case
     base_mult = 1
-    base_exp = 1
 
     if rarity in [constants.ChestType.SILVER.value, constants.ChestType.DAILY_DUNGEON.value]:
-        base_mult = 0.5
-        base_exp = 1.2
+        base_mult = 0.25
     elif rarity == constants.ChestType.GOLD.value:
-        base_mult = 1
-        base_exp = 1.6
+        base_mult = 0.35
     elif rarity == constants.ChestType.MYTHICAL.value:
-        base_mult = 1.5
-        base_exp = 2
+        base_mult = 0.5
 
-    return math.floor(elo * base_mult + (elo ** base_exp) / 2600)
+    return math.floor(elo * base_mult + 10)
 
 #########################
 ## Gems
