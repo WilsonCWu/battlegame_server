@@ -358,30 +358,15 @@ class DungeonStageView(APIView):
         if stage > constants.MAX_DUNGEON_STAGE[dungeon_type]:
             return Response({'status': True, 'stage_id': stage})
 
-        if server.is_server_version_higher("0.2.1") or request.user.id in (21, 2832, 2833, 2024):
-            story_text = ""
-            dungeon_stage = DungeonStage.objects.filter(stage=stage, dungeon_type=dungeon_type).first()
-            if dungeon_stage is not None:
-                story_text = dungeon_stage.story_text
+        story_text = ""
+        dungeon_stage = DungeonStage.objects.filter(stage=stage, dungeon_type=dungeon_type).first()
+        if dungeon_stage is not None:
+            story_text = dungeon_stage.story_text
 
-            return Response({'status': True,
-                             'stage_id': stage,
-                             'player_exp': formulas.player_exp_reward_dungeon(stage),
-                             'coins': formulas.coins_reward_dungeon(stage, dungeon_type),
-                             'gems': formulas.gems_reward_dungeon(stage, dungeon_type),
-                             'mob': dungeon_gen.stage_generator(stage, dungeon_type),
-                             'story_text': story_text})
-
-        # TODO: remove after dungeons revamp
-        dungeon_stage = DungeonStage.objects.select_related('mob__char_1__weapon') \
-            .select_related('mob__char_2__weapon') \
-            .select_related('mob__char_3__weapon') \
-            .select_related('mob__char_4__weapon') \
-            .select_related('mob__char_5__weapon') \
-            .filter(stage=stage, dungeon_type=dungeon_type).first()
-
-        if dungeon_stage is None:
-            return Response({'status': False, 'reason': 'unknown stage id'})
-
-        dungeon_stage_schema = DungeonStageSchema(dungeon_stage)
-        return Response(dungeon_stage_schema.data)
+        return Response({'status': True,
+                         'stage_id': stage,
+                         'player_exp': formulas.player_exp_reward_dungeon(stage),
+                         'coins': formulas.coins_reward_dungeon(stage, dungeon_type),
+                         'gems': formulas.gems_reward_dungeon(stage, dungeon_type),
+                         'mob': dungeon_gen.stage_generator(stage, dungeon_type),
+                         'story_text': story_text})
