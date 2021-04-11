@@ -66,12 +66,6 @@ SUMMON_GEM_COST = {
     "MYTHIC_CHEST": 2700
 }
 
-SUMMON_COUNT = {
-    "SUMMON1": 1,
-    "SUMMON10": 10,
-}
-
-
 def is_legendary(char_id: int):
     return char_id in LEGENDARY_CHAR_IDS
 
