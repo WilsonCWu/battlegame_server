@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from playerdata.models import Chat
-from playerdata.models import Clan
+from playerdata.models import Clan, Clan2
 from playerdata.models import ClanMember
 from playerdata.models import ClanRequest
 from playerdata.models import Friend
@@ -290,6 +290,7 @@ class GetClanSearchResultsView(APIView):
 class NewClanView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = NewClanSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -301,13 +302,16 @@ class NewClanView(APIView):
 
         clan_chat = Chat.objects.create(chat_name=clan_name)
 
-        if clan_description:
-            clan = Clan.objects.create(name=clan_name, chat=clan_chat, description=clan_description)
-        else:
-            clan = Clan.objects.create(name=clan_name, chat=clan_chat)
+        clan = Clan.objects.create(name=clan_name, chat=clan_chat,
+                                   description=clan_description,
+                                   num_members=1)
+        clan2 = Clan2.objects.create(name=clan_name, chat=clan_chat,
+                                     description=clan_description,
+                                     num_members=1)
 
         clan_owner = request.user.userinfo.clanmember
         clan_owner.clan = clan
+        clan_owner.clan2 = clan2
         clan_owner.is_admin = True
         clan_owner.is_owner = True
         clan_owner.save()
@@ -324,7 +328,15 @@ class LeaveClanView(APIView):
         if clan_member.is_owner:
             return Response({'status': False, 'reason': 'cannot leave clan without transferring ownership!'})
 
+        clan_member.clan.num_members -= 1
+        clan_member.clan.save()
+
+        if clan_member.clan2:
+            clan_member.clan2.num_members -= 1
+            clan_member.clan2.save()
+        
         clan_member.clan = None
+        clan_member.clan2 = None
         clan_member.is_admin = False
         clan_member.is_owner = False
         clan_member.save()
@@ -349,11 +361,13 @@ class DeleteClanView(APIView):
 
         for member in clanmembers:
             member.clan = None
+            member.clan2 = None
             member.is_admin = False
             member.is_owner = False
 
-        ClanMember.objects.bulk_update(clanmembers, ['clan', 'is_admin', 'is_owner'])
+        ClanMember.objects.bulk_update(clanmembers, ['clan', 'clan2', 'is_admin', 'is_owner'])
         Clan.objects.filter(name=clan_name).first().delete()
+        Clan2.objects.filter(name=clan_name).first().delete()
 
         return Response({'status': True})
 
@@ -409,9 +423,13 @@ class EditClanDescriptionView(APIView):
             return Response({'status': False, 'reason': 'invalid clan permissions'})
 
         clan = clanmember.clan
-
         clan.description = new_description
         clan.save()
+
+        if clanmember.clan2:
+            clan2 = clanmember.clan2
+            clan2.description = new_description
+            clan2.save()
 
         return Response({'status': True})
 
@@ -458,9 +476,16 @@ class ChangeMemberStatusView(APIView):
             target_clanmember.is_admin = False
         elif member_status == 'kick':
             clan = target_clanmember.clan
+            clan2 = target_clanmember.clan2
             target_clanmember.clan = None
+            target_clanmember.clan2 = None
+
             clan.num_members -= 1
             clan.save()
+
+            if clan2:
+                clan2.num_members -=1
+                clan2.save()
         else:
             return Response({'status': False, 'reason': 'member status ' + member_status + 'invalid.'})
 
@@ -483,7 +508,12 @@ class CreateClanRequestView(APIView):
         serializer = ValueSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         target_clan_id = serializer.validated_data['value']
-        target_clan = Clan.objects.get(name=target_clan_id)
+        # TODO: this in the future should be an ID instead of a name, but to
+        # keep the transition simple, we'll leave it as name for now.
+        target_clan_query = Clan.objects.filter(name=target_clan_id)
+        if not target_clan_query:
+            return Response({'status': False, 'reason': 'Clan does not exist.'})
+        target_clan = target_clan_query[0]
 
         userinfo = request.user.userinfo
 
@@ -544,16 +574,23 @@ class UpdateClanRequestView(APIView):
             ClanRequest.objects.get(userinfo=target_clanmember.userinfo, clan=clan).delete()
             return Response({'status': True})
 
+        # TODO: petition to just use a clanmember query to track this instead
+        # of updating it everywhere in the model.
         if clan.num_members + 1 > clan.cap:
             return Response({'status': False, 'reason': 'clan is full, max capacity reached'})
 
         target_clanmember.clan = clan
+        target_clanmember.clan2 = clanmember.clan2
         target_clanmember.is_admin = False
         target_clanmember.is_owner = False
         target_clanmember.save()
 
         clan.num_members += 1
         clan.save()
+
+        if clanmember.clan2:
+            clanmember.clan2.num_members += 1
+            clanmember.clan2.save()
 
         QuestUpdater.add_progress_by_type(target_clanmember.userinfo.user, constants.JOIN_GUILD, 1)
 
@@ -591,5 +628,9 @@ class UpdateClanProfilePictureView(APIView):
 
         clan.profile_picture = profile_picture
         clan.save()
+
+        if clanmember.clan2:
+            clanmember.clan2.profile_picture = profile_picture
+            clanmember.clan2.save()
 
         return Response({'status': True})
