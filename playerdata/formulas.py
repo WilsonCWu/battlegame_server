@@ -51,10 +51,10 @@ def coins_chest_reward(user, rarity):
         base_exp = 1.35
     elif rarity == constants.ChestType.GOLD.value:
         base_mult = 1
-        base_exp = 1.55
+        base_exp = 1.5
     elif rarity == constants.ChestType.MYTHICAL.value:
         base_mult = 1.5
-        base_exp = 1.7
+        base_exp = 1.65
 
     return math.floor(elo * base_mult + 200 + (elo ** base_exp))
 
