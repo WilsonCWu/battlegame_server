@@ -346,30 +346,11 @@ class PurchaseItemView(APIView):
         rarity = None
         char_copies = count_char_copies(Character.objects.filter(user=request.user))
 
-        if server.is_server_version_higher("0.0.7"):
-            rewards = []
+        rewards = []
 
-            # can support more types of purchases as we add more
-            if purchase_item_id.endswith("CHEST"):
-                rewards = handle_purchase_chest(request.user, purchase_item_id)
+        # can support more types of purchases as we add more
+        if purchase_item_id.endswith("CHEST"):
+            rewards = handle_purchase_chest(request.user, purchase_item_id)
 
-            reward_schema = chests.ChestRewardSchema(rewards, many=True)
-            return Response({'status': True, 'rewards': reward_schema.data})
-
-        # TODO: remove after release 0.0.7
-        # rig the first two rolls
-        if constants.SUMMON_COUNT[purchase_item_id] == 1:
-            if char_copies == 3:
-                # rarity 2
-                rarity = [0, 1000, 0, 0]
-            elif char_copies == 4:
-                # rarity 3
-                rarity = [0, 0, 1000, 0]
-
-        new_chars = generate_and_insert_characters(user, constants.SUMMON_COUNT[purchase_item_id], rarity)
-
-        # convert to a serialized form
-        for char_id, char_count in new_chars.items():
-            new_char_arr.append({"count": char_count.count, "character": CharacterSchema(char_count.character).data})
-
-        return Response({"status": True, "characters": new_char_arr})
+        reward_schema = chests.ChestRewardSchema(rewards, many=True)
+        return Response({'status': True, 'rewards': reward_schema.data})
