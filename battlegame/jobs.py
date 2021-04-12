@@ -1,7 +1,7 @@
 """One off jobs."""
 
-from playerdata.models import Placement
-from playerdata.models import Character
+from django.db import transaction
+from playerdata.models import *
 
 def clean_placements():
     for p in Placement.objects.all():
@@ -52,3 +52,38 @@ def clean_placements():
 
         if changed:
             p.save()
+
+
+@transaction.atomic
+def backfill_clans():
+    for clan in Clan.objects.all():
+        equiv = Clan2.objects.filter(name=clan.name)
+        if equiv:
+            continue
+
+        Clan2.objects.create(
+            name=clan.name,
+            description=clan.description,
+            chat=clan.chat,
+            time_started=clan.time_started,
+            elo=clan.elo,
+            profile_picture=clan.profile_picture,
+            num_members=clan.num_members,
+            cap=clan.cap,
+        )
+
+    cm_objs = ClanMember.objects.all()
+    for cm in cm_objs:
+        if cm.clan:
+            clan = Clan2.objects.get(name=cm.clan.name)
+            cm.clan2 = clan
+    ClanMember.objects.bulk_update(cm_objs, ['clan2'])
+
+    cr_objs = ClanRequest.objects.all()
+    for cr in cr_objs:
+        if cr.clan:
+            clan = Clan2.objects.get(name=cr.clan.name)
+            cr.clan2 = clan
+    ClanRequest.objects.bulk_update(cr_objs, ['clan2'])
+
+    
