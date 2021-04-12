@@ -52,7 +52,7 @@ class UserInfoSchema(Schema):
     time_started = fields.Str(attribute='user.userstats.time_started')
     longest_win_streak = fields.Int(attribute='user.userstats.longest_win_streak')
     default_placement = fields.Nested(PlacementSchema)
-    clan = fields.Str(attribute='clanmember.clan_id')
+    clan = fields.Function(lambda userinfo: userinfo.clanmember.clan2.name if userinfo.clanmember.clan2 else '')
     player_level = fields.Function(lambda userinfo: formulas.exp_to_level(userinfo.player_exp))
 
 
@@ -63,7 +63,7 @@ class LightUserInfoSchema(Schema):
     best_moevasion_stage = fields.Int()
     name = fields.Str()
     profile_picture = fields.Int()
-    clan = fields.Str(attribute='clanmember.clan_id')
+    clan = fields.Function(lambda userinfo: userinfo.clanmember.clan2.name if userinfo.clanmember.clan2 else '')
 
 
 class LightUserSchema(Schema):

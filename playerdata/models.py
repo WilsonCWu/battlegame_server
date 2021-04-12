@@ -753,22 +753,6 @@ class FriendRequest(models.Model):
         return self.user.userinfo.name + ',' + self.target.userinfo.name
 
 
-class Clan(models.Model):
-    name = models.TextField(primary_key=True)
-    description = models.TextField(default='A description has not been set.')
-    chat = models.ForeignKey(Chat, null=True, on_delete=models.SET_NULL)
-    time_started = models.DateTimeField(auto_now_add=True)
-    elo = models.IntegerField(default=0)
-    profile_picture = models.IntegerField(default=0)
-    num_members = models.IntegerField(default=1)
-    cap = models.IntegerField(default=30)
-
-    class Meta:
-        indexes = [
-            models.Index(fields=['elo', ]),
-        ]
-
-
 class Clan2(models.Model):
     name = models.TextField(unique=True)
     description = models.TextField(default='A description has not been set.')
@@ -788,7 +772,6 @@ class Clan2(models.Model):
 
 class ClanMember(models.Model):
     userinfo = models.OneToOneField(UserInfo, on_delete=models.CASCADE, primary_key=True)
-    clan = models.ForeignKey(Clan, on_delete=models.SET_NULL, null=True, default=None)
     clan2 = models.ForeignKey(Clan2, on_delete=models.SET_NULL, null=True, default=None)
     is_admin = models.BooleanField(default=False)
     is_owner = models.BooleanField(default=False)
@@ -796,9 +779,7 @@ class ClanMember(models.Model):
 
 class ClanRequest(models.Model):
     userinfo = models.OneToOneField(UserInfo, on_delete=models.CASCADE)
-    clan = models.ForeignKey(Clan, on_delete=models.CASCADE)
-    # TODO: cannot be null once clan is removed.
-    clan2 = models.ForeignKey(Clan2, on_delete=models.CASCADE, null=True, default=None)
+    clan2 = models.ForeignKey(Clan2, on_delete=models.CASCADE)
 
 
 class DungeonStage(models.Model):
