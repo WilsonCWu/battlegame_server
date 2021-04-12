@@ -769,6 +769,9 @@ class Clan2(models.Model):
             models.Index(fields=['elo', ]),
         ]
 
+    def __str__(self):
+        return "%d: %s" % (self.id, self.name)
+
 
 class ClanMember(models.Model):
     userinfo = models.OneToOneField(UserInfo, on_delete=models.CASCADE, primary_key=True)
