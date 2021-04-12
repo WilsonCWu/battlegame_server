@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from playerdata.models import Chat
-from playerdata.models import Clan, Clan2
+from playerdata.models import Clan2
 from playerdata.models import ClanMember
 from playerdata.models import ClanRequest
 from playerdata.models import Friend
@@ -232,11 +232,11 @@ class GetAllChatsView(APIView):
             chat_list.append(friend_chat)
 
         # Get clan chat
-        clan_member = ClanMember.objects.filter(userinfo=request.user.userinfo).select_related('clan__chat').first()
-        if clan_member.clan:
+        clan_member = ClanMember.objects.filter(userinfo=request.user.userinfo).select_related('clan2__chat').first()
+        if clan_member.clan2:
             clan_chat = {
-                'chat_id': clan_member.clan.chat.id,
-                'chat_name': clan_member.clan.name
+                'chat_id': clan_member.clan2.chat.id,
+                'chat_name': clan_member.clan2.name
             }
             chat_list.append(clan_chat)
 
@@ -257,7 +257,7 @@ class GetLeaderboardView(APIView):
             players = LightUserInfoSchema(top_player_set, many=True)
             return Response({'players': players.data})
         if leaderboard_type == 'clan_top_100':
-            top_clan_set = Clan.objects.all().order_by('-elo')[:100]
+            top_clan_set = Clan2.objects.all().order_by('-elo')[:100]
             clans = ClanSchema(top_clan_set, many=True)
             return Response({'clans': clans.data})
         if leaderboard_type == 'moevasion_top_100':
@@ -278,11 +278,11 @@ class GetClanSearchResultsView(APIView):
         search_name = serializer.validated_data['value']
 
         if not search_name:
-            clan_set = Clan.objects.filter(num_members__lte=29)[:10]
+            clan_set = Clan2.objects.filter(num_members__lte=29)[:10]
             clans = ClanSchema(clan_set, many=True)
             return Response({'clans': clans.data})
         else:
-            clan_set = Clan.objects.filter(name__icontains=search_name)
+            clan_set = Clan2.objects.filter(name__icontains=search_name)
             clans = ClanSchema(clan_set, many=True)
             return Response({'clans': clans.data})
 
@@ -297,20 +297,16 @@ class NewClanView(APIView):
         clan_name = serializer.validated_data['clan_name']
         clan_description = serializer.validated_data['clan_description']
 
-        if Clan.objects.filter(name=clan_name):  # if exists already
+        if Clan2.objects.filter(name=clan_name):  # if exists already
             return Response({'status': False, 'reason': 'Clan name ' + clan_name + ' already taken!'})
 
         clan_chat = Chat.objects.create(chat_name=clan_name)
 
-        clan = Clan.objects.create(name=clan_name, chat=clan_chat,
-                                   description=clan_description,
-                                   num_members=1)
         clan2 = Clan2.objects.create(name=clan_name, chat=clan_chat,
                                      description=clan_description,
                                      num_members=1)
 
         clan_owner = request.user.userinfo.clanmember
-        clan_owner.clan = clan
         clan_owner.clan2 = clan2
         clan_owner.is_admin = True
         clan_owner.is_owner = True
@@ -328,14 +324,9 @@ class LeaveClanView(APIView):
         if clan_member.is_owner:
             return Response({'status': False, 'reason': 'cannot leave clan without transferring ownership!'})
 
-        clan_member.clan.num_members -= 1
-        clan_member.clan.save()
-
-        if clan_member.clan2:
-            clan_member.clan2.num_members -= 1
-            clan_member.clan2.save()
+        clan_member.clan2.num_members -= 1
+        clan_member.clan2.save()
         
-        clan_member.clan = None
         clan_member.clan2 = None
         clan_member.is_admin = False
         clan_member.is_owner = False
@@ -349,24 +340,22 @@ class DeleteClanView(APIView):
 
     def post(self, request):
         clan_member = request.user.userinfo.clanmember
-        clan_name = clan_member.clan.name
+        clan_name = clan_member.clan2.name
         if not clan_member.is_owner:
             return Response({'status': False, 'reason': 'invalid clan permissions'})
 
-        clan_query = Clan.objects.filter(name=clan_name).prefetch_related(Prefetch(
+        clan_query = Clan2.objects.filter(name=clan_name).prefetch_related(Prefetch(
             'clanmember_set', to_attr='clan_members',
             queryset=ClanMember.objects.select_related('userinfo')))
 
         clanmembers = clan_query[0].clan_members
 
         for member in clanmembers:
-            member.clan = None
             member.clan2 = None
             member.is_admin = False
             member.is_owner = False
 
-        ClanMember.objects.bulk_update(clanmembers, ['clan', 'clan2', 'is_admin', 'is_owner'])
-        Clan.objects.filter(name=clan_name).first().delete()
+        ClanMember.objects.bulk_update(clanmembers, ['clan2', 'is_admin', 'is_owner'])
         Clan2.objects.filter(name=clan_name).first().delete()
 
         return Response({'status': True})
@@ -374,7 +363,7 @@ class DeleteClanView(APIView):
 
 class ClanMemberSchema(Schema):
     userinfo = fields.Nested(UserInfoSchema, exclude=('default_placement',))
-    clan_id = fields.Str()
+    clan_id = fields.Function(lambda clanmember: clanmember.clan2.name if clanmember.clan2 else '')
     is_admin = fields.Bool()
     is_owner = fields.Bool()
 
@@ -398,7 +387,7 @@ class GetClanView(APIView):
         serializer = ValueSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         clan_name = serializer.validated_data['value']
-        clan_query = Clan.objects.filter(name=clan_name).prefetch_related(Prefetch(
+        clan_query = Clan2.objects.filter(name=clan_name).prefetch_related(Prefetch(
             'clanmember_set', to_attr='clan_members',
             queryset=ClanMember.objects.select_related('userinfo').order_by('-userinfo__elo')))
 
@@ -419,17 +408,12 @@ class EditClanDescriptionView(APIView):
 
         clanmember = request.user.userinfo.clanmember
 
-        if not clanmember.clan or not clanmember.is_admin:
+        if not clanmember.clan2 or not clanmember.is_admin:
             return Response({'status': False, 'reason': 'invalid clan permissions'})
 
-        clan = clanmember.clan
-        clan.description = new_description
-        clan.save()
-
-        if clanmember.clan2:
-            clan2 = clanmember.clan2
-            clan2.description = new_description
-            clan2.save()
+        clan2 = clanmember.clan2
+        clan2.description = new_description
+        clan2.save()
 
         return Response({'status': True})
 
@@ -464,9 +448,9 @@ class ChangeMemberStatusView(APIView):
             return Response({'status': False, 'reason': 'cannot ' + member_status + ' yourself'})
 
         if not (
-                clanmember.clan and
+                clanmember.clan2 and
                 clanmember.is_admin and
-                clanmember.clan == target_clanmember.clan and
+                clanmember.clan2 == target_clanmember.clan2 and
                 not target_clanmember.is_owner):
             return Response({'status': False, 'reason': 'invalid clan permissions'})
 
@@ -475,17 +459,11 @@ class ChangeMemberStatusView(APIView):
         elif member_status == 'demote':
             target_clanmember.is_admin = False
         elif member_status == 'kick':
-            clan = target_clanmember.clan
             clan2 = target_clanmember.clan2
-            target_clanmember.clan = None
             target_clanmember.clan2 = None
 
-            clan.num_members -= 1
-            clan.save()
-
-            if clan2:
-                clan2.num_members -=1
-                clan2.save()
+            clan2.num_members -=1
+            clan2.save()
         else:
             return Response({'status': False, 'reason': 'member status ' + member_status + 'invalid.'})
 
@@ -497,7 +475,8 @@ class ChangeMemberStatusView(APIView):
 class ClanRequestSchema(Schema):
     request_id = fields.Int(attribute='id')
     userinfo = fields.Nested(LightUserInfoSchema)
-    clan_id = fields.Str()
+    # NOTE: don't need a null check on this since this clan2 will never be null.
+    clan_id = fields.Str(attribute='clan2.name')
 
 
 class CreateClanRequestView(APIView):
@@ -510,27 +489,27 @@ class CreateClanRequestView(APIView):
         target_clan_id = serializer.validated_data['value']
         # TODO: this in the future should be an ID instead of a name, but to
         # keep the transition simple, we'll leave it as name for now.
-        target_clan_query = Clan.objects.filter(name=target_clan_id)
+        target_clan_query = Clan2.objects.filter(name=target_clan_id)
         if not target_clan_query:
             return Response({'status': False, 'reason': 'Clan does not exist.'})
         target_clan = target_clan_query[0]
 
         userinfo = request.user.userinfo
 
-        if userinfo.clanmember.clan:
+        if userinfo.clanmember.clan2:
             return Response({'status': False, 'reason': 'User already part of a clan.'})
 
         # This model is 1-1 on userinfo, so this can only be 0 or 1 request.
         existing_request = ClanRequest.objects.filter(userinfo=userinfo).first()
         if existing_request:
-            if existing_request.clan == target_clan:
+            if existing_request.clan2 == target_clan:
                 return Response({'status': False, 'reason': 'Clan request already exists.'})
             else:
-                existing_request.clan = target_clan
+                existing_request.clan2 = target_clan
                 existing_request.save()
                 return Response({'status': True, 'message': 'Overwritten existing request.'})
 
-        ClanRequest.objects.create(userinfo=userinfo, clan=target_clan)
+        ClanRequest.objects.create(userinfo=userinfo, clan2=target_clan)
         return Response({'status': True})
 
 
@@ -540,10 +519,10 @@ class GetClanRequestsView(APIView):
     def get(self, request):
         clanmember = request.user.userinfo.clanmember
 
-        if not clanmember.clan or not clanmember.is_admin:
+        if not clanmember.clan2 or not clanmember.is_admin:
             return Response({'status': False, 'reason': 'invalid clan permissions'})
 
-        requestSet = ClanRequest.objects.filter(clan=clanmember.clan)
+        requestSet = ClanRequest.objects.filter(clan2=clanmember.clan2)
         requests = ClanRequestSchema(requestSet, many=True)
 
         return Response({'requests': requests.data})
@@ -553,47 +532,40 @@ class UpdateClanRequestView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
-
         serializer = UpdateClanRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         target_user_id = serializer.validated_data['target_user_id']
         accept = serializer.validated_data['accept']
 
         clanmember = request.user.userinfo.clanmember
-        clan = clanmember.clan
-        if not clan or not clanmember.is_admin:
+        clan2 = clanmember.clan2
+        if not clan2 or not clanmember.is_admin:
             return Response({'status': False, 'reason': 'invalid clan permissions'})
 
         target_clanmember = ClanMember.objects.get(userinfo_id=target_user_id)
 
-        if target_clanmember.clan:
+        if target_clanmember.clan2:
             ClanRequest.objects.filter(userinfo=target_clanmember.userinfo).delete()
-            return Response({'status': True, 'reason': 'already in clan ' + target_clanmember.clan.name})
+            return Response({'status': True, 'reason': 'already in clan ' + target_clanmember.clan2.name})
 
         if not accept:
-            ClanRequest.objects.get(userinfo=target_clanmember.userinfo, clan=clan).delete()
+            ClanRequest.objects.get(userinfo=target_clanmember.userinfo, clan2=clan2).delete()
             return Response({'status': True})
 
         # TODO: petition to just use a clanmember query to track this instead
         # of updating it everywhere in the model.
-        if clan.num_members + 1 > clan.cap:
+        if clan2.num_members + 1 > clan2.cap:
             return Response({'status': False, 'reason': 'clan is full, max capacity reached'})
 
-        target_clanmember.clan = clan
         target_clanmember.clan2 = clanmember.clan2
         target_clanmember.is_admin = False
         target_clanmember.is_owner = False
         target_clanmember.save()
 
-        clan.num_members += 1
-        clan.save()
-
-        if clanmember.clan2:
-            clanmember.clan2.num_members += 1
-            clanmember.clan2.save()
+        clan2.num_members += 1
+        clan2.save()
 
         QuestUpdater.add_progress_by_type(target_clanmember.userinfo.user, constants.JOIN_GUILD, 1)
-
         ClanRequest.objects.filter(userinfo=target_clanmember.userinfo).delete()
 
         return Response({'status': True})
@@ -622,15 +594,10 @@ class UpdateClanProfilePictureView(APIView):
         profile_picture = serializer.validated_data['value']
 
         clanmember = request.user.userinfo.clanmember
-        clan = clanmember.clan
-        if not clan or not clanmember.is_admin:
+        clan2 = clanmember.clan2
+        if not clan2 or not clanmember.is_admin:
             return Response({'status': False, 'reason': 'invalid clan permissions'})
 
-        clan.profile_picture = profile_picture
-        clan.save()
-
-        if clanmember.clan2:
-            clanmember.clan2.profile_picture = profile_picture
-            clanmember.clan2.save()
-
+        clan2.profile_picture = profile_picture
+        clan2.save()
         return Response({'status': True})
