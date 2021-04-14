@@ -6,7 +6,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_marshmallow import Schema, fields
 
-from playerdata.models import PlayerQuestCumulative, ActiveDailyQuest, get_expiration_date, ActiveWeeklyQuest, BaseQuest
+from playerdata.models import PlayerQuestCumulative, ActiveDailyQuest, get_expiration_date, ActiveWeeklyQuest, \
+    BaseQuest, PlayerQuestCumulative2, CumulativeTracker, ActiveCumulativeQuest
 from playerdata.models import PlayerQuestWeekly
 from playerdata.models import PlayerQuestDaily
 from playerdata.models import User
@@ -29,7 +30,7 @@ class CumulativeQuestSchema(Schema):
     char_id = fields.Int(attribute='base_quest.char_type.id')
     char_description = fields.Str(attribute='base_quest.char_type.name')  # Replace with actual description
 
-    progress = fields.Int(attribute='progress.progress')
+    progress = fields.Int()
     completed = fields.Bool()
     claimed = fields.Bool()
 
@@ -71,6 +72,26 @@ class QuestView(APIView):
         cumulative_quests = PlayerQuestCumulative.objects.filter(user=request.user, claimed=False)\
             .select_related('base_quest__item_type').select_related('base_quest__char_type')\
             .order_by('-completed')
+
+        # TODO: Uncomment after quests are moved over
+        player_cumulative = PlayerQuestCumulative2.objects.filter(user=request.user).first()
+        active_quests = ActiveCumulativeQuest.objects.select_related("base_quest").exclude(base_quest_id__in=player_cumulative.claimed_quests)
+        cumulative_basequests = [quest.base_quest for quest in active_quests]
+        trackers = CumulativeTracker.objects.filter(user=request.user)
+        trackers_dict = {}
+
+        for tracker in trackers:
+            trackers_dict[tracker.type] = tracker.progress
+
+        cumulative_quests = []
+        for basequest in cumulative_basequests:
+            quest = {
+                "base_quest": basequest,
+                "progress": trackers_dict[basequest.type],
+                "claimed": False,
+                "completed": basequest.id in player_cumulative.completed_quests
+            }
+            cumulative_quests.append(quest)
 
         weekly_quests = PlayerQuestWeekly.objects.filter(user=request.user)\
             .select_related('base_quest__item_type').select_related('base_quest__char_type')\
