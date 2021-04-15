@@ -94,6 +94,8 @@ def backfill_cumulative_quests():
     bulk_quests2 = []
     for user in users:
         player_quests = PlayerQuestCumulative.objects.filter(user=user)
+        if PlayerQuestCumulative2.objects.filter(user=user).exists():
+            continue
         quests2 = PlayerQuestCumulative2(user=user)
         quests2.completed_quests = []
         quests2.claimed_quests = []
