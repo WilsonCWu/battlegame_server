@@ -1,9 +1,10 @@
 import logging
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.transaction import atomic
 
-from playerdata import constants
-from playerdata.models import PlayerQuestCumulative
+from playerdata import constants, server
+from playerdata.models import PlayerQuestCumulative, PlayerQuestCumulative2, BaseQuest
 from playerdata.models import PlayerQuestWeekly
 from playerdata.models import PlayerQuestDaily
 from playerdata.models import CumulativeTracker
@@ -42,10 +43,19 @@ def update_cumulative_progress(quests, tracker):
     PlayerQuestCumulative.objects.bulk_update(quests, ['completed'])
 
 
+# quests is a list of BaseQuests
+def update_cumulative_progress2(quests, tracker, player_cumulative):
+    for quest in quests:
+        if tracker.progress >= quest.total:
+            player_cumulative.completed_quests.append(quest.id)
+
+    player_cumulative.save()
+
 
 class QuestUpdater:
 
     @staticmethod
+    @atomic
     def add_progress_by_type(user, UPDATE_TYPE, amount):
         if amount < 0:
             logging.error("negative progress on quest type: " + UPDATE_TYPE)
@@ -55,6 +65,12 @@ class QuestUpdater:
                                                                                               base_quest__type=UPDATE_TYPE,
                                                                                               completed=False,
                                                                                               claimed=False)
+        if server.is_server_version_higher("0.2.2"):
+            player_cumulative = PlayerQuestCumulative2.objects.filter(user=user).first()
+            cumulative_basequests = BaseQuest.objects.filter(type=UPDATE_TYPE).exclude(
+                id__in=(player_cumulative.completed_quests + player_cumulative.claimed_quests))
+
+
         weekly_quests = PlayerQuestWeekly.objects.select_related('base_quest').filter(user=user,
                                                                                       base_quest__type=UPDATE_TYPE,
                                                                                       completed=False, claimed=False)
@@ -66,7 +82,10 @@ class QuestUpdater:
             tracker = CumulativeTracker.objects.get(user=user, type=UPDATE_TYPE)
             tracker.progress += amount
             tracker.save()
-            update_cumulative_progress(cumulative_quests, tracker)
+            if server.is_server_version_higher("0.2.2"):
+                update_cumulative_progress2(cumulative_basequests, tracker, player_cumulative)
+            else:
+                update_cumulative_progress(cumulative_quests, tracker)
         except ObjectDoesNotExist:
             pass
         except OverflowError:
@@ -75,8 +94,8 @@ class QuestUpdater:
         add_progress_to_quest_list(amount, weekly_quests)
         add_progress_to_quest_list(amount, daily_quests)
 
-
     @staticmethod
+    @atomic
     def set_progress_by_type(user, UPDATE_TYPE, amount):
         if amount < 0:
             logging.error("negative progress on quest type: " + UPDATE_TYPE)
@@ -86,6 +105,11 @@ class QuestUpdater:
                                                                                               base_quest__type=UPDATE_TYPE,
                                                                                               completed=False,
                                                                                               claimed=False)
+
+        if server.is_server_version_higher("0.2.2"):
+            player_cumulative = PlayerQuestCumulative2.objects.filter(user=user).first()
+            cumulative_basequests = BaseQuest.objects.filter(type=UPDATE_TYPE).exclude(id__in=(player_cumulative.completed_quests + player_cumulative.claimed_quests))
+
         weekly_quests = PlayerQuestWeekly.objects.select_related('base_quest').filter(user=user,
                                                                                       base_quest__type=UPDATE_TYPE,
                                                                                       completed=False, claimed=False)
@@ -97,7 +121,10 @@ class QuestUpdater:
             tracker = CumulativeTracker.objects.get(user=user, type=UPDATE_TYPE)
             tracker.progress = amount
             tracker.save()
-            update_cumulative_progress(cumulative_quests, tracker)
+            if server.is_server_version_higher("0.2.2"):
+                update_cumulative_progress2(cumulative_basequests, tracker, player_cumulative)
+            else:
+                update_cumulative_progress(cumulative_quests, tracker)
         except ObjectDoesNotExist:
             pass
 

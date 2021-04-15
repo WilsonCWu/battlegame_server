@@ -870,6 +870,11 @@ class PlayerQuestCumulative(models.Model):
     def __str__(self):
         return "user:" + str(self.user_id) + " " + self.base_quest.title
 
+class PlayerQuestCumulative2(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    completed_quests = ArrayField(models.IntegerField(), blank=True, null=True, default=list)
+    claimed_quests = ArrayField(models.IntegerField(), blank=True, null=True, default=list)
+
 
 class PlayerQuestDaily(models.Model):
     base_quest = models.ForeignKey(BaseQuest, on_delete=models.CASCADE)
@@ -1088,6 +1093,7 @@ def create_user_info(sender, instance, created, **kwargs):
         expiry_date_weekly = get_expiration_date(7)
         expiry_date_daily = get_expiration_date(1)
         create_cumulative_quests(instance)
+        PlayerQuestCumulative2.objects.create(user=instance)
         create_quests_by_class(instance, ActiveWeeklyQuest.objects.all()[:constants.NUM_WEEKLY_QUESTS], PlayerQuestWeekly, expiry_date_weekly)
         create_quests_by_class(instance, ActiveDailyQuest.objects.all()[:constants.NUM_DAILY_QUESTS], PlayerQuestDaily, expiry_date_daily)
 
