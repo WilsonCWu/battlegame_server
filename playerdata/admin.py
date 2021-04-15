@@ -259,7 +259,7 @@ class ActiveWeeklyQuestAdmin(bulk_admin.BulkModelAdmin):
 
 @admin.register(PlayerQuestCumulative2)
 class PlayerQuestCumulative2Admin(admin.ModelAdmin, DynamicArrayMixin):
-    pass
+    search_fields = ('user__id',)
 
 
 class ActiveDealAdmin(admin.ModelAdmin):

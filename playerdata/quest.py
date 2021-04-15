@@ -43,6 +43,8 @@ class CumulativeQuestSchema2(Schema):
     gems = fields.Int(attribute='base_quest.gems')
     coins = fields.Int(attribute='base_quest.coins')
     dust = fields.Int(attribute='base_quest.dust')
+    # TODO: something like fields.Function(lambda quest: quest.base_quest.item_type.id if quest.base_quest.item_type else '')
+    # these fields won't be returned if item_type is None
     item_id = fields.Int(attribute='base_quest.item_type.id')
     item_description = fields.Str(attribute='base_quest.item_type.description')
     char_id = fields.Int(attribute='base_quest.char_type.id')
@@ -88,8 +90,8 @@ class QuestView(APIView):
             .select_related('base_quest__item_type').select_related('base_quest__char_type')\
             .order_by('-completed')
 
-        if server.is_server_version_higher("0.2.2"):
-            player_cumulative = PlayerQuestCumulative2.objects.filter(user=request.user).first()
+        player_cumulative = PlayerQuestCumulative2.objects.filter(user=request.user).first()
+        if player_cumulative:
             active_quests = ActiveCumulativeQuest.objects.select_related("base_quest").exclude(base_quest_id__in=player_cumulative.claimed_quests)
             cumulative_basequests = [quest.base_quest for quest in active_quests]
             trackers = CumulativeTracker.objects.filter(user=request.user)
@@ -117,7 +119,7 @@ class QuestView(APIView):
             .order_by('claimed', '-completed')
 
         cumulative_schema = CumulativeQuestSchema(cumulative_quests, many=True)
-        if server.is_server_version_higher("0.2.2"):
+        if player_cumulative:
             cumulative_schema = CumulativeQuestSchema2(cumulative_quests, many=True)
 
         weekly_schema = QuestSchema(weekly_quests, many=True)
@@ -157,16 +159,16 @@ class ClaimQuestCumulativeView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
-        if server.is_server_version_higher("0.2.2"):
+        player_quest = PlayerQuestCumulative2.objects.filter(user=request.user).first()
+
+        if player_quest:
             serializer = ClaimQuestSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             quest_id = serializer.validated_data['quest_id']
-            user = request.user
 
-            player_quest = PlayerQuestCumulative2.objects.get(user=user)
             base_quest = BaseQuest.objects.get(id=quest_id)
             if (base_quest.id in player_quest.completed_quests) and not (base_quest.id in player_quest.claimed_quests):
-                award_quest(user.inventory, base_quest)
+                award_quest(request.user.inventory, base_quest)
                 player_quest.claimed_quests.append(quest_id)
                 player_quest.save()
                 return Response({'status': True})

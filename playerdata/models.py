@@ -870,8 +870,9 @@ class PlayerQuestCumulative(models.Model):
     def __str__(self):
         return "user:" + str(self.user_id) + " " + self.base_quest.title
 
+
 class PlayerQuestCumulative2(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     completed_quests = ArrayField(models.IntegerField(), blank=True, null=True, default=list)
     claimed_quests = ArrayField(models.IntegerField(), blank=True, null=True, default=list)
 

@@ -65,8 +65,9 @@ class QuestUpdater:
                                                                                               base_quest__type=UPDATE_TYPE,
                                                                                               completed=False,
                                                                                               claimed=False)
-        if server.is_server_version_higher("0.2.2"):
-            player_cumulative = PlayerQuestCumulative2.objects.filter(user=user).first()
+
+        player_cumulative = PlayerQuestCumulative2.objects.filter(user=user).first()
+        if player_cumulative:
             cumulative_basequests = BaseQuest.objects.filter(type=UPDATE_TYPE).exclude(
                 id__in=(player_cumulative.completed_quests + player_cumulative.claimed_quests))
 
@@ -82,7 +83,7 @@ class QuestUpdater:
             tracker = CumulativeTracker.objects.get(user=user, type=UPDATE_TYPE)
             tracker.progress += amount
             tracker.save()
-            if server.is_server_version_higher("0.2.2"):
+            if player_cumulative:
                 update_cumulative_progress2(cumulative_basequests, tracker, player_cumulative)
             else:
                 update_cumulative_progress(cumulative_quests, tracker)
@@ -106,8 +107,8 @@ class QuestUpdater:
                                                                                               completed=False,
                                                                                               claimed=False)
 
-        if server.is_server_version_higher("0.2.2"):
-            player_cumulative = PlayerQuestCumulative2.objects.filter(user=user).first()
+        player_cumulative = PlayerQuestCumulative2.objects.filter(user=user).first()
+        if player_cumulative:
             cumulative_basequests = BaseQuest.objects.filter(type=UPDATE_TYPE).exclude(id__in=(player_cumulative.completed_quests + player_cumulative.claimed_quests))
 
         weekly_quests = PlayerQuestWeekly.objects.select_related('base_quest').filter(user=user,
@@ -121,7 +122,7 @@ class QuestUpdater:
             tracker = CumulativeTracker.objects.get(user=user, type=UPDATE_TYPE)
             tracker.progress = amount
             tracker.save()
-            if server.is_server_version_higher("0.2.2"):
+            if player_cumulative:
                 update_cumulative_progress2(cumulative_basequests, tracker, player_cumulative)
             else:
                 update_cumulative_progress(cumulative_quests, tracker)
