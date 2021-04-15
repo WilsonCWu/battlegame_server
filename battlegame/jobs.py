@@ -86,4 +86,23 @@ def backfill_clans():
             cr.clan2 = clan
     ClanRequest.objects.bulk_update(cr_objs, ['clan2'])
 
-    
+
+@transaction.atomic
+def backfill_cumulative_quests():
+    users = User.objects.all()
+    # for all playerquest
+    bulk_quests2 = []
+    for user in users:
+        player_quests = PlayerQuestCumulative.objects.filter(user=user)
+        quests2 = PlayerQuestCumulative2(user=user)
+        quests2.completed_quests = []
+        quests2.claimed_quests = []
+        for quest in player_quests:
+            if quest.completed:
+                quests2.completed_quests.append(quest.base_quest_id)
+            if quest.claimed:
+                quests2.claimed_quests.append(quest.base_quest_id)
+
+        bulk_quests2.append(quests2)
+
+    PlayerQuestCumulative2.objects.bulk_create(bulk_quests2)
