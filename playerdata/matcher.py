@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from playerdata import constants, formulas
-from playerdata.models import BaseCharacter
+from playerdata.models import BaseCharacter, CumulativeTracker
 from playerdata.models import Character
 from playerdata.models import Placement
 from playerdata.models import UserInfo
@@ -51,6 +51,9 @@ class UserInfoSchema(Schema):
     num_games = fields.Int(attribute='user.userstats.num_games')
     time_started = fields.Str(attribute='user.userstats.time_started')
     longest_win_streak = fields.Int(attribute='user.userstats.longest_win_streak')
+    campaign_stage = fields.Int(attribute='user.dungeonprogress.campaign_stage')
+    total_damage = fields.Function(lambda userinfo: CumulativeTracker.objects.get(user=userinfo.user, type=constants.DAMAGE_DEALT).progress)
+
     default_placement = fields.Nested(PlacementSchema)
     clan = fields.Function(lambda userinfo: userinfo.clanmember.clan2.name if userinfo.clanmember.clan2 else '')
     player_level = fields.Function(lambda userinfo: formulas.exp_to_level(userinfo.player_exp))
@@ -121,7 +124,8 @@ def userinfo_with_items():
 def userinfo_preloaded():
     return userinfo_with_items() \
         .select_related('clanmember') \
-        .select_related('user__userstats')
+        .select_related('user__userstats')\
+        .select_related('user__dungeonprogress')
 
 
 class GetUserView(APIView):
