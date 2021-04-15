@@ -16,7 +16,8 @@ from .daily_dungeon import daily_dungeon_team_gen_cron
 from .dungeon import generate_dungeon_stages
 from .dungeon_gen import convert_placement_to_json
 from .matcher import generate_bots_from_users, generate_bots_bulk
-from .models import ActiveCumulativeQuest, DailyDungeonStatus, DailyDungeonStage, MoevasionStatus
+from .models import ActiveCumulativeQuest, DailyDungeonStatus, DailyDungeonStage, MoevasionStatus, \
+    PlayerQuestCumulative2
 from .models import ActiveDailyQuest
 from .models import ActiveDeal
 from .models import ActiveWeeklyQuest
@@ -254,6 +255,11 @@ class ActiveWeeklyQuestAdmin(bulk_admin.BulkModelAdmin):
 
     def refresh(self, request, queryset):
         refresh_weekly_quests()
+
+
+@admin.register(PlayerQuestCumulative2)
+class PlayerQuestCumulative2Admin(admin.ModelAdmin, DynamicArrayMixin):
+    search_fields = ('user__id',)
 
 
 class ActiveDealAdmin(admin.ModelAdmin):
