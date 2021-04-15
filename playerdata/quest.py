@@ -18,7 +18,7 @@ from .serializers import ClaimQuestSerializer
 
 
 class CumulativeQuestSchema(Schema):
-    id = fields.Int(attribute='base_quest.id')
+    id = fields.Int()
     title = fields.Str(attribute='base_quest.title')
     type = fields.Str(attribute='base_quest.type')
     total = fields.Int(attribute='base_quest.total')
@@ -30,9 +30,10 @@ class CumulativeQuestSchema(Schema):
     char_id = fields.Int(attribute='base_quest.char_type.id')
     char_description = fields.Str(attribute='base_quest.char_type.name')  # Replace with actual description
 
-    progress = fields.Int()
+    progress = fields.Int(attribute='progress.progress')
     completed = fields.Bool()
     claimed = fields.Bool()
+
 
 class CumulativeQuestSchema2(Schema):
     id = fields.Int(attribute='base_quest.id')
@@ -118,7 +119,7 @@ class QuestView(APIView):
         cumulative_schema = CumulativeQuestSchema(cumulative_quests, many=True)
         if server.is_server_version_higher("0.2.2"):
             cumulative_schema = CumulativeQuestSchema2(cumulative_quests, many=True)
-        
+
         weekly_schema = QuestSchema(weekly_quests, many=True)
         daily_schema = QuestSchema(daily_quests, many=True)
 
