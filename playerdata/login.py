@@ -43,7 +43,7 @@ class CreateNewUser(APIView):
         token = serializer.validated_data['token']
 
         if token != config('CREATEUSER_TOKEN'):
-            return Response({'detail': 'Invalid Credentials. Please contact support.'}, status=HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Invalid Credentials. Please contact support.'}, status=HTTP_401_UNAUTHORIZED)
 
         latest_id = get_user_model().objects.latest('id').id + 1
         password = CreateNewUser.generate_password()
@@ -86,7 +86,7 @@ class ObtainAuthToken(APIView):
             password=serializer.validated_data['password']
         )
         if not user:
-            return Response({'detail': 'Invalid Credentials. Please contact support.'}, status=HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Invalid Credentials. Please contact support.'}, status=HTTP_401_UNAUTHORIZED)
 
         Token.objects.filter(user=user).delete()
         token = Token.objects.create(user=user)
