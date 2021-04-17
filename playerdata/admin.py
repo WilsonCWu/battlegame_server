@@ -48,7 +48,6 @@ from .models import Inventory
 from .models import Item
 from .models import Match
 from .models import Placement
-from .models import PlayerQuestCumulative
 from .models import PlayerQuestDaily
 from .models import PlayerQuestWeekly
 from .models import PurchasedTracker
@@ -203,29 +202,8 @@ class PlacementAdmin(admin.ModelAdmin):
 
 
 class BaseQuestAdmin(bulk_admin.BulkModelAdmin):
-    actions = ['propagate_quests']
     list_display = ('id', 'title', 'type', 'total')
     list_filter = ('type',)
-
-    def propagate_quests(self, request, queryset):
-        bulk_quests = []
-        users = User.objects.all()
-        for quest in queryset:
-            for user in users:
-                progress_tracker, _ = CumulativeTracker.objects.get_or_create(user=user, type=quest.type)
-                player_quest = PlayerQuestCumulative(base_quest=quest, user=user, progress=progress_tracker)
-                if progress_tracker.progress >= quest.total:
-                    player_quest.completed = True
-                bulk_quests.append(player_quest)
-
-        PlayerQuestCumulative.objects.bulk_update_or_create(bulk_quests, ['progress'], match_field=['base_quest', 'user', 'progress'])
-        self.message_user(request, ngettext(
-            '%d cumulative BaseQuest successfully propagated.',
-            '%d cumulative BaseQuests successfully propagated.',
-            len(queryset),
-        ) % len(queryset), messages.SUCCESS)
-
-    propagate_quests.short_description = "Propagate cumulative BaseQuest to all Users"
 
 
 class CumulativeTrackerAdmin(admin.ModelAdmin):
@@ -482,7 +460,6 @@ admin.site.register(ClanMember)
 admin.site.register(ClanRequest)
 
 admin.site.register(BaseQuest, BaseQuestAdmin)
-admin.site.register(PlayerQuestCumulative)
 admin.site.register(PlayerQuestDaily)
 admin.site.register(PlayerQuestWeekly)
 admin.site.register(CumulativeTracker, CumulativeTrackerAdmin)
