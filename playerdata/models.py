@@ -859,7 +859,7 @@ class CumulativeTracker(models.Model):
 
 
 class PlayerQuestCumulative2(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     completed_quests = ArrayField(models.IntegerField(), blank=True, null=True, default=list)
     claimed_quests = ArrayField(models.IntegerField(), blank=True, null=True, default=list)
 
