@@ -404,15 +404,15 @@ class BaseCharacterStatsAdmin(admin.ModelAdmin):
 
 @admin.register(BaseCharacter)
 class BaseCharacterAdmin(admin.ModelAdmin):
-    actions = ('generate_usage_and_prestige',)
+    actions = ('generate_deps',)
     list_display = ('char_type', 'name', 'rollable', 'rarity')
     list_filter = ('rollable', 'rarity')
 
-    def generate_usage_and_prestige(self, request, queryset):
+    def generate_deps(self, request, queryset):
         for base_char in queryset:
             # Create BaseCharacterUsage for characters that currently
             # don't have it.
-            if not hasattr(base_char, "basecharacterusage"):
+            if not BaseCharacterUsage.objects.filter(char_type=base_char).exists():
                 BaseCharacterUsage.objects.create(char_type=base_char)
 
             # Create BasePrestige for characters that currently don't have
@@ -433,6 +433,42 @@ class BaseCharacterAdmin(admin.ModelAdmin):
                         mr_mult=(1.07 ** star_level),
                         max_health_mult=(1.07 ** star_level),
                     )
+
+            # Create BaseCharacterStats if need. Defaults to base stats of
+            # Haldor.
+            if not BaseCharacterStats.objects.filter(char_type=base_char).exists():
+                BaseCharacterStats.objects.create(
+                    char_type=base_char,
+                    version='0.0.0',
+                    health=700,
+                    starting_mana=0,
+                    mana=120,
+                    speed=100,
+                    attack_damage=100,
+                    ability_damage=100,
+                    attack_speed=1.0,
+                    ar=20,
+                    mr=20,
+                    attack_range=1,
+                    crit_chance=10,
+                    health_scale=100,
+                    attack_scale=100,
+                    ability_scale=100,
+                    ar_scale=30,
+                    mr_scale=30,
+                )
+
+            # Create an easy to fill BaseCharacterAbility2.
+            if not BaseCharacterAbility2.objects.filter(char_type=base_char).exists():
+                sl = PRESTIGE_CAP_BY_RARITY[base_char.rarity] - 5
+                BaseCharacterAbility2.objects.create(
+                    char_type=base_char,
+                    version='0.0.0',
+                    ability1_specs={"21": {}, "101": {}, "181": {}, "prestige-%d" % (1 + sl): {}},
+                    ability2_specs={"41": {}, "121": {}, "201": {}, "prestige-%d" % (2 + sl): {}},
+                    ability3_specs={"61": {}, "141": {}, "221": {}, "prestige-%d" % (4 + sl): {}},
+                    ultimate_specs={"1": {}, "81": {}, "161": {}, "prestige-%d" % (3 + sl): {}, "prestige-%d" % (5 + sl): {}},
+                )
 
 
 admin.site.register(DungeonStage, DungeonStageAdmin)
