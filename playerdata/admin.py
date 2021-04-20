@@ -8,6 +8,7 @@ from django.http import HttpResponse
 from django.utils.translation import ngettext
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 from django_json_widget.widgets import JSONEditorWidget
+from packaging import version
 
 from battlegame.cron import next_round, setup_tournament, end_tourney
 from . import constants
@@ -344,7 +345,7 @@ class BaseCharacterAbility2Admin(admin.ModelAdmin):
         JSONField: {'widget': JSONEditorWidget}
     }
     list_filter = ('char_type', 'version')
-    actions = ('generate_next_patch',)
+    actions = ('generate_next_patch', 'generate_patch_notes')
 
     def generate_next_patch(self, request, queryset):
         for a in queryset:
@@ -365,6 +366,75 @@ class BaseCharacterAbility2Admin(admin.ModelAdmin):
                 ultimate_desc = a.ultimate_desc,
             )
 
+    def generate_patch_notes(self, request, queryset):
+        v = queryset[0].version
+        changed = BaseCharacterAbility2.objects.filter(version=v)
+
+        previous = {}
+        for a in BaseCharacterAbility2.objects.all():
+            if version.parse(a.version) >= version.parse(v):
+                continue
+            if a.char_type not in previous or version.parse(a.version) > version.parse(previous[a.char_type].version):
+                previous[a.char_type] = a
+
+        resp = []
+        for a in changed:
+            if a.char_type not in previous:
+                resp.append('NEW CHARACTER: %s' % a.char_type.name)
+            else:
+                p = previous[a.char_type]
+                char_diff = ['CHANGED CHARACTER: %s\n\n' % a.char_type.name]
+                
+                for ability_type, ability_name, specs, prev_specs in zip(
+                        ['Ability1', 'Ability2', 'Ability3', 'Ultimate'],
+                        [a.ability1_desc, a.ability2_desc, a.ability3_desc, a.ultimate_desc],
+                        [a.ability1_specs, a.ability2_specs, a.ability3_specs, a.ultimate_specs],
+                        [p.ability1_specs, p.ability2_specs, p.ability3_specs, p.ultimate_specs],
+                ):
+                    if not prev_specs:
+                        char_diff.append('NEW %s (%s)' % (ability_type, ability_name))
+                        continue
+
+                    # Check if we have any changes before noting that an ability
+                    # has diffed.
+                    ability_diff = []
+
+                    # Assume that the levels are the same and don't actually
+                    # change.
+                    for lvl in sorted(specs.keys(), key=lambda x: int(x) if BaseCharacterAbility2.is_num_key(x) else 1000 + int(x.lstrip('prestige-'))):
+                        if lvl not in prev_specs:
+                            ability_diff.append('LEVEL CHANGES (missing level %s)' % lvl)
+                            continue
+
+                        ability_diff.append(lvl)
+                        has_changes = False
+                        removed_keys = set(prev_specs[lvl]) - set(specs[lvl])
+                        if removed_keys:
+                            has_changes = True
+                            ability_diff.append('REMOVED: %s' % str(removed_keys))
+
+                        new_keys = {k: v for k, v in specs[lvl].items() if k not in prev_specs[lvl]}
+                        if new_keys:
+                            has_changes = True
+                            ability_diff.append('NEW: %s' % str(new_keys))
+
+                        changed_keys = {k: ('+' + str(v), '-' + str(prev_specs[lvl][k]))
+                                        for k, v in specs[lvl].items()
+                                        if k in prev_specs[lvl] and v != prev_specs[lvl][k]}
+                        if changed_keys:
+                            has_changes = True
+                            ability_diff.append('CHANGED: %s' % str(changed_keys))
+
+                        if not has_changes: ability_diff.pop()
+
+                    if ability_diff - specs.keys():
+                        diff_str = '%s (%s)\n%s\n' % (ability_type, ability_name, '\n'.join(ability_diff))
+                        char_diff.append(diff_str)
+
+                # Aggregate all the changes for a character.
+                resp.append('\n'.join(char_diff))
+        return HttpResponse('\n\n\n'.join(resp), content_type="text/plain")
+            
 
 @admin.register(BaseCharacterStats)
 class BaseCharacterStatsAdmin(admin.ModelAdmin):
