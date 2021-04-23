@@ -776,8 +776,9 @@ class Clan2(models.Model):
 class ClanMember(models.Model):
     userinfo = models.OneToOneField(UserInfo, on_delete=models.CASCADE, primary_key=True)
     clan2 = models.ForeignKey(Clan2, on_delete=models.SET_NULL, null=True, default=None)
-    is_admin = models.BooleanField(default=False)
-    is_owner = models.BooleanField(default=False)
+    is_elder = models.BooleanField(default=False)
+    is_admin = models.BooleanField(default=False)  # Coleader
+    is_owner = models.BooleanField(default=False)  # Leader
 
 
 class ClanRequest(models.Model):

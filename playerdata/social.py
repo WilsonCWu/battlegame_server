@@ -16,7 +16,7 @@ from playerdata.models import ClanRequest
 from playerdata.models import Friend
 from playerdata.models import FriendRequest
 from playerdata.models import UserInfo
-from . import constants
+from . import constants, server
 from .matcher import UserInfoSchema, LightUserInfoSchema
 from .questupdater import QuestUpdater
 from .serializers import AcceptFriendRequestSerializer
@@ -310,6 +310,7 @@ class NewClanView(APIView):
         clan_owner.clan2 = clan2
         clan_owner.is_admin = True
         clan_owner.is_owner = True
+        clan_owner.is_elder = True
         clan_owner.save()
 
         return Response({'status': True})
@@ -455,8 +456,17 @@ class ChangeMemberStatusView(APIView):
             return Response({'status': False, 'reason': 'invalid clan permissions'})
 
         if member_status == 'promote':
-            target_clanmember.is_admin = True
+            if server.is_server_version_higher("0.2.2"):
+                if target_clanmember.is_elder:
+                    target_clanmember.is_admin = True
+                target_clanmember.is_elder = True
+            else:
+                target_clanmember.is_admin = True
         elif member_status == 'demote':
+            if server.is_server_version_higher("0.2.2"):
+                if not target_clanmember.is_admin:
+                    target_clanmember.is_elder = False
+
             target_clanmember.is_admin = False
         elif member_status == 'kick':
             clan2 = target_clanmember.clan2
@@ -464,6 +474,10 @@ class ChangeMemberStatusView(APIView):
 
             clan2.num_members -=1
             clan2.save()
+        elif member_status == 'transfer' and clanmember.is_owner and target_clanmember.is_admin:
+            clanmember.is_owner = False
+            target_clanmember.is_owner = True
+            clanmember.save()
         else:
             return Response({'status': False, 'reason': 'member status ' + member_status + 'invalid.'})
 
@@ -539,7 +553,7 @@ class UpdateClanRequestView(APIView):
 
         clanmember = request.user.userinfo.clanmember
         clan2 = clanmember.clan2
-        if not clan2 or not clanmember.is_admin:
+        if not clan2 or not clanmember.is_elder:
             return Response({'status': False, 'reason': 'invalid clan permissions'})
 
         target_clanmember = ClanMember.objects.get(userinfo_id=target_user_id)
@@ -560,6 +574,7 @@ class UpdateClanRequestView(APIView):
         target_clanmember.clan2 = clanmember.clan2
         target_clanmember.is_admin = False
         target_clanmember.is_owner = False
+        target_clanmember.is_elder = False
         target_clanmember.save()
 
         clan2.num_members += 1
