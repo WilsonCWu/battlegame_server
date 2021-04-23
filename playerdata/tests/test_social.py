@@ -7,26 +7,7 @@ from playerdata.models import User, ClanMember, Clan2
 class ClanAPITestCase(APITestCase):
     fixtures = ['playerdata/tests/fixtures.json']
 
-    def join_clan(self):
-        pass
-
-    def setUp(self):
-        self.u = User.objects.get(username='testWilson')
-        self.client.force_authenticate(user=self.u)
-
-        response = self.client.post('/clan/new/', {
-            'clan_name': 'rdkiller',
-            'clan_description': 'real ones only'
-        })
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    # def test_join_clan(self):
-    #     self.join_clan()
-
-
-    def test_promote_coleader(self):
-        member_id = 2
+    def join_clan(self, member_id):
         target_member = User.objects.get(id=member_id)
         self.client.force_authenticate(user=target_member)
         response = self.client.post('/clan/requests/create/', {
@@ -41,14 +22,30 @@ class ClanAPITestCase(APITestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def setUp(self):
+        self.u = User.objects.get(username='testWilson')
+        self.client.force_authenticate(user=self.u)
+
+        response = self.client.post('/clan/new/', {
+            'clan_name': 'rdkiller',
+            'clan_description': 'real ones only'
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_join_clan(self):
+        self.join_clan(member_id=2)
+
+    def test_promote_coleader(self):
+        member_id = 2
+        self.join_clan(member_id)
+
         response = self.client.post('/clan/members/updatestatus/', {
             'member_id': member_id,
             'member_status': 'promote'
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-
         target_clanmember = ClanMember.objects.get(userinfo_id=member_id)
         # TODO: after 0.2.2 need to promote twice for admin
         self.assertTrue(target_clanmember.is_admin)
