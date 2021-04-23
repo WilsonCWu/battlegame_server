@@ -47,10 +47,10 @@ class ClanAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         target_clanmember = ClanMember.objects.get(userinfo_id=member_id)
-        # TODO: after 0.2.2 need to promote twice for admin
+        # TODO: after 0.2.3 need to promote twice for admin
         self.assertTrue(target_clanmember.is_admin)
 
-    # TODO: uncomment after 0.2.2 for testing elder
+    # TODO: uncomment after 0.2.3 for testing elder
     # def test_promote_elder(self):
     #     member_id = 2
     #     response = self.client.post('/clan/members/updatestatus/', {
