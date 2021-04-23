@@ -456,14 +456,14 @@ class ChangeMemberStatusView(APIView):
             return Response({'status': False, 'reason': 'invalid clan permissions'})
 
         if member_status == 'promote':
-            if server.is_server_version_higher("0.2.2"):
+            if server.is_server_version_higher("0.2.3"):
                 if target_clanmember.is_elder:
                     target_clanmember.is_admin = True
                 target_clanmember.is_elder = True
             else:
                 target_clanmember.is_admin = True
         elif member_status == 'demote':
-            if server.is_server_version_higher("0.2.2"):
+            if server.is_server_version_higher("0.2.3"):
                 if not target_clanmember.is_admin:
                     target_clanmember.is_elder = False
 
