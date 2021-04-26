@@ -18,7 +18,7 @@ from .dungeon import generate_dungeon_stages
 from .dungeon_gen import convert_placement_to_json
 from .matcher import generate_bots_from_users, generate_bots_bulk
 from .models import ActiveCumulativeQuest, DailyDungeonStatus, DailyDungeonStage, MoevasionStatus, \
-    PlayerQuestCumulative2
+    PlayerQuestCumulative2, IPTracker
 from .models import ActiveDailyQuest
 from .models import ActiveDeal
 from .models import ActiveWeeklyQuest
@@ -593,6 +593,7 @@ admin.site.register(ActiveDeal, ActiveDealAdmin)
 admin.site.register(PurchasedTracker, PurchasedTrackerAdmin)
 admin.site.register(ServerStatus)
 admin.site.register(LogEntry, LogEntryAdmin)
+admin.site.register(IPTracker)
 
 admin.site.register(Chest)
 

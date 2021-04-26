@@ -951,6 +951,12 @@ class ReferralTracker(models.Model):
         return str(self.user) + ": " + str(self.referral.referral_code)
 
 
+class IPTracker(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    ip_list = ArrayField(models.TextField(), blank=True, null=True)
+    suspicious = models.BooleanField(default=False)
+
+
 class Tournament(models.Model):
     round = models.IntegerField(default=0)
     round_expiration = models.DateTimeField()
