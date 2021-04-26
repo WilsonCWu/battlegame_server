@@ -106,7 +106,8 @@ class ObtainAuthToken(APIView):
         if is_created:
             tracker.ip_list = [ip]
         else:
-            tracker.ip_list.append(ip)
+            if ip not in tracker.ip_list:
+                tracker.ip_list.append(ip)
         tracker.save()
 
         return Response({'token': token.key, 'user_id': user.id})
