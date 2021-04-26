@@ -952,9 +952,12 @@ class ReferralTracker(models.Model):
 
 
 class IPTracker(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    ip_list = ArrayField(models.TextField(), blank=True, null=True)
+    ip = models.TextField(unique=True)
+    user_list = ArrayField(models.TextField(), blank=True, null=True)
     suspicious = models.BooleanField(default=False)
+
+    def __str__(self):
+        return str(self.ip)
 
 
 class Tournament(models.Model):

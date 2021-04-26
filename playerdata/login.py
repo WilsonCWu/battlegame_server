@@ -101,13 +101,15 @@ class ObtainAuthToken(APIView):
         Token.objects.filter(user=user).delete()
         token = Token.objects.create(user=user)
 
-        tracker, is_created = IPTracker.objects.get_or_create(user=user)
         ip = get_client_ip(request)
+        tracker, is_created = IPTracker.objects.get_or_create(ip=ip)
         if is_created:
-            tracker.ip_list = [ip]
+            tracker.user_list = [user.id]
         else:
-            if ip not in tracker.ip_list:
-                tracker.ip_list.append(ip)
+            if user.id not in tracker.user_list:
+                tracker.user_list.append(user.id)
+                if len(tracker.user_list) > 5:
+                    tracker.suspicious = True
         tracker.save()
 
         return Response({'token': token.key, 'user_id': user.id})

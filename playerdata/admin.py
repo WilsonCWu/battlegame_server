@@ -100,6 +100,11 @@ class DungeonBossAdmin(bulk_admin.BulkModelAdmin):
         convert_placement_to_json(queryset)
 
 
+class IPTrackerAdmin(admin.ModelAdmin):
+    list_display = ('ip', 'suspicious')
+    list_filter = ('suspicious',)
+
+
 class UserInfoAdmin(admin.ModelAdmin):
     list_display = ('user_id', 'name', 'elo')
     actions = ('generate_bots_from_users', 'generate_bots_bulk', 'create_otp',
@@ -593,7 +598,7 @@ admin.site.register(ActiveDeal, ActiveDealAdmin)
 admin.site.register(PurchasedTracker, PurchasedTrackerAdmin)
 admin.site.register(ServerStatus)
 admin.site.register(LogEntry, LogEntryAdmin)
-admin.site.register(IPTracker)
+admin.site.register(IPTracker, IPTrackerAdmin)
 
 admin.site.register(Chest)
 
