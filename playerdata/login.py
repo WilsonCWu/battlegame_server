@@ -77,10 +77,9 @@ class ChangeName(APIView):
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
+        return x_forwarded_for.split(',')[0]
     else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
+        return request.META.get('REMOTE_ADDR')
 
 
 class ObtainAuthToken(APIView):
@@ -103,13 +102,10 @@ class ObtainAuthToken(APIView):
 
         ip = get_client_ip(request)
         tracker, is_created = IPTracker.objects.get_or_create(ip=ip)
-        if is_created:
-            tracker.user_list = [user.id]
-        else:
-            if user.id not in tracker.user_list:
-                tracker.user_list.append(user.id)
-                if len(tracker.user_list) > 5:
-                    tracker.suspicious = True
+        if user.id not in tracker.user_list:
+            tracker.user_list.append(user.id)
+            if len(tracker.user_list) > 5:
+                tracker.suspicious = True
         tracker.save()
 
         return Response({'token': token.key, 'user_id': user.id})
