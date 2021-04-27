@@ -1,3 +1,4 @@
+import collections
 import logging
 
 from django.contrib.auth import get_user_model
@@ -13,6 +14,7 @@ from playerdata.models import Character, DungeonProgress, Chest, Match
 from playerdata.models import UserStats
 from playerdata.models import TournamentMember
 from playerdata.models import TournamentMatch
+from playerdata.models import ServerStatus
 
 import math
 
@@ -123,23 +125,37 @@ def update_rating(original_elo, opponent, win):
     other_user = get_user_model().objects.select_related('userinfo').get(id=opponent)
     updated_rating = calculate_elo(original_elo, other_user.userinfo.elo, win)
 
+    original_opponent_elo = other_user.userinfo.elo
+    updated_opponent_elo = other_user.userinfo.elo
     # update enemy elo if not a bot
     if not other_user.userinfo.is_bot:
-        other_user.userinfo.elo = calculate_elo(other_user.userinfo.elo, original_elo, not win)
+        updated_opponent_elo = calculate_elo(other_user.userinfo.elo, original_elo, not win)
+        other_user.userinfo.elo = updated_opponent_elo
         other_user.userinfo.save()
 
-    return updated_rating
+    EloUpdates = collections.namedtuple('EloUpdated',
+                                        ['attacker_original', 'attacker_new',
+                                         'defender_original', 'defender_new'])
+    return EloUpdates(original_elo, updated_rating,
+                      original_opponent_elo, updated_opponent_elo)
 
 
-def update_match_history(attacker, defender_id, win):
+def update_match_history(attacker, defender_id, win, elo_updates):
     # In the future there will be more processing for TTL, long-term retention,
     # caching and what not, but for now, let's keep it simple.
-    Match.objects.create(attacker=attacker, defender_id=defender_id, is_win=win)
+    Match.objects.create(attacker=attacker,
+                         defender_id=defender_id,
+                         is_win=win,
+                         match_type='Q',
+                         version=ServerStatus.latest_version(),
+                         original_attacker_elo=elo_updates.attacker_original,
+                         updated_attacker_elo=elo_updates.attacker_new,
+                         original_defender_elo=elo_updates.defender_original,
+                         updated_defender_elo=elo_updates.defender_new)
 
 
 def handle_quickplay(request, win, opponent, stats):
     update_stats(request.user, win, stats)
-    update_match_history(request.user, opponent, win)
 
     chest_rarity = 0
     coins = 0
@@ -151,7 +167,9 @@ def handle_quickplay(request, win, opponent, stats):
 
     # rewards
     original_elo = request.user.userinfo.elo
-    updated_rating = update_rating(original_elo, opponent, win)
+    elo_updates = update_rating(original_elo, opponent, win)
+
+    update_match_history(request.user, opponent, win, elo_updates)
 
     if request.user.userstats.daily_wins <= constants.MAX_DAILY_QUICKPLAY_WINS_FOR_GOLD and win:
         coins = formulas.coins_chest_reward(request.user, constants.ChestType.SILVER.value) / 20
@@ -163,13 +181,13 @@ def handle_quickplay(request, win, opponent, stats):
         reward_scaler = min(dungeon_progress.campaign_stage, elo_scaler)
         player_exp = formulas.player_exp_reward_quickplay(reward_scaler)
 
-    request.user.userinfo.elo = updated_rating
+    request.user.userinfo.elo = elo_updates.attacker_new
     request.user.userinfo.player_exp += player_exp
     request.user.userinfo.save()
 
-
-    return Response({"elo": updated_rating, 'prev_elo': original_elo, 'coins': coins,
-                     'player_exp': player_exp, 'chest_rarity': chest_rarity})
+    return Response({'elo': elo_updates.attacker_new, 'prev_elo': original_elo,
+                     'coins': coins, 'player_exp': player_exp,
+                     'chest_rarity': chest_rarity})
 
 
 def handle_tourney(request, win, opponent):

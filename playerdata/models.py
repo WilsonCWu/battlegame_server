@@ -3,6 +3,8 @@ import random
 import string
 from datetime import datetime, date, time, timedelta
 from packaging import version
+import time as ptime
+import functools
 
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -46,6 +48,12 @@ class ServerStatus(models.Model):
         indexes = [
             models.Index(fields=['creation_time', 'event_type']),
         ]
+
+    @functools.lru_cache(maxsize=1)
+    def latest_version(ttl=int(ptime.time()//60)):
+        """Return the latest server version, cached with TTL of 60 seconds."""
+        status = ServerStatus.objects.filter(event_type='V').latest('creation_time')
+        return status.version_number
 
     def clean(self):
         if self.event_type == 'V':
@@ -578,7 +586,24 @@ class Match(models.Model):
     attacker = models.ForeignKey(User, on_delete=models.CASCADE)
     defender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='opponent')
     is_win = models.BooleanField()
+
+    # Match metadata.
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    version = models.CharField(max_length=15, blank=True, null=True)
+    match_type = models.CharField(max_length=1, choices=(
+        ('Q', 'Quickplay'),
+    ))
+
+    # User info at time of match.
+    original_attacker_elo = models.IntegerField(default=0)
+    updated_attacker_elo = models.IntegerField(default=0)
+    original_defender_elo = models.IntegerField(default=0)
+    updated_defender_elo = models.IntegerField(default=0)
+
+    # Replay data.
+    seed = models.IntegerField(blank=True, null=True)
+    attacker_team = JSONField(blank=True, null=True)
+    defender_team = JSONField(blank=True, null=True)
 
     class Meta:
         indexes = [
