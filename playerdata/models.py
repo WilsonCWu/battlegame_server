@@ -1,9 +1,9 @@
 import json
 import random
 import string
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, time, timedelta
 from packaging import version
-import time
+import time as ptime
 import functools
 
 from django.core.exceptions import ValidationError
@@ -50,7 +50,7 @@ class ServerStatus(models.Model):
         ]
 
     @functools.lru_cache(maxsize=1)
-    def latest_version(ttl=int(time.time()//60)):
+    def latest_version(ttl=int(ptime.time()//60)):
         """Return the latest server version, cached with TTL of 60 seconds."""
         status = ServerStatus.objects.filter(event_type='V').latest('creation_time')
         return status.version_number
@@ -595,8 +595,10 @@ class Match(models.Model):
     ))
 
     # User info at time of match.
-    attacker_elo = models.IntegerField(default=0)
-    defender_elo = models.IntegerField(default=0)
+    original_attacker_elo = models.IntegerField(default=0)
+    updated_attacker_elo = models.IntegerField(default=0)
+    original_defender_elo = models.IntegerField(default=0)
+    updated_defender_elo = models.IntegerField(default=0)
 
     # Replay data.
     seed = models.IntegerField(blank=True, null=True)
@@ -1168,7 +1170,7 @@ def get_expiration_date(interval):
         if delta == 0:
             delta = 7
 
-    return datetime.combine(date.today(), datetime.time()) + timedelta(days=delta)
+    return datetime.combine(date.today(), time()) + timedelta(days=delta)
 
 
 # Generates a random 12 letter uppercase string
