@@ -367,6 +367,7 @@ class ClanMemberSchema(Schema):
     clan_id = fields.Function(lambda clanmember: clanmember.clan2.name if clanmember.clan2 else '')
     is_admin = fields.Bool()
     is_owner = fields.Bool()
+    is_elder = fields.Bool()
 
 
 class ClanSchema(Schema):
@@ -533,7 +534,7 @@ class GetClanRequestsView(APIView):
     def get(self, request):
         clanmember = request.user.userinfo.clanmember
 
-        if not clanmember.clan2 or not clanmember.is_admin:
+        if not clanmember.clan2 or not ((server.is_server_version_higher("0.2.3") and clanmember.is_elder) or clanmember.is_admin):
             return Response({'status': False, 'reason': 'invalid clan permissions'})
 
         requestSet = ClanRequest.objects.filter(clan2=clanmember.clan2)
