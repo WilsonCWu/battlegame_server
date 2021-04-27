@@ -18,7 +18,7 @@ from .serializers import CreateNewUserSerializer
 from .serializers import ChangeNameSerializer
 from .serializers import RecoverAccountSerializer
 
-from .models import UserInfo
+from .models import UserInfo, IPTracker
 
 
 class HelloView(APIView):
@@ -73,6 +73,15 @@ class ChangeName(APIView):
         return Response({'status': True})
 
 
+# From https://stackoverflow.com/questions/4581789/how-do-i-get-user-ip-address-in-django
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        return x_forwarded_for.split(',')[0]
+    else:
+        return request.META.get('REMOTE_ADDR')
+
+
 class ObtainAuthToken(APIView):
     throttle_classes = ()
     permission_classes = ()
@@ -90,6 +99,14 @@ class ObtainAuthToken(APIView):
 
         Token.objects.filter(user=user).delete()
         token = Token.objects.create(user=user)
+
+        ip = get_client_ip(request)
+        tracker, is_created = IPTracker.objects.get_or_create(ip=ip)
+        if user.id not in tracker.user_list:
+            tracker.user_list.append(user.id)
+            if len(tracker.user_list) > 5:
+                tracker.suspicious = True
+        tracker.save()
 
         return Response({'token': token.key, 'user_id': user.id})
 
