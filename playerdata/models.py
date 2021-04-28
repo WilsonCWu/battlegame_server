@@ -985,7 +985,7 @@ class ReferralTracker(models.Model):
 
 class IPTracker(models.Model):
     ip = models.TextField(unique=True)
-    user_list = ArrayField(models.TextField(), blank=True, null=True, default=list)
+    user_list = ArrayField(models.IntegerField(), blank=True, null=True, default=list)
     suspicious = models.BooleanField(default=False)
 
     def __str__(self):
