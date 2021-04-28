@@ -4,6 +4,7 @@ from decouple import config
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.db.transaction import atomic
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -86,6 +87,7 @@ class ObtainAuthToken(APIView):
     throttle_classes = ()
     permission_classes = ()
 
+    @atomic
     def post(self, request):
         serializer = AuthTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
