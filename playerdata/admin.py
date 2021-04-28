@@ -48,6 +48,7 @@ from .models import InvalidReceipt
 from .models import Inventory
 from .models import Item
 from .models import Match
+from .models import MatchReplay
 from .models import Placement
 from .models import PlayerQuestDaily
 from .models import PlayerQuestWeekly
@@ -544,6 +545,11 @@ class BaseCharacterAdmin(admin.ModelAdmin):
                     ability3_specs={"61": {}, "141": {}, "221": {}, "prestige-%d" % (4 + sl): {}},
                     ultimate_specs={"1": {}, "81": {}, "161": {}, "prestige-%d" % (3 + sl): {}, "prestige-%d" % (5 + sl): {}},
                 )
+
+
+@admin.register(MatchReplay)
+class MatchReplayAdmin(admin.ModelAdmin):
+    raw_id_fields = ('match',)
 
 
 admin.site.register(DungeonStage, DungeonStageAdmin)

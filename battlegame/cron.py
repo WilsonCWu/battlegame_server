@@ -13,7 +13,7 @@ from playerdata.constants import TOURNEY_SIZE
 from playerdata.daily_dungeon import daily_dungeon_team_gen_cron
 from playerdata.models import Character, TournamentTeam, UserStats
 from playerdata.models import Inventory
-from playerdata.models import Match
+from playerdata.models import Match, MatchReplay
 from playerdata.models import Placement
 from playerdata.models import Tournament
 from playerdata.models import TournamentMatch
@@ -88,6 +88,7 @@ def weekly_deals_cron():
 @cron(uuid="222e1a79-98e1-4d9f-8d74-6dcf31cb00bd")
 def daily_clean_matches_cron():
     Match.objects.filter(uploaded_at__lte=timezone.now() - timedelta(days=14)).delete()
+    MatchReplay.objects.filter(uploaded_at__lte=timezone.now() - timedelta(days=3)).delete()
 
 
 @cron(uuid="cb651e8b-e227-4be1-a786-acd6fcac037c")
