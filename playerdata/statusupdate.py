@@ -10,7 +10,7 @@ from . import constants, formulas, rolls
 from .questupdater import QuestUpdater
 from .serializers import UploadResultSerializer
 
-from playerdata.models import Character, DungeonProgress, Chest, Match
+from playerdata.models import Character, DungeonProgress, Chest, Match, MatchReplay
 from playerdata.models import UserStats
 from playerdata.models import TournamentMember
 from playerdata.models import TournamentMatch
@@ -88,8 +88,10 @@ class UploadQuickplayResultView(APIView):
         opponent = valid_data['opponent_id']
         stats = valid_data['stats']
         seed = valid_data['seed'] if 'seed' in valid_data else 0
+        attacking_team = valid_data['attacking_team'] if 'attacking_team' in valid_data else None
+        defending_team = valid_data['defending_team'] if 'defending_team' in valid_data else None
 
-        return handle_quickplay(request, win, opponent, stats, seed)
+        return handle_quickplay(request, win, opponent, stats, seed, attacking_team, defending_team)
 
 
 class UploadTourneyResultView(APIView):
@@ -141,22 +143,25 @@ def update_rating(original_elo, opponent, win):
                       original_opponent_elo, updated_opponent_elo)
 
 
-def update_match_history(attacker, defender_id, win, elo_updates, seed):
-    # In the future there will be more processing for TTL, long-term retention,
-    # caching and what not, but for now, let's keep it simple.
-    Match.objects.create(attacker=attacker,
-                         defender_id=defender_id,
-                         is_win=win,
-                         match_type='Q',
-                         version=ServerStatus.latest_version(),
-                         seed=seed,
-                         original_attacker_elo=elo_updates.attacker_original,
-                         updated_attacker_elo=elo_updates.attacker_new,
-                         original_defender_elo=elo_updates.defender_original,
-                         updated_defender_elo=elo_updates.defender_new)
+def update_match_history(attacker, defender_id, win, elo_updates, seed, attacking_team, defending_team):
+    match = Match.objects.create(attacker=attacker,
+                                 defender_id=defender_id,
+                                 is_win=win,
+                                 match_type='Q',
+                                 version=ServerStatus.latest_version(),
+                                 original_attacker_elo=elo_updates.attacker_original,
+                                 updated_attacker_elo=elo_updates.attacker_new,
+                                 original_defender_elo=elo_updates.defender_original,
+                                 updated_defender_elo=elo_updates.defender_new)
+
+    if attacking_team and defending_team:
+        MatchReplay.objects.create(match=match,
+                                seed=seed,
+                                attacking_team=attacking_team,
+                                defending_team=defending_team)
 
 
-def handle_quickplay(request, win, opponent, stats, seed):
+def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defending_team):
     update_stats(request.user, win, stats)
 
     chest_rarity = 0
@@ -171,7 +176,7 @@ def handle_quickplay(request, win, opponent, stats, seed):
     original_elo = request.user.userinfo.elo
     elo_updates = update_rating(original_elo, opponent, win)
 
-    update_match_history(request.user, opponent, win, elo_updates, seed)
+    update_match_history(request.user, opponent, win, elo_updates, seed, attacking_team, defending_team)
 
     if request.user.userstats.daily_wins <= constants.MAX_DAILY_QUICKPLAY_WINS_FOR_GOLD and win:
         coins = formulas.coins_chest_reward(request.user, constants.ChestType.SILVER.value) / 20

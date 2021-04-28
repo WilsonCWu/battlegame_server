@@ -600,10 +600,6 @@ class Match(models.Model):
     original_defender_elo = models.IntegerField(default=0)
     updated_defender_elo = models.IntegerField(default=0)
 
-    # Replay data.
-    seed = models.IntegerField(blank=True, null=True)
-    attacker_team = JSONField(blank=True, null=True)
-    defender_team = JSONField(blank=True, null=True)
 
     class Meta:
         indexes = [
@@ -614,6 +610,17 @@ class Match(models.Model):
         return "%s (%s) vs %s" % (self.attacker.userinfo.name,
                                   "W" if self.is_win else "L",
                                   self.defender.userinfo.name)
+
+
+class MatchReplay(models.Model):
+    match = models.OneToOneField(Match, on_delete=models.CASCADE, primary_key=True)
+    seed = models.IntegerField(blank=True, null=True)
+    attacking_team = JSONField(blank=True, null=True)
+    defending_team = JSONField(blank=True, null=True)
+
+    # Duplicate-ish field on Match, but this allows us to clean up replays
+    # separately easier.
+    uploaded_at = models.DateTimeField(auto_now_add=True)
 
 
 class DailyDungeonStatus(models.Model):
