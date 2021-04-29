@@ -94,6 +94,10 @@ class BooleanSerializer(serializers.Serializer):
     value = serializers.BooleanField(required=True)
 
 
+class IntSerializer(serializers.Serializer):
+    value = serializers.IntegerField(required=True)
+
+
 class NullableValueSerializer(serializers.Serializer):
     value = serializers.CharField(required=True, allow_blank=True)
 

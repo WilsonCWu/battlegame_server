@@ -1,5 +1,6 @@
 import random
 import secrets
+import packaging
 from random_username.generate import generate_username
 
 from django.contrib.auth import get_user_model
@@ -14,13 +15,14 @@ from playerdata.models import BaseCharacter, CumulativeTracker
 from playerdata.models import Character
 from playerdata.models import Placement
 from playerdata.models import UserInfo
-from playerdata.models import Match
+from playerdata.models import Match, MatchReplay, ServerStatus
 from .inventory import CharacterSchema
 from .serializers import GetOpponentsSerializer
 from .serializers import GetUserSerializer
 from .serializers import UpdatePlacementSerializer
 from .serializers import BotResultsSerializer
 from .serializers import GetMatchHistorySerializer
+from .serializers import IntSerializer
 from .statusupdate import calculate_elo
 
 
@@ -74,11 +76,26 @@ class LightUserSchema(Schema):
 
 
 class MatchHistorySchema(Schema):
+    id = fields.Int()
     attacker = fields.Nested(LightUserSchema)
     defender = fields.Nested(LightUserSchema)
     is_win = fields.Bool()
     uploaded_at = fields.DateTime()
+    original_attacker_elo = fields.Int()
+    updated_attacker_elo = fields.Int()
+    original_defender_elo = fields.Int()
+    updated_defender_elo = fields.Int()
 
+
+class MatchReplaySchema(Schema):
+    id = fields.Int(attribute='match.id')
+    attacker = fields.Nested(LightUserSchema, attribute='match.attacker')
+    defender = fields.Nested(LightUserSchema, attribute='match.defender')
+    is_win = fields.Bool(attribute='match.is_win')
+    seed = fields.Int()
+    attacking_team = fields.Str()
+    defending_team = fields.Str()
+    
 
 class MatcherView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -291,6 +308,28 @@ class GetMatchHistoryView(APIView):
         matches = MatchHistorySchema(query, many=True)
         return Response({'matches': matches.data})
 
+
+class GetReplayView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        serializer = IntSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        match_q = Match.objects.filter(id=serializer.validated_data['value'])
+        if not match_q:
+            return Response({'status': False, 'reason': 'match expired or does not exist'})
+
+        match = match_q[0]
+        if ServerStatus.latest_version() != match.version:
+            return Response({'status': False, 'reason': 'replay version out of date'})
+
+        replay_q = MatchReplay.objects.filter(match=match)
+        if not replay_q:
+            return Response({'status': False, 'reason': 'replay expired for match'})
+
+        replay = MatchReplaySchema(replay_q[0])
+        return Response({'status': True, 'replay': replay.data})
+    
 
 class BotsView(APIView):
     permission_classes = (IsAuthenticated,)
