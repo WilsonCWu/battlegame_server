@@ -159,6 +159,7 @@ def update_match_history(attacker, defender_id, win, elo_updates, seed, attackin
                                 seed=seed,
                                 attacking_team=attacking_team,
                                 defending_team=defending_team)
+    return match.id
 
 
 def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defending_team):
@@ -176,7 +177,7 @@ def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defend
     original_elo = request.user.userinfo.elo
     elo_updates = update_rating(original_elo, opponent, win)
 
-    update_match_history(request.user, opponent, win, elo_updates, seed, attacking_team, defending_team)
+    match_id = update_match_history(request.user, opponent, win, elo_updates, seed, attacking_team, defending_team)
 
     if request.user.userstats.daily_wins <= constants.MAX_DAILY_QUICKPLAY_WINS_FOR_GOLD and win:
         coins = formulas.coins_chest_reward(request.user, constants.ChestType.SILVER.value) / 20
@@ -194,7 +195,7 @@ def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defend
 
     return Response({'elo': elo_updates.attacker_new, 'prev_elo': original_elo,
                      'coins': coins, 'player_exp': player_exp,
-                     'chest_rarity': chest_rarity})
+                     'chest_rarity': chest_rarity, 'match_id': match_id})
 
 
 def handle_tourney(request, win, opponent):
