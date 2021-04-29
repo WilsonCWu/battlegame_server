@@ -1,5 +1,5 @@
 # Constants
-from enum import Enum
+from enum import Enum, auto
 
 QUICKPLAY = 0
 DUNGEON = 1
@@ -172,6 +172,20 @@ class DealType(Enum):
     WEEKLY = 1
     MONTHLY = 2
     GEMS_COST = 3
+
+
+class Tiers(Enum):
+    BRONZE_TWO = auto()
+    BRONZE_ONE = auto()
+    SILVER_TWO = auto()
+    SILVER_ONE = auto()
+    GOLD_TWO = auto()
+    GOLD_ONE = auto()
+    PLAT_TWO = auto()
+    PLAT_ONE = auto()
+    DIAMOND_TWO = auto()
+    DIAMOND_ONE = auto()
+    MASTER = auto()
 
 
 # Chest Constants
