@@ -68,6 +68,8 @@ class LightUserInfoSchema(Schema):
     best_moevasion_stage = fields.Int()
     name = fields.Str()
     profile_picture = fields.Int()
+    # TODO: this is leading to a lot of n+1 calls, we need to optimize / do
+    # this better.
     clan = fields.Function(lambda userinfo: userinfo.clanmember.clan2.name if userinfo.clanmember.clan2 else '')
 
 
@@ -85,6 +87,7 @@ class MatchHistorySchema(Schema):
     updated_attacker_elo = fields.Int()
     original_defender_elo = fields.Int()
     updated_defender_elo = fields.Int()
+    has_replay = fields.Function(lambda m: hasattr(m, 'matchreplay'))
 
 
 class MatchReplaySchema(Schema):
@@ -298,10 +301,12 @@ class GetMatchHistoryView(APIView):
         serializer.is_valid(raise_exception=True)
         attacker_query = Match.objects.filter(attacker=request.user) \
             .select_related('attacker__userinfo') \
-            .select_related('defender__userinfo')
+            .select_related('defender__userinfo') \
+            .select_related('matchreplay')
         defender_query = Match.objects.filter(defender=request.user) \
             .select_related('attacker__userinfo') \
-            .select_related('defender__userinfo')
+            .select_related('defender__userinfo') \
+            .select_related('matchreplay')
 
         limit = serializer.validated_data['count']
         query = (attacker_query | defender_query).order_by('-uploaded_at')[:limit]
