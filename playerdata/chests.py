@@ -302,7 +302,7 @@ class CollectChest(APIView):
             if datetime.now(timezone.utc) < chest.locked_until:
                 return Response({'status': False, 'reason': 'chest is not ready to open'})
 
-        rewards = generate_chest_rewards(chest.rarity, request.user)
+        rewards = generate_chest_rewards(chest.rarity, request.user, chest.tier_rank)
         award_chest_rewards(request.user, rewards)
         chest.delete()
 
