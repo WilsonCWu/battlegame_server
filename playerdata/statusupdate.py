@@ -60,7 +60,7 @@ def award_chest(user):
         user.userstats.chest_counter = 0
     user.userstats.save()
 
-    chest = Chest.objects.create(user=user, rarity=chest_rarity)
+    chest = Chest.objects.create(user=user, rarity=chest_rarity, tier_rank=user.userinfo.tier_rank)
 
     if user.inventory.chest_slot_1 is None:
         user.inventory.chest_slot_1 = chest
@@ -175,11 +175,11 @@ def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defend
     match_id = update_match_history(request.user, opponent, win, elo_updates, seed, attacking_team, defending_team)
 
     if win:
-        chest_rarity = award_chest(request.user)
-        QuestUpdater.add_progress_by_type(request.user, constants.WIN_QUICKPLAY_GAMES, 1)
-
         if tier_system.elo_to_tier(elo_updates.attacker_new).value > request.user.userinfo.tier_rank:
             request.user.userinfo.tier_rank = tier_system.elo_to_tier(elo_updates.attacker_new).value
+
+        chest_rarity = award_chest(request.user)
+        QuestUpdater.add_progress_by_type(request.user, constants.WIN_QUICKPLAY_GAMES, 1)
 
     # rewards
     if request.user.userstats.daily_wins <= constants.MAX_DAILY_QUICKPLAY_WINS_FOR_GOLD and win:

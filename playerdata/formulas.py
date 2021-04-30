@@ -3,7 +3,7 @@ from bisect import bisect
 
 from functools import lru_cache
 
-from playerdata import constants
+from playerdata import constants, server, tier_system
 from playerdata.models import UserInfo, DailyDungeonStatus
 
 """
@@ -36,9 +36,14 @@ def char_level_to_coins(level):
     return math.floor((level - 1) * 50 + ((level - 1) ** 3.6) / 10)
 
 
-def coins_chest_reward(user, rarity):
-    userinfo = UserInfo.objects.get(user=user)
-    elo = min(userinfo.elo + 20, constants.MAX_ELO)  # light pad on elo for 0 elo case
+def coins_chest_reward(user, rarity, chest_tier=None):
+    elo = min(user.userinfo.elo + 20, constants.MAX_ELO)  # light pad on elo for 0 elo case
+
+    if server.is_server_version_higher("0.3.1"):
+        if chest_tier is None:
+            chest_tier = user.userinfo.tier_rank
+        elo = tier_system.get_tier_reward_elo(chest_tier)
+
     base_mult = 1
     base_exp = 1
 
@@ -132,9 +137,15 @@ def afk_dust_per_min(dungeon_level):
     return dungeon_level * 0.0025 + 0.025
 
 
-def dust_chest_reward(user, rarity):
+def dust_chest_reward(user, rarity, chest_tier=None):
     userinfo = UserInfo.objects.get(user=user)
     elo = min(userinfo.elo + 20, constants.MAX_ELO)  # light pad on elo for 0 elo case
+
+    if server.is_server_version_higher("0.3.1"):
+        if chest_tier is None:
+            chest_tier = user.userinfo.tier_rank
+        elo = tier_system.get_tier_reward_elo(chest_tier)
+
     base_mult = 1
 
     if rarity in [constants.ChestType.SILVER.value, constants.ChestType.DAILY_DUNGEON.value]:

@@ -524,7 +524,7 @@ class UserInfo(models.Model):
     # Player skills ranking.
     elo = models.IntegerField(default=0)
     tier_rank = models.IntegerField(choices=[(tier.value, tier.name) for tier in constants.Tiers],
-                                       default=constants.Tiers.BRONZE_TWO.value)
+                                       default=constants.Tiers.BRONZE_FIVE.value)
     tourney_elo = models.IntegerField(default=0)
     prev_tourney_elo = models.IntegerField(default=0)
     best_daily_dungeon_stage = models.IntegerField(default=0)
@@ -702,6 +702,8 @@ class Chest(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     rarity = models.IntegerField()
     locked_until = models.DateTimeField(blank=True, null=True)
+    tier_rank = models.IntegerField(choices=[(tier.value, tier.name) for tier in constants.Tiers],
+                                    default=constants.Tiers.BRONZE_FIVE.value)
 
 
 def get_default_afk_datetime():

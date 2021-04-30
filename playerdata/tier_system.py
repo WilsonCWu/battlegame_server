@@ -4,8 +4,12 @@ from playerdata import constants
 
 
 def elo_to_tier(elo: int):
-    division_increment = 100
-    if elo < constants.Tiers.MASTER.value * division_increment:
-        return constants.Tiers(math.floor(elo / division_increment) + 1)
+    if elo < constants.Tiers.MASTER.value * constants.TIER_ELO_INCREMENT:
+        return constants.Tiers(math.floor(elo / constants.TIER_ELO_INCREMENT) + 1)
     else:
         return constants.Tiers.MASTER
+
+
+#  we peg the rewards to the middle elo of each tier
+def get_tier_reward_elo(tier: constants.Tiers):
+    return (tier.value * constants.TIER_ELO_INCREMENT) + constants.TIER_ELO_INCREMENT / 2
