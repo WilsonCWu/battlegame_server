@@ -120,13 +120,16 @@ def give_some_pity(user, rewards, chest_type: int):
     return rewards
 
 
-def pick_resource_reward(user, resource_type, chest_rarity):
+def pick_resource_reward(user, resource_type, chest_rarity, chest_tier=None):
+    if chest_tier is None:
+        chest_tier = user.userinfo.tier_rank
+
     if resource_type == 'coins':
-        pivot_amount = formulas.coins_chest_reward(user, chest_rarity)
+        pivot_amount = formulas.coins_chest_reward(user, chest_rarity, chest_tier)
     elif resource_type == 'gems':
         pivot_amount = formulas.gems_chest_reward(chest_rarity)
     else:
-        pivot_amount = formulas.dust_chest_reward(user, chest_rarity)
+        pivot_amount = formulas.dust_chest_reward(user, chest_rarity, chest_tier)
 
     # randomly draw from within +/- 15% of that pivot_amount
     amount = random.randint(math.floor(0.85 * pivot_amount), math.floor(pivot_amount * 1.15))
@@ -222,7 +225,10 @@ def get_guaranteed_chars_rarity_odds(chest_rarity: int, user):
     return char_guarantees
 
 
-def generate_chest_rewards(chest_rarity: int, user):
+def generate_chest_rewards(chest_rarity: int, user, chest_tier=None):
+    if chest_tier is None:
+        chest_tier = user.userinfo.tier_rank
+
     rewards = []
     num_rewards = random.randint(constants.MIN_REWARDS_PER_CHEST[chest_rarity - 1],
                                  constants.MAX_REWARDS_PER_CHEST[chest_rarity - 1])
@@ -231,8 +237,8 @@ def generate_chest_rewards(chest_rarity: int, user):
     resource_reward_odds = constants.RESOURCE_TYPE_ODDS_PER_CHEST[chest_rarity - 1]
 
     # guarantee a coin and dust drop in any chest
-    rewards.append(pick_resource_reward(user, 'coins', chest_rarity))
-    rewards.append(pick_resource_reward(user, 'essence', chest_rarity))
+    rewards.append(pick_resource_reward(user, 'coins', chest_rarity, chest_tier))
+    rewards.append(pick_resource_reward(user, 'essence', chest_rarity, chest_tier))
     num_rewards -= 2
 
     # pick guaranteed char rarities
@@ -252,7 +258,7 @@ def generate_chest_rewards(chest_rarity: int, user):
     for i in range(0, num_rewards):
         rand_reward_type = constants.REWARD_TYPE_INDEX[rolls.weighted_pick_from_buckets(resource_reward_odds)]
         if rand_reward_type in ['coins', 'gems', 'essence']:
-            reward = pick_resource_reward(user, rand_reward_type, chest_rarity)
+            reward = pick_resource_reward(user, rand_reward_type, chest_rarity, chest_tier)
         elif rand_reward_type == 'item_id':
             reward = pick_reward_item(user, chest_rarity)
         elif rand_reward_type == 'char_id':
@@ -296,7 +302,7 @@ class CollectChest(APIView):
             if datetime.now(timezone.utc) < chest.locked_until:
                 return Response({'status': False, 'reason': 'chest is not ready to open'})
 
-        rewards = generate_chest_rewards(chest.rarity, request.user)
+        rewards = generate_chest_rewards(chest.rarity, request.user, chest.tier_rank)
         award_chest_rewards(request.user, rewards)
         chest.delete()
 

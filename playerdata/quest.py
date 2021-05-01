@@ -183,11 +183,18 @@ def _delete_first_n_rows(quest_class, n):
 
 
 def refresh_quests(PlayerQuestModel, ActiveQuestModel, num_quests, days_interval):
-    _delete_first_n_rows(ActiveQuestModel, num_quests)
     PlayerQuestModel.objects.all().delete()
 
     # pull new ones and make them for every user
-    active_quests = ActiveQuestModel.objects.all()[:num_quests]
+    all_queued_quests = ActiveQuestModel.objects.all()
+    if all_queued_quests.count() < num_quests:
+        if ActiveQuestModel is ActiveDailyQuest:
+            queue_active_daily_quests()
+        else:
+            queue_active_weekly_quests()
+        all_queued_quests = ActiveQuestModel.objects.all()
+
+    active_quests = all_queued_quests[:num_quests]
     expiry_date = get_expiration_date(days_interval)
     users = User.objects.all()
     bulk_quests = []
@@ -197,6 +204,7 @@ def refresh_quests(PlayerQuestModel, ActiveQuestModel, num_quests, days_interval
             bulk_quests.append(player_quest)
 
     PlayerQuestModel.objects.bulk_create(bulk_quests)
+    _delete_first_n_rows(ActiveQuestModel, num_quests)
 
 
 # refresh quests: deletes the previous ActiveQuests and uses new ones to propagate to users

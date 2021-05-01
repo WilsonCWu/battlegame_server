@@ -202,6 +202,8 @@ class Tiers(Enum):
     DIAMOND_ONE = auto()
     MASTER = auto()
 
+TIER_ELO_INCREMENT = 100
+
 
 # Chest Constants
 class ChestType(Enum):
