@@ -61,7 +61,7 @@ class ReferralView(APIView):
                 repeat_referral.user.save()
 
             # subtract earned gems from the repeat accounts on the user_ref side
-            user_ref.user.inventory.gems -= num_converted * constants.REFEREE_GEMS_REWARD
+            user_ref.user.inventory.gems -= num_converted * constants.REFERER_GEMS_REWARD
             user_ref.user.inventory.save()
 
             return Response({'status': False, 'reason': 'Your account has been banned due to suspicion of fraud. If you believe this is a mistake, please contact our customer support.'})
