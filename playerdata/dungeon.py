@@ -176,7 +176,7 @@ def complete_referral_conversion(user):
     referral_tracker = ReferralTracker.objects.filter(user=user).first()
     if referral_tracker is None or referral_tracker.converted:
         return
-    award_referral(referral_tracker.referral.user)
+    award_referral(referral_tracker.referral.user, constants.REFFEREE_GEMS_REWARD)
     QuestUpdater.add_progress_by_type(referral_tracker.referral.user, constants.REFERRAL, 1)
     referral_tracker.converted = True
     referral_tracker.save()
