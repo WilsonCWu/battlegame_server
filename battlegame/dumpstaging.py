@@ -55,7 +55,7 @@ def has_field(m, field):
 
 
 def get_models():
-    """Get models for the staging database. This method returns the methdod
+    """Get models for the staging database. This method returns the models
     ordered with respect to foreign key dependencies, and ignores models listed
     in the IGNORE_LIST.
     """
