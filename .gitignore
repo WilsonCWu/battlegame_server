@@ -63,6 +63,9 @@ db.sqlite3
 db.sqlite3-journal
 db.json
 
+# Ignore the staging dump.
+dump.json
+
 # Flask stuff:
 instance/
 .webassets-cache

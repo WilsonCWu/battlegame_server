@@ -48,7 +48,24 @@ Look for `port = XXXX`. In most cases, this should be 5432. If it is not 5432, y
 Migrate:
 `python manage.py migrate`
 
-Load existing data:
+### Load staging data (recommended):
+
+Staging data (see `battlegame/dumpstaging.py`) can be loaded, which is a
+fragment of the existing database with only selected users in the universe.
+
+The current size of staging data at this commit is ~2MB, versus the ~148MB 
+actual DB, which is only expected to grow.
+
+1. ssh into server: `ssh <USER>@salutationstudio.com` 
+2. activate virtual environment: `cd /home/battlegame && source venv/bin/activate`
+3. enter the Django shell: `cd /home/battlegame/battlegame && ./manage.py shell`
+4. export the staging database: `from battlegame.dumpstaging import dump; dump()`
+5. copy the database over locally: `scp <USER>@salutationstudio.com:/home/battlegame/battlegame/dump.json dump.json`
+6. re-create the database: `dropdb battlegame && createdb battlegame && ./manage.py migrate`
+7. load the staging database: `./manage.py loaddata dump.json`
+
+
+### Load existing data:
 1. ssh into server
 2. Make sure to activate venv (`source venv/bin/activate`)
 3. `./manage.py dumpdata --exclude auth.permission --exclude contenttypes > ~/db.json`
