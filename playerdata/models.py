@@ -523,7 +523,7 @@ class UserInfo(models.Model):
 
     # Player skills ranking.
     elo = models.IntegerField(default=0)
-    highest_elo = models.IntegerField(default=0)
+    highest_elo = models.IntegerField(default=0)  # we'll want to have this when showing the elo rewards panel
     tier_rank = models.IntegerField(choices=[(tier.value, tier.name) for tier in constants.Tiers],
                                        default=constants.Tiers.BRONZE_FIVE.value)
     tourney_elo = models.IntegerField(default=0)
