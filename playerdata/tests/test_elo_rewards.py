@@ -23,3 +23,34 @@ class EloRewardAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
+
+    def test_claim_reward_out_of_order(self):
+        tier_system.complete_any_elo_rewards(151, self.u.elorewardtracker)
+
+        response = self.client.post('/eloreward/claim/', {
+            'value': 2
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['status'])
+
+    def test_claim_reward_in_order(self):
+        tier_system.complete_any_elo_rewards(151, self.u.elorewardtracker)
+
+        response = self.client.post('/eloreward/claim/', {
+            'value': 0
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        response = self.client.post('/eloreward/claim/', {
+            'value': 1
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        response = self.client.post('/eloreward/claim/', {
+            'value': 2
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])

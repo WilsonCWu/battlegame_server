@@ -93,8 +93,8 @@ class GetEloRewardListView(APIView):
         rewards_data = EloRewardSchema(elo_rewards, many=True).data
 
         for reward in rewards_data:
-            reward['claimed'] = reward['id'] in request.user.elorewardtracker.claimed
-            reward['completed'] = reward['id'] in request.user.elorewardtracker.completed
+            reward['claimed'] = reward['id'] <= request.user.elorewardtracker.last_claimed
+            reward['completed'] = reward['id'] <= request.user.elorewardtracker.last_completed
 
         return Response({'status': True, 'rewards': rewards_data})
 
@@ -107,14 +107,17 @@ class ClaimEloRewardView(APIView):
         serializer.is_valid(raise_exception=True)
         reward_id = serializer.validated_data['value']
 
-        if reward_id not in request.user.elorewardtracker.completed:
+        if reward_id > request.user.elorewardtracker.last_completed:
             return Response({'status': False, 'reason': 'have not reached the elo for this reward'})
+
+        if reward_id != request.user.elorewardtracker.last_claimed + 1:
+            return Response({'status': False, 'reason': 'must claim the next reward in order'})
 
         elo_reward = get_elo_rewards_list()[reward_id]
         rewards = convert_elo_reward_to_chest_reward(elo_reward, request.user)
         chests.award_chest_rewards(request.user, rewards)
 
-        request.user.elorewardtracker.claimed.append(reward_id)
+        request.user.elorewardtracker.last_claimed = reward_id
         request.user.elorewardtracker.save()
 
         return Response({'status': True, 'rewards': chests.ChestRewardSchema(rewards, many=True).data})
@@ -124,6 +127,6 @@ def complete_any_elo_rewards(elo: int, tracker: EloRewardTracker):
     for reward in get_elo_rewards_list():
         if reward.elo > elo:
             break
-        tracker.completed.append(reward.id)
+        tracker.last_completed = max(reward.id, tracker.last_completed)
 
     tracker.save()

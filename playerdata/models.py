@@ -709,8 +709,8 @@ class Chest(models.Model):
 
 class EloRewardTracker(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    completed = ArrayField(models.IntegerField(), blank=True, null=True, default=list)
-    claimed = ArrayField(models.IntegerField(), blank=True, null=True, default=list)
+    last_completed = models.IntegerField(default=-1)
+    last_claimed = models.IntegerField(default=-1)
 
 
 def get_default_afk_datetime():
