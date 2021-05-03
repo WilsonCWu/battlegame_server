@@ -51,7 +51,7 @@ def get_tier_reward_elo(tier: int):
 
 
 # can change to regular @cache if we upgrade python 3.9
-@lru_cache
+@lru_cache()
 def get_elo_rewards_list() -> List[EloReward]:
     rewards = []
     last_reward_elo = constants.Tiers.MASTER.value * constants.TIER_ELO_INCREMENT
