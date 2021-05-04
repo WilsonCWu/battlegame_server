@@ -16,7 +16,7 @@ Including another URLconf
 from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
-from playerdata import login
+from playerdata import login, tier_system
 from playerdata import base
 from playerdata import daily_dungeon
 from playerdata import moevasion
@@ -37,6 +37,8 @@ from playerdata import coin_shop
 from playerdata import chests
 
 urlpatterns = [
+    path('eloreward/get/', tier_system.GetEloRewardListView.as_view()),
+    path('eloreward/claim/', tier_system.ClaimEloRewardView.as_view()),
     path('dailydungeon/start/', daily_dungeon.DailyDungeonStartView.as_view()),
     path('dailydungeon/status/', daily_dungeon.DailyDungeonStatusView.as_view()),
     path('dailydungeon/stage/', daily_dungeon.DailyDungeonStageView.as_view()),

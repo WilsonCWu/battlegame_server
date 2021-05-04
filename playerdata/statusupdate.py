@@ -1,22 +1,19 @@
 import collections
-import logging
+import math
 
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from playerdata.models import DungeonProgress, Chest, Match, MatchReplay
+from playerdata.models import ServerStatus
+from playerdata.models import TournamentMatch
+from playerdata.models import TournamentMember
+from playerdata.models import UserStats
 from . import constants, formulas, rolls, tier_system
 from .questupdater import QuestUpdater
 from .serializers import UploadResultSerializer
-
-from playerdata.models import Character, DungeonProgress, Chest, Match, MatchReplay
-from playerdata.models import UserStats
-from playerdata.models import TournamentMember
-from playerdata.models import TournamentMatch
-from playerdata.models import ServerStatus
-
-import math
 
 
 # r1, r2 ratings of player 1,2. s1 = 1 if win, 0 if loss, 0.5 for tie
@@ -192,6 +189,8 @@ def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defend
         reward_scaler = min(dungeon_progress.campaign_stage, elo_scaler)
         player_exp = formulas.player_exp_reward_quickplay(reward_scaler)
 
+    request.user.userinfo.highest_elo = max(request.user.userinfo.highest_elo, elo_updates.attacker_new)
+    tier_system.complete_any_elo_rewards(request.user.userinfo.highest_elo, request.user.elorewardtracker)
     request.user.userinfo.elo = elo_updates.attacker_new
     request.user.userinfo.player_exp += player_exp
     request.user.userinfo.save()

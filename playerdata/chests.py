@@ -3,15 +3,14 @@ import random
 from datetime import timedelta, datetime, timezone
 
 from django.db import transaction
-from django.db.models import Model
-from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from playerdata import constants, formulas, rolls
 from playerdata.constants import ChestType
-from playerdata.models import Chest, BaseItem, Item, UserInfo, DailyDungeonStatus
+from playerdata.models import Chest, BaseItem, Item, DailyDungeonStatus
 from playerdata.questupdater import QuestUpdater
 from playerdata.serializers import ValueSerializer, CollectChestSerializer
 
@@ -27,9 +26,9 @@ class ChestRewardSchema(Schema):
 
 
 class ChestReward:
-  def __init__(self, reward_type, value):
-    self.reward_type = reward_type
-    self.value = value
+    def __init__(self, reward_type, value):
+        self.reward_type = reward_type
+        self.value = value
 
 
 def chest_unlock_timedelta(rarity: int):
