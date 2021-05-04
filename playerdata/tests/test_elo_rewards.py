@@ -12,8 +12,6 @@ class EloRewardAPITestCase(APITestCase):
         self.u = User.objects.get(username='battlegame')
         self.client.force_authenticate(user=self.u)
 
-        EloRewardTracker.objects.create(user=self.u)
-
     def test_claim_reward(self):
         tier_system.complete_any_elo_rewards(51, self.u.elorewardtracker)
 
