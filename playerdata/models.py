@@ -713,6 +713,13 @@ class EloRewardTracker(models.Model):
     last_claimed = models.IntegerField(default=-1)
 
 
+class SeasonReward(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    tier_rank = models.IntegerField(choices=[(tier.value, tier.name) for tier in constants.Tiers],
+                                    default=constants.Tiers.BRONZE_FIVE.value)
+    is_claimed = models.BooleanField(default=False)
+
+
 def get_default_afk_datetime():
     return timezone.now() - timedelta(hours=1)
 
@@ -1129,6 +1136,7 @@ def create_user_info(sender, instance, created, **kwargs):
         ClanMember.objects.create(userinfo=userinfo)
         DungeonProgress.objects.create(user=instance, campaign_stage=1)
         EloRewardTracker.objects.create(user=instance)
+        SeasonReward.objects.create(user=instance)
         create_user_referral(instance)
 
         # Add quests
