@@ -74,6 +74,26 @@ class ServerStatus(models.Model):
             return "Upcoming maintenance: %s" % (self.maintenance_start)
 
 
+class Flag(models.Model):
+    name = models.CharField(max_length=30, primary_key=True)
+    value = models.BooleanField(default=False)
+
+    def __str__(self):
+        return '%s: %s' % (self.name, str(self.value))
+
+
+class UserFlag(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    flag = models.ForeignKey(Flag, on_delete=models.CASCADE)
+    value = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('user', 'flag')
+
+    def __str__(self):
+        return '%s (%s): %s' % (str(self.flag), str(self.user), str(self.value))
+        
+
 class BaseCharacter(models.Model):
     char_type = models.AutoField(primary_key=True)
     name = models.CharField(max_length=30, unique=True)
