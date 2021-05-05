@@ -108,3 +108,12 @@ def backfill_cumulative_quests():
         bulk_quests2.append(quests2)
 
     PlayerQuestCumulative2.objects.bulk_create(bulk_quests2)
+
+
+@transaction.atomic
+def fix_clan_count():
+    for c in Clan2.objects.all():
+        real_count = ClanMember.objects.filter(clan2=c).count()
+        if c.num_members != real_count:
+            c.num_members = real_count
+            c.save()
