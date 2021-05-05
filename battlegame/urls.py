@@ -35,6 +35,7 @@ from playerdata import web_pages
 from playerdata import server
 from playerdata import coin_shop
 from playerdata import chests
+from playerdata import public
 
 urlpatterns = [
     path('eloreward/get/', tier_system.GetEloRewardListView.as_view()),
@@ -135,5 +136,7 @@ urlpatterns = [
     path('beta/', web_pages.beta),
     path('chat/', include('chat.urls')),
     path('admin/', admin.site.urls),
+    path('public/stats/', public.PublicStatsView.as_view()),
+    path('public/stats/<str:version>', public.PublicStatsView.as_view()),
     path('', web_pages.install),
 ]
