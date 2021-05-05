@@ -1128,6 +1128,7 @@ def create_user_info(sender, instance, created, **kwargs):
         Inventory.objects.create(user=instance)
         ClanMember.objects.create(userinfo=userinfo)
         DungeonProgress.objects.create(user=instance, campaign_stage=1)
+        EloRewardTracker.objects.create(user=instance)
         create_user_referral(instance)
 
         # Add quests
