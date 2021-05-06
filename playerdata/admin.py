@@ -17,54 +17,7 @@ from .daily_dungeon import daily_dungeon_team_gen_cron
 from .dungeon import generate_dungeon_stages
 from .dungeon_gen import convert_placement_to_json
 from .matcher import generate_bots_from_users, generate_bots_bulk
-from .models import ActiveCumulativeQuest, DailyDungeonStatus, DailyDungeonStage, MoevasionStatus, \
-    PlayerQuestCumulative2, IPTracker
-from .models import ActiveDailyQuest
-from .models import ActiveDeal
-from .models import ActiveWeeklyQuest
-from .models import BaseCharacter, BaseCharacterStats, Chest
-from .models import BaseCharacterAbility2
-from .models import BaseCharacterUsage
-from .models import BaseCode
-from .models import BaseDeal
-from .models import BaseItem
-from .models import BasePrestige
-from .models import BaseQuest
-from .models import Character
-from .models import Chat
-from .models import ChatMessage
-from .models import ClaimedCode
-from .models import Clan2
-from .models import ClanMember
-from .models import ClanRequest
-from .models import CumulativeTracker
-from .models import DailyDungeonStatus
-from .models import DungeonBoss
-from .models import DungeonProgress
-from .models import DungeonStage
-from .models import Friend
-from .models import FriendRequest
-from .models import InvalidReceipt
-from .models import Inventory
-from .models import Item
-from .models import Match
-from .models import MatchReplay
-from .models import Placement
-from .models import PlayerQuestDaily
-from .models import PlayerQuestWeekly
-from .models import PurchasedTracker
-from .models import ReferralTracker
-from .models import ServerStatus
-from .models import Tournament
-from .models import TournamentMatch
-from .models import TournamentMember
-from .models import TournamentRegistration
-from .models import TournamentSelectionCards
-from .models import TournamentTeam
-from .models import User
-from .models import UserInfo
-from .models import UserReferral
-from .models import UserStats
+from .models import *
 from .purchases import refresh_daily_deals_cronjob, refresh_weekly_deals_cronjob
 from .quest import queue_active_weekly_quests, queue_active_daily_quests, refresh_weekly_quests, refresh_daily_quests
 from .login import UserRecoveryTokenGenerator
@@ -612,3 +565,6 @@ admin.site.register(DailyDungeonStatus)
 admin.site.register(DailyDungeonStage, DailyDungeonStageAdmin)
 
 admin.site.register(MoevasionStatus)
+
+admin.site.register(Flag)
+admin.site.register(UserFlag)
