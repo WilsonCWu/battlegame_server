@@ -165,11 +165,12 @@ def get_season_expiration_date():
 # EndSeasonRewards
 @atomic()
 def restart_season():
-    seasons = SeasonReward.objects.all()
+    seasons = SeasonReward.objects.select_related('user__userinfo').all()
 
     for season in seasons:
-        season.tier_rank = season.user.userinfo.tier_rank
-        season.is_claimed = False
+        if hasattr(season.user, 'userinfo'):
+            season.tier_rank = season.user.userinfo.tier_rank
+            season.is_claimed = False
 
     SeasonReward.objects.bulk_update(seasons, ['tier_rank', 'is_claimed'])
 
