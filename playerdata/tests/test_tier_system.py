@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from playerdata import tier_system
+from playerdata import tier_system, constants
 from playerdata.models import User, EloRewardTracker
 
 
@@ -52,3 +52,29 @@ class EloRewardAPITestCase(APITestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
+
+
+class SeasonRewardAPITestCase(APITestCase):
+    fixtures = ['playerdata/tests/fixtures.json']
+
+    def setUp(self):
+        self.u = User.objects.get(username='battlegame')
+        self.client.force_authenticate(user=self.u)
+
+    def test_claim_reward(self):
+        response = self.client.post('/seasonreward/claim/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        rewards = tier_system.get_season_reward(constants.Tiers.BRONZE_FIVE.value)
+        self.assertEqual(response.data['rewards'][0]['reward_type'], rewards[0].reward_type)
+        self.assertEqual(response.data['rewards'][0]['value'], rewards[0].value)
+
+    def test_double_claim(self):
+        response = self.client.post('/seasonreward/claim/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        response = self.client.post('/seasonreward/claim/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['status'])

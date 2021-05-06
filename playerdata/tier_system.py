@@ -1,8 +1,10 @@
 import math
+from datetime import datetime, timedelta
 from typing import List
 from functools import lru_cache
 
 from django.contrib.auth.models import User
+from django.db.transaction import atomic
 from marshmallow import fields
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -10,7 +12,7 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema
 
 from playerdata import constants, chests
-from playerdata.models import EloRewardTracker
+from playerdata.models import EloRewardTracker, SeasonReward
 from playerdata.serializers import IntSerializer
 
 
@@ -102,6 +104,7 @@ class GetEloRewardListView(APIView):
 class ClaimEloRewardView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @atomic
     def post(self, request):
         serializer = IntSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -130,3 +133,66 @@ def complete_any_elo_rewards(elo: int, tracker: EloRewardTracker):
         tracker.last_completed = max(reward.id, tracker.last_completed)
 
     tracker.save()
+
+
+class ClaimSeasonRewardView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @atomic
+    def post(self, request):
+        season_reward = request.user.seasonreward
+        if season_reward.is_claimed:
+            return Response({'status': False, 'reason': 'season reward already claimed!'})
+
+        rewards = get_season_reward(season_reward.tier_rank)
+        chests.award_chest_rewards(request.user, rewards)
+
+        season_reward.is_claimed = True
+        season_reward.save()
+
+        return Response({'status': True, 'rewards': chests.ChestRewardSchema(rewards, many=True).data})
+
+
+# The hour is 4am UTC or 12am EST during non-daylight savings
+def get_season_expiration_date():
+    today = datetime.today()
+    if today.day >= 15:
+        return (datetime(today.year, today.month, 1, 4) + timedelta(days=32)).replace(day=1)
+    else:
+        return datetime(today.year, today.month, 15, 4)
+
+
+# EndSeasonRewards
+def restart_season():
+    seasons = SeasonReward.objects.all()
+
+    for season in seasons:
+        season.tier_rank = season.user.userinfo.tier_rank
+        season.is_claimed = False
+
+    SeasonReward.objects.bulk_update(seasons, ['tier_rank', 'is_claimed'])
+
+
+def get_season_reward(tier: int):
+    rewards = []
+
+    if tier <= constants.Tiers.BRONZE_ONE.value:  # 1-5
+        rewards.append(chests.ChestReward('gems', 80 + 20 * tier))  # range here is 100 to 180
+
+    elif tier <= constants.Tiers.SILVER_ONE.value:  # 6-10
+        rewards.append(chests.ChestReward('gems', 175 + 25 * (tier - constants.Tiers.BRONZE_ONE.value)))  # range here is 200 to 300
+
+    elif tier <= constants.Tiers.GOLD_ONE.value:  # 11-15
+        rewards.append(chests.ChestReward('gems', 290 + 30 * tier))  # range here is 320 to 440
+
+    elif tier <= constants.Tiers.PLAT_ONE.value:  # 16-20
+        rewards.append(chests.ChestReward('gems', 450 + 30 * tier))  # range here is 480 to 600
+
+    elif tier <= constants.Tiers.DIAMOND_ONE.value:  # 21-25
+        rewards.append(chests.ChestReward('gems', 605 + 35 * tier))  # range here is 640 to 780
+
+    else:
+        # MASTER
+        rewards.append(chests.ChestReward('gems', 820))
+
+    return rewards

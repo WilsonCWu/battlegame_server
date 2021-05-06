@@ -38,6 +38,7 @@ from playerdata import chests
 from playerdata import public
 
 urlpatterns = [
+    path('seasonreward/claim/', tier_system.ClaimSeasonRewardView.as_view()),
     path('eloreward/get/', tier_system.GetEloRewardListView.as_view()),
     path('eloreward/claim/', tier_system.ClaimEloRewardView.as_view()),
     path('dailydungeon/start/', daily_dungeon.DailyDungeonStartView.as_view()),
