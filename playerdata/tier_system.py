@@ -177,31 +177,22 @@ def get_season_reward(tier: int):
     rewards = []
 
     if tier <= constants.Tiers.BRONZE_ONE.value:  # 1-5
-        rewards.append(chests.ChestReward('coins', 5000 * tier))
+        rewards.append(chests.ChestReward('gems', 80 + 20 * tier))  # range here is 100 to 180
 
     elif tier <= constants.Tiers.SILVER_ONE.value:  # 6-10
-        rewards.append(chests.ChestReward('coins', 7500 * tier))
-        rewards.append(chests.ChestReward('dust', 50 * tier))
+        rewards.append(chests.ChestReward('gems', 175 + 25 * (tier - constants.Tiers.BRONZE_ONE.value)))  # range here is 200 to 300
 
     elif tier <= constants.Tiers.GOLD_ONE.value:  # 11-15
-        rewards.append(chests.ChestReward('coins', 7500 * tier))
-        rewards.append(chests.ChestReward('dust', 50 * tier))
-        rewards.append(chests.ChestReward('gems', 10 * tier))  #range here is 110 to 150
+        rewards.append(chests.ChestReward('gems', 290 + 30 * tier))  # range here is 320 to 440
 
     elif tier <= constants.Tiers.PLAT_ONE.value:  # 16-20
-        rewards.append(chests.ChestReward('coins', 7500 * tier))
-        rewards.append(chests.ChestReward('dust', 50 * tier))
-        rewards.append(chests.ChestReward('gems', 10 * tier))  # range here is 160 to 200
+        rewards.append(chests.ChestReward('gems', 450 + 30 * tier))  # range here is 480 to 600
 
     elif tier <= constants.Tiers.DIAMOND_ONE.value:  # 21-25
-        rewards.append(chests.ChestReward('coins', 7500 * tier))
-        rewards.append(chests.ChestReward('dust', 50 * tier))
-        rewards.append(chests.ChestReward('gems', 15 * tier))  # range here is 315 to 375
+        rewards.append(chests.ChestReward('gems', 605 + 35 * tier))  # range here is 640 to 780
 
     else:
         # MASTER
-        rewards.append(chests.ChestReward('coins', 7500 * tier))
-        rewards.append(chests.ChestReward('dust', 50 * tier))
-        rewards.append(chests.ChestReward('gems', 500))
+        rewards.append(chests.ChestReward('gems', 820))
 
     return rewards
