@@ -9,6 +9,7 @@ from playerdata.models import BaseCharacterAbility2
 from playerdata.models import BaseCharacterStats
 from playerdata.models import BaseItem
 from playerdata.models import BasePrestige
+from playerdata.models import Flag, UserFlag
 
 
 class UserSchema(Schema):
@@ -111,7 +112,14 @@ class BaseInfoView(APIView):
             serialized.update(serialized_stats)
             yield serialized
 
-    
+    def flags(user):
+        """Return global flags with user overrides for the given user."""
+        flags = {f.name: {'name': f.name, 'value': f.value} for f in Flag.objects.all()}
+        for uf in UserFlag.objects.select_related('flag').filter(user=user):
+            flags[uf.flag.name]['value'] = uf.value
+        return list(flags.values())
+
+
     def get(self, request, version=None):
         itemSerializer = BaseItemSchema(BaseItem.objects.all(), many=True)
         prestigeSerializer = BasePrestigeSchema(BasePrestige.objects.all(), many=True)
@@ -128,4 +136,6 @@ class BaseInfoView(APIView):
             'items': itemSerializer.data,
             'specs': specSerializer.data,
             'prestige': prestigeSerializer.data,
+            'flags': BaseInfoView.flags(request.user),
         })
+
