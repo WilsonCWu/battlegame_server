@@ -7,6 +7,7 @@ import requests
 
 from sentry_sdk import capture_exception
 
+from playerdata import tier_system
 from . import settings
 
 from playerdata.constants import TOURNEY_SIZE
@@ -122,6 +123,11 @@ def daily_dungeon_ticket_drop():
 @cron(uuid="b843e92a-fb04-4332-831f-e086cc4ffe5e")
 def refresh_daily_dungeon():
     daily_dungeon_team_gen_cron()
+
+
+@cron(uuid="3f972350-ea40-40cf-bb94-36a68b3f5d5b")
+def reset_season():
+    tier_system.restart_season()
  
 
 # Take all registered users

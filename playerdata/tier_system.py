@@ -163,6 +163,7 @@ def get_season_expiration_date():
 
 
 # EndSeasonRewards
+@atomic()
 def restart_season():
     seasons = SeasonReward.objects.all()
 
