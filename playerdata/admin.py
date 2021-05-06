@@ -308,7 +308,7 @@ class BaseCharacterAbility2Admin(admin.ModelAdmin):
 
     def generate_next_patch(self, request, queryset):
         for a in queryset:
-            next_patch = a.version.split('.')
+            next_patch = ServerStatus.latest_version().split('.')
             next_patch[-1] = str(int(next_patch[-1]) + 1)
             next_patch_str = '.'.join(next_patch)
             
@@ -377,7 +377,7 @@ class BaseCharacterAbility2Admin(admin.ModelAdmin):
                             has_changes = True
                             ability_diff.append('NEW: %s' % str(new_keys))
 
-                        changed_keys = {k: ('+' + str(v), '-' + str(prev_specs[lvl][k]))
+                        changed_keys = {k: str(v) + ' -> ' + str(prev_specs[lvl][k])
                                         for k, v in specs[lvl].items()
                                         if k in prev_specs[lvl] and v != prev_specs[lvl][k]}
                         if changed_keys:
@@ -401,11 +401,11 @@ class BaseCharacterStatsAdmin(admin.ModelAdmin):
         JSONField: {'widget': JSONEditorWidget}
     }
     list_filter = ('char_type', 'version')
-    actions = ('generate_next_patch',)
+    actions = ('generate_next_patch', 'generate_patch_notes')
 
     def generate_next_patch(self, request, queryset):
         for a in queryset:
-            next_patch = a.version.split('.')
+            next_patch = ServerStatus.latest_version().split('.')
             next_patch[-1] = str(int(next_patch[-1]) + 1)
             next_patch_str = '.'.join(next_patch)
             
@@ -430,6 +430,61 @@ class BaseCharacterStatsAdmin(admin.ModelAdmin):
                 mr_scale = a.mr_scale,
             )
 
+    def generate_patch_notes(self, request, queryset):
+        v = queryset[0].version
+        changed = BaseCharacterStats.objects.filter(version=v)
+
+        previous = {}
+        for a in BaseCharacterStats.objects.all():
+            if version.parse(a.version) >= version.parse(v):
+                continue
+            if a.char_type not in previous or version.parse(a.version) > version.parse(previous[a.char_type].version):
+                previous[a.char_type] = a
+
+        resp = []
+        for a in changed:
+            if a.char_type not in previous:
+                resp.append('NEW CHARACTER: %s' % a.char_type.name)
+            else:
+                p = previous[a.char_type]
+                char_diff = ['CHANGED CHARACTER: %s\n\n' % a.char_type.name]
+
+                # Get ready for the if-statements baby.
+                if p.health != a.health:
+                    char_diff.append('HEALTH: %s -> %s' % (p.health, a.health))
+                if p.starting_mana != a.starting_mana:
+                    char_diff.append('STARTING MANA: %s -> %s' % (p.starting_mana, a.starting_mana))
+                if p.mana != a.mana:
+                    char_diff.append('MANA: %s -> %s' % (p.mana, a.mana))
+                if p.speed != a.speed:
+                    char_diff.append('SPEED: %s -> %s' % (p.speed, a.speed))
+                if p.attack_damage != a.attack_damage:
+                    char_diff.append('AD: %s -> %s' % (p.attack_damage, a.attack_damage))
+                if p.ability_damage != a.ability_damage:
+                    char_diff.append('AP: %s -> %s' % (p.ability_damage, a.ability_damage))
+                if p.attack_speed != a.attack_speed:
+                    char_diff.append('AS: %s -> %s' % (p.attack_speed, a.attack_speed))
+                if p.ar != a.ar:
+                    char_diff.append('AR: %s -> %s' % (p.ar, a.ar))
+                if p.mr != a.mr:
+                    char_diff.append('MR: %s -> %s' % (p.mr, a.mr))
+                if p.attack_range != a.attack_range:
+                    char_diff.append('Range: %s -> %s' % (p.attack_range, a.attack_range))
+                if p.crit_chance != a.crit_chance:
+                    char_diff.append('Crit: %s -> %s' % (p.crit_chance, a.crit_chance))
+                if p.health_scale != a.health_scale:
+                    char_diff.append('HEALTH Scale: %s -> %s' % (p.health_scale, a.health_scale))
+                if p.attack_scale != a.attack_scale:
+                    char_diff.append('AD Scale: %s -> %s' % (p.attack_scale, a.attack_scale))
+                if p.ability_scale != a.ability_scale:
+                    char_diff.append('AP Scale: %s -> %s' % (p.ability_scale, a.ability_scale))
+                if p.ar_scale != a.ar_scale:
+                    char_diff.append('AR Scale: %s -> %s' % (p.ar_scale, a.ar_scale))
+                if p.mr_scale != a.mr_scale:
+                    char_diff.append('MR Scale: %s -> %s' % (p.mr_scale, a.mr_scale))
+                resp.append('\n'.join(char_diff))
+
+        return HttpResponse('\n\n\n'.join(resp), content_type="text/plain")
 
 @admin.register(BaseCharacter)
 class BaseCharacterAdmin(admin.ModelAdmin):
