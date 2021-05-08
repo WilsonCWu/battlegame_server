@@ -46,6 +46,7 @@ class UserInfoSchema(Schema):
     elo = fields.Int()
     tier_rank = fields.Int()
     best_moevasion_stage = fields.Int()
+    best_daily_dungeon_stage = fields.Int()
     tourney_elo = fields.Int()
     prev_tourney_elo = fields.Int()
     name = fields.Str()
