@@ -218,6 +218,31 @@ class DailyDungeonResultView(APIView):
         return Response({'status': True, 'rewards': rewards})
 
 
+class DailyDungeonSkipView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        dd_status = DailyDungeonStatus.get_active_for_user(request.user)
+        if not dd_status:
+            return Response({'status': False, 'reason': 'No active dungeon!'})
+
+        if dd_status.stage % 5 == 0:
+            return Response({'status': False, 'reason': 'cannot skip boss level'})
+        
+        # Allow the user to skip to bosses until the best level - 20.
+        best_stage = request.user.userinfo.best_daily_dungeon_stage
+        skip_until = max(0, (best_stage // 5) * 5 - 20)
+
+        skip_target = ((dd_status.stage // 5) + 1) * 5 
+        if skip_target > skip_until:
+            return Response({'status': False, 'reason': 'cannot skip past threshold'})
+        
+        dd_status.stage = skip_target
+        dd_status.save()
+
+        return Response({'status': True})
+
+
 class DailyDungeonForfeitView(APIView):
     permission_classes = (IsAuthenticated,)
 

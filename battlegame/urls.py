@@ -45,6 +45,7 @@ urlpatterns = [
     path('dailydungeon/status/', daily_dungeon.DailyDungeonStatusView.as_view()),
     path('dailydungeon/stage/', daily_dungeon.DailyDungeonStageView.as_view()),
     path('dailydungeon/result/', daily_dungeon.DailyDungeonResultView.as_view()),
+    path('dailydungeon/skip/', daily_dungeon.DailyDungeonSkipView.as_view()),
     path('dailydungeon/forfeit/', daily_dungeon.DailyDungeonForfeitView.as_view()),
     path('moevasion/start/', moevasion.StartView.as_view()),
     path('moevasion/end/', moevasion.EndView.as_view()),
