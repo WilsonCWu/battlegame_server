@@ -16,7 +16,7 @@ from playerdata.models import ClanRequest
 from playerdata.models import Friend
 from playerdata.models import FriendRequest
 from playerdata.models import UserInfo
-from . import constants, server
+from . import constants
 from .matcher import UserInfoSchema, LightUserInfoSchema
 from .questupdater import QuestUpdater
 from .serializers import AcceptFriendRequestSerializer
