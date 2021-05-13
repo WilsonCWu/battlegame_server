@@ -14,6 +14,7 @@ class ClanAPITestCase(APITestCase):
             'value': 'rdkiller',
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
 
         self.client.force_authenticate(user=self.u)
         response = self.client.post('/clan/requests/update/', {
@@ -21,6 +22,7 @@ class ClanAPITestCase(APITestCase):
             'accept': True
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
 
     def setUp(self):
         self.u = User.objects.get(username='testWilson')
@@ -32,6 +34,7 @@ class ClanAPITestCase(APITestCase):
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
 
     def test_join_clan(self):
         self.join_clan(member_id=2)
@@ -46,6 +49,7 @@ class ClanAPITestCase(APITestCase):
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
 
         response = self.client.post('/clan/members/updatestatus/', {
             'member_id': member_id,
@@ -53,6 +57,7 @@ class ClanAPITestCase(APITestCase):
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
 
         target_clanmember = ClanMember.objects.get(userinfo_id=member_id)
         self.assertTrue(target_clanmember.is_admin)
@@ -67,6 +72,7 @@ class ClanAPITestCase(APITestCase):
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
 
         target_clanmember = ClanMember.objects.get(userinfo_id=member_id)
         self.assertTrue(target_clanmember.is_elder)
