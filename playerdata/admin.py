@@ -298,6 +298,11 @@ class LogEntryAdmin(admin.ModelAdmin):
     object_link.short_description = u'Modified Object'
 
 
+class CharacterAdmin(admin.ModelAdmin):
+    list_display = ('char_id', 'user', 'char_type', 'level', 'copies', 'prestige')
+    raw_id_fields = ('user', 'hat', 'armor', 'weapon', 'boots', 'trinket_1', 'trinket_2')
+
+
 @admin.register(BaseCharacterAbility2)
 class BaseCharacterAbility2Admin(admin.ModelAdmin):
     formfield_overrides = {
@@ -567,7 +572,7 @@ admin.site.register(DungeonBoss, DungeonBossAdmin)
 admin.site.register(BaseCharacterUsage)
 admin.site.register(BaseItem, BaseItemAdmin)
 admin.site.register(BasePrestige)
-admin.site.register(Character)
+admin.site.register(Character, CharacterAdmin)
 admin.site.register(Item)
 
 admin.site.register(Placement, PlacementAdmin)
