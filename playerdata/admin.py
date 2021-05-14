@@ -623,3 +623,4 @@ admin.site.register(MoevasionStatus)
 
 admin.site.register(Flag)
 admin.site.register(UserFlag)
+admin.site.register(HackerAlert)

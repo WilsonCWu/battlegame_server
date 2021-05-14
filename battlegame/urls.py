@@ -36,8 +36,10 @@ from playerdata import server
 from playerdata import coin_shop
 from playerdata import chests
 from playerdata import public
+from playerdata import antihacking
 
 urlpatterns = [
+    path('hacker/report/', antihacking.UserReportView.as_view()),
     path('seasonreward/claim/', tier_system.ClaimSeasonRewardView.as_view()),
     path('eloreward/get/', tier_system.GetEloRewardListView.as_view()),
     path('eloreward/claim/', tier_system.ClaimEloRewardView.as_view()),

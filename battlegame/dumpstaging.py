@@ -22,6 +22,7 @@ IGNORE_LIST = {
     'Friend',
     'FriendRequest',
     'ReferralTracker',
+    'HackerAlert',
     # Django metadata.
     'LogEntry',
     'Permission',
