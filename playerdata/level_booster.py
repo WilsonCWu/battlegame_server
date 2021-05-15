@@ -23,10 +23,7 @@ class LevelBoosterSchema(Schema):
         return get_pentagram_chars_id_list(level_booster.user)
 
 
-def update_levels():
-    pass
-
-
+# Gets the top 5 non-boosted chars by level
 def get_pentagram_chars(user):
     return Character.objects.filter(user=user, is_boosted=False).order_by('-level')[:5]
 
@@ -80,6 +77,7 @@ class FillSlotView(APIView):
         return Response({'status': True, 'level': request.user.levelbooster.booster_level})
 
 
+# Remove a hero from a boost slot + cooldown
 class RemoveSlotView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -105,6 +103,7 @@ class RemoveSlotView(APIView):
         return Response({'status': True})
 
 
+# Skips the cooldown by paying gems
 class SkipCooldownView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -126,6 +125,7 @@ class SkipCooldownView(APIView):
         return Response({'status': True})
 
 
+# Unlock the next booster slot
 class UnlockSlotView(APIView):
     permission_classes = (IsAuthenticated,)
 

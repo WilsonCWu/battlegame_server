@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from playerdata import constants
+from playerdata import constants, level_booster
 from playerdata.models import User, Character
 
 
@@ -77,11 +77,11 @@ class LevelBoosterAPITestCase(APITestCase):
 
     def test_fill_slot_with_pentagram_char(self):
         self.unlock_slot()
-        chars = Character.objects.filter(user=self.u)
+        chars = level_booster.get_pentagram_chars_id_list(self.u)
 
         response = self.client.post('/levelbooster/fill/', {
             'slot_id': 0,  # resource value
-            'char_id': chars[0].char_id,
+            'char_id': chars[0],
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
