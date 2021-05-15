@@ -480,6 +480,7 @@ class Character(models.Model):
     num_games = models.IntegerField(default=0)
     num_wins = models.IntegerField(default=0)
     is_tourney = models.BooleanField(default=False)
+    is_boosted = models.BooleanField(default=False)
 
     # Character equipments (hat, armor, weapon, boots, tricket 1/2).
     hat = models.OneToOneField(Item, blank=True, null=True, on_delete=models.SET_NULL, related_name='hat', validators=[SlotValidator('H')])
@@ -1149,6 +1150,26 @@ class PurchasedTracker(models.Model):
         ]
 
 
+def default_slot_list():
+    return [-1] * constants.LEVEL_BOOSTER_SLOTS
+
+
+def default_cooldown_slot_list():
+    return [None] * constants.LEVEL_BOOSTER_SLOTS
+
+
+class LevelBooster(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    booster_level = models.IntegerField(default=0)
+    unlocked_slots = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(constants.LEVEL_BOOSTER_SLOTS)])
+
+    # slots contain the char_id of the heroes
+    slots = ArrayField(models.IntegerField(), default=default_slot_list)
+
+    #list of either the cooldown datetime or None
+    cooldown_slots = ArrayField(models.DateTimeField(blank=True, null=True), default=default_cooldown_slot_list)
+
+
 def create_user_referral(user):
     try:
         UserReferral.objects.create(user=user, referral_code=generate_referral_code())
@@ -1177,6 +1198,7 @@ def create_user_info(sender, instance, created, **kwargs):
         DungeonProgress.objects.create(user=instance, campaign_stage=1)
         EloRewardTracker.objects.create(user=instance)
         SeasonReward.objects.create(user=instance)
+        LevelBooster.objects.create(user=instance)
         create_user_referral(instance)
 
         # Add quests

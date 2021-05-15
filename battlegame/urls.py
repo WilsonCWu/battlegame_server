@@ -16,7 +16,7 @@ Including another URLconf
 from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
-from playerdata import login, tier_system
+from playerdata import login, tier_system, level_booster
 from playerdata import base
 from playerdata import daily_dungeon
 from playerdata import moevasion
@@ -40,6 +40,11 @@ from playerdata import antihacking
 
 urlpatterns = [
     path('hacker/report/', antihacking.UserReportView.as_view()),
+    path('levelbooster/get/', level_booster.LevelBoosterView.as_view()),
+    path('levelbooster/fill/', level_booster.FillSlotView.as_view()),
+    path('levelbooster/remove/', level_booster.RemoveSlotView.as_view()),
+    path('levelbooster/skip/', level_booster.SkipCooldownView.as_view()),
+    path('levelbooster/unlock/', level_booster.UnlockSlotView.as_view()),
     path('seasonreward/claim/', tier_system.ClaimSeasonRewardView.as_view()),
     path('eloreward/get/', tier_system.GetEloRewardListView.as_view()),
     path('eloreward/claim/', tier_system.ClaimEloRewardView.as_view()),
