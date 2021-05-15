@@ -181,3 +181,10 @@ def gems_chest_reward(rarity):
 
 def next_prestige_copies(curr_prestige_level):
     return constants.PRESTIGE_COPIES_REQUIRED[curr_prestige_level]
+
+
+#########################
+## Misc Formulas
+
+def unlock_level_booster_slot_cost(slot_num: int):
+    return 100 * (slot_num - 1) + 400
