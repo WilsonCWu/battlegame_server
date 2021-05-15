@@ -21,11 +21,10 @@ class UserReportView(APIView):
         match_id = serializer.validated_data['value']
 
         # Check that the match still exists.
-        q = Match.objects.filter(id=match_id)
-        if not q:
+        match = Match.objects.filter(id=match_id).first()
+        if not match:
             return Response({'status': False, 'reason': 'match does not exist!'})
 
-        match = q[0]
         if request.user.id not in (match.attacker_id, match.defender_id):
             return Response({'status': False, 'reason': 'cannot report someone else\'s match'})
         
