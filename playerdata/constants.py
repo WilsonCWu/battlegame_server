@@ -204,7 +204,12 @@ class Tiers(Enum):
     DIAMOND_THREE = auto()
     DIAMOND_TWO = auto()
     DIAMOND_ONE = auto()
-    MASTER = auto()
+    MASTER_FIVE = auto()
+    MASTER_FOUR = auto()
+    MASTER_THREE = auto()
+    MASTER_TWO = auto()
+    MASTER_ONE = auto()
+    GRANDMASTER = auto()
 
 TIER_ELO_INCREMENT = 100
 

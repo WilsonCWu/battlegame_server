@@ -40,10 +40,10 @@ class EloReward:
 
 
 def elo_to_tier(elo: int):
-    if elo < constants.Tiers.MASTER.value * constants.TIER_ELO_INCREMENT:
+    if elo < constants.Tiers.GRANDMASTER.value * constants.TIER_ELO_INCREMENT:
         return constants.Tiers(math.floor(elo / constants.TIER_ELO_INCREMENT) + 1)
     else:
-        return constants.Tiers.MASTER
+        return constants.Tiers.GRANDMASTER
 
 
 #  we peg the rewards to the middle elo of each tier
@@ -56,7 +56,7 @@ def get_tier_reward_elo(tier: int):
 @lru_cache()
 def get_elo_rewards_list() -> List[EloReward]:
     rewards = []
-    last_reward_elo = constants.Tiers.MASTER.value * constants.TIER_ELO_INCREMENT
+    last_reward_elo = constants.Tiers.GRANDMASTER.value * constants.TIER_ELO_INCREMENT
 
     reward_id = 0
     for elo in range(50, last_reward_elo, 50):
@@ -173,9 +173,9 @@ def restart_season():
             season.is_claimed = False
 
     if server.is_server_version_higher("0.3.1"):
-        elo_reset_users = UserInfo.objects.filter(tier_rank__gte=constants.Tiers.MASTER.value)
+        elo_reset_users = UserInfo.objects.filter(tier_rank__gte=constants.Tiers.GRANDMASTER.value)
         for userinfo in elo_reset_users:
-            userinfo.elo = constants.TIER_ELO_INCREMENT * constants.Tiers.MASTER.value
+            userinfo.elo = constants.TIER_ELO_INCREMENT * constants.Tiers.GRANDMASTER.value
 
         UserInfo.objects.bulk_update(elo_reset_users, ['elo'])
         
