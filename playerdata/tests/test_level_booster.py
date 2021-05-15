@@ -96,7 +96,7 @@ class LevelBoosterAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
-        self.assertTrue(self.u.levelbooster.cooldown_slots[0] is not None)
+        self.assertIsNotNone(self.u.levelbooster.cooldown_slots[0])
 
         response = self.client.post('/levelbooster/fill/', {
             'slot_id': 0,  # resource value
@@ -109,7 +109,7 @@ class LevelBoosterAPITestCase(APITestCase):
 
     def test_remove_slot(self):
         self.fill_slot_with_charid(self.new_char.char_id)
-        self.assertTrue(self.u.levelbooster.cooldown_slots[0] is None)
+        self.assertIsNone(self.u.levelbooster.cooldown_slots[0])
 
         response = self.client.post('/levelbooster/remove/', {
             'value': 0,
@@ -117,7 +117,7 @@ class LevelBoosterAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
-        self.assertTrue(self.u.levelbooster.cooldown_slots[0] is not None)
+        self.assertIsNotNone(self.u.levelbooster.cooldown_slots[0])
 
     def test_remove_slot_already_empty(self):
         response = self.client.post('/levelbooster/remove/', {
