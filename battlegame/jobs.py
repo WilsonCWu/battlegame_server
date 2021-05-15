@@ -117,3 +117,9 @@ def fix_clan_count():
         if c.num_members != real_count:
             c.num_members = real_count
             c.save()
+
+
+@transaction.atomic
+def backfill_level_booster():
+    for user in User.objects.all():
+        _, _ = LevelBooster.objects.get_or_create(user=user)
