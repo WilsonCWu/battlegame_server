@@ -1030,6 +1030,26 @@ class IPTracker(models.Model):
         return str(self.ip)
 
 
+class HackerAlert(models.Model):
+    """An alert indicating a potential hacking incident by user."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    # Detailed info of hacker's activity.
+    reporter = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='report')
+    suspicious_match_id = models.IntegerField(default=0)
+    notes = models.TextField(default='')
+
+    # Metadata for management.
+    verified_hacker = models.BooleanField(null=True, blank=True)
+
+    def __str__(self):
+        if self.reporter:
+            return str(self.user) + ' reporter by ' + str(self.reporter)
+        else:
+            return str(self.user)
+
+
 class Tournament(models.Model):
     round = models.IntegerField(default=0)
     round_expiration = models.DateTimeField()
