@@ -64,7 +64,7 @@ class ReferralView(APIView):
             user_ref.user.inventory.gems -= num_converted * constants.REFERER_GEMS_REWARD
             user_ref.user.inventory.save()
 
-            return Response({'status': False, 'reason': 'Your account has been banned due to suspicion of fraud. If you believe this is a mistake, please contact our customer support.'})
+            return Response({'status': False, 'reason': 'Your account has been banned due to suspicion of referral spam. If you believe this is a mistake, please contact our customer support.'})
 
         # Award requesting user
         award_referral(request.user, constants.REFEREE_GEMS_REWARD)

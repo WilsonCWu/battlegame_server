@@ -16,7 +16,7 @@ from playerdata.models import ClanRequest
 from playerdata.models import Friend
 from playerdata.models import FriendRequest
 from playerdata.models import UserInfo
-from . import constants, server
+from . import constants
 from .matcher import UserInfoSchema, LightUserInfoSchema
 from .questupdater import QuestUpdater
 from .serializers import AcceptFriendRequestSerializer
@@ -457,16 +457,12 @@ class ChangeMemberStatusView(APIView):
             return Response({'status': False, 'reason': 'invalid clan permissions'})
 
         if member_status == 'promote':
-            if server.is_server_version_higher("0.2.3"):
-                if target_clanmember.is_elder:
-                    target_clanmember.is_admin = True
-                target_clanmember.is_elder = True
-            else:
+            if target_clanmember.is_elder:
                 target_clanmember.is_admin = True
+            target_clanmember.is_elder = True
         elif member_status == 'demote':
-            if server.is_server_version_higher("0.2.3"):
-                if not target_clanmember.is_admin:
-                    target_clanmember.is_elder = False
+            if not target_clanmember.is_admin:
+                target_clanmember.is_elder = False
 
             target_clanmember.is_admin = False
         elif member_status == 'kick':
@@ -534,7 +530,7 @@ class GetClanRequestsView(APIView):
     def get(self, request):
         clanmember = request.user.userinfo.clanmember
 
-        if not clanmember.clan2 or not ((server.is_server_version_higher("0.2.3") and clanmember.is_elder) or clanmember.is_admin):
+        if not clanmember.clan2 or not clanmember.is_elder:
             return Response({'status': False, 'reason': 'invalid clan permissions'})
 
         requestSet = ClanRequest.objects.filter(clan2=clanmember.clan2)

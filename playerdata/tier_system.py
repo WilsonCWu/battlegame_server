@@ -11,8 +11,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema
 
-from playerdata import constants, chests
-from playerdata.models import EloRewardTracker, SeasonReward
+from playerdata import constants, chests, server
+from playerdata.models import EloRewardTracker, SeasonReward, UserInfo
 from playerdata.serializers import IntSerializer
 
 
@@ -172,6 +172,13 @@ def restart_season():
             season.tier_rank = season.user.userinfo.tier_rank
             season.is_claimed = False
 
+    if server.is_server_version_higher("0.3.1"):
+        elo_reset_users = UserInfo.objects.filter(tier_rank__gte=constants.Tiers.MASTER.value)
+        for userinfo in elo_reset_users:
+            userinfo.elo = constants.TIER_ELO_INCREMENT * constants.Tiers.MASTER.value
+
+        UserInfo.objects.bulk_update(elo_reset_users, ['elo'])
+        
     SeasonReward.objects.bulk_update(seasons, ['tier_rank', 'is_claimed'])
 
 
