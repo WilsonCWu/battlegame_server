@@ -25,6 +25,7 @@ from playerdata.purchases import refresh_daily_deals_cronjob, refresh_weekly_dea
 from playerdata.quest import refresh_daily_quests, refresh_weekly_quests
 from playerdata.statusupdate import calculate_tourney_elo
 from playerdata.tournament import get_next_round_time, TOURNAMENT_BOTS, get_random_char_set
+from playerdata.antihacking import MatchValidator
 
 """
 For reference:
@@ -88,6 +89,11 @@ def weekly_deals_cron():
 
 @cron(uuid="222e1a79-98e1-4d9f-8d74-6dcf31cb00bd")
 def daily_clean_matches_cron():
+    # Validate matches in the last day.
+    validator = MatchValidator(sample_rate=1)
+    for mr in MatchReplay.objects.filter(uploaded_at__gte=timezone.now() - timedelta(days=1)):
+        validator.validate(mr.match, mr)
+    
     Match.objects.filter(uploaded_at__lte=timezone.now() - timedelta(days=14)).delete()
     MatchReplay.objects.filter(uploaded_at__lte=timezone.now() - timedelta(days=3)).delete()
 
