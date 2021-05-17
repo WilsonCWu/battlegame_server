@@ -25,7 +25,7 @@ class CharacterSchema(Schema):
     char_id = fields.Int()
     user_id = fields.Int(attribute='user_id')
     char_type = fields.Int(attribute='char_type_id')
-    level = fields.Int()
+    level = fields.Method('get_char_level')
     prestige = fields.Int()
     copies = fields.Int()
     total_damage_dealt = fields.Int()
@@ -43,6 +43,12 @@ class CharacterSchema(Schema):
     boots = fields.Nested(ItemSchema)
     trinket_1 = fields.Nested(ItemSchema)
     trinket_2 = fields.Nested(ItemSchema)
+
+    def get_char_level(self, char):
+        if char.is_boosted:
+            return char.user.levelbooster.booster_level
+        else:
+            return char.level
 
 
 class ChestSchema(Schema):
