@@ -183,8 +183,6 @@ class BoostLevelUpAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
 
-        # get inventory, and check that char 1 and char 2 are all 241
-
         response = self.client.get('/inventoryinfo/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
