@@ -12,6 +12,8 @@ from playerdata.models import Character
 from playerdata.questupdater import QuestUpdater
 from playerdata.serializers import FillBoosterSlotSerializer, IntSerializer
 
+MIN_NUM_OF_MAXED_CHARS = 1
+
 
 class LevelBoosterSchema(Schema):
     booster_level = fields.Int()
@@ -21,7 +23,7 @@ class LevelBoosterSchema(Schema):
     is_available = fields.Method("get_is_available")
 
     def get_is_available(self, level_booster):
-        return get_max_out_char_count(level_booster.user) >= 5
+        return get_max_out_char_count(level_booster.user) >= MIN_NUM_OF_MAXED_CHARS
 
 
 # Get all 240 chars that are 10 star
@@ -59,7 +61,7 @@ class FillSlotView(APIView):
         slot_id = serializer.validated_data['slot_id']
         char_id = serializer.validated_data['char_id']
 
-        if get_max_out_char_count(request.user) < 5:
+        if get_max_out_char_count(request.user) < MIN_NUM_OF_MAXED_CHARS:
             return Response({'status': False, 'reason': 'not enough chars to level boost!'})
 
         if request.user.levelbooster.slots[slot_id] != -1:
@@ -180,7 +182,7 @@ class LevelUpBooster(APIView):
     def post(self, request):
         maxed_out_char_count = get_max_out_char_count(request.user)
 
-        if maxed_out_char_count < 5:
+        if maxed_out_char_count < MIN_NUM_OF_MAXED_CHARS:
             return Response({'status': False, 'reason': 'not enough chars to level boost!'})
 
         if request.user.levelbooster.booster_level + 1 > get_level_cap(request.user):

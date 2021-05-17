@@ -13,12 +13,8 @@ class LevelBoosterAPITestCase(APITestCase):
         self.client.force_authenticate(user=self.u)
         self.new_char = Character.objects.create(user=self.u, char_type_id=6, level=240, prestige=5)
 
-        # Need 5 maxed out chars to unlock this feature
+        # Need 1 maxed out chars to unlock this feature
         self.char1 = Character.objects.create(user=self.u, char_type_id=7, level=240, prestige=5)
-        self.char2 = Character.objects.create(user=self.u, char_type_id=7, level=240, prestige=5)
-        self.char3 = Character.objects.create(user=self.u, char_type_id=7, level=240, prestige=5)
-        self.char4 = Character.objects.create(user=self.u, char_type_id=7, level=240, prestige=5)
-        self.char5 = Character.objects.create(user=self.u, char_type_id=7, level=240, prestige=5)
 
     def unlock_slot(self):
         self.u.inventory.gems = 400
@@ -162,16 +158,12 @@ class BoostLevelUpAPITestCase(APITestCase):
         self.u = User.objects.get(username='battlegame')
         self.client.force_authenticate(user=self.u)
 
-        # Need 5 maxed out chars to unlock this feature
+        # Need 1 maxed out char to unlock this feature
         self.char1 = Character.objects.create(user=self.u, char_type_id=7, level=240, prestige=5, is_boosted=True)
-        self.char2 = Character.objects.create(user=self.u, char_type_id=7, level=240, prestige=5, is_boosted=True)
-        self.char3 = Character.objects.create(user=self.u, char_type_id=7, level=240, prestige=5, is_boosted=True)
-        self.char4 = Character.objects.create(user=self.u, char_type_id=7, level=240, prestige=5, is_boosted=True)
-        self.char5 = Character.objects.create(user=self.u, char_type_id=7, level=240, prestige=5, is_boosted=True)
 
         # Extra chars to be boosted as well
-        self.char6 = Character.objects.create(user=self.u, char_type_id=6, level=240, prestige=5, is_boosted=True)
-        self.char7 = Character.objects.create(user=self.u, char_type_id=6, level=240, prestige=5, is_boosted=True)
+        self.char2 = Character.objects.create(user=self.u, char_type_id=6, level=240, prestige=5, is_boosted=True)
+        self.char3 = Character.objects.create(user=self.u, char_type_id=6, level=240, prestige=5, is_boosted=True)
 
     def test_levelup(self):
         self.u.inventory.coins = 10000000
@@ -187,7 +179,7 @@ class BoostLevelUpAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         for char in response.data['characters']:
-            if char['char_id'] in (self.char1.char_id, self.char2.char_id, self.char6.char_id, self.char7.char_id):
+            if char['char_id'] in (self.char1.char_id, self.char2.char_id, self.char3.char_id):
                 self.assertEqual(char['level'], 241)
 
     def test_levelup_past_cap(self):
