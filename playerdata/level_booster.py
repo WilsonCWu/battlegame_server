@@ -24,6 +24,7 @@ class LevelBoosterSchema(Schema):
         return get_max_out_char_count(level_booster.user) >= 5
 
 
+# Get all 240 chars that are 10 star
 def get_max_out_char_count(user):
     chars = Character.objects.filter(user=user, level=240)
     count = 0
@@ -167,6 +168,7 @@ def level_up_coins_cost(level: int):
     return formulas.char_level_to_coins(adjusted_level) - formulas.char_level_to_coins(adjusted_level - 1)
 
 
+# Returns the cost to level up TO this level
 def level_up_dust_cost(level: int):
     return 250 * (level - 240) + 3000
 
@@ -202,6 +204,8 @@ class LevelUpBooster(APIView):
         inventory.save()
         request.user.levelbooster.save()
 
-        QuestUpdater.add_progress_by_type(request.user, constants.LEVEL_UP_A_HERO, 1)
+        # This num is different from maxed_out_char_count since they aren't necessarily boosted
+        num_boosted = Character.objects.filter(user=request.user, is_boosted=True).count()
+        QuestUpdater.add_progress_by_type(request.user, constants.LEVEL_UP_A_HERO, num_boosted)
 
         return Response({'status': True})
