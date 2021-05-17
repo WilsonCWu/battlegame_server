@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 
 from playerdata import formulas, constants
 from playerdata.models import Character
+from playerdata.questupdater import QuestUpdater
 from playerdata.serializers import FillBoosterSlotSerializer, IntSerializer
 
 
@@ -17,19 +18,25 @@ class LevelBoosterSchema(Schema):
     unlocked_slots = fields.Int()
     slots = fields.List(fields.Int())
     cooldown_slots = fields.List(fields.DateTime())
-    pentagram = fields.Method("get_schema_pentagram_chars")
+    is_available = fields.Method("get_is_available")
 
-    def get_schema_pentagram_chars(self, level_booster):
-        return get_pentagram_chars_id_list(level_booster.user)
-
-
-# Gets the top 5 non-boosted chars by level
-def get_pentagram_chars(user):
-    return Character.objects.filter(user=user, is_boosted=False).order_by('-level')[:5]
+    def get_is_available(self, level_booster):
+        return get_max_out_char_count(level_booster.user) >= 5
 
 
-def get_pentagram_chars_id_list(user):
-    return list(get_pentagram_chars(user).values_list('char_id', flat=True))
+def get_max_out_char_count(user):
+    chars = Character.objects.filter(user=user, level=240)
+    count = 0
+    for char in chars:
+        if char.prestige == constants.PRESTIGE_CAP_BY_RARITY[char.char_type.rarity]:
+            count += 1
+
+    return count
+
+
+# max cap is raised by 5 per maxed out hero
+def get_level_cap(user):
+    return constants.MAX_CHARACTER_LEVEL + get_max_out_char_count(user) * 5
 
 
 class LevelBoosterView(APIView):
@@ -51,18 +58,21 @@ class FillSlotView(APIView):
         slot_id = serializer.validated_data['slot_id']
         char_id = serializer.validated_data['char_id']
 
+        if get_max_out_char_count(request.user) < 5:
+            return Response({'status': False, 'reason': 'not enough chars to level boost!'})
+
         if request.user.levelbooster.slots[slot_id] != -1:
             return Response({'status': False, 'reason': 'slot is currently occupied'})
 
         if char_id in request.user.levelbooster.slots:
             return Response({'status': False, 'reason': 'hero is already being used'})
 
-        if char_id in get_pentagram_chars_id_list(request.user):
-            return Response({'status': False, 'reason': 'cannot use a hero on the pentagram'})
-
         char = Character.objects.filter(user=request.user, char_id=char_id).first()
         if char is None:
             return Response({'status': False, 'reason': 'invalid char_id'})
+
+        if char.level != constants.MAX_CHARACTER_LEVEL or char.prestige != constants.PRESTIGE_CAP_BY_RARITY[char.char_type.rarity]:
+            return Response({'status': False, 'reason': 'must max out char before you can add it to a slot'})
 
         curr_time = datetime.now(timezone.utc)
         if request.user.levelbooster.cooldown_slots[slot_id] is not None and request.user.levelbooster.cooldown_slots[slot_id] > curr_time:
@@ -149,3 +159,49 @@ class UnlockSlotView(APIView):
         request.user.levelbooster.save()
 
         return Response({'status': True, 'unlocked_slots': request.user.levelbooster.unlocked_slots})
+
+
+# Returns the cost to level up TO this level
+def level_up_coins_cost(level: int):
+    adjusted_level = 440 + (level - 240) * 20
+    return formulas.char_level_to_coins(adjusted_level) - formulas.char_level_to_coins(adjusted_level - 1)
+
+
+def level_up_dust_cost(level: int):
+    return 250 * (level - 240) + 3000
+
+
+class LevelUpBooster(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @atomic
+    def post(self, request):
+        maxed_out_char_count = get_max_out_char_count(request.user)
+
+        if maxed_out_char_count < 5:
+            return Response({'status': False, 'reason': 'not enough chars to level boost!'})
+
+        if request.user.levelbooster.booster_level + 1 > get_level_cap(request.user):
+            return Response({'status': False, 'reason': 'level cap reached for ' + str(maxed_out_char_count) + ' maxed out heroes'})
+
+        delta_coins = level_up_coins_cost(request.user.levelbooster.booster_level + 1)
+
+        inventory = request.user.inventory
+        if delta_coins > inventory.coins:
+            return Response({'status': False, 'reason': 'not enough coins!'})
+
+        delta_dust = level_up_dust_cost(request.user.levelbooster.booster_level + 1)
+
+        if delta_dust > inventory.dust:
+            return Response({'status': False, 'reason': 'not enough dust!'})
+
+        inventory.dust -= delta_dust
+        inventory.coins -= delta_coins
+        request.user.levelbooster.booster_level += 1
+
+        inventory.save()
+        request.user.levelbooster.save()
+
+        QuestUpdater.add_progress_by_type(request.user, constants.LEVEL_UP_A_HERO, 1)
+
+        return Response({'status': True})

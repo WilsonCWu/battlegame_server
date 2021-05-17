@@ -40,6 +40,7 @@ from playerdata import antihacking
 
 urlpatterns = [
     path('hacker/report/', antihacking.UserReportView.as_view()),
+    path('levelbooster/levelup/', level_booster.LevelUpBooster.as_view()),
     path('levelbooster/get/', level_booster.LevelBoosterView.as_view()),
     path('levelbooster/fill/', level_booster.FillSlotView.as_view()),
     path('levelbooster/remove/', level_booster.RemoveSlotView.as_view()),

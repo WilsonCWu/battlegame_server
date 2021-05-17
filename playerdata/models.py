@@ -1160,7 +1160,7 @@ def default_cooldown_slot_list():
 
 class LevelBooster(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    booster_level = models.IntegerField(default=0)
+    booster_level = models.IntegerField(default=240)
     unlocked_slots = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(constants.LEVEL_BOOSTER_SLOTS)])
 
     # slots contain the char_id of the heroes
