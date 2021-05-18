@@ -65,7 +65,7 @@ def get_elo_rewards_list() -> List[EloReward]:
         elif elo % 250 == 0:
             rewards.append(EloReward(reward_id, elo, 'gems', 500))
         elif elo % 200 == 0:
-            rewards.append(EloReward(reward_id, elo, 'dust', 100 * elo_to_tier(elo).value))
+            rewards.append(EloReward(reward_id, elo, 'essence', 100 * elo_to_tier(elo).value))
         elif elo % 150 == 0:
             rewards.append(EloReward(reward_id, elo, 'chest', constants.ChestType.GOLD.value))
         elif elo % 100 == 0:
