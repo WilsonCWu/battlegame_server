@@ -833,11 +833,13 @@ class Clan2(models.Model):
     profile_picture = models.IntegerField(default=0)
     num_members = models.IntegerField(default=1)
     cap = models.IntegerField(default=30)
+    exp = models.IntegerField(default=0)
 
     class Meta:
         indexes = [
             models.Index(fields=['name']),
-            models.Index(fields=['elo', ]),
+            models.Index(fields=['elo']),
+            models.Index(fields=['exp']),
         ]
 
     def __str__(self):
@@ -850,6 +852,21 @@ class ClanMember(models.Model):
     is_elder = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)  # Coleader
     is_owner = models.BooleanField(default=False)  # Leader
+
+
+class ClanPVEResult(models.Model):
+    """Store Clan PVE results for the best run the user had for a singular
+    boss."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    boss = models.CharField(max_length=1, choices=(
+        ('1', 'The Wall'),
+        ('2', 'One Shot Wonder'),
+        ('3', 'AOE Boss'), 
+    ))
+    best_score = models.BigIntegerField(default=0)
+
+    class Meta:
+        unique_together = ('user', 'boss')
 
 
 class ClanRequest(models.Model):

@@ -37,8 +37,10 @@ from playerdata import coin_shop
 from playerdata import chests
 from playerdata import public
 from playerdata import antihacking
+from playerdata import clan_pve
 
 urlpatterns = [
+    path('clanpve/result/', clan_pve.ClanPVEResultView.as_view()),
     path('hacker/report/', antihacking.UserReportView.as_view()),
     path('levelbooster/levelup/', level_booster.LevelUpBooster.as_view()),
     path('levelbooster/get/', level_booster.LevelBoosterView.as_view()),
