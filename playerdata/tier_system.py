@@ -56,7 +56,7 @@ def get_tier_reward_elo(tier: int):
 @lru_cache()
 def get_elo_rewards_list() -> List[EloReward]:
     rewards = []
-    last_reward_elo = constants.Tiers.GRANDMASTER.value * constants.TIER_ELO_INCREMENT - (constants.TIER_ELO_INCREMENT / 2)
+    last_reward_elo = constants.Tiers.GRANDMASTER.value * constants.TIER_ELO_INCREMENT - (constants.TIER_ELO_INCREMENT // 2)
 
     reward_id = 0
     for elo in range(50, last_reward_elo, 50):
