@@ -40,6 +40,7 @@ from playerdata import antihacking
 from playerdata import clan_pve
 
 urlpatterns = [
+    path('clanpve/start/', clan_pve.ClanPVEStartView.as_view()),
     path('clanpve/result/', clan_pve.ClanPVEResultView.as_view()),
     path('hacker/report/', antihacking.UserReportView.as_view()),
     path('levelbooster/levelup/', level_booster.LevelUpBooster.as_view()),

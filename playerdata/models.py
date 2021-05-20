@@ -869,6 +869,22 @@ class ClanPVEResult(models.Model):
         unique_together = ('user', 'boss')
 
 
+class ClanPVEStatus(models.Model):
+    """Store Clan PVE tickets and character lending information for a given
+    day."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    day = models.CharField(max_length=3, choices=(
+        ('Fri', 'Friday'),
+        ('Sat', 'Saturday'),
+        ('Sun', 'Sunday'),
+    ))
+    # Store ticket in format of {'<mode_id>': <tickets>}.
+    tickets = JSONField()
+
+    class Meta:
+        unique_together = ('user', 'day')
+
+
 class ClanRequest(models.Model):
     userinfo = models.OneToOneField(UserInfo, on_delete=models.CASCADE)
     clan2 = models.ForeignKey(Clan2, on_delete=models.CASCADE)
