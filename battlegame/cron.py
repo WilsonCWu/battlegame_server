@@ -1,31 +1,18 @@
-from datetime import datetime, timedelta
-from django.utils import timezone
-import random
 import statistics
-import functools
-import requests
 
+import requests
 from sentry_sdk import capture_exception
 
-from playerdata import tier_system
-from . import settings
-
+from playerdata import tier_system, relic_shop
+from playerdata.antihacking import MatchValidator
 from playerdata.constants import TOURNEY_SIZE
 from playerdata.daily_dungeon import daily_dungeon_team_gen_cron
-from playerdata.models import Character, TournamentTeam, UserStats
-from playerdata.models import Inventory
-from playerdata.models import Match, MatchReplay
-from playerdata.models import Placement
-from playerdata.models import Tournament
-from playerdata.models import TournamentMatch
-from playerdata.models import TournamentMember
-from playerdata.models import TournamentRegistration
-from playerdata.models import UserInfo
+from playerdata.models import *
 from playerdata.purchases import refresh_daily_deals_cronjob, refresh_weekly_deals_cronjob
 from playerdata.quest import refresh_daily_quests, refresh_weekly_quests
 from playerdata.statusupdate import calculate_tourney_elo
 from playerdata.tournament import get_next_round_time, TOURNAMENT_BOTS, get_random_char_set
-from playerdata.antihacking import MatchValidator
+from . import settings
 
 """
 For reference:
@@ -134,6 +121,11 @@ def refresh_daily_dungeon():
 @cron(uuid="3f972350-ea40-40cf-bb94-36a68b3f5d5b")
 def reset_season():
     tier_system.restart_season()
+
+
+@cron(uuid="fec82791-ace6-4e2c-aeb3-a987d538e7c9")
+def refresh_relic_shop():
+    relic_shop.refresh_shop()
  
 
 # Take all registered users
