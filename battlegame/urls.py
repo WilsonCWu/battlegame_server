@@ -16,7 +16,7 @@ Including another URLconf
 from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
-from playerdata import login, tier_system, level_booster
+from playerdata import login, tier_system, level_booster, relic_shop
 from playerdata import base
 from playerdata import daily_dungeon
 from playerdata import moevasion
@@ -40,6 +40,8 @@ from playerdata import antihacking
 from playerdata import clan_pve
 
 urlpatterns = [
+    path('relicshop/buy/', relic_shop.BuyRelicView.as_view()),
+    path('relicshop/get/', relic_shop.GetRelicShopView.as_view()),
     path('clanpve/start/', clan_pve.ClanPVEStartView.as_view()),
     path('clanpve/startevent/', clan_pve.ClanPVEStartEventView.as_view()),
     path('clanpve/status/', clan_pve.ClanPVEStatusView.as_view()),

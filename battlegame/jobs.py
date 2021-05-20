@@ -123,3 +123,9 @@ def fix_clan_count():
 def backfill_level_booster():
     for user in User.objects.all():
         _, _ = LevelBooster.objects.get_or_create(user=user)
+
+
+@transaction.atomic
+def backfill_relics():
+    for user in User.objects.all():
+        _, _ = RelicShop.objects.get_or_create(user=user)
