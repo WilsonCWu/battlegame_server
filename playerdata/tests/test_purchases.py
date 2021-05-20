@@ -7,6 +7,7 @@ from playerdata import constants
 from playerdata.models import User, Character, ActiveDeal, BaseDeal
 from playerdata.purchases import generate_and_insert_characters
 
+
 class GenerateCharactersTestCase(APITestCase):
 
     fixtures = ['playerdata/tests/fixtures.json']

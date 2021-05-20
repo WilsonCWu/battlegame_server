@@ -752,6 +752,7 @@ class Inventory(models.Model):
     gems = models.IntegerField(default=5000)
     dust = models.IntegerField(default=100)
     essence = models.IntegerField(default=0)
+    relic_stones = models.IntegerField(default=0)
     daily_dungeon_ticket = models.IntegerField(default=3)
     daily_dungeon_golden_ticket = models.IntegerField(default=1)
     hero_exp = models.IntegerField(default=0)
@@ -1212,8 +1213,13 @@ class LevelBooster(models.Model):
     # slots contain the char_id of the heroes
     slots = ArrayField(models.IntegerField(), default=default_slot_list)
 
-    #list of either the cooldown datetime or None
+    # list of either the cooldown datetime or None
     cooldown_slots = ArrayField(models.DateTimeField(blank=True, null=True), default=default_cooldown_slot_list)
+
+
+class RelicShop(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    purchased_relics = ArrayField(models.IntegerField(), default=list)
 
 
 def create_user_referral(user):
@@ -1245,6 +1251,7 @@ def create_user_info(sender, instance, created, **kwargs):
         EloRewardTracker.objects.create(user=instance)
         SeasonReward.objects.create(user=instance)
         LevelBooster.objects.create(user=instance)
+        RelicShop.objects.create(user=instance)
         create_user_referral(instance)
 
         # Add quests

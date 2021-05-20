@@ -340,12 +340,6 @@ class PurchaseItemView(APIView):
         inventory.save()
 
         QuestUpdater.add_progress_by_type(request.user, constants.PURCHASE_ITEM, 1)
-
-        # generate characters
-        new_char_arr = []
-        rarity = None
-        char_copies = count_char_copies(Character.objects.filter(user=request.user))
-
         rewards = []
 
         # can support more types of purchases as we add more
