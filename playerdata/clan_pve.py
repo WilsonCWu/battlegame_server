@@ -160,15 +160,9 @@ class ClanPVEStartEventView(APIView):
             'clanmember_set', to_attr='clan_members',
             queryset=ClanMember.objects.select_related('userinfo__user')))
         clanmembers = clan_query[0].clan_members
-        # Default ticket setup.
-        tickets = {'1': 1, '2': 1, '3': 1}
         for member in clanmembers:
             u = member.userinfo.user
-            # TODO: setup character lending.
-            char_lending = {'default': True, 'characters': []}
-            ClanPVEStatus.objects.create(user=u, event=event, tickets_1=tickets,
-                                         tickets_2=tickets, tickets_3=tickets,
-                                         character_lending=char_lending)
+            ClanPVEStatus.objects.create(user=u, event=event)
         return Response({'status': True, 'start_date': target_date})
 
 
