@@ -63,7 +63,7 @@ def get_relic_seed_int():
     return date.today().month + (date.today().day // 16)
 
 
-# Returns a list of basechar id's that are available for purchase (biweekly)
+# Returns a list of basechar id's that are available for purchase (bimonthly)
 @lru_cache()
 def get_relics(seed_int=1):
     # random seed to the half month
@@ -78,7 +78,7 @@ def get_relics(seed_int=1):
     return rare_chars + epic_chars
 
 
-# TODO: Run this in a cron job on every 16th day of the month
+# TODO: Run this in a cron job on 1st and 16th day of the month
 def refresh_shop():
     relics_shops = RelicShop.objects.all()
     for relic in relics_shops:
