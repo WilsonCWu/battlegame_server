@@ -4,7 +4,7 @@ from unittest import mock
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from playerdata.models import User, ClanPVEResult, ClanPVEStatus
+from playerdata.models import User, ClanPVEResult, ClanPVEStatus, ClanPVEEvent
 
 
 class ClanPVEResultAPITestCase(APITestCase):
@@ -38,7 +38,7 @@ class ClanPVEResultAPITestCase(APITestCase):
         self.assertEqual(result.best_score, 200)
 
 
-class ClanPVEStartAPITestCase(APITestCase):
+class ClanPVEEventTestCase(APITestCase):
     fixtures = ['playerdata/tests/fixtures.json']
 
     def setUp(self):
@@ -48,16 +48,44 @@ class ClanPVEStartAPITestCase(APITestCase):
         resp = self.client.post('/clan/new/', {'clan_name': 'foo', 'clan_description': 'hi'})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
-        # Give the user a ClanPVEStatus, which would be granted by a cron job.
-        self.pve_status = ClanPVEStatus.objects.create(user=self.u, day='Fri',
-                                                       tickets={'1': 3, '2': 3, '3': 3})
 
-    def test_start_pve(self):
-        # Make this a Friday.
-        with mock.patch('playerdata.clan_pve.get_date') as mock_date:
-            mock_date.return_value = 4
-            resp = self.client.post('/clanpve/start/', {'boss_type': '1'})
+    def test_start_event(self):
+        resp = self.client.post('/clanpve/startevent/')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
-        self.pve_status.refresh_from_db()
-        self.assertEqual(self.pve_status.tickets['1'], 2)
+
+        event = ClanPVEEvent.objects.filter(clan=self.u.userinfo.clanmember.clan2,
+                                            date=datetime.date.today() + datetime.timedelta(days=1)).first()
+        self.assertIsNotNone(event)
+        pve_status = ClanPVEStatus.objects.filter(user=self.u, event=event).first()
+        self.assertIsNotNone(pve_status)
+
+        # Cannot start another event.
+        resp = self.client.post('/clanpve/startevent/')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertFalse(resp.data['status'])
+
+        # Try to start a boss, should fail since not in time range.
+        event.date = datetime.date(2010, 1, 1)
+        event.save()
+        resp = self.client.post('/clanpve/start/', {'boss_type': '1'})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertFalse(resp.data['status'])
+
+        # First day event.
+        event.date = datetime.datetime.today()
+        event.save()
+        resp = self.client.post('/clanpve/start/', {'boss_type': '1'})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue(resp.data['status'])
+
+        pve_status.refresh_from_db()
+        self.assertEqual(pve_status.tickets_1['1'], 0)
+
+        # Check status.
+        resp = self.client.get('/clanpve/status/')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue(resp.data['status'])
+        self.assertTrue(resp.data['has_event'])
+        self.assertDictEqual(resp.data['tickets'], {'1': 0, '2': 1, '3': 1})
+

@@ -8,13 +8,14 @@ import datetime
 import enum
 
 from django.db import transaction
+from django.db.models import Prefetch
 from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from .models import ClanPVEResult, ClanPVEStatus, Clan2
+from .models import ClanPVEResult, ClanPVEStatus, ClanPVEEvent, Clan2, ClanMember
 
 
 class ClanPVEBoss(enum.Enum):
@@ -29,8 +30,6 @@ class ClanPVESerializer(serializers.Serializer):
 
 
 # TODO: APIs for character lending.
-# TODO: APIs for displaying PVE status.
-# TODO: crons for lock in.
  
 class ClanPVEResultView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -84,24 +83,11 @@ class ClanPVEStartSerializer(serializers.Serializer):
     boss_type = serializers.ChoiceField(list((opt.value, opt.name) for opt in ClanPVEBoss))
 
 
-def get_date():
-    """Isolate this function so it can be easily mocked."""
-    return datetime.datetime.today().weekday()
-
-
 class ClanPVEStartView(APIView):
     """Attempt to start a Clan PVE game."""
     permission_classes = (IsAuthenticated,)
 
-
-    def pve_status(user):
-        day = get_date()
-        day_to_str = {4: 'Fri', 5: 'Sat', 6: 'Sun'}
-        if day not in day_to_str:
-            return None
-        return ClanPVEStatus.objects.get(user=user, day=day_to_str[day])
-
-    def can_start(user, boss_type):
+    def start_event(user, boss_type):
         """Returns (<can_start: boolean>, <reason, str>)."""
 
         # Check if the clan is elgible to start the run.
@@ -110,14 +96,33 @@ class ClanPVEStartView(APIView):
             return (False, 'User not part of any clans!')
         if clan.exp < CLAN_EXP_BAR[boss_type]:
             return (False, 'Clan not high enough level!')
-        
-        # Check if the user still have tickets.
-        pve_status = ClanPVEStartView.pve_status(user)
-        if not pve_status:
-            return (False, 'Not Fri, Sat, or Sunday!')
-        if pve_status.tickets[boss_type] <= 0:
-            return (False, 'Not enough tickets!')
 
+        # Get the clan's current event.
+        event = ClanPVEEvent.objects.filter(clan=clan).order_by('-date').first()
+        if not event:
+            return (False, 'Clan has no event!')
+
+        # Get the user's status.
+        event_status = ClanPVEStatus.objects.filter(user=user, event=event).first()
+        if not event_status:
+            return (False, 'User was not enrolled in the event!')
+
+        if datetime.datetime.today().date() == event.date:
+            if event_status.tickets_1[boss_type] <= 0:
+                return (False, 'Not enough tickets!')
+            event_status.tickets_1[boss_type] -= 1
+        elif datetime.datetime.today().date() == event.date + datetime.timedelta(days=1):
+            if event_status.tickets_2[boss_type] <= 0:
+                return (False, 'Not enough tickets!')
+            event_status.tickets_2[boss_type] -= 1
+        elif datetime.datetime.today().date() == event.date + datetime.timedelta(days=2):
+            if event_status.tickets_3[boss_type] <= 0:
+                return (False, 'Not enough tickets!')
+            event_status.tickets_3[boss_type] -= 1
+        else:
+            return (False, 'Out of event time range!')
+
+        event_status.save()
         return (True, '')
 
     @transaction.atomic
@@ -125,14 +130,69 @@ class ClanPVEStartView(APIView):
         serializer = ClanPVEStartSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        can_start, reason = ClanPVEStartView.can_start(request.user, serializer.validated_data['boss_type'])
-        if not can_start:
-            return Response({'status': False, 'reason': reason})
+        started, reason = ClanPVEStartView.start_event(request.user, serializer.validated_data['boss_type'])
+        return Response({'status': started, 'reason': reason})
 
-        # Decrement the ticket.
-        pve_status = ClanPVEStartView.pve_status(request.user)
-        pve_status.tickets[serializer.validated_data['boss_type']] -= 1
-        pve_status.save()
 
-        return Response({'status': True})
+class ClanPVEStartEventView(APIView):
+    """Initiate a Clan event for your current clan, to be started next day."""
+    permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
+    def post(self, request):
+        clan = request.user.userinfo.clanmember.clan2
+        if not clan:
+            return Response({'status': False, 'reason': 'User not part of any clans!'})
+
+        # Ensure that you have permission to start.
+        if not request.user.userinfo.clanmember.is_admin:
+            return Response({'status': False, 'reason': 'Need admin permissions!'})
+            
+        target_date = datetime.date.today() + datetime.timedelta(days=1)
+        # Ensure that you don't have an event in the last 7 days.
+        if ClanPVEEvent.objects.filter(clan=clan, date__gt=target_date-datetime.timedelta(days=7)).exists():
+            return Response({'status': False, 'reason': 'Last event within 7 days!'})
+
+        event = ClanPVEEvent.objects.create(clan=clan, date=target_date, started_by=request.user)
+
+        # Generate event statuses for all current clan members.
+        clan_query = Clan2.objects.filter(id=clan.id).prefetch_related(Prefetch(
+            'clanmember_set', to_attr='clan_members',
+            queryset=ClanMember.objects.select_related('userinfo__user')))
+        clanmembers = clan_query[0].clan_members
+        for member in clanmembers:
+            u = member.userinfo.user
+            ClanPVEStatus.objects.create(user=u, event=event)
+        return Response({'status': True, 'start_date': target_date})
+
+
+class ClanPVEStatusView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic
+    def get(self, request):
+        clan = request.user.userinfo.clanmember.clan2
+        if not clan:
+            return Response({'status': False, 'reason': 'User not part of any clans!'})
+
+        event = ClanPVEEvent.objects.filter(clan=clan).order_by('-date').first()
+        if event and datetime.datetime.today().date() > event.date + datetime.timedelta(days=2):
+            event = None
+
+        if not event:
+            return Response({'status': True, 'has_event': False})
+            
+        event_status = ClanPVEStatus.objects.filter(user=request.user, event=event).first()
+        if not event_status:
+            return Response({'status': True, 'has_event': False})
+
+        tickets = None
+        if event:
+            if datetime.datetime.today().date() == event.date:
+                tickets = event_status.tickets_1
+            elif datetime.datetime.today().date() == event.date + datetime.timedelta(days=1):
+                tickets = event_status.tickets_2
+            elif datetime.datetime.today().date() == event.date + datetime.timedelta(days=2):
+                tickets = event_status.tickets_3
+        return Response({'status': True, 'has_event': True,
+                         'start_time': event.date, 'tickets': tickets})

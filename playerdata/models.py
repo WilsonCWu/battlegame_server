@@ -869,20 +869,33 @@ class ClanPVEResult(models.Model):
         unique_together = ('user', 'boss')
 
 
+class ClanPVEEvent(models.Model):
+    clan = models.ForeignKey(Clan2, on_delete=models.CASCADE)
+    date = models.DateField()
+    started_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
+    class Meta:
+        unique_together = ('clan', 'date')
+
+
+def clan_pve_ticket_default():
+    return {'1': 1, '2': 1, '3': 1}
+
 class ClanPVEStatus(models.Model):
     """Store Clan PVE tickets and character lending information for a given
     day."""
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    day = models.CharField(max_length=3, choices=(
-        ('Fri', 'Friday'),
-        ('Sat', 'Saturday'),
-        ('Sun', 'Sunday'),
-    ))
+    event = models.ForeignKey(ClanPVEEvent, on_delete=models.CASCADE, null=True)
     # Store ticket in format of {'<mode_id>': <tickets>}.
-    tickets = JSONField()
+    tickets_1 = JSONField(default=clan_pve_ticket_default)
+    tickets_2 = JSONField(default=clan_pve_ticket_default)
+    tickets_3 = JSONField(default=clan_pve_ticket_default)
+    # Store characters to lend in the format of {'default': <bool>,
+    # 'characters': [{'char_id': <int>, 'uses_remaining': <int>}]}.
+    character_lending = JSONField(default=dict)
 
     class Meta:
-        unique_together = ('user', 'day')
+        unique_together = ('user', 'event')
 
 
 class ClanRequest(models.Model):
