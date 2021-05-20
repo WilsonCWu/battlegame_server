@@ -6,6 +6,7 @@ https://docs.google.com/document/d/1oG73A93V7ZO6e3CWrwM1yHKWOW9lGHGCxuyuJiwgjMs/
 
 import datetime
 import enum
+import math
 
 from django.db import transaction
 from django.db.models import Prefetch
@@ -15,6 +16,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
+from . import chests
 from .models import ClanPVEResult, ClanPVEStatus, ClanPVEEvent, Clan2, ClanMember
 
 
@@ -34,8 +36,22 @@ class ClanPVESerializer(serializers.Serializer):
 class ClanPVEResultView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def calculate_rewards(self):
-        pass
+    def calculate_rewards(self, score, boss_type):
+        relic_stones = 0
+        rewards = []
+
+        # TODO: Tuning for each boss and damage amounts
+        if boss_type == ClanPVEBoss.TheWall.value:
+            relic_stones = math.log(score) * 10
+        elif boss_type == ClanPVEBoss.OneShotWonder.value:
+            relic_stones = math.log(score) * 10
+        else:
+            relic_stones = math.log(score) * 10
+
+        relic_stones = max(140, relic_stones)
+
+        rewards.append(chests.ChestReward(reward_type='relic_stone', value=relic_stones))
+        return rewards
 
     def calculate_exp(self):
         # We expect a clan to make 20 runs to level two, and an additional 60
@@ -49,16 +65,20 @@ class ClanPVEResultView(APIView):
         serializer.is_valid(raise_exception=True)
 
         boss_type = serializer.validated_data['boss_type']
+        score = serializer.validated_data['score']
+
         # Update the best score for the user if applicable.
         result, _ = ClanPVEResult.objects.get_or_create(
             user=request.user,
             boss=boss_type,
         )
-        result.best_score = max(result.best_score, serializer.validated_data['score'])
+
+        result.best_score = max(result.best_score, score)
         result.save()
 
-        # TODO: give user rewards.
-        rewards = self.calculate_rewards()
+        rewards = self.calculate_rewards(score, boss_type)
+        chests.award_chest_rewards(request.user, rewards)
+        reward_schema = chests.ChestRewardSchema(rewards, many=True)
 
         # Give clan experience per run.
         exp = self.calculate_exp()
@@ -69,7 +89,7 @@ class ClanPVEResultView(APIView):
         clan.exp += exp
         clan.save()
 
-        return Response({'status': True})
+        return Response({'status': True, 'rewards': reward_schema.data})
 
 
 CLAN_EXP_BAR = {

@@ -21,7 +21,7 @@ class RelicShopAPITestCase(APITestCase):
         self.assertEqual(len(resp.data['purchased_relics']), 0)
 
     def test_purchase(self):
-        self.u.inventory.relic_stones = 120
+        self.u.inventory.relic_stones = relic_shop.EPIC_COST
         self.u.inventory.save()
 
         relics_for_sale = relic_shop.get_relics(1)
@@ -37,7 +37,7 @@ class RelicShopAPITestCase(APITestCase):
         self.assertEqual(char.copies, 2)
 
     def test_purchase_duplicate(self):
-        self.u.inventory.relic_stones = 120
+        self.u.inventory.relic_stones = relic_shop.EPIC_COST
         self.u.inventory.save()
 
         relics_for_sale = relic_shop.get_relics(1)

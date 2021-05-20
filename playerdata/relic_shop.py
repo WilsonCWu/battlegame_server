@@ -12,8 +12,8 @@ from playerdata.models import BaseCharacter, RelicShop
 from .serializers import IntSerializer
 
 
-EPIC_COST = 60
-RARE_COST = 16
+EPIC_COST = 600
+RARE_COST = 160
 
 
 class BuyRelicView(APIView):
