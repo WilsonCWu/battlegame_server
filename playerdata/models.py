@@ -575,6 +575,7 @@ class UserStats(models.Model):
     silver_pity_counter = models.IntegerField(default=0)
     gold_pity_counter = models.IntegerField(default=0)
     chest_counter = models.IntegerField(default=0)
+    pvp_skips = models.IntegerField(default=5)
 
     def __str__(self):
         return self.user.userinfo.name + '(' + str(self.user.id) + ')'

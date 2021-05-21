@@ -2,6 +2,7 @@ import collections
 import math
 
 from django.contrib.auth import get_user_model
+from django.db.transaction import atomic
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -11,7 +12,7 @@ from playerdata.models import ServerStatus
 from playerdata.models import TournamentMatch
 from playerdata.models import TournamentMember
 from playerdata.models import UserStats
-from . import constants, formulas, rolls, tier_system
+from . import constants, formulas, rolls, tier_system, server
 from .questupdater import QuestUpdater
 from .serializers import UploadResultSerializer
 
@@ -76,6 +77,7 @@ def award_chest(user):
 class UploadQuickplayResultView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @atomic
     def post(self, request):
         serializer = UploadResultSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -108,6 +110,7 @@ class UploadTourneyResultView(APIView):
 def update_stats(user, win, stats):
     user_stats = UserStats.objects.get(user=user)
     user_stats.num_games += 1
+    user_stats.pvp_skips += 0 if is_skip_capped(user) else 1
     user_stats.num_wins += 1 if win else 0
     user_stats.daily_wins += 1 if win else 0
     user_stats.win_streak = 0 if not win else user_stats.win_streak + 1
@@ -227,10 +230,24 @@ def handle_tourney(request, win, opponent):
     return Response({'status': True})
 
 
-class SkipCostView(APIView):
+def skip_cap(player_level: int):
+    base = 5
+    additional = player_level // 10
+    return base + additional
+
+
+def is_skip_capped(user):
+    return user.userstats.pvp_skips == skip_cap(formulas.exp_to_level(user.userinfo.player_exp))
+
+
+class SkipsLeftView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
+        if server.is_server_version_higher("0.2.5"):
+            is_skips_capped = is_skip_capped(request.user)
+            return Response({'skips_left': request.user.userstats.pvp_skips, 'is_capped': is_skips_capped})
+
         coins_cost = formulas.coins_chest_reward(request.user, constants.ChestType.SILVER.value) / 30
         gems_cost = 0
 
@@ -244,7 +261,17 @@ class SkipCostView(APIView):
 class SkipView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @atomic
     def post(self, request):
+        if server.is_server_version_higher("0.2.5"):
+            if request.user.userstats.pvp_skips <= 0:
+                Response({'status': False, 'reason': 'No more skips left today!'})
+
+            request.user.userstats.pvp_skips -= 1
+            request.user.userstats.save()
+            return Response({'status': True})
+
+
         cost = formulas.coins_chest_reward(request.user, constants.ChestType.SILVER.value) / 30
 
         if request.user.inventory.coins >= cost:
