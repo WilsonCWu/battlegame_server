@@ -1,5 +1,6 @@
 import collections
 import math
+from functools import lru_cache
 
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticated
@@ -11,7 +12,7 @@ from playerdata.models import ServerStatus
 from playerdata.models import TournamentMatch
 from playerdata.models import TournamentMember
 from playerdata.models import UserStats
-from . import constants, formulas, rolls, tier_system
+from . import constants, formulas, rolls, tier_system, server
 from .questupdater import QuestUpdater
 from .serializers import UploadResultSerializer
 
@@ -227,10 +228,20 @@ def handle_tourney(request, win, opponent):
     return Response({'status': True})
 
 
-class SkipCostView(APIView):
+@lru_cache()
+def skip_cap(player_level: int):
+    base = 5
+    additional = player_level // 5
+    return base + additional
+
+
+class SkipsLeftView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
+        if server.is_server_version_higher("0.2.5"):
+            return Response({'skips_left': request.user.userstats.daily_skips})
+
         coins_cost = formulas.coins_chest_reward(request.user, constants.ChestType.SILVER.value) / 30
         gems_cost = 0
 
@@ -245,6 +256,15 @@ class SkipView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
+        if server.is_server_version_higher("0.2.5"):
+            if request.user.userstats.daily_skips <= 0:
+                Response({'status': False, 'reason': 'No more skips left today!'})
+
+            request.user.userstats.daily_skips -= 1
+            request.user.userstats.save()
+            return Response({'status': True})
+
+
         cost = formulas.coins_chest_reward(request.user, constants.ChestType.SILVER.value) / 30
 
         if request.user.inventory.coins >= cost:

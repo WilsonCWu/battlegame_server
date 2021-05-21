@@ -119,7 +119,7 @@ urlpatterns = [
     path('retire/auto/', inventory.SetAutoRetire.as_view()),
     path('uploadresult/quickplay/', statusupdate.UploadQuickplayResultView.as_view()),
     path('uploadresult/tourney/', statusupdate.UploadTourneyResultView.as_view()),
-    path('skip/cost/', statusupdate.SkipCostView.as_view()),
+    path('skip/cost/', statusupdate.SkipsLeftView.as_view()),
     path('skip/', statusupdate.SkipView.as_view()),
     path('opponents/', matcher.GetOpponentsView.as_view()),
     path('user/', matcher.GetUserView.as_view()),

@@ -3,7 +3,7 @@ import statistics
 import requests
 from sentry_sdk import capture_exception
 
-from playerdata import tier_system, relic_shop
+from playerdata import tier_system, relic_shop, formulas, statusupdate
 from playerdata.antihacking import MatchValidator
 from playerdata.constants import TOURNEY_SIZE
 from playerdata.daily_dungeon import daily_dungeon_team_gen_cron
@@ -32,7 +32,7 @@ def cron(uuid=None, retries=0):
                 cron_logger("Failed to ping hc: %s" % e)
     
     def cron_logger(s):
-        # TODO: we should definately just use the logging package.
+        # TODO: we should definitely just use the logging package.
         print("[%s] %s" % (datetime.now().strftime("%d/%m/%Y %H:%M:%S"), s))
 
     def inner(func):
@@ -87,10 +87,11 @@ def daily_clean_matches_cron():
 
 @cron(uuid="cb651e8b-e227-4be1-a786-acd6fcac037c")
 def reset_daily_wins_cron():
-    userstats = UserStats.objects.all()
+    userstats = UserStats.objects.select_related('user__userinfo').all()
     for stat in userstats:
         stat.daily_wins = 0
-    UserStats.objects.bulk_update(userstats, ['daily_wins'])
+        stat.daily_skips = statusupdate.skip_cap(formulas.exp_to_level(stat.user.userinfo.player_exp))
+    UserStats.objects.bulk_update(userstats, ['daily_wins', 'daily_skips'])
 
 
 MAX_DAILY_DUNGEON_TICKET = 5
