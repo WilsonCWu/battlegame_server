@@ -633,3 +633,7 @@ admin.site.register(MoevasionStatus)
 admin.site.register(Flag)
 admin.site.register(UserFlag)
 admin.site.register(HackerAlert)
+
+admin.site.register(ClanPVEEvent)
+admin.site.register(ClanPVEResult)
+admin.site.register(ClanPVEEvent)
