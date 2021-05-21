@@ -178,6 +178,8 @@ def award_chest_rewards(user, rewards):
             user.inventory.gems += reward.value
         elif reward.reward_type == 'essence':
             user.inventory.dust += reward.value
+        elif reward.reward_type == 'relic_stone':
+            user.inventory.relic_stones += reward.value
         elif reward.reward_type == 'char_id':
             rolls.insert_character(user, reward.value)
         elif reward.reward_type == 'item_id':

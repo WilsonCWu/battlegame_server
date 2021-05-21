@@ -12,8 +12,8 @@ from playerdata.models import BaseCharacter, RelicShop
 from .serializers import IntSerializer
 
 
-EPIC_COST = 60
-RARE_COST = 16
+EPIC_COST = 600
+RARE_COST = 160
 
 
 class BuyRelicView(APIView):
@@ -78,7 +78,7 @@ def get_relics(seed_int=1):
     return rare_chars + epic_chars
 
 
-# TODO: Run this in a cron job on 1st and 16th day of the month
+# Cron job on 1st and 16th day of the month
 def refresh_shop():
     relics_shops = RelicShop.objects.all()
     for relic in relics_shops:
