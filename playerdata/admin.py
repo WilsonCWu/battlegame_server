@@ -25,7 +25,7 @@ from .login import UserRecoveryTokenGenerator
 
 class InventoryAdmin(admin.ModelAdmin, DynamicArrayMixin):
     list_display = ('user_id', 'gems', 'gems_bought')
-    search_fields = ('user_id',)
+    search_fields = ('user__id',)
     raw_id_fields = ("user", "chest_slot_1", "chest_slot_2", "chest_slot_3", "chest_slot_4")
 
 
