@@ -67,6 +67,9 @@ class ChangeName(APIView):
         if "Titan" in name:
             return Response({'status': False, 'reason': 'Invalid name'})
 
+        if len(name) > 20:
+            return Response({'status': False, 'reason': 'Your name cannot be more than 20 characters long'})
+
         userinfo = UserInfo.objects.get(user=request.user)
         userinfo.name = name
         userinfo.save()
