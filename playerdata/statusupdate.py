@@ -110,6 +110,7 @@ class UploadTourneyResultView(APIView):
 def update_stats(user, win, stats):
     user_stats = UserStats.objects.get(user=user)
     user_stats.num_games += 1
+    user_stats.pvp_skips += 0 if is_skip_capped(user) else 1
     user_stats.num_wins += 1 if win else 0
     user_stats.daily_wins += 1 if win else 0
     user_stats.win_streak = 0 if not win else user_stats.win_streak + 1
@@ -231,8 +232,12 @@ def handle_tourney(request, win, opponent):
 
 def skip_cap(player_level: int):
     base = 5
-    additional = player_level // 5
+    additional = player_level // 10
     return base + additional
+
+
+def is_skip_capped(user):
+    return user.userstats.pvp_skips == skip_cap(formulas.exp_to_level(user.userinfo.player_exp))
 
 
 class SkipsLeftView(APIView):
@@ -240,7 +245,8 @@ class SkipsLeftView(APIView):
 
     def get(self, request):
         if server.is_server_version_higher("0.2.5"):
-            return Response({'skips_left': request.user.userstats.daily_skips})
+            is_skips_capped = is_skip_capped(request.user)
+            return Response({'skips_left': request.user.userstats.pvp_skips, 'is_capped': is_skips_capped})
 
         coins_cost = formulas.coins_chest_reward(request.user, constants.ChestType.SILVER.value) / 30
         gems_cost = 0
@@ -258,10 +264,10 @@ class SkipView(APIView):
     @atomic
     def post(self, request):
         if server.is_server_version_higher("0.2.5"):
-            if request.user.userstats.daily_skips <= 0:
+            if request.user.userstats.pvp_skips <= 0:
                 Response({'status': False, 'reason': 'No more skips left today!'})
 
-            request.user.userstats.daily_skips -= 1
+            request.user.userstats.pvp_skips -= 1
             request.user.userstats.save()
             return Response({'status': True})
 
