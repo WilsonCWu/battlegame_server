@@ -110,7 +110,7 @@ class UploadTourneyResultView(APIView):
 def update_stats(user, win, stats):
     user_stats = UserStats.objects.get(user=user)
     user_stats.num_games += 1
-    user_stats.pvp_skips += 0 if is_skip_capped(user) else 1
+    user_stats.pvp_skips += 0 if is_skip_capped(user) else 3
     user_stats.num_wins += 1 if win else 0
     user_stats.daily_wins += 1 if win else 0
     user_stats.win_streak = 0 if not win else user_stats.win_streak + 1
@@ -232,7 +232,7 @@ def handle_tourney(request, win, opponent):
 
 def skip_cap(player_level: int):
     base = 5
-    additional = player_level // 10
+    additional = player_level // 5
     return base + additional
 
 
