@@ -232,7 +232,7 @@ def handle_tourney(request, win, opponent):
 
 def skip_cap(player_level: int):
     base = 5
-    additional = player_level // 3
+    additional = player_level // 5
     return base + additional
 
 
