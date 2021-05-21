@@ -24,7 +24,10 @@ from .login import UserRecoveryTokenGenerator
 
 
 class InventoryAdmin(admin.ModelAdmin, DynamicArrayMixin):
-    pass
+    list_display = ('user_id', 'gems', 'gems_bought')
+    search_fields = ('user__id',)
+    raw_id_fields = ("user", "chest_slot_1", "chest_slot_2", "chest_slot_3", "chest_slot_4")
+
 
 class BaseCodeAdmin(admin.ModelAdmin, DynamicArrayMixin):
     pass
@@ -64,6 +67,7 @@ class UserInfoAdmin(admin.ModelAdmin):
     actions = ('generate_bots_from_users', 'generate_bots_bulk', 'create_otp',
                'inventory_transfer_forward', 'inventory_transfer_reverse')
     search_fields = ('name',)
+    raw_id_fields = ("user", "default_placement")
 
     def generate_bots_from_users(self, request, queryset):
         generate_bots_from_users(queryset)

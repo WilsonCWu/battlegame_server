@@ -55,6 +55,7 @@ class ChestSchema(Schema):
     id = fields.Int()
     rarity = fields.Int()
     locked_until = fields.DateTime()
+    tier_rank = fields.Int()
 
 
 class InventorySchema(Schema):
