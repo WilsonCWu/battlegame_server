@@ -46,6 +46,8 @@ urlpatterns = [
     path('clanpve/startevent/', clan_pve.ClanPVEStartEventView.as_view()),
     path('clanpve/status/', clan_pve.ClanPVEStatusView.as_view()),
     path('clanpve/result/', clan_pve.ClanPVEResultView.as_view()),
+    path('clanpve/lending/list/', clan_pve.ClanViewLendingView.as_view()),
+    path('clanpve/lending/set/', clan_pve.ClanSetLendingView.as_view()),
     path('hacker/report/', antihacking.UserReportView.as_view()),
     path('levelbooster/levelup/', level_booster.LevelUpBooster.as_view()),
     path('levelbooster/get/', level_booster.LevelBoosterView.as_view()),

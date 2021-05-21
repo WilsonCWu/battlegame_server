@@ -895,6 +895,9 @@ class ClanPVEStatus(models.Model):
     # Store characters to lend in the format of {'default': <bool>,
     # 'characters': [{'char_id': <int>, 'uses_remaining': <int>}]}.
     character_lending = JSONField(default=dict)
+    # Current run information.
+    current_boss = models.IntegerField(default=-1)
+    current_borrowed_character = models.IntegerField(default=-1)
 
     class Meta:
         unique_together = ('user', 'event')
