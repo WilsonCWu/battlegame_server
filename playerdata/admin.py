@@ -636,4 +636,4 @@ admin.site.register(HackerAlert)
 
 admin.site.register(ClanPVEEvent)
 admin.site.register(ClanPVEResult)
-admin.site.register(ClanPVEEvent)
+admin.site.register(ClanPVEStatus)
