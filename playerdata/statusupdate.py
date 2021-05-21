@@ -1,8 +1,8 @@
 import collections
 import math
-from functools import lru_cache
 
 from django.contrib.auth import get_user_model
+from django.db.transaction import atomic
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -77,6 +77,7 @@ def award_chest(user):
 class UploadQuickplayResultView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @atomic
     def post(self, request):
         serializer = UploadResultSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -228,7 +229,6 @@ def handle_tourney(request, win, opponent):
     return Response({'status': True})
 
 
-@lru_cache()
 def skip_cap(player_level: int):
     base = 5
     additional = player_level // 5
@@ -255,6 +255,7 @@ class SkipsLeftView(APIView):
 class SkipView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @atomic
     def post(self, request):
         if server.is_server_version_higher("0.2.5"):
             if request.user.userstats.daily_skips <= 0:
