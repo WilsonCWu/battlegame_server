@@ -102,10 +102,6 @@ class ClanLendingTestCase(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
 
-        # Map the lent characters to a list of IDs.
-        lent_characters = [r['character']['char_id'] for r in resp.data['lent_characters']]
-        self.assertListEqual([1, 2, 70], lent_characters)
-
         # Instead lend characters 1, 71, 72.
         resp = self.client.post('/clanpve/lending/set/', {'char_1': 1, 'char_2': 71, 'char_3': 72})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)

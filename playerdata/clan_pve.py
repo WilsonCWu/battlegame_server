@@ -98,7 +98,8 @@ class ClanPVEResultView(APIView):
         pve_status = ClanPVEStatus.objects.filter(user=request.user, event=event).first()
         if not pve_status:
             return Response({'status': False, 'reason': 'User not enrolled in event!'})
-
+        if pve_status.current_boss != int(boss_type):
+            return Response({'status': False, 'reason': 'User started event for different boss type!'})
         pve_status.current_boss = -1
         pve_status.current_borrowed_character = -1
         pve_status.save()
@@ -144,8 +145,6 @@ class ClanPVEStartView(APIView):
 
         if event_status.current_boss != -1:
             return (False, 'User current in an existing run!')
-        elif event_status.current_boss != int(boss_type):
-            return (False, 'User started event for different boss type!')
         event_status.current_boss = int(boss_type)
 
         # Check if the character to be borrowed is valid.
