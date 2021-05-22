@@ -272,8 +272,9 @@ class ClanPVEStatusView(APIView):
         # Also load player best scores.
         results = ClanPVEResult.objects.filter(user=request.user)
         scores = [{'boss': r.boss, 'score': r.best_score} for r in results]
+        tickets_json = [{'boss': k, 'tickets': tickets[k]} for k in tickets]
         return Response({'status': True, 'has_event': True,
-                         'start_time': event.date, 'tickets': tickets,
+                         'start_time': event.date, 'tickets': tickets_json,
                          'current_boss': str(event_status.current_boss),
                          'current_borrowed_character': CharacterSchema(c).data,
                          'character_lending': event_status.character_lending,
