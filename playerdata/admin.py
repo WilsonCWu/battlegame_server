@@ -1,26 +1,20 @@
 import bulk_admin
 from django.contrib import admin
-from django.contrib import messages
 from django.contrib.admin.models import LogEntry
-from django.contrib.postgres.fields import JSONField
-from django.core import serializers
 from django.http import HttpResponse
-from django.utils.translation import ngettext
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 from django_json_widget.widgets import JSONEditorWidget
-from packaging import version
 
 from battlegame.cron import next_round, setup_tournament, end_tourney
-from . import constants
 from .constants import MAX_PRESTIGE_LEVEL, PRESTIGE_CAP_BY_RARITY
 from .daily_dungeon import daily_dungeon_team_gen_cron
 from .dungeon import generate_dungeon_stages
 from .dungeon_gen import convert_placement_to_json
+from .login import UserRecoveryTokenGenerator
 from .matcher import generate_bots_from_users, generate_bots_bulk
 from .models import *
 from .purchases import refresh_daily_deals_cronjob, refresh_weekly_deals_cronjob
 from .quest import queue_active_weekly_quests, queue_active_daily_quests, refresh_weekly_quests, refresh_daily_quests
-from .login import UserRecoveryTokenGenerator
 
 
 class InventoryAdmin(admin.ModelAdmin, DynamicArrayMixin):
@@ -36,6 +30,10 @@ class BaseCodeAdmin(admin.ModelAdmin, DynamicArrayMixin):
 class BaseItemAdmin(admin.ModelAdmin, DynamicArrayMixin):
     list_display = ('rollable', 'name', 'item_type', 'rarity', 'gear_slot', 'cost', 'description')
     list_filter = ('rollable', 'gear_slot', 'rarity', 'cost')
+
+
+class RelicShopAdmin(admin.ModelAdmin, DynamicArrayMixin):
+    pass
 
 
 class DungeonStageAdmin(bulk_admin.BulkModelAdmin):
@@ -637,3 +635,5 @@ admin.site.register(HackerAlert)
 admin.site.register(ClanPVEEvent)
 admin.site.register(ClanPVEResult)
 admin.site.register(ClanPVEStatus)
+
+admin.site.register(RelicShop, RelicShopAdmin)

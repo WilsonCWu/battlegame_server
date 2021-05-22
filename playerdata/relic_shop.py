@@ -1,5 +1,5 @@
 import random
-from datetime import date
+from datetime import date, datetime, timedelta
 from functools import lru_cache
 
 from django.db import transaction
@@ -10,7 +10,6 @@ from rest_framework.views import APIView
 from playerdata import base, rolls
 from playerdata.models import BaseCharacter, RelicShop
 from .serializers import IntSerializer
-
 
 EPIC_COST = 600
 RARE_COST = 160
@@ -67,15 +66,24 @@ def get_relic_seed_int():
 @lru_cache()
 def get_relics(seed_int=1):
     # random seed to the half month
-    rng = random.Random(seed_int)
+    # rng = random.Random(seed_int)
 
     rares = list(BaseCharacter.objects.filter(rarity=2, rollable=True).values_list('char_type', flat=True))
     epics = list(BaseCharacter.objects.filter(rarity=3, rollable=True).values_list('char_type', flat=True))
 
-    rare_chars = rng.sample(rares, 3)
-    epic_chars = rng.sample(epics, 3)
+    # rare_chars = rng.sample(rares, 3)
+    # epic_chars = rng.sample(epics, 3)
 
-    return rare_chars + epic_chars
+    return rares + epics
+
+
+# The hour is 4am UTC or 12am EST during non-daylight savings
+def get_relic_reset_date():
+    today = datetime.today()
+    if today.day >= 16:
+        return (datetime(today.year, today.month, 1, 4) + timedelta(days=32)).replace(day=1)
+    else:
+        return datetime(today.year, today.month, 16, 4)
 
 
 # Cron job on 1st and 16th day of the month
@@ -94,4 +102,9 @@ class GetRelicShopView(APIView):
         seed_int = get_relic_seed_int()
         purchased_relics = request.user.relicshop.purchased_relics
 
-        return Response({'status': True, 'relics': get_relics(seed_int), 'purchased_relics': purchased_relics})
+        return Response({
+            'status': True,
+            'relics': get_relics(seed_int),
+            'purchased_relics': purchased_relics,
+            'next_reset': get_relic_reset_date()
+        })
