@@ -400,6 +400,14 @@ class GetClanView(APIView):
         return Response({'status': True, 'clan': clan_schema.data})
 
 
+class GetClanMember(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        clanmember = ClanMember.objects.get(userinfo=request.user.userinfo)
+        return Response(ClanSchema(clanmember).data)
+
+
 class EditClanDescriptionView(APIView):
     permission_classes = (IsAuthenticated,)
 
