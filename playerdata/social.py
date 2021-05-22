@@ -405,7 +405,7 @@ class GetClanMember(APIView):
 
     def get(self, request):
         clanmember = ClanMember.objects.get(userinfo=request.user.userinfo)
-        return Response(ClanSchema(clanmember).data)
+        return Response(ClanMemberSchema(clanmember).data)
 
 
 class EditClanDescriptionView(APIView):
