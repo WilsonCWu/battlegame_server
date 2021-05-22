@@ -60,14 +60,13 @@ class ClanPVEEventTestCase(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
         self.assertTrue(resp.data['has_event'])
-        self.assertIn(str({'boss': '1', 'tickets': 0}),
-                      [str(t) for t in resp.data['tickets']])
+        self.assertTrue(any(t['boss'] == '1' and t['tickets'] == 0 for t in resp.data['tickets']))
         self.assertEqual(resp.data['current_boss'], '1')
 
         # Validate that character has been lent.
         pve_status_2 = ClanPVEStatus.objects.get(user=self.u2, event=event)
-        self.assertIn(str({'char_id': 7, 'uses_remaining': 8}),
-                      [str(c) for c in pve_status_2.character_lending['characters']])
+        self.assertTrue(any(c['char_id'] == 7 and c['uses_remaining'] == 8
+                            for c in pve_status_2.character_lending['characters']))
 
         # Finish a run.
         resp = self.client.post('/clanpve/result/', {'boss_type': '1', 'score': 100})
