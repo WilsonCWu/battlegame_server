@@ -64,6 +64,7 @@ class InventorySchema(Schema):
     coins = fields.Int()
     gems = fields.Int()
     dust = fields.Int()
+    relic_stones = fields.Int()
     hero_exp = fields.Int()
 
     chest_slot_1 = fields.Nested(ChestSchema)
