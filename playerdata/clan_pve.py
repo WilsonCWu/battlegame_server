@@ -198,6 +198,8 @@ class ClanPVEStartView(APIView):
         return Response({'status': started, 'reason': reason})
 
 
+ALLOWED_WEEKDAYS = (0, 1, 2, 3)
+
 class ClanPVEStartEventView(APIView):
     """Initiate a Clan event for your current clan, to be started next day."""
     permission_classes = (IsAuthenticated,)
@@ -211,12 +213,20 @@ class ClanPVEStartEventView(APIView):
         # Ensure that you have permission to start.
         if not request.user.userinfo.clanmember.is_admin:
             return Response({'status': False, 'reason': 'Need admin permissions!'})
-            
-        target_date = datetime.date.today() + datetime.timedelta(days=1)
-        # Ensure that you don't have an event in the last 7 days.
-        if ClanPVEEvent.objects.filter(clan=clan, date__gt=target_date-datetime.timedelta(days=7)).exists():
-            return Response({'status': False, 'reason': 'Last event within 7 days!'})
 
+        # Can only start an event if today is M - Th (i.e. events only start
+        # from T - F).
+        weekday = datetime.date.today().weekday()
+        if weekday not in ALLOWED_WEEKDAYS:
+            return Response({'status': False, 'reason': 'Can only start event on Mon - Thurs!'})
+ 
+        # Ensure that you don't have an event in the same cycle (i.e. within
+        # the last 3 days).
+        current_week = datetime.date.today() - datetime.timedelta(days=weekday)
+        if ClanPVEEvent.objects.filter(clan=clan, date__gt=current_week).exists():
+            return Response({'status': False, 'reason': 'Last event in the same cycle!'})
+
+        target_date = datetime.date.today() + datetime.timedelta(days=1)
         event = ClanPVEEvent.objects.create(clan=clan, date=target_date, started_by=request.user)
 
         # Generate event statuses for all current clan members.
@@ -226,10 +236,15 @@ class ClanPVEStartEventView(APIView):
         clanmembers = clan_query[0].clan_members
         for member in clanmembers:
             u = member.userinfo.user
+            # Prevent the user from clan hoping and entering multiple events
+            # per cycle.
+            latest_status = ClanPVEStatus.objects.filter(user=u).order_by('-event_id').first()
+            if latest_status and latest_status.event.date > current_week:
+                continue
+ 
             # Get up to 3 characters from the user.
-            chars = Character.objects.filter(user=u).order_by('-level')[:3]
-            default_loaners = [{'char_id': c.char_id, 'uses_remaining': 9}
-                               for c in chars]
+            default_loaners = [{'char_id': c, 'uses_remaining': 9}
+                               for c in member.pve_character_lending]
             ClanPVEStatus.objects.create(user=u, event=event,
                                          character_lending={'default': True, 'characters': default_loaners})
         return Response({'status': True, 'start_date': target_date})
@@ -339,28 +354,30 @@ class ClanSetLendingView(APIView):
         if not clan:
             return Response({'status': False, 'reason': 'User not part of any clans!'})
 
-        event = get_active_event(clan)
-        if not event:
-            return Response({'status': False, 'reason': 'No active event!'})
-
-        if datetime.datetime.today().date() >= event.date:
-            return Response({'status': False, 'reason': 'After lockin period!'})
-        event_status = ClanPVEStatus.objects.filter(user=request.user,
-                                                    event=event).first()
-        if not event_status:
-            return Response({'status': False, 'reason': 'User not enrolled in event!'})
-
-        char_ids = (serializer.validated_data['char_1'],
+        # Validate that the user owns the characters.
+        char_ids = [serializer.validated_data['char_1'],
                     serializer.validated_data['char_2'],
-                    serializer.validated_data['char_3'])
+                    serializer.validated_data['char_3']]
         if Character.objects.filter(char_id__in=char_ids, user=request.user).count() != 3:
             return Response({'status': False, 'reason': 'User does not own the charactesr!'})
-        
-        event_status.character_lending = {'default': False, 'characters': [
-            {'char_id': serializer.validated_data['char_1'], 'uses_remaining': 9},
-            {'char_id': serializer.validated_data['char_2'], 'uses_remaining': 9},
-            {'char_id': serializer.validated_data['char_3'], 'uses_remaining': 9},
-        ]}
-        event_status.save()
+
+        # Set them to the user's clanmember.
+        clanmember = request.user.userinfo.clanmember
+        clanmember.pve_character_lending = char_ids
+        clanmember.save()
+
+        # If there is an event (before the lock in period, set it as well.)
+        event = get_active_event(clan)
+        if event and datetime.datetime.today().date() < event.date:
+            # Get the user's event status (if it exists).
+            event_status = ClanPVEStatus.objects.filter(user=request.user,
+                                                        event=event).first()
+            if event_status:
+                event_status.character_lending = {'default': False, 'characters': [
+                    {'char_id': serializer.validated_data['char_1'], 'uses_remaining': 9},
+                    {'char_id': serializer.validated_data['char_2'], 'uses_remaining': 9},
+                    {'char_id': serializer.validated_data['char_3'], 'uses_remaining': 9},
+                ]}
+                event_status.save()
         return Response({'status': True})
         

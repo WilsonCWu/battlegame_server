@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from playerdata.models import User, BaseCharacter, Character, ClanPVEResult, ClanPVEStatus, ClanPVEEvent
+from battlegame.jobs import backfill_pve_status
 
 
 class ClanPVEEventTestCase(APITestCase):
@@ -21,11 +22,13 @@ class ClanPVEEventTestCase(APITestCase):
         self.u2 = User.objects.get(username='testWilson')
         self.u2.userinfo.clanmember.clan2 = self.u.userinfo.clanmember.clan2
         self.u2.userinfo.clanmember.save()
+        backfill_pve_status()
 
     def test_start_event(self):
-        resp = self.client.post('/clanpve/startevent/')
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertTrue(resp.data['status'])
+        with mock.patch('playerdata.clan_pve.ALLOWED_WEEKDAYS', list(range(7))):
+            resp = self.client.post('/clanpve/startevent/')
+            self.assertEqual(resp.status_code, status.HTTP_200_OK)
+            self.assertTrue(resp.data['status'])
 
         event = ClanPVEEvent.objects.filter(clan=self.u.userinfo.clanmember.clan2,
                                             date=datetime.date.today() + datetime.timedelta(days=1)).first()
@@ -34,9 +37,10 @@ class ClanPVEEventTestCase(APITestCase):
         self.assertIsNotNone(pve_status)
 
         # Cannot start another event.
-        resp = self.client.post('/clanpve/startevent/')
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertFalse(resp.data['status'])
+        with mock.patch('playerdata.clan_pve.ALLOWED_WEEKDAYS', list(range(7))):
+            resp = self.client.post('/clanpve/startevent/')
+            self.assertEqual(resp.status_code, status.HTTP_200_OK)
+            self.assertFalse(resp.data['status'])
 
         # Try to start a boss, should fail since not in time range.
         event.date = datetime.date(2010, 1, 1)
@@ -90,12 +94,14 @@ class ClanLendingTestCase(APITestCase):
         self.assertTrue(resp.data['status'])
 
         # Start an event.
-        resp = self.client.post('/clanpve/startevent/')
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertTrue(resp.data['status'])
+        with mock.patch('playerdata.clan_pve.ALLOWED_WEEKDAYS', list(range(7))):
+            resp = self.client.post('/clanpve/startevent/')
+            self.assertEqual(resp.status_code, status.HTTP_200_OK)
+            self.assertTrue(resp.data['status'])
         self.event = ClanPVEEvent.objects.filter(clan=self.u.userinfo.clanmember.clan2,
                                                  date=datetime.date.today() + datetime.timedelta(days=1)).first()
         self.assertIsNotNone(self.event)
+        backfill_pve_status()
 
     def test_lending(self):
         resp = self.client.get('/clanpve/lending/list/')

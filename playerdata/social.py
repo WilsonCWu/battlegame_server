@@ -368,6 +368,7 @@ class ClanMemberSchema(Schema):
     is_admin = fields.Bool()
     is_owner = fields.Bool()
     is_elder = fields.Bool()
+    pve_character_lending = fields.List(fields.Int())
 
 
 class ClanSchema(Schema):
