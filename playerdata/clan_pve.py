@@ -151,6 +151,11 @@ class ClanPVEStartView(APIView):
         target_char = Character.objects.filter(char_id=borrowed_character).first()
         if not target_char:
             return (False, 'Target character does not exist.')
+
+        # Ensure that you're not borrowing your own character.
+        if target_char.user == user:
+            return (False, 'Cannot borrow your own character!')
+
         # Allocate the borrowed character.
         target_status = ClanPVEStatus.objects.filter(user=target_char.user, event=event).first()
         if not target_status:
@@ -246,7 +251,7 @@ class ClanPVEStartEventView(APIView):
             default_loaners = [{'char_id': c, 'uses_remaining': 9}
                                for c in member.pve_character_lending]
             ClanPVEStatus.objects.create(user=u, event=event,
-                                         character_lending={'default': True, 'characters': default_loaners})
+                                         character_lending={'defaulted': True, 'characters': default_loaners})
         return Response({'status': True, 'start_date': target_date})
 
 
@@ -283,7 +288,9 @@ class ClanPVEStatusView(APIView):
         elif datetime.datetime.today().date() == event.date + datetime.timedelta(days=2):
             tickets = event_status.tickets_3
 
-        c = Character.objects.get(char_id=event_status.current_borrowed_character)
+        # A borrowed character may not have been set yet.
+        c = Character.objects.filter(char_id=event_status.current_borrowed_character).first()
+        c_json = CharacterSchema(c).data if c else None
         # Also load player best scores.
         results = ClanPVEResult.objects.filter(user=request.user)
         scores = [{'boss': r.boss, 'score': r.best_score} for r in results]
@@ -291,7 +298,7 @@ class ClanPVEStatusView(APIView):
         return Response({'status': True, 'has_event': True,
                          'start_time': event.date, 'tickets': tickets_json,
                          'current_boss': str(event_status.current_boss),
-                         'current_borrowed_character': CharacterSchema(c).data,
+                         'current_borrowed_character': c_json,
                          'character_lending': event_status.character_lending,
                          'scores': scores,
                          })
@@ -310,7 +317,9 @@ class ClanViewLendingView(APIView):
         if not event:
             return Response({'status': False, 'reason': 'No active event!'})
 
+        # Ignore current user, just get the view for the rest of the clan.
         event_statuses = ClanPVEStatus.objects.filter(event=event) \
+            .exclude(user=request.user) \
             .select_related('user__userinfo')
         # Append all the characters from each player's status.
         characters = {}
@@ -373,7 +382,7 @@ class ClanSetLendingView(APIView):
             event_status = ClanPVEStatus.objects.filter(user=request.user,
                                                         event=event).first()
             if event_status:
-                event_status.character_lending = {'default': False, 'characters': [
+                event_status.character_lending = {'defaulted': False, 'characters': [
                     {'char_id': serializer.validated_data['char_1'], 'uses_remaining': 9},
                     {'char_id': serializer.validated_data['char_2'], 'uses_remaining': 9},
                     {'char_id': serializer.validated_data['char_3'], 'uses_remaining': 9},

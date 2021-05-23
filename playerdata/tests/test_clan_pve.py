@@ -97,6 +97,11 @@ class ClanLendingTestCase(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
 
+        # Put someone else in the clan as well.
+        self.u2 = User.objects.get(username='testWilson')
+        self.u2.userinfo.clanmember.clan2 = self.u.userinfo.clanmember.clan2
+        self.u2.userinfo.clanmember.save()
+
         # Start an event.
         with mock.patch('playerdata.clan_pve.ALLOWED_WEEKDAYS', list(range(7))):
             resp = self.client.post('/clanpve/startevent/')
@@ -112,11 +117,13 @@ class ClanLendingTestCase(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
 
-        # Instead lend characters 1, 71, 72.
+        # Battlegame will lend characters 1, 71, 72.
         resp = self.client.post('/clanpve/lending/set/', {'char_1': 1, 'char_2': 71, 'char_3': 72})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
 
+        # TestWilson will see those in borrowable characters.
+        self.client.force_authenticate(user=self.u2)
         resp = self.client.get('/clanpve/lending/list/')
         lent_characters = [r['character']['char_id'] for r in resp.data['lent_characters']]
         self.assertListEqual([1, 71, 72], lent_characters)
