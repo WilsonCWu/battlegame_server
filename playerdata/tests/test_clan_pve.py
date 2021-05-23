@@ -23,6 +23,7 @@ class ClanPVEEventTestCase(APITestCase):
         self.u2.userinfo.clanmember.clan2 = self.u.userinfo.clanmember.clan2
         self.u2.userinfo.clanmember.save()
         backfill_pve_status()
+        self.u2.userinfo.clanmember.refresh_from_db()
 
     def test_start_event(self):
         with mock.patch('playerdata.clan_pve.ALLOWED_WEEKDAYS', list(range(7))):
@@ -45,14 +46,17 @@ class ClanPVEEventTestCase(APITestCase):
         # Try to start a boss, should fail since not in time range.
         event.date = datetime.date(2010, 1, 1)
         event.save()
-        resp = self.client.post('/clanpve/start/', {'boss_type': '1', 'borrowed_character': 7})
+
+        # Get a character from testWilson.
+        target_char_id = self.u2.userinfo.clanmember.pve_character_lending[0]
+        resp = self.client.post('/clanpve/start/', {'boss_type': '1', 'borrowed_character': target_char_id})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertFalse(resp.data['status'])
 
         # First day event.
         event.date = datetime.datetime.today()
         event.save()
-        resp = self.client.post('/clanpve/start/', {'boss_type': '1', 'borrowed_character': 7})
+        resp = self.client.post('/clanpve/start/', {'boss_type': '1', 'borrowed_character': target_char_id})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
 
@@ -69,7 +73,7 @@ class ClanPVEEventTestCase(APITestCase):
 
         # Validate that character has been lent.
         pve_status_2 = ClanPVEStatus.objects.get(user=self.u2, event=event)
-        self.assertTrue(any(c['char_id'] == 7 and c['uses_remaining'] == 8
+        self.assertTrue(any(c['char_id'] == target_char_id and c['uses_remaining'] == 8
                             for c in pve_status_2.character_lending['characters']))
 
         # Finish a run.

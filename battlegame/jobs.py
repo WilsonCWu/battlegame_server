@@ -133,7 +133,8 @@ def backfill_relics():
 
 @transaction.atomic
 def backfill_pve_status():
-    for member in ClanMember.objects.filter(pve_character_lending=[]):
-        cs = Character.objects.filter(user_id=member.userinfo_id)[:3]
-        member.pve_character_lending=[c.char_id for c in cs]
-        member.save()
+    for member in ClanMember.objects.all():
+        if not member.pve_character_lending:
+            cs = Character.objects.filter(user_id=member.userinfo_id)[:3]
+            member.pve_character_lending=[c.char_id for c in cs]
+            member.save()
