@@ -74,7 +74,7 @@ def get_relics(seed_int=1):
     # rare_chars = rng.sample(rares, 3)
     # epic_chars = rng.sample(epics, 3)
 
-    return rares + epics
+    return epics + rares
 
 
 # The hour is 4am UTC or 12am EST during non-daylight savings
