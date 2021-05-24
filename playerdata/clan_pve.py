@@ -32,8 +32,6 @@ class ClanPVESerializer(serializers.Serializer):
     boss_type = serializers.ChoiceField(list((opt.value, opt.name) for opt in ClanPVEBoss))
     score = serializers.IntegerField()
 
-
-# TODO: APIs for character lending.
  
 class ClanPVEResultView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -280,7 +278,7 @@ class ClanPVEStatusView(APIView):
         if not event_status:
             return Response({'status': True, 'has_event': False})
 
-        tickets = None
+        tickets = []
         if datetime.datetime.today().date() == event.date:
             tickets = event_status.tickets_1
         elif datetime.datetime.today().date() == event.date + datetime.timedelta(days=1):
@@ -383,9 +381,9 @@ class ClanSetLendingView(APIView):
                                                         event=event).first()
             if event_status:
                 event_status.character_lending = {'defaulted': False, 'characters': [
-                    {'char_id': serializer.validated_data['char_1'], 'uses_remaining': 9},
-                    {'char_id': serializer.validated_data['char_2'], 'uses_remaining': 9},
-                    {'char_id': serializer.validated_data['char_3'], 'uses_remaining': 9},
+                    {'char_id': serializer.validated_data['char_1'], 'uses_remaining': 3},
+                    {'char_id': serializer.validated_data['char_2'], 'uses_remaining': 3},
+                    {'char_id': serializer.validated_data['char_3'], 'uses_remaining': 3},
                 ]}
                 event_status.save()
         return Response({'status': True})
