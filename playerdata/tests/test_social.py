@@ -76,3 +76,8 @@ class ClanAPITestCase(APITestCase):
 
         target_clanmember = ClanMember.objects.get(userinfo_id=member_id)
         self.assertTrue(target_clanmember.is_elder)
+
+    def test_get_clanmember(self):
+        response = self.client.get('/clanmember/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['is_elder'])

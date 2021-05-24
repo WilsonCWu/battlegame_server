@@ -855,6 +855,9 @@ class ClanMember(models.Model):
     is_admin = models.BooleanField(default=False)  # Coleader
     is_owner = models.BooleanField(default=False)  # Leader
 
+    # Defaults to the user's first characters.
+    pve_character_lending = ArrayField(models.IntegerField(), default=list)
+
 
 class ClanPVEResult(models.Model):
     """Store Clan PVE results for the best run the user had for a singular
@@ -1250,7 +1253,9 @@ def create_user_info(sender, instance, created, **kwargs):
         userinfo = UserInfo.objects.create(user=instance, default_placement=default_placement)
         UserStats.objects.create(user=instance)
         Inventory.objects.create(user=instance)
-        ClanMember.objects.create(userinfo=userinfo)
+        ClanMember.objects.create(userinfo=userinfo, pve_character_lending=[
+            peasant_archer.char_id, peasant_mage.char_id,
+            peasant_swordsman.char_id])
         DungeonProgress.objects.create(user=instance, campaign_stage=1)
         EloRewardTracker.objects.create(user=instance)
         SeasonReward.objects.create(user=instance)

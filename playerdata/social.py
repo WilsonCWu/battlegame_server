@@ -368,6 +368,7 @@ class ClanMemberSchema(Schema):
     is_admin = fields.Bool()
     is_owner = fields.Bool()
     is_elder = fields.Bool()
+    pve_character_lending = fields.List(fields.Int())
 
 
 class ClanSchema(Schema):
@@ -405,7 +406,7 @@ class GetClanMember(APIView):
 
     def get(self, request):
         clanmember = ClanMember.objects.get(userinfo=request.user.userinfo)
-        return Response(ClanSchema(clanmember).data)
+        return Response(ClanMemberSchema(clanmember).data)
 
 
 class EditClanDescriptionView(APIView):
