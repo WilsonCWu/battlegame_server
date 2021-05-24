@@ -7,6 +7,7 @@ https://docs.google.com/document/d/1oG73A93V7ZO6e3CWrwM1yHKWOW9lGHGCxuyuJiwgjMs/
 import datetime
 import enum
 import math
+import random
 
 from django.db import transaction
 from django.db.models import Prefetch
@@ -31,33 +32,41 @@ class ClanPVEBoss(enum.Enum):
 class ClanPVESerializer(serializers.Serializer):
     boss_type = serializers.ChoiceField(list((opt.value, opt.name) for opt in ClanPVEBoss))
     score = serializers.IntegerField()
+    round_num = serializers.IntegerField()
 
  
 class ClanPVEResultView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def calculate_rewards(self, score, boss_type):
-        relic_stones = 0
+    def calculate_rewards(self, score, boss_type, round_num):
         rewards = []
+        total_to_give = 1200
 
-        # TODO: Tuning for each boss and damage amounts
         if boss_type == ClanPVEBoss.TheWall.value:
-            relic_stones = math.log(score) * 10
+            boss_difference = -40
         elif boss_type == ClanPVEBoss.OneShotWonder.value:
-            relic_stones = math.log(score) * 10
+            boss_difference = 0
         else:
-            relic_stones = math.log(score) * 10
+            boss_difference = 40
 
-        relic_stones = max(140, relic_stones)
+        if round_num == 1:
+            relic_stones = total_to_give / 2 / 3  # Half of the rewards
+        elif round_num == 2:
+            relic_stones = total_to_give / 3 / 3  # A third of the rewards
+        else:
+            relic_stones = (total_to_give / 6) / 3  # A sixth of the rewards (remaining amount)
+
+        relic_stones += boss_difference
+        relic_stones = random.randint(math.floor(0.95 * relic_stones), math.floor(relic_stones * 1.05))
 
         rewards.append(chests.ChestReward(reward_type='relic_stone', value=relic_stones))
         return rewards
 
-    def calculate_exp(self):
+    def calculate_exp(self, round_num):
         # We expect a clan to make 20 runs to level two, and an additional 60
         # runs to level three. As a result, let's just leave this as one and
         # calculate the level as such.
-        return 1
+        return 39 + round_num
 
     @transaction.atomic
     def post(self, request):
@@ -66,6 +75,7 @@ class ClanPVEResultView(APIView):
 
         boss_type = serializer.validated_data['boss_type']
         score = serializer.validated_data['score']
+        round_num = serializer.validated_data['round_num']
 
         # Update the best score for the user if applicable.
         result, _ = ClanPVEResult.objects.get_or_create(
@@ -76,12 +86,12 @@ class ClanPVEResultView(APIView):
         result.best_score = max(result.best_score, score)
         result.save()
 
-        rewards = self.calculate_rewards(score, boss_type)
+        rewards = self.calculate_rewards(score, round_num)
         chests.award_chest_rewards(request.user, rewards)
         reward_schema = chests.ChestRewardSchema(rewards, many=True)
 
         # Give clan experience per run.
-        exp = self.calculate_exp()
+        exp = self.calculate_exp(round_num)
         clan = request.user.userinfo.clanmember.clan2
         if not clan:
             return Response({'status': False, 'reason': 'User not part of any clans!'})
@@ -107,8 +117,8 @@ class ClanPVEResultView(APIView):
 
 CLAN_EXP_BAR = {
     '1': 0,
-    '2': 20,
-    '3': 80,
+    '2': 800,
+    '3': 3200,
 }
 
 
