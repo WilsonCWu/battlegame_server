@@ -16,7 +16,7 @@ from playerdata.models import ClanRequest
 from playerdata.models import Friend
 from playerdata.models import FriendRequest
 from playerdata.models import UserInfo
-from . import constants
+from . import constants, formulas
 from .matcher import UserInfoSchema, LightUserInfoSchema
 from .questupdater import QuestUpdater
 from .serializers import AcceptFriendRequestSerializer
@@ -379,8 +379,14 @@ class ClanSchema(Schema):
     profile_picture = fields.Int()
     time_started = fields.DateTime()
     elo = fields.Int()
+    exp = fields.Int()
     cap = fields.Int()
     clan_members = fields.Nested(ClanMemberSchema, attribute='clan_members', many=True)
+
+    clan_level = fields.Method("get_clan_lvl")
+
+    def get_clan_lvl(self, clan):
+        return formulas.exp_to_level(clan.exp)
 
 
 class GetClanView(APIView):
