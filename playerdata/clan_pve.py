@@ -40,18 +40,15 @@ class ClanPVEResultView(APIView):
         total_to_give = 1200
 
         if boss_type == ClanPVEBoss.TheWall.value:
-            boss_difference = -40
+            boss_difference = -25
         elif boss_type == ClanPVEBoss.OneShotWonder.value:
             boss_difference = 0
         else:
-            boss_difference = 40
+            boss_difference = 25
 
-        if datetime.datetime.today().date() == event.date:
-            relic_stones = (total_to_give / 2) / 9  # Half of the rewards
-        elif datetime.datetime.today().date() == event.date + datetime.timedelta(days=1):
-            relic_stones = (total_to_give / 3) / 9  # A third of the rewards
-        else:
-            relic_stones = (total_to_give / 6) / 9  # A sixth of the rewards (remaining amount)
+        geo_sequence = 0.3 * (1.1 ** (round_num - 1))
+        percentage = max(geo_sequence, 1)
+        relic_stones = total_to_give / 9 * percentage
 
         relic_stones += boss_difference
         relic_stones += round_num
