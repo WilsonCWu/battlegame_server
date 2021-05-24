@@ -6,8 +6,6 @@ https://docs.google.com/document/d/1oG73A93V7ZO6e3CWrwM1yHKWOW9lGHGCxuyuJiwgjMs/
 
 import datetime
 import enum
-import math
-import random
 
 from django.db import transaction
 from django.db.models import Prefetch
@@ -15,12 +13,11 @@ from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_marshmallow import Schema, fields
 
 from . import chests
-from .models import Character, ClanPVEResult, ClanPVEStatus, ClanPVEEvent, Clan2, ClanMember
-from .matcher import LightUserInfoSchema
 from .inventory import CharacterSchema
+from .matcher import LightUserInfoSchema
+from .models import Character, ClanPVEResult, ClanPVEStatus, ClanPVEEvent, Clan2, ClanMember
 
 
 class ClanPVEBoss(enum.Enum):
@@ -58,7 +55,6 @@ class ClanPVEResultView(APIView):
 
         relic_stones += boss_difference
         relic_stones += round_num
-        relic_stones = random.randint(math.floor(0.95 * relic_stones), math.floor(relic_stones * 1.05))
 
         rewards.append(chests.ChestReward(reward_type='relic_stone', value=relic_stones))
         return rewards
