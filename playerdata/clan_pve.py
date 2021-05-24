@@ -50,9 +50,9 @@ class ClanPVEResultView(APIView):
             boss_difference = 40
 
         if round_num == 1:
-            relic_stones = total_to_give / 2 / 3  # Half of the rewards
+            relic_stones = (total_to_give / 2) / 3  # Half of the rewards
         elif round_num == 2:
-            relic_stones = total_to_give / 3 / 3  # A third of the rewards
+            relic_stones = (total_to_give / 3) / 3  # A third of the rewards
         else:
             relic_stones = (total_to_give / 6) / 3  # A sixth of the rewards (remaining amount)
 
@@ -86,7 +86,7 @@ class ClanPVEResultView(APIView):
         result.best_score = max(result.best_score, score)
         result.save()
 
-        rewards = self.calculate_rewards(score, round_num)
+        rewards = self.calculate_rewards(score, boss_type, round_num)
         chests.award_chest_rewards(request.user, rewards)
         reward_schema = chests.ChestRewardSchema(rewards, many=True)
 

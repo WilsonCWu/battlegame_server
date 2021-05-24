@@ -77,7 +77,7 @@ class ClanPVEEventTestCase(APITestCase):
                             for c in pve_status_2.character_lending['characters']))
 
         # Finish a run.
-        resp = self.client.post('/clanpve/result/', {'boss_type': '1', 'score': 100})
+        resp = self.client.post('/clanpve/result/', {'boss_type': '1', 'score': 100, 'round_num': 1})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
         pve_status.refresh_from_db()
