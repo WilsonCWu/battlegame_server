@@ -16,7 +16,7 @@ from playerdata.models import ClanRequest
 from playerdata.models import Friend
 from playerdata.models import FriendRequest
 from playerdata.models import UserInfo
-from . import constants, formulas
+from . import constants, formulas, clan_pve
 from .matcher import UserInfoSchema, LightUserInfoSchema
 from .questupdater import QuestUpdater
 from .serializers import AcceptFriendRequestSerializer
@@ -386,7 +386,7 @@ class ClanSchema(Schema):
     clan_level = fields.Method("get_clan_lvl")
 
     def get_clan_lvl(self, clan):
-        return formulas.exp_to_level(clan.exp)
+        return clan_pve.clan_exp_to_level(clan.exp)
 
 
 class GetClanView(APIView):
