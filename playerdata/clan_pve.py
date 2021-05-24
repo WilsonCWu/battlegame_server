@@ -117,6 +117,15 @@ CLAN_EXP_BAR = {
 }
 
 
+def clan_exp_to_level(exp):
+    if exp < 800:
+        return 1
+    elif exp < 3200:
+        return 2
+    else:
+        return 3
+
+
 class ClanPVEStartSerializer(serializers.Serializer):
     boss_type = serializers.ChoiceField(list((opt.value, opt.name) for opt in ClanPVEBoss))
     borrowed_character = serializers.IntegerField()
@@ -392,4 +401,3 @@ class ClanSetLendingView(APIView):
                 ]}
                 event_status.save()
         return Response({'status': True})
-        
