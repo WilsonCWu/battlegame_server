@@ -38,7 +38,7 @@ class ClanPVESerializer(serializers.Serializer):
 class ClanPVEResultView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def calculate_rewards(self, score, boss_type, round_num):
+    def calculate_rewards(self, boss_type, round_num, event):
         rewards = []
         total_to_give = 1200
 
@@ -49,14 +49,15 @@ class ClanPVEResultView(APIView):
         else:
             boss_difference = 40
 
-        if round_num == 1:
-            relic_stones = (total_to_give / 2) / 3  # Half of the rewards
-        elif round_num == 2:
-            relic_stones = (total_to_give / 3) / 3  # A third of the rewards
+        if datetime.datetime.today().date() == event.date:
+            relic_stones = (total_to_give / 2) / 9  # Half of the rewards
+        elif datetime.datetime.today().date() == event.date + datetime.timedelta(days=1):
+            relic_stones = (total_to_give / 3) / 9  # A third of the rewards
         else:
-            relic_stones = (total_to_give / 6) / 3  # A sixth of the rewards (remaining amount)
+            relic_stones = (total_to_give / 6) / 9  # A sixth of the rewards (remaining amount)
 
         relic_stones += boss_difference
+        relic_stones += round_num
         relic_stones = random.randint(math.floor(0.95 * relic_stones), math.floor(relic_stones * 1.05))
 
         rewards.append(chests.ChestReward(reward_type='relic_stone', value=relic_stones))
@@ -86,10 +87,6 @@ class ClanPVEResultView(APIView):
         result.best_score = max(result.best_score, score)
         result.save()
 
-        rewards = self.calculate_rewards(score, boss_type, round_num)
-        chests.award_chest_rewards(request.user, rewards)
-        reward_schema = chests.ChestRewardSchema(rewards, many=True)
-
         # Give clan experience per run.
         exp = self.calculate_exp(round_num)
         clan = request.user.userinfo.clanmember.clan2
@@ -111,6 +108,10 @@ class ClanPVEResultView(APIView):
         pve_status.current_boss = -1
         pve_status.current_borrowed_character = -1
         pve_status.save()
+
+        rewards = self.calculate_rewards(boss_type, round_num, event)
+        chests.award_chest_rewards(request.user, rewards)
+        reward_schema = chests.ChestRewardSchema(rewards, many=True)
 
         return Response({'status': True, 'rewards': reward_schema.data})
 
