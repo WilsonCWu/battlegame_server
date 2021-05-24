@@ -276,7 +276,7 @@ class ClanPVEStatusView(APIView):
             
         event_status = ClanPVEStatus.objects.filter(user=request.user, event=event).first()
         if not event_status:
-            return Response({'status': True, 'has_event': False})
+            return Response({'status': True, 'has_event': True})
 
         tickets = []
         if datetime.datetime.today().date() == event.date:
