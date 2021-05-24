@@ -6,6 +6,7 @@ https://docs.google.com/document/d/1oG73A93V7ZO6e3CWrwM1yHKWOW9lGHGCxuyuJiwgjMs/
 
 import datetime
 import enum
+import math
 
 from django.db import transaction
 from django.db.models import Prefetch
@@ -35,7 +36,7 @@ class ClanPVESerializer(serializers.Serializer):
 class ClanPVEResultView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def calculate_rewards(self, boss_type, round_num, event):
+    def calculate_rewards(self, boss_type, round_num):
         rewards = []
         total_to_give = 1200
 
@@ -48,7 +49,7 @@ class ClanPVEResultView(APIView):
 
         geo_sequence = 0.3 * (1.1 ** (round_num - 1))
         percentage = max(geo_sequence, 1)
-        relic_stones = total_to_give / 9 * percentage
+        relic_stones = math.floor(total_to_give / 9 * percentage)
 
         relic_stones += boss_difference
         relic_stones += round_num
@@ -102,7 +103,7 @@ class ClanPVEResultView(APIView):
         pve_status.current_borrowed_character = -1
         pve_status.save()
 
-        rewards = self.calculate_rewards(boss_type, round_num, event)
+        rewards = self.calculate_rewards(boss_type, round_num)
         chests.award_chest_rewards(request.user, rewards)
         reward_schema = chests.ChestRewardSchema(rewards, many=True)
 
