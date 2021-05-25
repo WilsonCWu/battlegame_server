@@ -47,7 +47,7 @@ class ClanPVEResultView(APIView):
         else:
             boss_difference = 25
 
-        geo_sequence = 0.4 * (1.1 ** (round_num - 1))
+        geo_sequence = 0.3 * (1.1 ** (round_num - 1)) + 0.1
         percentage = min(geo_sequence, 1)
         relic_stones = math.floor(total_to_give / 9 * percentage)
 
