@@ -292,11 +292,12 @@ class ClanPVEStatusView(APIView):
             return Response({'status': True, 'has_event': False})
             
         event_status = ClanPVEStatus.objects.filter(user=request.user, event=event).first()
+        tickets = {'1': 0, '2': 0, '3': 0}
         if not event_status:
             # TODO: the tickets should be handled client side instead.
-            return Response({'status': True, 'has_event': True, 'tickets': {'1': 0, '2': 0, '3': 0}})
+            tickets_json = [{'boss': k, 'tickets': tickets[k]} for k in tickets]
+            return Response({'status': True, 'has_event': True, 'tickets': tickets_json})
 
-        tickets = []
         if datetime.datetime.today().date() == event.date:
             tickets = event_status.tickets_1
         elif datetime.datetime.today().date() == event.date + datetime.timedelta(days=1):
