@@ -251,6 +251,9 @@ class ClanPVEStartEventView(APIView):
             'clanmember_set', to_attr='clan_members',
             queryset=ClanMember.objects.select_related('userinfo__user')))
         clanmembers = clan_query[0].clan_members
+        if len(clanmembers) == 0:
+            return Response({'status': False, 'reason': 'Cannot start event for clan of 1!'})
+
         for member in clanmembers:
             u = member.userinfo.user
             # Prevent the user from clan hoping and entering multiple events
@@ -290,7 +293,8 @@ class ClanPVEStatusView(APIView):
             
         event_status = ClanPVEStatus.objects.filter(user=request.user, event=event).first()
         if not event_status:
-            return Response({'status': True, 'has_event': True})
+            # TODO: the tickets should be handled client side instead.
+            return Response({'status': True, 'has_event': True, 'tickets': {'1': 0, '2': 0, '3': 0}})
 
         tickets = []
         if datetime.datetime.today().date() == event.date:
