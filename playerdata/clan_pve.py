@@ -296,7 +296,11 @@ class ClanPVEStatusView(APIView):
         if not event_status:
             # TODO: the tickets should be handled client side instead.
             tickets_json = [{'boss': k, 'tickets': tickets[k]} for k in tickets]
-            return Response({'status': True, 'has_event': True, 'tickets': tickets_json})
+            return Response({'status': True, 'has_event': True,
+                             'tickets': tickets_json,
+                             # TODO: we try to catch empty string on the client,
+                             # even though C# actually turns it into null.
+                             'start_time': ''})
 
         if datetime.datetime.today().date() == event.date:
             tickets = event_status.tickets_1
