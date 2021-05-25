@@ -873,6 +873,9 @@ class ClanPVEResult(models.Model):
     class Meta:
         unique_together = ('user', 'boss')
 
+    def __str__(self):
+        return "%d: %s" % (self.user.id, self.boss)
+
 
 class ClanPVEEvent(models.Model):
     clan = models.ForeignKey(Clan2, on_delete=models.CASCADE)
@@ -881,6 +884,9 @@ class ClanPVEEvent(models.Model):
 
     class Meta:
         unique_together = ('clan', 'date')
+
+    def __str__(self):
+        return "%s: %s" % (self.clan.name, str(self.date))
 
 
 def clan_pve_ticket_default():
@@ -904,6 +910,9 @@ class ClanPVEStatus(models.Model):
 
     class Meta:
         unique_together = ('user', 'event')
+
+    def __str__(self):
+        return "%d: %s" % (self.user.id, str(self.event))
 
 
 class ClanRequest(models.Model):
