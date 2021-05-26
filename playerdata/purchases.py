@@ -79,6 +79,9 @@ def validate_google(request, receipt_raw):
 
         PurchasedTracker.objects.create(user=request.user,
                                         transaction_id=receipt['orderId'])
+
+        handle_purchase_gems(request.user, receipt['productId'], receipt['orderId'])
+
         return Response({'status': True})
     except Exception:
         InvalidReceipt.objects.create(user=request.user, order_number=str(receipt['orderId']),
@@ -94,6 +97,10 @@ def handle_purchase_gems(user, purchase_id, transaction_id):
     purchase_tracker = PurchasedTracker.objects.filter(user=user, transaction_id=transaction_id).first()
     if purchase_tracker is None:
         return Response({'status': False, 'reason': 'purchase not found in our records'})
+
+    if purchase_tracker.purchase_id != "":
+        # Already fulfilled purchase
+        return Response({'status': True})
 
     if purchase_id in constants.IAP_GEMS_AMOUNT:
         user.inventory.gems += constants.IAP_GEMS_AMOUNT[purchase_id]
