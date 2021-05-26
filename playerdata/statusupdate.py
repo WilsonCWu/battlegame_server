@@ -266,7 +266,7 @@ class SkipView(APIView):
     def post(self, request):
         if server.is_server_version_higher("0.2.5"):
             if request.user.userstats.pvp_skips <= 0:
-                Response({'status': False, 'reason': 'No more skips left today!'})
+                return Response({'status': False, 'reason': 'No more skips left today!'})
 
             request.user.userstats.pvp_skips -= 1
             request.user.userstats.save()
