@@ -15,6 +15,7 @@ from playerdata import constants, chests, server
 from playerdata.models import EloRewardTracker, SeasonReward, UserInfo
 from playerdata.serializers import IntSerializer
 
+ELO_CAP = 6000
 
 # Examples:
 # {'gems', 1, 50, 100}
@@ -55,25 +56,49 @@ def get_tier_reward_elo(tier: int):
 # can change to regular @cache if we upgrade python 3.9
 @lru_cache()
 def get_elo_rewards_list() -> List[EloReward]:
+    # seed per season
+    # rng = random.Random(seed_int)
+
     rewards = []
     last_reward_elo = constants.Tiers.GRANDMASTER.value * constants.TIER_ELO_INCREMENT - (constants.TIER_ELO_INCREMENT // 2)
 
     reward_id = 0
     for elo in range(50, last_reward_elo, 50):
-        if elo % 500 == 0:
+        counter_offset = reward_id + 1
+        if counter_offset % 10 == 0:
             rewards.append(EloReward(reward_id, elo, 'chest', constants.ChestType.MYTHICAL.value))
-        elif elo % 250 == 0:
+        elif counter_offset % 5 == 0:
             rewards.append(EloReward(reward_id, elo, 'gems', 500))
-        elif elo % 200 == 0:
+        elif counter_offset % 5 == 4:
             rewards.append(EloReward(reward_id, elo, 'essence', 100 * elo_to_tier(elo).value))
-        elif elo % 150 == 0:
+        elif counter_offset % 5 == 3:
             rewards.append(EloReward(reward_id, elo, 'chest', constants.ChestType.GOLD.value))
-        elif elo % 100 == 0:
+        elif counter_offset % 5 == 2:
             rewards.append(EloReward(reward_id, elo, 'coins', 500 * elo_to_tier(elo).value))
-        elif elo % 50 == 0:
+        elif counter_offset % 5 == 1:
             rewards.append(EloReward(reward_id, elo, 'chest', constants.ChestType.SILVER.value))
 
         reward_id += 1
+
+    if server.is_server_version_higher("0.3.0"):
+        start_elite_season_rewards = last_reward_elo + 50
+        # TODO: swap some of these for vanity rewards
+        for elo in range(start_elite_season_rewards, ELO_CAP + 1, 100):
+            counter_offset = reward_id + 1
+            if counter_offset % 10 == 0:
+                rewards.append(EloReward(reward_id, elo, 'chest', constants.ChestType.LEGENDARY.value))
+            elif counter_offset % 5 == 0:
+                rewards.append(EloReward(reward_id, elo, 'champ_badge', 30))
+            elif counter_offset % 5 == 4:
+                rewards.append(EloReward(reward_id, elo, 'gems', 600))
+            elif counter_offset % 5 == 3:
+                rewards.append(EloReward(reward_id, elo, 'chest', constants.ChestType.MYTHICAL.value))
+            elif counter_offset % 5 == 2:
+                rewards.append(EloReward(reward_id, elo, 'relic_stone', (elo // 10) - 20))
+            elif counter_offset % 5 == 1:
+                rewards.append(EloReward(reward_id, elo, 'champ_badge', 20))
+
+            reward_id += 1
 
     return rewards
 
@@ -156,10 +181,7 @@ class ClaimSeasonRewardView(APIView):
 # The hour is 4am UTC or 12am EST during non-daylight savings
 def get_season_expiration_date():
     today = datetime.today()
-    if today.day >= 15:
-        return (datetime(today.year, today.month, 1, 4) + timedelta(days=32)).replace(day=1)
-    else:
-        return datetime(today.year, today.month, 15, 4)
+    return (datetime(today.year, today.month, 1, 4) + timedelta(days=32)).replace(day=1)
 
 
 # EndSeasonRewards
@@ -172,14 +194,21 @@ def restart_season():
             season.tier_rank = season.user.userinfo.tier_rank
             season.is_claimed = False
 
-    if server.is_server_version_higher("0.3.1"):
-        elo_reset_users = UserInfo.objects.filter(tier_rank__gte=constants.Tiers.GRANDMASTER.value)
+    SeasonReward.objects.bulk_update(seasons, ['tier_rank', 'is_claimed'])
+
+    if server.is_server_version_higher("0.3.0"):
+        elo_reset_users = UserInfo.objects.filter(tier_rank__gte=constants.Tiers.GRANDMASTER.value).select_related('user__elorewardtracker')
+        elo_trackers = []
         for userinfo in elo_reset_users:
-            userinfo.elo = constants.TIER_ELO_INCREMENT * constants.Tiers.GRANDMASTER.value
+            userinfo.elo = constants.TIER_ELO_INCREMENT * (constants.Tiers.GRANDMASTER.value - 1)
+
+            tracker = userinfo.user.elorewardtracker
+            tracker.last_claimed = min(userinfo.user.elorewardtracker.last_claimed, 59)
+            tracker.last_completed = 59
+            elo_trackers.append(tracker)
 
         UserInfo.objects.bulk_update(elo_reset_users, ['elo'])
-        
-    SeasonReward.objects.bulk_update(seasons, ['tier_rank', 'is_claimed'])
+        EloRewardTracker.objects.bulk_update(elo_trackers, ['last_claimed', 'last_completed'])
 
 
 def get_season_reward(tier: int):
