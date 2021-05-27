@@ -294,11 +294,11 @@ class ClanPVEStatusView(APIView):
         event_status = ClanPVEStatus.objects.filter(user=request.user, event=event).first()
         tickets = {'1': 0, '2': 0, '3': 0}
         if not event_status:
-            # TODO: the tickets should be handled client side instead.
+            # BUG: the tickets should be handled client side instead.
             tickets_json = [{'boss': k, 'tickets': tickets[k]} for k in tickets]
             return Response({'status': True, 'has_event': True,
                              'tickets': tickets_json,
-                             # TODO: we try to catch empty string on the client,
+                             # BUG: we try to catch empty string on the client,
                              # even though C# actually turns it into null.
                              'start_time': ''})
 
@@ -308,6 +308,10 @@ class ClanPVEStatusView(APIView):
             tickets = event_status.tickets_2
         elif datetime.datetime.today().date() == event.date + datetime.timedelta(days=2):
             tickets = event_status.tickets_3
+
+        # BUG: If a current boss exists, add 1 to its ticket.
+        if event_status.current_boss != -1:
+            tickets[str(event_status.current_boss)] += 1
 
         # A borrowed character may not have been set yet.
         c = Character.objects.filter(char_id=event_status.current_borrowed_character).first()
