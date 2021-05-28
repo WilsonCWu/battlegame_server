@@ -51,7 +51,7 @@ class BuyRelicView(APIView):
 
 def get_relic_cost(char_type: int):
     rarity = base.get_char_rarity(char_type)
-    if rarity == 4:
+    if rarity == 3:
         return EPIC_COST
     else:
         return RARE_COST
