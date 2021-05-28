@@ -73,14 +73,19 @@ def validate_google(request, receipt_raw):
     service = build('androidpublisher', 'v3', credentials=credentials)
 
     try:
+        purchase_id = receipt['productId']
+        transaction_id = receipt['orderId']
         response = service.purchases().products().get(packageName=receipt['packageName'],
-                                                      productId=receipt['productId'],
+                                                      productId=purchase_id,
                                                       token=receipt['purchaseToken']).execute()
 
         PurchasedTracker.objects.create(user=request.user,
-                                        transaction_id=receipt['orderId'])
+                                        transaction_id=transaction_id)
 
-        handle_purchase_gems(request.user, receipt['productId'], receipt['orderId'])
+        if purchase_id.startswith('com.salutationstudio.tinytitans.gems.'):
+            return handle_purchase_gems(request.user, purchase_id, transaction_id)
+        elif purchase_id.startswith('com.salutationstudio.tinytitans.deal.'):
+            return handle_purchase_deal(request.user, purchase_id, transaction_id)
 
         return Response({'status': True})
     except Exception:
@@ -159,6 +164,10 @@ def handle_purchase_deal(user, purchase_id, transaction_id):
         return Response({'status': False, 'reason': 'purchase not found in our records'})
 
     try:
+        if purchase_tracker.purchase_id != "":
+            # Already fulfilled purchase
+            return Response({'status': True})
+
         purchase_tracker.deal = deal
         purchase_tracker.purchase_id = purchase_id
         purchase_tracker.save()
