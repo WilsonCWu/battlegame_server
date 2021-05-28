@@ -66,8 +66,8 @@ class MatchValidator:
                 reason = "used char_id %d which is not in inventory" % c.char_id
                 break
             inv_char = inv_chars[c.char_id]
-            if inv_char.char_type != c.char_type:
-                reason = "char_id's type mismatched from %d to %d" % (inv_char.char_type, c.char_type)
+            if inv_char.char_type.char_type != c.char_type:
+                reason = "char_id's type mismatched from %d to %d" % (inv_char.char_type.char_type, c.char_type)
                 break
             if inv_char.level < c.level:
                 reason = "inventory char level is lower than match's"
