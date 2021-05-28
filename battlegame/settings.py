@@ -187,7 +187,7 @@ CRONJOBS = [
     ('0 0 * * 2,5', 'battlegame.cron.daily_dungeon_golden_ticket_drop', '>> /tmp/daily_dungeon_ticket_drop.log'),
     ('0 0 * * *', 'battlegame.cron.refresh_daily_dungeon', '>> /tmp/refresh_daily_dungeon.log'),
 
-    # At 4am UTC on the 1st and 15th of every month
+    # At 4am UTC on the 1st of every month
     ('0 4 1 * *', 'battlegame.cron.reset_season', '>> /tmp/reset_season.log'),
 
     # At 4am UTC on the 1st and 16th of every month
