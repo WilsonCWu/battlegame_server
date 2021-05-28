@@ -57,9 +57,6 @@ def get_tier_reward_elo(tier: int):
 # can change to regular @cache if we upgrade python 3.9
 @lru_cache()
 def get_elo_rewards_list() -> List[EloReward]:
-    # seed per season
-    # rng = random.Random(seed_int)
-
     rewards = []
     last_reward_elo = constants.Tiers.GRANDMASTER.value * constants.TIER_ELO_INCREMENT - (constants.TIER_ELO_INCREMENT // 2)
 
@@ -108,6 +105,8 @@ def get_elo_rewards_list() -> List[EloReward]:
 def get_champ_rewards_list() -> List[EloReward]:
     rewards = []
     points_range = range(50, CHAMP_BADGE_CAP, 50)
+
+    # TODO: More vanity rewards instead of just profile pics
     for reward_id, points in enumerate(points_range):
         rewards.append(EloReward(reward_id, points, 'profile_pic', reward_id + 15))
 
@@ -207,6 +206,8 @@ def restart_season():
 
     SeasonReward.objects.bulk_update(seasons, ['tier_rank', 'is_claimed'])
 
+    # Reset all players in Grandmaster to 3k
+    # Reset their EloRewardTrackers to 3k so they can reclaim the new season rewards
     if server.is_server_version_higher("0.3.0"):
         elo_reset_users = UserInfo.objects.filter(tier_rank__gte=constants.Tiers.GRANDMASTER.value).select_related('user__elorewardtracker')
         elo_trackers = []
