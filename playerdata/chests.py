@@ -189,7 +189,7 @@ def award_chest_rewards(user, rewards):
         elif reward.reward_type == 'profile_pic':
             if user.inventory.profile_pics is None:
                 user.inventory.profile_pics = [reward.value]
-            else:
+            elif reward.value not in user.inventory.profile_pics:
                 user.inventory.profile_pics.append(reward.value)
         else:
             raise Exception("invalid reward_type, sorry friendo")

@@ -16,6 +16,7 @@ from playerdata.models import EloRewardTracker, SeasonReward, UserInfo
 from playerdata.serializers import IntSerializer
 
 ELO_CAP = 6000
+CHAMP_BADGE_CAP = 1000
 
 # Examples:
 # {'gems', 1, 50, 100}
@@ -82,7 +83,6 @@ def get_elo_rewards_list() -> List[EloReward]:
 
     if server.is_server_version_higher("0.3.0"):
         start_elite_season_rewards = last_reward_elo + 50
-        # TODO: swap some of these for vanity rewards
         for elo in range(start_elite_season_rewards, ELO_CAP + 1, 100):
             counter_offset = reward_id + 1
             if counter_offset % 10 == 0:
@@ -99,6 +99,17 @@ def get_elo_rewards_list() -> List[EloReward]:
                 rewards.append(EloReward(reward_id, elo, 'champ_badge', 20))
 
             reward_id += 1
+
+    return rewards
+
+
+# can change to regular @cache if we upgrade python 3.9
+@lru_cache()
+def get_champ_rewards_list() -> List[EloReward]:
+    rewards = []
+    points_range = range(50, CHAMP_BADGE_CAP, 50)
+    for reward_id, points in enumerate(points_range):
+        rewards.append(EloReward(reward_id, points, 'profile_pic', reward_id + 15))
 
     return rewards
 
@@ -234,3 +245,18 @@ def get_season_reward(tier: int):
         rewards.append(chests.ChestReward('gems', 820))
 
     return rewards
+
+
+class GetChampBadgeRewardListView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+
+        rewards = get_champ_rewards_list()
+        rewards_data = EloRewardSchema(rewards, many=True).data
+
+        for reward in rewards_data:
+            reward['claimed'] = reward['id'] <= request.user.champbadgetracker.last_claimed
+            reward['completed'] = reward['id'] <= request.user.champbadgetracker.last_completed
+
+        return Response({'status': True, 'rewards': rewards_data})

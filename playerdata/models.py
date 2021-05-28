@@ -735,6 +735,12 @@ class EloRewardTracker(models.Model):
     last_claimed = models.IntegerField(default=-1)
 
 
+class ChampBadgeTracker(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    last_completed = models.IntegerField(default=-1)
+    last_claimed = models.IntegerField(default=-1)
+
+
 class SeasonReward(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     tier_rank = models.IntegerField(choices=[(tier.value, tier.name) for tier in constants.Tiers],
@@ -754,6 +760,7 @@ class Inventory(models.Model):
     dust = models.IntegerField(default=100)
     essence = models.IntegerField(default=0)
     relic_stones = models.IntegerField(default=0)
+    champ_badges = models.IntegerField(default=0)
     daily_dungeon_ticket = models.IntegerField(default=3)
     daily_dungeon_golden_ticket = models.IntegerField(default=1)
     hero_exp = models.IntegerField(default=0)
