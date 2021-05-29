@@ -1274,6 +1274,7 @@ def create_user_info(sender, instance, created, **kwargs):
             peasant_swordsman.char_id])
         DungeonProgress.objects.create(user=instance, campaign_stage=1)
         EloRewardTracker.objects.create(user=instance)
+        ChampBadgeTracker.objects.create(user=instance)
         SeasonReward.objects.create(user=instance)
         LevelBooster.objects.create(user=instance)
         RelicShop.objects.create(user=instance)

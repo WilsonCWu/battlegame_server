@@ -54,6 +54,55 @@ class EloRewardAPITestCase(APITestCase):
         self.assertTrue(response.data['status'])
 
 
+class ChampRewardAPITestCase(APITestCase):
+    fixtures = ['playerdata/tests/fixtures.json']
+
+    def setUp(self):
+        self.u = User.objects.get(username='battlegame')
+        self.client.force_authenticate(user=self.u)
+
+    def test_claim_reward(self):
+        tier_system.complete_any_champ_rewards(51, self.u.champbadgetracker)
+
+        response = self.client.post('/champbadge/claim/', {
+            'value': 0
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+    def test_claim_reward_out_of_order(self):
+        tier_system.complete_any_champ_rewards(151, self.u.champbadgetracker)
+
+        response = self.client.post('/champbadge/claim/', {
+            'value': 2
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['status'])
+
+    def test_claim_reward_in_order(self):
+        tier_system.complete_any_champ_rewards(149, self.u.champbadgetracker)
+
+        response = self.client.post('/champbadge/claim/', {
+            'value': 0
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        response = self.client.post('/champbadge/claim/', {
+            'value': 1
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        response = self.client.post('/champbadge/claim/', {
+            'value': 2
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['status'])
+
+
 class SeasonRewardAPITestCase(APITestCase):
     fixtures = ['playerdata/tests/fixtures.json']
 

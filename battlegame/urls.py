@@ -56,6 +56,8 @@ urlpatterns = [
     path('levelbooster/skip/', level_booster.SkipCooldownView.as_view()),
     path('levelbooster/unlock/', level_booster.UnlockSlotView.as_view()),
     path('seasonreward/claim/', tier_system.ClaimSeasonRewardView.as_view()),
+    path('champbadge/get/', tier_system.GetChampBadgeRewardListView.as_view()),
+    path('champbadge/claim/', tier_system.ClaimChampRewardView.as_view()),
     path('eloreward/get/', tier_system.GetEloRewardListView.as_view()),
     path('eloreward/claim/', tier_system.ClaimEloRewardView.as_view()),
     path('dailydungeon/start/', daily_dungeon.DailyDungeonStartView.as_view()),

@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from playerdata import constants, formulas, rolls
+from playerdata import constants, formulas, rolls, tier_system
 from playerdata.constants import ChestType
 from playerdata.models import Chest, BaseItem, Item, DailyDungeonStatus
 from playerdata.questupdater import QuestUpdater
@@ -180,6 +180,9 @@ def award_chest_rewards(user, rewards):
             user.inventory.dust += reward.value
         elif reward.reward_type == 'relic_stone':
             user.inventory.relic_stones += reward.value
+        elif reward.reward_type == 'champ_badge':
+            user.inventory.champ_badges += reward.value
+            tier_system.complete_any_champ_rewards(user.inventory.champ_badges, user.champbadgetracker)
         elif reward.reward_type == 'char_id':
             rolls.insert_character(user, reward.value)
         elif reward.reward_type == 'item_id':
