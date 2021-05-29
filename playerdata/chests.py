@@ -226,6 +226,15 @@ def get_guaranteed_chars_rarity_odds(chest_rarity: int, user):
     return char_guarantees
 
 
+# guarantee a coin and dust drop in chests
+def guarantee_resources(rewards, num_rewards, chest_rarity: int, user, chest_tier):
+    if chest_rarity != constants.ChestType.LEGENDARY.value:
+        rewards.append(pick_resource_reward(user, 'coins', chest_rarity, chest_tier))
+        rewards.append(pick_resource_reward(user, 'essence', chest_rarity, chest_tier))
+        num_rewards -= 2
+    return rewards, num_rewards
+
+
 def generate_chest_rewards(chest_rarity: int, user, chest_tier=None):
     if chest_tier is None:
         chest_tier = user.userinfo.tier_rank
@@ -236,11 +245,7 @@ def generate_chest_rewards(chest_rarity: int, user, chest_tier=None):
 
     # Get the odds for getting each type of reward for respective chest rarity
     resource_reward_odds = constants.RESOURCE_TYPE_ODDS_PER_CHEST[chest_rarity - 1]
-
-    # guarantee a coin and dust drop in any chest
-    rewards.append(pick_resource_reward(user, 'coins', chest_rarity, chest_tier))
-    rewards.append(pick_resource_reward(user, 'essence', chest_rarity, chest_tier))
-    num_rewards -= 2
+    rewards, num_rewards = guarantee_resources(rewards, num_rewards, chest_rarity, user, chest_tier)
 
     # pick guaranteed char rarities
     char_guarantees = get_guaranteed_chars_rarity_odds(chest_rarity, user)
