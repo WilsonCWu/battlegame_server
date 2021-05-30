@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema
 
 from playerdata import constants, chests, server
-from playerdata.models import EloRewardTracker, SeasonReward, UserInfo
+from playerdata.models import EloRewardTracker, SeasonReward, UserInfo, ChampBadgeTracker
 from playerdata.serializers import IntSerializer
 
 ELO_CAP = 6000
@@ -261,3 +261,37 @@ class GetChampBadgeRewardListView(APIView):
             reward['completed'] = reward['id'] <= request.user.champbadgetracker.last_completed
 
         return Response({'status': True, 'rewards': rewards_data})
+
+
+def complete_any_champ_rewards(points: int, tracker: ChampBadgeTracker):
+    for reward in get_elo_rewards_list():
+        if reward.elo > points:
+            break
+        tracker.last_completed = max(reward.id, tracker.last_completed)
+
+    tracker.save()
+
+
+class ClaimChampRewardView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @atomic
+    def post(self, request):
+        serializer = IntSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        reward_id = serializer.validated_data['value']
+
+        if reward_id > request.user.champbadgetracker.last_completed:
+            return Response({'status': False, 'reason': 'have not reached the points for this reward'})
+
+        if reward_id != request.user.champbadgetracker.last_claimed + 1:
+            return Response({'status': False, 'reason': 'must claim the next reward in order'})
+
+        elo_reward = get_champ_rewards_list()[reward_id]
+        rewards = convert_elo_reward_to_chest_reward(elo_reward, request.user)
+        chests.award_chest_rewards(request.user, rewards)
+
+        request.user.champbadgetracker.last_claimed = reward_id
+        request.user.champbadgetracker.save()
+
+        return Response({'status': True, 'rewards': chests.ChestRewardSchema(rewards, many=True).data})

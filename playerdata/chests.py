@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from playerdata import constants, formulas, rolls
+from playerdata import constants, formulas, rolls, tier_system
 from playerdata.constants import ChestType
 from playerdata.models import Chest, BaseItem, Item, DailyDungeonStatus
 from playerdata.questupdater import QuestUpdater
@@ -180,6 +180,9 @@ def award_chest_rewards(user, rewards):
             user.inventory.dust += reward.value
         elif reward.reward_type == 'relic_stone':
             user.inventory.relic_stones += reward.value
+        elif reward.reward_type == 'champ_badge':
+            user.inventory.champ_badges += reward.value
+            tier_system.complete_any_champ_rewards(user.inventory.champ_badges, user.champbadgetracker)
         elif reward.reward_type == 'char_id':
             rolls.insert_character(user, reward.value)
         elif reward.reward_type == 'item_id':
@@ -226,6 +229,15 @@ def get_guaranteed_chars_rarity_odds(chest_rarity: int, user):
     return char_guarantees
 
 
+# guarantee a coin and dust drop in chests
+def guarantee_resources(rewards, num_rewards, chest_rarity: int, user, chest_tier):
+    if chest_rarity != constants.ChestType.LEGENDARY.value:
+        rewards.append(pick_resource_reward(user, 'coins', chest_rarity, chest_tier))
+        rewards.append(pick_resource_reward(user, 'essence', chest_rarity, chest_tier))
+        num_rewards -= 2
+    return rewards, num_rewards
+
+
 def generate_chest_rewards(chest_rarity: int, user, chest_tier=None):
     if chest_tier is None:
         chest_tier = user.userinfo.tier_rank
@@ -236,11 +248,7 @@ def generate_chest_rewards(chest_rarity: int, user, chest_tier=None):
 
     # Get the odds for getting each type of reward for respective chest rarity
     resource_reward_odds = constants.RESOURCE_TYPE_ODDS_PER_CHEST[chest_rarity - 1]
-
-    # guarantee a coin and dust drop in any chest
-    rewards.append(pick_resource_reward(user, 'coins', chest_rarity, chest_tier))
-    rewards.append(pick_resource_reward(user, 'essence', chest_rarity, chest_tier))
-    num_rewards -= 2
+    rewards, num_rewards = guarantee_resources(rewards, num_rewards, chest_rarity, user, chest_tier)
 
     # pick guaranteed char rarities
     char_guarantees = get_guaranteed_chars_rarity_odds(chest_rarity, user)
