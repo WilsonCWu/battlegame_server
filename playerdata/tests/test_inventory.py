@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.test import APITestCase
 import playerdata.constants
+from playerdata import formulas
 
 from playerdata.models import User, BaseCharacter, Character, BaseItem, Item
 
@@ -218,3 +219,36 @@ class PrestigeAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data['status'])
         self.assertIn('character has already hit max prestige', response.data['reason'])
+
+
+class RefundAPITestCase(APITestCase):
+    fixtures = ['playerdata/tests/fixtures.json']
+
+    def setUp(self):
+        self.u = User.objects.get(username='battlegame')
+        self.client.force_authenticate(user=self.u)
+
+    def test_refund(self):
+        char1 = Character.objects.filter(user=self.u).first()
+        char1.level = 200
+        char1.save()
+
+        inventory = self.u.inventory
+        inventory.coins = 0
+        inventory.dust = 0
+        inventory.gems = 1000
+        inventory.save()
+
+        response = self.client.post('/refund/', {
+            'value': char1.char_id,
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        char1.refresh_from_db()
+        inventory.refresh_from_db()
+
+        self.assertEqual(char1.level, 1)
+        self.assertEqual(inventory.gems, 0)
+        self.assertEqual(inventory.coins, formulas.char_level_to_coins(200))
+        self.assertEqual(inventory.dust, formulas.char_level_to_dust(200))

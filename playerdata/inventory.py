@@ -207,11 +207,15 @@ class RefundCharacter(APIView):
         if target_character.level < 2:
             return Response({'status': False, 'reason': 'can only refund character over level 1!'})
 
+        if target_character.is_boosted:
+            return Response({'status': False, 'reason': 'can not refund a boosted level character!'})
+
         inventory = request.user.inventory
-        if inventory.gems < constants.DUSTING_GEMS_COST:
+        cost = target_character.level * constants.REFUND_GEMS_COST_PER_LVL
+        if inventory.gems < cost:
             return Response({'status': False, 'reason': 'not enough gems!'})
 
-        inventory.gems -= constants.DUSTING_GEMS_COST
+        inventory.gems -= cost
         refund = refund_char_resources(inventory, target_character.level)
 
         target_character.level = 1
