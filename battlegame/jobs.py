@@ -3,6 +3,7 @@
 from django.db import transaction
 from playerdata.models import *
 
+
 def clean_placements():
     for p in Placement.objects.all():
         changed = False
@@ -138,3 +139,9 @@ def backfill_pve_status():
             cs = Character.objects.filter(user_id=member.userinfo_id)[:3]
             member.pve_character_lending=[c.char_id for c in cs]
             member.save()
+
+
+@transaction.atomic
+def backfill_champbadge():
+    for user in User.objects.all():
+        _, _ = ChampBadgeTracker.objects.get_or_create(user=user)
