@@ -637,3 +637,4 @@ admin.site.register(ClanPVEResult)
 admin.site.register(ClanPVEStatus)
 
 admin.site.register(RelicShop, RelicShopAdmin)
+admin.site.register(LevelBooster)

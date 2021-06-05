@@ -138,6 +138,10 @@ class SkipCooldownView(APIView):
         return Response({'status': True})
 
 
+def unlock_level_booster_slot_cost(slot_num: int):
+    return 1500 * (slot_num - 1) + 3000
+
+
 # Unlock the next booster slot
 class UnlockSlotView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -150,7 +154,7 @@ class UnlockSlotView(APIView):
         # serializer.is_valid(raise_exception=True)
         # resource = serializer.validated_data['value']
 
-        gem_cost = formulas.unlock_level_booster_slot_cost(request.user.levelbooster.unlocked_slots + 1)
+        gem_cost = unlock_level_booster_slot_cost(request.user.levelbooster.unlocked_slots + 1)
 
         if request.user.inventory.gems < gem_cost:
             return Response({'status': False, 'reason': 'not enough gems to unlock slot'})
@@ -172,7 +176,7 @@ def level_up_coins_cost(level: int):
 
 # Returns the cost to level up TO this level
 def level_up_dust_cost(level: int):
-    return 250 * (level - 240) + 3000
+    return 5000 * (level - 240) + 50000
 
 
 class LevelUpBooster(APIView):
