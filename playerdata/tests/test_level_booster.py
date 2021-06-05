@@ -17,7 +17,7 @@ class LevelBoosterAPITestCase(APITestCase):
         self.char1 = Character.objects.create(user=self.u, char_type_id=7, level=240, prestige=5)
 
     def unlock_slot(self):
-        self.u.inventory.gems = 400
+        self.u.inventory.gems = 10000
         self.u.inventory.save()
 
         response = self.client.post('/levelbooster/unlock/', {
