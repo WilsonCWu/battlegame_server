@@ -64,9 +64,6 @@ class FillSlotView(APIView):
         if get_max_out_char_count(request.user) < MIN_NUM_OF_MAXED_CHARS:
             return Response({'status': False, 'reason': 'not enough chars to level boost!'})
 
-        if request.user.levelbooster.slots[slot_id] != -1:
-            return Response({'status': False, 'reason': 'slot is currently occupied'})
-
         if char_id in request.user.levelbooster.slots:
             return Response({'status': False, 'reason': 'hero is already being used'})
 
