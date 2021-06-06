@@ -37,9 +37,14 @@ def get_max_out_char_count(user):
     return count
 
 
+# Get num of chars that are currently boosted
+def get_num_boosted_chars(user):
+    return Character.objects.filter(user=user, is_boosted=True).count()
+
+
 # max cap is raised by 5 per maxed out hero
 def get_level_cap(user):
-    return constants.MAX_CHARACTER_LEVEL + get_max_out_char_count(user) * 5
+    return constants.MAX_CHARACTER_LEVEL + get_num_boosted_chars(user) * 5
 
 
 class LevelBoosterView(APIView):
@@ -181,13 +186,13 @@ class LevelUpBooster(APIView):
 
     @atomic
     def post(self, request):
-        maxed_out_char_count = get_max_out_char_count(request.user)
+        num_boosted_chars = get_num_boosted_chars(request.user)
 
-        if maxed_out_char_count < MIN_NUM_OF_MAXED_CHARS:
+        if get_max_out_char_count(request.user) < MIN_NUM_OF_MAXED_CHARS:
             return Response({'status': False, 'reason': 'not enough chars to level boost!'})
 
         if request.user.levelbooster.booster_level + 1 > get_level_cap(request.user):
-            return Response({'status': False, 'reason': 'level cap reached for ' + str(maxed_out_char_count) + ' maxed out heroes'})
+            return Response({'status': False, 'reason': 'level cap reached for ' + str(num_boosted_chars) + ' maxed out heroes'})
 
         delta_coins = level_up_coins_cost(request.user.levelbooster.booster_level + 1)
 
@@ -207,8 +212,6 @@ class LevelUpBooster(APIView):
         inventory.save()
         request.user.levelbooster.save()
 
-        # This num is different from maxed_out_char_count since they aren't necessarily boosted
-        num_boosted = Character.objects.filter(user=request.user, is_boosted=True).count()
-        QuestUpdater.add_progress_by_type(request.user, constants.LEVEL_UP_A_HERO, num_boosted)
+        QuestUpdater.add_progress_by_type(request.user, constants.LEVEL_UP_A_HERO, num_boosted_chars)
 
         return Response({'status': True})
