@@ -155,3 +155,9 @@ def shorten_descriptions():
             user.description = user.description[0:96]
 
     UserInfo.objects.bulk_update(users, ['description'])
+
+    clans = Clan2.objects.all()
+    for clan in clans:
+        if len(clan.description) > 96:
+            clan.description = clan.description[0:96]
+    Clan2.objects.bulk_update(clans, ['description'])
