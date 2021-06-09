@@ -71,7 +71,7 @@ class InventorySchema(Schema):
     chest_slot_2 = fields.Nested(ChestSchema)
     chest_slot_3 = fields.Nested(ChestSchema)
     chest_slot_4 = fields.Nested(ChestSchema)
-    #TODO: delete this on 0.1.2
+    # TODO: delete this on 0.1.2
     player_level = fields.Method("get_player_lvl")
     player_exp = fields.Method("get_player_exp")
 
@@ -87,6 +87,7 @@ class InventorySchema(Schema):
     def get_player_exp(self, inventory):
         userinfo = UserInfo.objects.get(user_id=inventory.user_id)
         return userinfo.player_exp
+
 
 class InventoryView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -120,7 +121,8 @@ class TryLevelView(APIView):
         if target_character.user != request.user:
             return Response({'status': False, 'reason': 'character does not belong to user!'})
         if target_character.level >= constants.MAX_CHARACTER_LEVEL:
-            return Response({'status': False, 'reason': 'character has already hit max level ' + str(constants.MAX_CHARACTER_LEVEL) + '!'})
+            return Response({'status': False, 'reason': 'character has already hit max level ' + str(
+                constants.MAX_CHARACTER_LEVEL) + '!'})
 
         cur_coins = formulas.char_level_to_coins(target_character.level)
         next_coins = formulas.char_level_to_coins(target_character.level + 1)
@@ -219,6 +221,15 @@ class RefundCharacter(APIView):
         refund = refund_char_resources(inventory, target_character.level)
 
         target_character.level = 1
+
+        # Unequip all items, a bit more efficient than looping unequip_item_from_char since it has a save() each time
+        target_character.hat = None
+        target_character.armor = None
+        target_character.boots = None
+        target_character.weapon = None
+        target_character.trinket_1 = None
+        target_character.trinket_2 = None
+
         inventory.save()
         target_character.save()
 
@@ -273,6 +284,7 @@ class SlotType(Enum):
     TRINKET_1 = 'T1'
     TRINKET_2 = 'T2'
 
+
 # returns id of char item is unequipped from, and its slot
 # assumes slot is valid, and item belongs to user
 # for trinkets, will unequip from both
@@ -304,12 +316,13 @@ def unequip_item(item, target_slot):
             target_slot = SlotType.TRINKET_2.value
     else:
         raise Exception("invalid target_slot " + target_slot)
-    
+
     if char:
         unequip_item_from_char(char, target_slot)
         return char.char_id, target_slot
     else:
         return -1, ""
+
 
 def unequip_item_from_char(char, slot):
     if slot == SlotType.HAT.value:
@@ -334,7 +347,8 @@ ITEM_RARITY_MIN_LEVEL = {
     2: 140,
     3: 200,
 }
-    
+
+
 class EquipItemView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -390,6 +404,7 @@ class EquipItemView(APIView):
 
         char.save()
         return Response({'status': True, 'unequip_char_id': unequip_char_id, 'unequip_slot': unequip_slot})
+
 
 class UnequipItemView(APIView):
     permission_classes = (IsAuthenticated,)

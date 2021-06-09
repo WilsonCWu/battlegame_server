@@ -28,6 +28,9 @@ from .serializers import UpdateClanRequestSerializer
 from .serializers import ValueSerializer
 
 
+MAX_DESCRIPTION_LENGTH = 96
+
+
 def sortUsers(user1, user2):
     if user1.id < user2.id:
         return user1, user2
@@ -428,6 +431,9 @@ class EditClanDescriptionView(APIView):
         if not clanmember.clan2 or not clanmember.is_admin:
             return Response({'status': False, 'reason': 'invalid clan permissions'})
 
+        if len(new_description) > MAX_DESCRIPTION_LENGTH:
+            return Response({'status': False, 'reason': 'description too long'})
+
         clan2 = clanmember.clan2
         clan2.description = new_description
         clan2.save()
@@ -442,6 +448,9 @@ class EditProfileDescriptionView(APIView):
         serializer = ValueSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         new_description = serializer.validated_data['value']
+
+        if len(new_description) > MAX_DESCRIPTION_LENGTH:
+            return Response({'status': False, 'reason': 'description too long'})
 
         request.user.userinfo.description = new_description
         request.user.userinfo.save()
