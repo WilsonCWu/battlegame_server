@@ -443,6 +443,9 @@ class EditProfileDescriptionView(APIView):
         serializer.is_valid(raise_exception=True)
         new_description = serializer.validated_data['value']
 
+        if len(new_description) > 50:
+            return Response({'status': False, 'reason': 'description too long'})
+
         request.user.userinfo.description = new_description
         request.user.userinfo.save()
 

@@ -145,3 +145,13 @@ def backfill_pve_status():
 def backfill_champbadge():
     for user in User.objects.all():
         _, _ = ChampBadgeTracker.objects.get_or_create(user=user)
+
+
+@transaction.atomic
+def shorten_descriptions():
+    users = UserInfo.objects.all()
+    for user in users:
+        if len(user.description) > 96:
+            user.description = user.description[0:96]
+
+    UserInfo.objects.bulk_update(users, ['description'])
