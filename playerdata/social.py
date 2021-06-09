@@ -1,3 +1,5 @@
+import random
+
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Prefetch
@@ -281,13 +283,13 @@ class GetClanSearchResultsView(APIView):
         search_name = serializer.validated_data['value']
 
         if not search_name:
-            clan_set = Clan2.objects.filter(num_members__lte=29)[:10]
-            clans = ClanSchema(clan_set, many=True)
-            return Response({'clans': clans.data})
+            clan_query = Clan2.objects.filter(num_members__gte=20, num_members__lte=29)
+            clan_set = random.sample(list(clan_query), 20)
         else:
             clan_set = Clan2.objects.filter(name__icontains=search_name)
-            clans = ClanSchema(clan_set, many=True)
-            return Response({'clans': clans.data})
+
+        clans = ClanSchema(clan_set, many=True)
+        return Response({'clans': clans.data})
 
 
 class NewClanView(APIView):
