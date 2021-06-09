@@ -561,6 +561,10 @@ class BaseCharacterAdmin(admin.ModelAdmin):
                     ultimate_specs={"1": {}, "81": {}, "161": {}, "prestige-%d" % (3 + sl): {}, "prestige-%d" % (5 + sl): {}},
                 )
 
+            # Give testWilson a copy of the character if it doesn't exist.
+            if not Character.objects.filter(user_id=21, char_type=base_char).exists():
+                Character.objects.create(user_id=21, char_type=base_char, copies=1)
+
 
 @admin.register(MatchReplay)
 class MatchReplayAdmin(admin.ModelAdmin):
