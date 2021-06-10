@@ -78,7 +78,7 @@ def get_elo_rewards_list() -> List[EloReward]:
 
         reward_id += 1
 
-    if server.is_server_version_higher("0.3.0"):
+    if server.is_server_version_higher("0.3.2"):
         start_elite_season_rewards = last_reward_elo + 50
         for elo in range(start_elite_season_rewards, ELO_CAP + 1, 100):
             counter_offset = reward_id + 1
@@ -207,7 +207,7 @@ def restart_season():
     SeasonReward.objects.bulk_update(seasons, ['tier_rank', 'is_claimed'])
 
     # Reset all players in Grandmaster to 3k
-    if server.is_server_version_higher("0.3.0"):
+    if server.is_server_version_higher("0.3.2"):
         elo_reset_users = UserInfo.objects.filter(tier_rank__gte=constants.Tiers.GRANDMASTER.value).select_related('user__elorewardtracker')
         elo_trackers = []
         for userinfo in elo_reset_users:
