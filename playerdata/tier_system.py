@@ -72,7 +72,7 @@ def get_elo_rewards_list() -> List[EloReward]:
         elif counter_offset % 5 == 3:
             rewards.append(EloReward(reward_id, elo, 'chest', constants.ChestType.GOLD.value))
         elif counter_offset % 5 == 2:
-            rewards.append(EloReward(reward_id, elo, 'coins', 500 * elo_to_tier(elo).value))
+            rewards.append(EloReward(reward_id, elo, 'coins', 5000 * elo_to_tier(elo).value))
         elif counter_offset % 5 == 1:
             rewards.append(EloReward(reward_id, elo, 'chest', constants.ChestType.SILVER.value))
 
