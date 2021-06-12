@@ -872,7 +872,7 @@ class ClanMember(models.Model):
 
 
 def empty_farms(): return [{}, {}, {}, {}, {}, {}, {}]
-def empty_rewards(): return {'total_prayers': 0, 'clan_members': []}
+def empty_rewards(): return {'total_farms': 0, 'clan_members': []}
 
 
 class ClanFarming(models.Model):
