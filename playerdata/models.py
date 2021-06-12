@@ -868,22 +868,22 @@ class ClanMember(models.Model):
     # Defaults to the user's first characters.
     pve_character_lending = ArrayField(models.IntegerField(), default=list)
     # By tracking last reward on a per-user basis, we prevent clan hopping.
-    last_prayer_reward = models.DateField(default=week_old_date)
+    last_farm_reward = models.DateField(default=week_old_date)
 
 
-def empty_prayers(): return [{}, {}, {}, {}, {}, {}, {}]
+def empty_farms(): return [{}, {}, {}, {}, {}, {}, {}]
 def empty_rewards(): return {'total_prayers': 0, 'clan_members': []}
 
 
-class ClanPrayer(models.Model):
+class ClanFarming(models.Model):
     clan = models.ForeignKey(Clan2, on_delete=models.CASCADE)
-    # Dictionary for each day to track what players have prayed for a given
+    # Dictionary for each day to track what players have farmed for a given
     # day in a week. Monday is index 0 (matches Python's weekday() function).
-    daily_prayers = ArrayField(JSONField(), default=empty_prayers)
+    daily_farms = ArrayField(JSONField(), default=empty_farms)
 
     # Track rewards for the previous week in-case it hasn't been claimed yet.
-    # We also store IDs of clan members who were involved in the prayer process.
-    previous_prayer_reward = models.DateField(default=week_old_date)
+    # We also store IDs of clan members who were involved in the farm process.
+    previous_farm_reward = models.DateField(default=week_old_date)
     unclaimed_rewards = JSONField(default=empty_rewards)
 
 
