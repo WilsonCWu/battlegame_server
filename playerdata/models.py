@@ -855,6 +855,9 @@ class Clan2(models.Model):
         return "%d: %s" % (self.id, self.name)
 
 
+def week_old_date(): return datetime.today() - timedelta(days=30)
+
+
 class ClanMember(models.Model):
     userinfo = models.OneToOneField(UserInfo, on_delete=models.CASCADE, primary_key=True)
     clan2 = models.ForeignKey(Clan2, on_delete=models.SET_NULL, null=True, default=None)
@@ -864,6 +867,24 @@ class ClanMember(models.Model):
 
     # Defaults to the user's first characters.
     pve_character_lending = ArrayField(models.IntegerField(), default=list)
+    # By tracking last reward on a per-user basis, we prevent clan hopping.
+    last_farm_reward = models.DateField(default=week_old_date)
+
+
+def empty_farms(): return [{}, {}, {}, {}, {}, {}, {}]
+def empty_rewards(): return {'total_farms': 0, 'clan_members': []}
+
+
+class ClanFarming(models.Model):
+    clan = models.ForeignKey(Clan2, on_delete=models.CASCADE)
+    # Dictionary for each day to track what players have farmed for a given
+    # day in a week. Monday is index 0 (matches Python's weekday() function).
+    daily_farms = ArrayField(JSONField(), default=empty_farms)
+
+    # Track rewards for the previous week in-case it hasn't been claimed yet.
+    # We also store IDs of clan members who were involved in the farm process.
+    previous_farm_reward = models.DateField(default=week_old_date)
+    unclaimed_rewards = JSONField(default=empty_rewards)
 
 
 class ClanPVEResult(models.Model):
