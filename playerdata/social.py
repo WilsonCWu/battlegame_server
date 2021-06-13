@@ -283,7 +283,7 @@ class GetClanSearchResultsView(APIView):
         search_name = serializer.validated_data['value']
 
         if not search_name:
-            clan_query = Clan2.objects.filter(num_members__gte=20, num_members__lte=29)
+            clan_query = Clan2.objects.filter(num_members__gte=15, num_members__lte=29)
             num_shown = min(20, clan_query.count())
             clan_set = random.sample(list(clan_query), num_shown)
         else:
