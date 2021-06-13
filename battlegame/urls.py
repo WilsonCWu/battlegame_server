@@ -38,8 +38,11 @@ from playerdata import chests
 from playerdata import public
 from playerdata import antihacking
 from playerdata import clan_pve
+from playerdata import clan_farm
 
 urlpatterns = [
+    path('clanfarm/status/', clan_farm.ClanFarmingStatus.as_view()),
+    path('clanfarm/farm/', clan_farm.ClanFarmingFarm.as_view()),
     path('relicshop/buy/', relic_shop.BuyRelicView.as_view()),
     path('relicshop/get/', relic_shop.GetRelicShopView.as_view()),
     path('clanpve/start/', clan_pve.ClanPVEStartView.as_view()),
