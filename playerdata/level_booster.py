@@ -76,7 +76,7 @@ class FillSlotView(APIView):
         if char is None:
             return Response({'status': False, 'reason': 'invalid char_id'})
 
-        if char.level != constants.MAX_CHARACTER_LEVEL:
+        if char.level != constants.MAX_CHARACTER_LEVEL or char.prestige != constants.PRESTIGE_CAP_BY_RARITY[char.char_type.rarity]:
             return Response({'status': False, 'reason': 'must max out char before you can add it to a slot'})
 
         curr_time = datetime.now(timezone.utc)
