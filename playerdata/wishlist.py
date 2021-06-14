@@ -15,6 +15,7 @@ class WishlistSchema(Schema):
     legendaries = fields.List(fields.Int())
     epics = fields.List(fields.Int())
     rares = fields.List(fields.Int())
+    is_active = fields.Bool()
 
 
 def init_wishlist(user):
