@@ -45,7 +45,7 @@ class CharacterSchema(Schema):
     trinket_2 = fields.Nested(ItemSchema)
 
     def get_char_level(self, char):
-        if char.is_boosted:
+        if char.level == constants.MAX_CHARACTER_LEVEL:
             return char.user.levelbooster.booster_level
         else:
             return char.level
