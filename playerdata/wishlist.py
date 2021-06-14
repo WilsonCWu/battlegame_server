@@ -36,7 +36,7 @@ class GetWishlistView(APIView):
 
     def get(self, request):
         wishlist = WishlistSchema(request.user.wishlist)
-        return Response({wishlist.data})
+        return Response(wishlist.data)
 
 
 class SetWishlistSlotView(APIView):
@@ -67,6 +67,6 @@ class SetWishlistSlotView(APIView):
             return Response({'status': False, 'reason': 'char already in wishlist'})
 
         wishlist[slot_id] = char_type
-        wishlist.save()
+        request.user.wishlist.save()
 
         return Response({'status': True})

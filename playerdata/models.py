@@ -1310,6 +1310,7 @@ def create_user_info(sender, instance, created, **kwargs):
         SeasonReward.objects.create(user=instance)
         LevelBooster.objects.create(user=instance)
         RelicShop.objects.create(user=instance)
+        Wishlist.objects.create(user=instance)
         create_user_referral(instance)
 
         # Add quests
