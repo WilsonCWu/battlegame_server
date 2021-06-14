@@ -855,7 +855,7 @@ class Clan2(models.Model):
         return "%d: %s" % (self.id, self.name)
 
 
-def week_old_date(): return datetime.today() - timedelta(days=30)
+def week_old_date(): return date.today() - timedelta(days=30)
 
 
 class ClanMember(models.Model):
@@ -885,6 +885,9 @@ class ClanFarming(models.Model):
     # We also store IDs of clan members who were involved in the farm process.
     previous_farm_reward = models.DateField(default=week_old_date)
     unclaimed_rewards = JSONField(default=empty_rewards)
+
+    def reset(self):
+        self.daily_farms = empty_farms()
 
 
 class ClanPVEResult(models.Model):
