@@ -16,7 +16,7 @@ Including another URLconf
 from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
-from playerdata import login, tier_system, level_booster, relic_shop
+from playerdata import login, tier_system, level_booster, relic_shop, wishlist
 from playerdata import base
 from playerdata import daily_dungeon
 from playerdata import moevasion
@@ -41,6 +41,8 @@ from playerdata import clan_pve
 from playerdata import clan_farm
 
 urlpatterns = [
+    path('wishlist/get/', wishlist.GetWishlistView.as_view()),
+    path('wishlist/set/', wishlist.SetWishlistSlotView.as_view()),
     path('clanfarm/status/', clan_farm.ClanFarmingStatus.as_view()),
     path('clanfarm/farm/', clan_farm.ClanFarmingFarm.as_view()),
     path('relicshop/buy/', relic_shop.BuyRelicView.as_view()),

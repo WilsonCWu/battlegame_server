@@ -196,6 +196,6 @@ class GetMatchHistorySerializer(serializers.Serializer):
     count = serializers.IntegerField(required=True)
 
 
-class FillBoosterSlotSerializer(serializers.Serializer):
+class SlotSerializer(serializers.Serializer):
     slot_id = serializers.IntegerField(required=True)
     char_id = serializers.IntegerField(required=True)

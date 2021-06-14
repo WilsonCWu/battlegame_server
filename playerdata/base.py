@@ -91,8 +91,8 @@ class BasePrestigeSchema(StatModifierSchema):
 
 
 @lru_cache()
-def get_char_rarity(char_id: int):
-    return BaseCharacter.objects.get(char_type=char_id).rarity
+def get_char_rarity(char_type: int):
+    return BaseCharacter.objects.get(char_type=char_type).rarity
 
 
 class BaseInfoView(APIView):

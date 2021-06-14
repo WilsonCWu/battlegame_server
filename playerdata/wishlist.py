@@ -1,18 +1,42 @@
-import random
-from datetime import date, datetime, timedelta
-from functools import lru_cache
-
 from django.db import transaction
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_marshmallow import Schema, fields
 
-from playerdata import base, rolls
-from playerdata.models import BaseCharacter, RelicShop
+from playerdata import base
+from .models import Character
 from .serializers import SlotSerializer
 
-
 NUM_SLOTS_PER_RARITY = [0, 0, 2, 2, 1]
+
+
+class WishlistSchema(Schema):
+    legendaries = fields.List(fields.Int())
+    epics = fields.List(fields.Int())
+    rares = fields.List(fields.Int())
+
+
+def init_wishlist(user):
+    user_chars = Character.objects.filter(user=user).select_related('char_type')
+    user_legendaries = [char.char_type.char_type for char in user_chars if char.char_type.rarity == 4]
+    user_epics = [char.char_type.char_type for char in user_chars if char.char_type.rarity == 3]
+    user_rares = [char.char_type.char_type for char in user_chars if char.char_type.rarity == 2]
+
+    user.wishlist.legendaries = user_legendaries[:1]
+    user.wishlist.epics = user_epics[:2]
+    user.wishlist.rares = user_rares[:2]
+
+    user.wishlist.is_active = True
+    user.wishlist.save()
+
+
+class GetWishlistView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        wishlist = WishlistSchema(request.user.wishlist)
+        return Response({wishlist.data})
 
 
 class SetWishlistSlotView(APIView):
