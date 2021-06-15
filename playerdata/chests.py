@@ -146,15 +146,18 @@ def pick_reward_item(user, chest_rarity):
 
         # we'll just give them a char if we roll a dup unique item twice
         if item.is_unique and Item.objects.filter(user=user, item_type=item).exists():
-            return pick_reward_char(chest_rarity)
+            return pick_reward_char(user, chest_rarity)
 
     return ChestReward(reward_type='item_id', value=item.item_type)
 
 
 # randomly pick char from rarity buckets
-def pick_reward_char(chest_rarity):
+def pick_reward_char(user, chest_rarity):
     rarity_odds = constants.REGULAR_CHAR_ODDS_PER_CHEST[chest_rarity - 1]
     char_id = rolls.get_weighted_odds_character(rarity_odds).char_type
+    if chest_rarity == constants.ChestType.MYTHICAL.value and user.wishlist.is_active:
+        char_id = rolls.get_wishlist_odds_char_type(user, rarity_odds)
+
     return ChestReward(reward_type='char_id', value=char_id)
 
 
@@ -259,7 +262,7 @@ def generate_chest_rewards(chest_rarity: int, user, chest_tier=None):
     # pick guaranteed number of summons
     num_guaranteed_summons = constants.GUARANTEED_SUMMONS[chest_rarity - 1] - len(guaranteed_char_rewards)
     for i in range(0, num_guaranteed_summons):
-        reward = pick_reward_char(chest_rarity)
+        reward = pick_reward_char(user, chest_rarity)
         rewards.append(reward)
     num_rewards -= num_guaranteed_summons
 
@@ -271,7 +274,7 @@ def generate_chest_rewards(chest_rarity: int, user, chest_tier=None):
         elif rand_reward_type == 'item_id':
             reward = pick_reward_item(user, chest_rarity)
         elif rand_reward_type == 'char_id':
-            reward = pick_reward_char(chest_rarity)
+            reward = pick_reward_char(user, chest_rarity)
         else:
             raise Exception("invalid reward_type, sorry friendo")
 

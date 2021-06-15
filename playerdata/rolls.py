@@ -43,6 +43,34 @@ def get_weighted_odds_character(rarity_odds=None, available_chars=None):
     return get_rand_base_char_from_rarity(rarity, available_chars)
 
 
+# returns a random character with weighted odds + wishlist odds
+def get_wishlist_odds_char_type(user, rarity_odds=None):
+    if rarity_odds is None:
+        rarity_odds = constants.SUMMON_RARITY_BASE
+
+    rarity = constants.CHAR_RARITY_INDEX[weighted_pick_from_buckets(rarity_odds)]
+    base_chars = list(BaseCharacter.objects.filter(rarity=rarity, rollable=True).values_list('char_type', flat=True))
+
+    if rarity == 2:
+        wishlist = user.wishlist.rares
+    elif rarity == 3:
+        wishlist = user.wishlist.epics
+    elif rarity == 4:
+        wishlist = user.wishlist.legendaries
+    else:
+        raise Exception("invalid rarity for wishlist roll")
+
+    # TODO: Can remove this once there are more than 8 chars per rarity
+    if len(base_chars) <= 8:
+        base_chars *= 2  # Double the pool
+
+    base_chars.extend(wishlist)  # Add another copy per wishlist char into the pick pool
+    num_chars = len(base_chars)
+
+    chosen_char = base_chars[random.randrange(num_chars)]
+    return chosen_char
+
+
 def get_rand_base_char_from_rarity(rarity, available_chars=None):
     if available_chars is None:
         base_chars = BaseCharacter.objects.filter(rarity=rarity, rollable=True)

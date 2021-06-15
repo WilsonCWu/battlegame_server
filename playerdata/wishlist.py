@@ -8,7 +8,7 @@ from playerdata import base
 from .models import Character
 from .serializers import SlotSerializer
 
-NUM_SLOTS_PER_RARITY = [0, 0, 2, 2, 1]
+NUM_SLOTS_PER_RARITY = [0, 0, 1, 2, 1]
 
 
 class WishlistSchema(Schema):
@@ -24,9 +24,9 @@ def init_wishlist(user):
     user_epics = [char.char_type.char_type for char in user_chars if char.char_type.rarity == 3]
     user_rares = [char.char_type.char_type for char in user_chars if char.char_type.rarity == 2]
 
-    user.wishlist.legendaries = user_legendaries[:1]
-    user.wishlist.epics = user_epics[:2]
-    user.wishlist.rares = user_rares[:2]
+    user.wishlist.legendaries = user_legendaries[:NUM_SLOTS_PER_RARITY[4]]
+    user.wishlist.epics = user_epics[:NUM_SLOTS_PER_RARITY[3]]
+    user.wishlist.rares = user_rares[:NUM_SLOTS_PER_RARITY[2]]
 
     user.wishlist.is_active = True
     user.wishlist.save()

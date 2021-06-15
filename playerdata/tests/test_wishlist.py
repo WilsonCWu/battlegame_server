@@ -1,8 +1,8 @@
-from rest_framework.test import APITestCase
 from rest_framework import status
+from rest_framework.test import APITestCase
 
-from playerdata import relic_shop, wishlist
-from playerdata.models import User, Character, Wishlist
+from playerdata import wishlist
+from playerdata.models import User, Wishlist
 
 
 class RelicShopAPITestCase(APITestCase):
@@ -19,9 +19,9 @@ class RelicShopAPITestCase(APITestCase):
         resp = self.client.get('/wishlist/get/')
 
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(resp.data['legendaries']), 1)
-        self.assertEqual(len(resp.data['epics']), 2)
-        self.assertEqual(len(resp.data['rares']), 2)
+        self.assertEqual(len(resp.data['legendaries']), wishlist.NUM_SLOTS_PER_RARITY[4])
+        self.assertEqual(len(resp.data['epics']), wishlist.NUM_SLOTS_PER_RARITY[3])
+        self.assertEqual(len(resp.data['rares']), wishlist.NUM_SLOTS_PER_RARITY[2])
 
     def test_set_slot(self):
         resp = self.client.post('/wishlist/set/', {
