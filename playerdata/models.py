@@ -1269,6 +1269,14 @@ class RelicShop(models.Model):
     purchased_relics = ArrayField(models.IntegerField(), default=list)
 
 
+class Wishlist(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    legendaries = ArrayField(models.IntegerField(), default=list)
+    epics = ArrayField(models.IntegerField(), default=list)
+    rares = ArrayField(models.IntegerField(), default=list)
+    is_active = models.BooleanField(default=False)
+
+
 def create_user_referral(user):
     try:
         UserReferral.objects.create(user=user, referral_code=generate_referral_code())
@@ -1302,6 +1310,7 @@ def create_user_info(sender, instance, created, **kwargs):
         SeasonReward.objects.create(user=instance)
         LevelBooster.objects.create(user=instance)
         RelicShop.objects.create(user=instance)
+        Wishlist.objects.create(user=instance)
         create_user_referral(instance)
 
         # Add quests

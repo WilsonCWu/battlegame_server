@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from playerdata import formulas, constants
 from playerdata.models import Character
 from playerdata.questupdater import QuestUpdater
-from playerdata.serializers import FillBoosterSlotSerializer, IntSerializer
+from playerdata.serializers import SlotSerializer, IntSerializer
 
 MIN_NUM_OF_MAXED_CHARS = 1
 
@@ -61,7 +61,7 @@ class FillSlotView(APIView):
 
     @atomic
     def post(self, request):
-        serializer = FillBoosterSlotSerializer(data=request.data)
+        serializer = SlotSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         slot_id = serializer.validated_data['slot_id']
         char_id = serializer.validated_data['char_id']
