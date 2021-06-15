@@ -1,6 +1,8 @@
 """One off jobs."""
 
 from django.db import transaction
+
+from playerdata import wishlist
 from playerdata.models import *
 
 
@@ -161,3 +163,11 @@ def shorten_descriptions():
         if len(clan.description) > 96:
             clan.description = clan.description[0:96]
     Clan2.objects.bulk_update(clans, ['description'])
+
+
+@transaction.atomic
+def backfill_wishlist():
+    dungeons = DungeonProgress.objects.select_related('user')
+    for dungeon in dungeons:
+        if dungeon.campaign_stage >= constants.DUNGEON_REFERRAL_CONVERSION_STAGE:
+            wishlist.init_wishlist(dungeon.user)

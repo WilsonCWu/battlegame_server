@@ -36,6 +36,10 @@ class RelicShopAdmin(admin.ModelAdmin, DynamicArrayMixin):
     pass
 
 
+class WishlistAdmin(admin.ModelAdmin, DynamicArrayMixin):
+    pass
+
+
 class DungeonStageAdmin(bulk_admin.BulkModelAdmin):
     list_display = ('stage', 'dungeon_type', 'player_exp', 'coins', 'gems')
     raw_id_fields = ("mob",)
@@ -642,3 +646,4 @@ admin.site.register(ClanPVEStatus)
 
 admin.site.register(RelicShop, RelicShopAdmin)
 admin.site.register(LevelBooster)
+admin.site.register(Wishlist, WishlistAdmin)

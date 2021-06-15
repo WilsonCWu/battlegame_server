@@ -44,6 +44,8 @@ def get_weighted_odds_character(rarity_odds=None, available_chars=None):
 
 
 # returns a random character with weighted odds + wishlist odds
+# if there are less or equal to 8 chars for a rarity, the wishlist is a third more chance of rolling
+# otherwise there is a double chance of getting it wrt non-wishlist chars
 def get_wishlist_odds_char_type(user, rarity_odds=None):
     if rarity_odds is None:
         rarity_odds = constants.SUMMON_RARITY_BASE
