@@ -62,9 +62,8 @@ def get_wishlist_odds_char_type(user, rarity_odds=None):
     else:
         raise Exception("invalid rarity for wishlist roll")
 
-    # TODO: Can remove this once there are more than 8 chars per rarity
-    if len(base_chars) <= 8:
-        base_chars *= 2  # Double the pool
+    # TODO: Can remove this once we hit 40 chars
+    base_chars *= 2  # Double the pool
 
     base_chars.extend(wishlist)  # Add another copy per wishlist char into the pick pool
     num_chars = len(base_chars)
