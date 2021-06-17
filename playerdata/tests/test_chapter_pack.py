@@ -15,6 +15,12 @@ class ChapterRewardPackAPITestCase(APITestCase):
         self.u.chapterrewardpack.is_active = True
         self.u.chapterrewardpack.save()
 
+    def test_get_chapter_rewards(self):
+        response = self.client.get('/chapterrewardspack/get/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
     def test_claim_reward(self):
         chapter_rewards_pack.complete_chapter_rewards(1, self.u.chapterrewardpack)
 

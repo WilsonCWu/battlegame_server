@@ -15,6 +15,7 @@ from playerdata.serializers import IntSerializer
 
 
 class ChapterRewardSchema(Schema):
+    id = fields.Int()
     world = fields.Int()
     reward_type = fields.Str()
     value = fields.Int()
