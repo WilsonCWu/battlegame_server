@@ -182,6 +182,12 @@ class DealType(Enum):
     GEMS_COST = 3
 
 
+class ChapterRewardsPack(Enum):
+    CHAPTER19 = 0
+    CHAPTER25 = 1
+    CHAPTER30 = 2
+
+
 class Tiers(Enum):
     BRONZE_FIVE = auto()  # auto starts from 1
     BRONZE_FOUR = auto()

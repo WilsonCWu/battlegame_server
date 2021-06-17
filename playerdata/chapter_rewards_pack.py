@@ -14,12 +14,6 @@ from playerdata.models import EloRewardTracker, SeasonReward, UserInfo, ChampBad
 from playerdata.serializers import IntSerializer
 
 
-class ChapterRewardsPack(Enum):
-    CHAPTER19 = 0
-    CHAPTER25 = 1
-    CHAPTER30 = 2
-
-
 class ChapterRewardSchema(Schema):
     world_id = fields.Int()
     reward_type = fields.Str()
