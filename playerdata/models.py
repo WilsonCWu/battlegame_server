@@ -20,7 +20,7 @@ from django_better_admin_arrayfield.models.fields import ArrayField
 from decouple import config
 
 from bulk_update_or_create import BulkUpdateOrCreateQuerySet
-from playerdata import constants
+from playerdata import constants, chapter_rewards_pack
 
 # Developer account IDs for in-game accounts
 from playerdata.constants import DealType, DungeonType
@@ -1275,6 +1275,20 @@ class Wishlist(models.Model):
     epics = ArrayField(models.IntegerField(), default=list)
     rares = ArrayField(models.IntegerField(), default=list)
     is_active = models.BooleanField(default=False)
+
+
+def chapter_rewards_pack_deadline():
+    return timezone.now() + timedelta(days=14)
+
+
+class ChapterRewardPack(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    is_active = models.BooleanField(default=False)
+    last_completed = models.IntegerField(default=-1)
+    last_claimed = models.IntegerField(default=-1)
+    expiration_date = chapter_rewards_pack_deadline()
+    type = models.IntegerField(choices=[(chapter.value, chapter.name) for chapter in chapter_rewards_pack.ChapterRewardsPack],
+                               default=chapter_rewards_pack.ChapterRewardsPack.CHAPTER19)
 
 
 def create_user_referral(user):
