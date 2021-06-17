@@ -15,7 +15,7 @@ from playerdata.serializers import IntSerializer
 
 
 class ChapterRewardSchema(Schema):
-    world_id = fields.Int()
+    world = fields.Int()
     reward_type = fields.Str()
     value = fields.Int()
     completed = fields.Bool()
@@ -23,13 +23,15 @@ class ChapterRewardSchema(Schema):
 
 
 class ChapterReward:
-    def __init__(self, world_id, reward_type, value):
-        self.world_id = world_id
+    def __init__(self, chapter_id, world, reward_type, value):
+        self.id = chapter_id
+        self.world = world
         self.reward_type = reward_type
         self.value = value
 
     def to_chest_reward(self):
         return chests.ChestReward(self.reward_type, self.value)
+
 
 # TODO: Currently supports just Advancement Rewards I, which is 1-19
 #  Added a `type` just in case we want to do II, III like AFK did
@@ -37,6 +39,7 @@ class ChapterReward:
 def get_chapter_rewards_list() -> List[ChapterReward]:
     rewards = []
 
+    chapter_id = 0
     for world in range(1, 20, 2):
         if world <= 7:
             gems = 2700
@@ -47,16 +50,17 @@ def get_chapter_rewards_list() -> List[ChapterReward]:
         else:
             gems = 8100
 
-        rewards.append(ChapterReward(world, "gems", gems))
+        rewards.append(ChapterReward(chapter_id, world, "gems", gems))
+        chapter_id += 1
 
     return rewards
 
 
 def complete_chapter_rewards(world: int, tracker: ChapterRewardPack):
     for reward in get_chapter_rewards_list():
-        if reward.world_id > world:
+        if reward.world > world:
             break
-        tracker.last_completed = max(reward.world_id, tracker.last_completed)
+        tracker.last_completed = max(reward.id, tracker.last_completed)
 
     tracker.save()
 

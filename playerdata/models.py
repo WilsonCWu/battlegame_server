@@ -1288,7 +1288,7 @@ class ChapterRewardPack(models.Model):
     last_claimed = models.IntegerField(default=-1)
     expiration_date = chapter_rewards_pack_deadline()
     type = models.IntegerField(choices=[(chapter.value, chapter.name) for chapter in constants.ChapterRewardPackType],
-                               default=constants.ChapterRewardPackType.CHAPTER19)
+                               default=constants.ChapterRewardPackType.CHAPTER19.value)
 
 
 def create_user_referral(user):
@@ -1325,6 +1325,7 @@ def create_user_info(sender, instance, created, **kwargs):
         LevelBooster.objects.create(user=instance)
         RelicShop.objects.create(user=instance)
         Wishlist.objects.create(user=instance)
+        ChapterRewardPack.objects.create(user=instance)
         create_user_referral(instance)
 
         # Add quests
