@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('is_active', models.BooleanField(default=False)),
                 ('last_completed', models.IntegerField(default=-1)),
                 ('last_claimed', models.IntegerField(default=-1)),
-                ('type', models.IntegerField(choices=[(0, 'CHAPTER19'), (1, 'CHAPTER25'), (2, 'CHAPTER30')], default=playerdata.constants.ChapterRewardsPack['CHAPTER19'])),
+                ('type', models.IntegerField(choices=[(0, 'CHAPTER19'), (1, 'CHAPTER25'), (2, 'CHAPTER30')], default=playerdata.constants.ChapterRewardPackType['CHAPTER19'])),
             ],
         ),
     ]

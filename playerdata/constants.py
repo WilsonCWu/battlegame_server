@@ -182,7 +182,7 @@ class DealType(Enum):
     GEMS_COST = 3
 
 
-class ChapterRewardsPack(Enum):
+class ChapterRewardPackType(Enum):
     CHAPTER19 = 0
     CHAPTER25 = 1
     CHAPTER30 = 2

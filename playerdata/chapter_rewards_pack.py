@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema
 
 from playerdata import constants, chests
-from playerdata.models import EloRewardTracker, SeasonReward, UserInfo, ChampBadgeTracker
+from playerdata.models import ChapterRewardPack, SeasonReward, UserInfo, ChampBadgeTracker
 from playerdata.serializers import IntSerializer
 
 
@@ -52,7 +52,7 @@ def get_chapter_rewards_list() -> List[ChapterReward]:
     return rewards
 
 
-def complete_chapter_rewards(world: int, tracker: ChapterRewardsPack):
+def complete_chapter_rewards(world: int, tracker: ChapterRewardPack):
     for reward in get_chapter_rewards_list():
         if reward.world_id > world:
             break

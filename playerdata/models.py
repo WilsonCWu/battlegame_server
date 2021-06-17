@@ -1287,8 +1287,8 @@ class ChapterRewardPack(models.Model):
     last_completed = models.IntegerField(default=-1)
     last_claimed = models.IntegerField(default=-1)
     expiration_date = chapter_rewards_pack_deadline()
-    type = models.IntegerField(choices=[(chapter.value, chapter.name) for chapter in constants.ChapterRewardsPack],
-                               default=constants.ChapterRewardsPack.CHAPTER19)
+    type = models.IntegerField(choices=[(chapter.value, chapter.name) for chapter in constants.ChapterRewardPackType],
+                               default=constants.ChapterRewardPackType.CHAPTER19)
 
 
 def create_user_referral(user):
