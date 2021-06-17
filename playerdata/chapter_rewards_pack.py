@@ -58,6 +58,15 @@ def get_chapter_rewards_list() -> List[ChapterReward]:
     return rewards
 
 
+def complete_chapter_rewards(world: int, tracker: ChapterRewardsPack):
+    for reward in get_chapter_rewards_list():
+        if reward.world_id > world:
+            break
+        tracker.last_completed = max(reward.world_id, tracker.last_completed)
+
+    tracker.save()
+
+
 class GetChapterRewardListView(APIView):
     permission_classes = (IsAuthenticated,)
 
