@@ -17,16 +17,18 @@ from playerdata.models import Character
 from playerdata.models import InvalidReceipt
 from playerdata.models import Inventory
 from playerdata.models import PurchasedTracker, Item, ActiveDeal, BaseDeal, get_expiration_date
-from . import constants, chests, server, rolls
+from . import constants, chests, server, rolls, chapter_rewards_pack
 from .base import BaseItemSchema, BaseCharacterSchema
 from .constants import DealType
-from .inventory import CharacterSchema
 from .questupdater import QuestUpdater
 from .serializers import PurchaseItemSerializer
 from .serializers import PurchaseSerializer
 from .serializers import ValidateReceiptSerializer
 
 
+# TODO: Deprecated, this is only used for the free 100gems daily
+#  we don't do a separate call for purchases anymore
+#  it's directly in the Validate call we fulfill the purchase
 class PurchaseView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -48,6 +50,7 @@ class PurchaseView(APIView):
 class ValidateView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic()
     def post(self, request):
         serializer = ValidateReceiptSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -86,8 +89,11 @@ def validate_google(request, receipt_raw):
             return handle_purchase_gems(request.user, purchase_id, transaction_id)
         elif purchase_id.startswith('com.salutationstudio.tinytitans.deal.'):
             return handle_purchase_deal(request.user, purchase_id, transaction_id)
+        elif purchase_id.startswith('com.salutationstudio.tinytitans.chapterrewards.'):
+            return handle_purchase_chapterpack(request.user, purchase_id, transaction_id)
+        else:
+            return Response({'status': False, 'reason': 'invalid id ' + purchase_id})
 
-        return Response({'status': True})
     except Exception:
         InvalidReceipt.objects.create(user=request.user, order_number=str(receipt['orderId']),
                                       date=receipt['purchaseTime'], product_id=receipt['productId'], receipt=receipt_raw)
@@ -95,6 +101,28 @@ def validate_google(request, receipt_raw):
 
 
 def validate_apple(request, receipt_raw):
+    return Response({'status': True})
+
+
+def handle_purchase_chapterpack(user, purchase_id, transaction_id):
+    purchase_tracker = PurchasedTracker.objects.filter(user=user, transaction_id=transaction_id).first()
+    if purchase_tracker is None:
+        return Response({'status': False, 'reason': 'purchase not found in our records'})
+
+    if purchase_tracker.purchase_id != "":
+        # Already fulfilled purchase
+        return Response({'status': True})
+
+    if purchase_id == constants.CHAPTER_REWARDS_PACK1:
+        world_completed = user.dungeonprogress.campaign_stage // 40
+        chapter_rewards_pack.complete_chapter_rewards(world_completed, user.chapterrewardpack)
+        user.chapterrewardpack.is_active = True
+        user.chapterrewardpack.save()
+    else:
+        return Response({'status': False, 'reason': 'invalid purchase_id ' + purchase_id})
+
+    purchase_tracker.purchase_id = purchase_id
+    purchase_tracker.save()
     return Response({'status': True})
 
 
