@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from battlegame.settings import SERVICE_ACCOUNT_FILE
-from playerdata.models import Character
+from playerdata.models import Character, ChapterRewardPack
 from playerdata.models import InvalidReceipt
 from playerdata.models import Inventory
 from playerdata.models import PurchasedTracker, Item, ActiveDeal, BaseDeal, get_expiration_date
@@ -105,6 +105,11 @@ def validate_apple(request, receipt_raw):
 
 
 def handle_purchase_chapterpack(user, purchase_id, transaction_id):
+    curr_time = datetime.now(timezone.utc)
+    
+    if curr_time > user.chapterrewardpack.expiration_date:
+        return Response({'status': False, 'reason': 'this purchase offer has now expired'})
+
     if purchase_id == constants.CHAPTER_REWARDS_PACK1:
         world_completed = user.dungeonprogress.campaign_stage // 40
         chapter_rewards_pack.complete_chapter_rewards(world_completed, user.chapterrewardpack)
