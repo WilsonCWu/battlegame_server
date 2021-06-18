@@ -171,3 +171,8 @@ def backfill_wishlist():
     for dungeon in dungeons:
         if dungeon.campaign_stage >= constants.DUNGEON_REFERRAL_CONVERSION_STAGE:
             wishlist.init_wishlist(dungeon.user)
+
+@transaction.atomic
+def backfill_chapterrewardpacks():
+    for user in User.objects.all():
+        _, _ = ChapterRewardPack.objects.get_or_create(user=user)

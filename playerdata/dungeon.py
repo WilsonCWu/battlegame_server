@@ -12,7 +12,7 @@ from playerdata.models import DungeonProgress, Character, Placement
 from playerdata.models import DungeonStage
 from playerdata.models import UserMatchState
 from playerdata.models import ReferralTracker
-from . import constants, formulas, server, dungeon_gen, wishlist
+from . import constants, formulas, server, dungeon_gen, wishlist, chapter_rewards_pack
 from .constants import DungeonType
 from .matcher import PlacementSchema
 from .questupdater import QuestUpdater
@@ -313,6 +313,10 @@ class DungeonSetProgressView(APIView):
                 complete_referral_conversion(request.user)
                 if server.is_server_version_higher("0.3.4"):
                     wishlist.init_wishlist(request.user)
+
+            if progress.campaign_stage % 40 == 1 and request.user.chapterrewardpack.is_active():
+                world_completed = progress.campaign_stage // 40
+                chapter_rewards_pack.complete_chapter_rewards(world_completed, request.user.chapterrewardpack)
 
             QuestUpdater.set_progress_by_type(request.user, constants.COMPLETE_DUNGEON_LEVEL, progress.campaign_stage)
             QuestUpdater.add_progress_by_type(request.user, constants.WIN_DUNGEON_GAMES, 1)
