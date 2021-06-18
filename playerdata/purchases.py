@@ -13,20 +13,22 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from battlegame.settings import SERVICE_ACCOUNT_FILE
-from playerdata.models import Character
+from playerdata.models import Character, ChapterRewardPack
 from playerdata.models import InvalidReceipt
 from playerdata.models import Inventory
 from playerdata.models import PurchasedTracker, Item, ActiveDeal, BaseDeal, get_expiration_date
-from . import constants, chests, server, rolls
+from . import constants, chests, server, rolls, chapter_rewards_pack
 from .base import BaseItemSchema, BaseCharacterSchema
 from .constants import DealType
-from .inventory import CharacterSchema
 from .questupdater import QuestUpdater
 from .serializers import PurchaseItemSerializer
 from .serializers import PurchaseSerializer
 from .serializers import ValidateReceiptSerializer
 
 
+# TODO: Deprecated, this is only used for the free 100gems daily
+#  we don't do a separate call for purchases anymore
+#  it's directly in the Validate call we fulfill the purchase
 class PurchaseView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -37,9 +39,7 @@ class PurchaseView(APIView):
         purchase_id = serializer.validated_data['purchase_id']
         transaction_id = serializer.validated_data['transaction_id']
 
-        if purchase_id.startswith('com.salutationstudio.tinytitans.gems.'):
-            return handle_purchase_gems(request.user, purchase_id, transaction_id)
-        elif purchase_id.startswith('com.salutationstudio.tinytitans.deal.'):
+        if purchase_id.startswith('com.salutationstudio.tinytitans.deal.'):
             return handle_purchase_deal(request.user, purchase_id, transaction_id)
         else:
             return Response({'status': False, 'reason': 'invalid id ' + purchase_id})
@@ -48,6 +48,7 @@ class PurchaseView(APIView):
 class ValidateView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic()
     def post(self, request):
         serializer = ValidateReceiptSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -79,15 +80,20 @@ def validate_google(request, receipt_raw):
                                                       productId=purchase_id,
                                                       token=receipt['purchaseToken']).execute()
 
-        PurchasedTracker.objects.create(user=request.user,
-                                        transaction_id=transaction_id)
+        # check if a duplicate purchase with the same transaction_id exists
+        if PurchasedTracker.objects.filter(user=request.user, transaction_id=transaction_id).exists():
+            # Already fulfilled purchase
+            return Response({'status': True})
 
         if purchase_id.startswith('com.salutationstudio.tinytitans.gems.'):
             return handle_purchase_gems(request.user, purchase_id, transaction_id)
         elif purchase_id.startswith('com.salutationstudio.tinytitans.deal.'):
             return handle_purchase_deal(request.user, purchase_id, transaction_id)
+        elif purchase_id.startswith('com.salutationstudio.tinytitans.chapterrewards.'):
+            return handle_purchase_chapterpack(request.user, purchase_id, transaction_id)
+        else:
+            return Response({'status': False, 'reason': 'invalid id ' + purchase_id})
 
-        return Response({'status': True})
     except Exception:
         InvalidReceipt.objects.create(user=request.user, order_number=str(receipt['orderId']),
                                       date=receipt['purchaseTime'], product_id=receipt['productId'], receipt=receipt_raw)
@@ -98,15 +104,25 @@ def validate_apple(request, receipt_raw):
     return Response({'status': True})
 
 
+def handle_purchase_chapterpack(user, purchase_id, transaction_id):
+    curr_time = datetime.now(timezone.utc)
+    
+    if curr_time > user.chapterrewardpack.expiration_date:
+        return Response({'status': False, 'reason': 'this purchase offer has now expired'})
+
+    if purchase_id == constants.CHAPTER_REWARDS_PACK1:
+        world_completed = user.dungeonprogress.campaign_stage // 40
+        chapter_rewards_pack.complete_chapter_rewards(world_completed, user.chapterrewardpack)
+        user.chapterrewardpack.is_active = True
+        user.chapterrewardpack.save()
+    else:
+        return Response({'status': False, 'reason': 'invalid purchase_id ' + purchase_id})
+
+    PurchasedTracker.objects.create(user=user, transaction_id=transaction_id, purchase_id=purchase_id)
+    return Response({'status': True})
+
+
 def handle_purchase_gems(user, purchase_id, transaction_id):
-    purchase_tracker = PurchasedTracker.objects.filter(user=user, transaction_id=transaction_id).first()
-    if purchase_tracker is None:
-        return Response({'status': False, 'reason': 'purchase not found in our records'})
-
-    if purchase_tracker.purchase_id != "":
-        # Already fulfilled purchase
-        return Response({'status': True})
-
     if purchase_id in constants.IAP_GEMS_AMOUNT:
         user.inventory.gems += constants.IAP_GEMS_AMOUNT[purchase_id]
         user.inventory.gems_bought += constants.IAP_GEMS_AMOUNT[purchase_id]
@@ -115,8 +131,7 @@ def handle_purchase_gems(user, purchase_id, transaction_id):
 
     user.inventory.save()
 
-    purchase_tracker.purchase_id = purchase_id
-    purchase_tracker.save()
+    PurchasedTracker.objects.create(user=user, transaction_id=transaction_id, purchase_id=purchase_id)
     return Response({'status': True})
 
 
@@ -153,24 +168,13 @@ def handle_purchase_deal(user, purchase_id, transaction_id):
     try:
         deal = ActiveDeal.objects.get(base_deal__deal_type=deal_type, base_deal__order=order,
                                       expiration_date__gt=curr_time)
+        PurchasedTracker.objects.create(user=user, transaction_id=transaction_id, purchase_id=purchase_id, deal=deal)
+
+    # This is for the `ActiveDeal.objects.get` case
     except ObjectDoesNotExist:
         return Response({'status': False, 'reason': 'invalid deal id'})
 
-    # check if Purchase was recorded from validate/ (don't check if it was the free daily deal)
-    purchase_tracker = PurchasedTracker.objects.filter(user=user, transaction_id=transaction_id).first()
-    if purchase_id == constants.DEAL_DAILY_0:
-        purchase_tracker = PurchasedTracker.objects.create(user=user)
-    elif purchase_tracker is None:
-        return Response({'status': False, 'reason': 'purchase not found in our records'})
-
-    try:
-        if purchase_tracker.purchase_id != "":
-            # Already fulfilled purchase
-            return Response({'status': True})
-
-        purchase_tracker.deal = deal
-        purchase_tracker.purchase_id = purchase_id
-        purchase_tracker.save()
+    # This is for the `PurchasedTracker.objects.create` case
     except IntegrityError as e:
         return Response({'status': False, 'reason': 'already purchased this deal!'})
 

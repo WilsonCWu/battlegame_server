@@ -171,3 +171,19 @@ def backfill_wishlist():
     for dungeon in dungeons:
         if dungeon.campaign_stage >= constants.DUNGEON_REFERRAL_CONVERSION_STAGE:
             wishlist.init_wishlist(dungeon.user)
+
+
+@transaction.atomic
+def backfill_chapterrewardpacks():
+    for user in User.objects.all():
+        _, _ = ChapterRewardPack.objects.get_or_create(user=user)
+
+
+@transaction.atomic
+def reset_expiration_20pack():
+    # reset all the expiration dates to give everyone a chance
+    reward_packs = ChapterRewardPack.objects.all()
+    for pack in reward_packs:
+        pack.expiration_date = timezone.now() + timedelta(days=14)
+
+    ChapterRewardPack.objects.bulk_update(reward_packs, ['expiration_date'])
