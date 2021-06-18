@@ -133,7 +133,7 @@ class GetEloRewardListView(APIView):
             reward['claimed'] = reward['id'] <= request.user.elorewardtracker.last_claimed
             reward['completed'] = reward['id'] <= request.user.elorewardtracker.last_completed
 
-        return Response({'status': True, 'rewards': rewards_data})
+        return Response({'status': True, 'rewards': rewards_data, 'expiration_date': get_season_expiration_date()})
 
 
 class ClaimEloRewardView(APIView):
