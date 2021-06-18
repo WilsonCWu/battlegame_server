@@ -170,6 +170,18 @@ def complete_any_elo_rewards(elo: int, tracker: EloRewardTracker):
     tracker.save()
 
 
+class GetSeasonRewardView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        season_reward = request.user.seasonreward
+
+        return Response({'status': True,
+                         'is_claimed': season_reward.is_claimed,
+                         'tier_rank': season_reward.tier_rank,
+                         'expiration_date': get_season_expiration_date()})
+
+
 class ClaimSeasonRewardView(APIView):
     permission_classes = (IsAuthenticated,)
 
