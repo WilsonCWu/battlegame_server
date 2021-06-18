@@ -80,8 +80,8 @@ def validate_google(request, receipt_raw):
                                                       productId=purchase_id,
                                                       token=receipt['purchaseToken']).execute()
 
-        purchase_tracker = PurchasedTracker.objects.filter(user=request.user, transaction_id=transaction_id).first()
-        if purchase_tracker is not None:
+        # check if a duplicate purchase with the same transaction_id exists
+        if PurchasedTracker.objects.filter(user=request.user, transaction_id=transaction_id).exists():
             # Already fulfilled purchase
             return Response({'status': True})
 
