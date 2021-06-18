@@ -182,9 +182,8 @@ def backfill_chapterrewardpacks():
 @transaction.atomic
 def reset_expiration_20pack():
     # reset all the expiration dates to give everyone a chance
-    reward_packs = ChapterRewardPack.objects.all().select_related('user__dungeonprogress')
+    reward_packs = ChapterRewardPack.objects.all()
     for pack in reward_packs:
-        if pack.user.dungeonprogress.campaign_stage // 40 <= 20:
-            pack.expiration_date = timezone.now() + timedelta(days=14)
+        pack.expiration_date = timezone.now() + timedelta(days=14)
 
     ChapterRewardPack.objects.bulk_update(reward_packs, ['expiration_date'])
