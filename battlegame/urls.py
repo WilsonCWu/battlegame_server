@@ -16,7 +16,7 @@ Including another URLconf
 from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
-from playerdata import login, tier_system, level_booster, relic_shop, wishlist
+from playerdata import login, tier_system, level_booster, relic_shop, wishlist, chapter_rewards_pack
 from playerdata import base
 from playerdata import daily_dungeon
 from playerdata import moevasion
@@ -41,6 +41,8 @@ from playerdata import clan_pve
 from playerdata import clan_farm
 
 urlpatterns = [
+    path('chapterrewardspack/claim/', chapter_rewards_pack.ClaimChapterRewardView.as_view()),
+    path('chapterrewardspack/get/', chapter_rewards_pack.GetChapterRewardListView.as_view()),
     path('wishlist/get/', wishlist.GetWishlistView.as_view()),
     path('wishlist/set/', wishlist.SetWishlistSlotView.as_view()),
     path('clanfarm/status/', clan_farm.ClanFarmingStatus.as_view()),

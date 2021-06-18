@@ -72,7 +72,7 @@ def is_legendary(char_id: int):
 
 
 # Remember to update as we add new legendaries
-LEGENDARY_CHAR_IDS = [6, 7, 9, 13, 22, 23]
+LEGENDARY_CHAR_IDS = [6, 7, 9, 13, 22, 23, 31]
 # Pity caps guarantee in how many rolls we guarantee a legendary
 LEGENDARY_PITY_CAP_MYTHICAL = 50
 LEGENDARY_PITY_CAP_SILVER = 160
@@ -80,6 +80,10 @@ LEGENDARY_PITY_CAP_GOLD = 160
 
 REFUND_GEMS_COST_PER_LVL = 5
 ESSENCE_PER_COMMON_CHAR_RETIRE = 100
+
+CHAPTER_REWARDS_PACK1 = 'com.salutationstudio.tinytitans.chapterrewards.pack1'
+CHAPTER_REWARDS_PACK2 = 'com.salutationstudio.tinytitans.chapterrewards.pack2'
+CHAPTER_REWARDS_PACK3 = 'com.salutationstudio.tinytitans.chapterrewards.pack3'
 
 DEAL_DAILY_0 = 'com.salutationstudio.tinytitans.deal.daily0'
 DEAL_DAILY_1 = 'com.salutationstudio.tinytitans.deal.daily1'
@@ -176,6 +180,12 @@ class DealType(Enum):
     WEEKLY = 1
     MONTHLY = 2
     GEMS_COST = 3
+
+
+class ChapterRewardPackType(Enum):
+    CHAPTER19 = 0
+    CHAPTER25 = 1
+    CHAPTER30 = 2
 
 
 class Tiers(Enum):
