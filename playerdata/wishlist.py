@@ -18,23 +18,10 @@ class WishlistSchema(Schema):
     is_active = fields.Bool()
 
 
-def get_default_wishlist(num_slots: int, char_list):
-    default_list = char_list[:min(num_slots, len(char_list))]
-    # backfill the remaining with -1s
-    remaining_slots = max(num_slots - len(char_list), 0) * [-1]
-    default_list.extend(remaining_slots)
-    return default_list
-
-
 def init_wishlist(user):
-    user_chars = Character.objects.filter(user=user).select_related('char_type')
-    user_legendaries = [char.char_type.char_type for char in user_chars if char.char_type.rarity == 4]
-    user_epics = [char.char_type.char_type for char in user_chars if char.char_type.rarity == 3]
-    user_rares = [char.char_type.char_type for char in user_chars if char.char_type.rarity == 2]
-
-    user.wishlist.legendaries = get_default_wishlist(NUM_SLOTS_PER_RARITY[4], user_legendaries)
-    user.wishlist.epics = get_default_wishlist(NUM_SLOTS_PER_RARITY[3], user_epics)
-    user.wishlist.rares = get_default_wishlist(NUM_SLOTS_PER_RARITY[2], user_rares)
+    user.wishlist.legendaries = NUM_SLOTS_PER_RARITY[4] * [-1]
+    user.wishlist.epics = NUM_SLOTS_PER_RARITY[3] * [-1]
+    user.wishlist.rares = NUM_SLOTS_PER_RARITY[2] * [-1]
 
     user.wishlist.is_active = True
     user.wishlist.save()
