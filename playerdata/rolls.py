@@ -65,6 +65,7 @@ def get_wishlist_odds_char_type(user, rarity_odds=None):
     # TODO: Can remove this once we hit 40 chars
     base_chars *= 2  # Double the pool
 
+    wishlist = [char for char in wishlist if char != -1]  # filter out the -1s
     base_chars.extend(wishlist)  # Add another copy per wishlist char into the pick pool
     num_chars = len(base_chars)
 
