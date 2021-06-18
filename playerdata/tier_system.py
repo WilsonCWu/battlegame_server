@@ -78,7 +78,7 @@ def get_elo_rewards_list() -> List[EloReward]:
 
         reward_id += 1
 
-    if server.is_server_version_higher("0.3.2"):
+    if server.is_server_version_higher("0.3.1"):
         start_elite_season_rewards = last_reward_elo + 50
         for elo in range(start_elite_season_rewards, ELO_CAP + 1, 100):
             counter_offset = reward_id + 1
@@ -133,7 +133,7 @@ class GetEloRewardListView(APIView):
             reward['claimed'] = reward['id'] <= request.user.elorewardtracker.last_claimed
             reward['completed'] = reward['id'] <= request.user.elorewardtracker.last_completed
 
-        return Response({'status': True, 'rewards': rewards_data})
+        return Response({'status': True, 'rewards': rewards_data, 'expiration_date': get_season_expiration_date()})
 
 
 class ClaimEloRewardView(APIView):
@@ -168,6 +168,18 @@ def complete_any_elo_rewards(elo: int, tracker: EloRewardTracker):
         tracker.last_completed = max(reward.id, tracker.last_completed)
 
     tracker.save()
+
+
+class GetSeasonRewardView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        season_reward = request.user.seasonreward
+
+        return Response({'status': True,
+                         'is_claimed': season_reward.is_claimed,
+                         'tier_rank': season_reward.tier_rank,
+                         'expiration_date': get_season_expiration_date()})
 
 
 class ClaimSeasonRewardView(APIView):
@@ -207,7 +219,7 @@ def restart_season():
     SeasonReward.objects.bulk_update(seasons, ['tier_rank', 'is_claimed'])
 
     # Reset all players in Grandmaster to 3k
-    if server.is_server_version_higher("0.3.2"):
+    if server.is_server_version_higher("0.3.1"):
         elo_reset_users = UserInfo.objects.filter(tier_rank__gte=constants.Tiers.GRANDMASTER.value).select_related('user__elorewardtracker')
         elo_trackers = []
         for userinfo in elo_reset_users:

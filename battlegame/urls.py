@@ -62,6 +62,7 @@ urlpatterns = [
     path('levelbooster/remove/', level_booster.RemoveSlotView.as_view()),
     path('levelbooster/skip/', level_booster.SkipCooldownView.as_view()),
     path('levelbooster/unlock/', level_booster.UnlockSlotView.as_view()),
+    path('seasonreward/get/', tier_system.GetSeasonRewardView.as_view()),
     path('seasonreward/claim/', tier_system.ClaimSeasonRewardView.as_view()),
     path('champbadge/get/', tier_system.GetChampBadgeRewardListView.as_view()),
     path('champbadge/claim/', tier_system.ClaimChampRewardView.as_view()),

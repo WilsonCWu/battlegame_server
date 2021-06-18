@@ -311,7 +311,7 @@ class DungeonSetProgressView(APIView):
             stage = progress.campaign_stage
             if progress.campaign_stage == constants.DUNGEON_REFERRAL_CONVERSION_STAGE:
                 complete_referral_conversion(request.user)
-                if server.is_server_version_higher("0.3.4"):
+                if server.is_server_version_higher("0.3.1"):
                     wishlist.init_wishlist(request.user)
 
             # TODO: hasattr can be removed once backfilled
