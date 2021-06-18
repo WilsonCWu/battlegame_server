@@ -314,6 +314,7 @@ class DungeonSetProgressView(APIView):
                 if server.is_server_version_higher("0.3.4"):
                     wishlist.init_wishlist(request.user)
 
+            # TODO: hasattr can be removed once backfilled
             if progress.campaign_stage % 40 == 1 and hasattr(request.user, 'chapterrewardpack') and request.user.chapterrewardpack.is_active():
                 world_completed = progress.campaign_stage // 40
                 chapter_rewards_pack.complete_chapter_rewards(world_completed, request.user.chapterrewardpack)
