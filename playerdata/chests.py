@@ -10,7 +10,7 @@ from rest_marshmallow import Schema, fields
 
 from playerdata import constants, formulas, rolls, tier_system
 from playerdata.constants import ChestType
-from playerdata.models import Chest, BaseItem, Item, DailyDungeonStatus
+from playerdata.models import Chest, BaseItem, Item, DailyDungeonStatus, BaseCharacter
 from playerdata.questupdater import QuestUpdater
 from playerdata.serializers import ValueSerializer, CollectChestSerializer
 
@@ -106,12 +106,14 @@ def give_some_pity(user, rewards, chest_type: int):
 
     for reward in rewards:
         if reward.reward_type == 'char_id':
-            if constants.is_legendary(reward.value):
+            legendaries = list(BaseCharacter.objects.filter(rollable=True, rarity=4).values_list('char_type', flat=True))
+            if reward.value in legendaries:
                 pity_counter = 0
             else:
                 pity_counter += 1
                 if pity_counter >= pity_cap:
-                    reward.value = random.choice(constants.LEGENDARY_CHAR_IDS)
+
+                    reward.value = random.choice(legendaries)
                     pity_counter = 0
 
     setattr(user.userstats, pity_attr, pity_counter)
