@@ -67,12 +67,7 @@ SUMMON_GEM_COST = {
     "MYTHIC_CHEST": 2700
 }
 
-def is_legendary(char_id: int):
-    return char_id in LEGENDARY_CHAR_IDS
 
-
-# Remember to update as we add new legendaries
-LEGENDARY_CHAR_IDS = [6, 7, 9, 13, 22, 23, 31]
 # Pity caps guarantee in how many rolls we guarantee a legendary
 LEGENDARY_PITY_CAP_MYTHICAL = 50
 LEGENDARY_PITY_CAP_SILVER = 160
