@@ -257,8 +257,8 @@ def get_season_reward(tier: int, user):
         # MASTER
         rewards.append(chests.ChestReward('gems', 820))
 
-    rewards.append(chests.ChestReward('relic_stone', tier * 3 + 80))
-    rewards.append(chests.ChestReward('essence', formulas.dust_chest_reward(user, constants.ChestType.GOLD.value, tier)))
+    rewards.append(chests.ChestReward('relic_stone', tier * 3 + 200))
+    rewards.append(chests.ChestReward('essence', formulas.dust_chest_reward(user, constants.ChestType.GOLD.value, tier) * 2))
 
     return rewards
 
