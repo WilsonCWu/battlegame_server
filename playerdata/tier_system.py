@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema
 
-from playerdata import constants, chests, server
+from playerdata import constants, chests, server, formulas
 from playerdata.models import EloRewardTracker, SeasonReward, UserInfo, ChampBadgeTracker
 from playerdata.serializers import IntSerializer
 
@@ -191,7 +191,7 @@ class ClaimSeasonRewardView(APIView):
         if season_reward.is_claimed:
             return Response({'status': False, 'reason': 'season reward already claimed!'})
 
-        rewards = get_season_reward(season_reward.tier_rank)
+        rewards = get_season_reward(season_reward.tier_rank, request.user)
         chests.award_chest_rewards(request.user, rewards)
 
         season_reward.is_claimed = True
@@ -235,7 +235,7 @@ def restart_season():
         EloRewardTracker.objects.bulk_update(elo_trackers, ['last_claimed', 'last_completed'])
 
 
-def get_season_reward(tier: int):
+def get_season_reward(tier: int, user):
     rewards = []
 
     if tier <= constants.Tiers.BRONZE_ONE.value:  # 1-5
@@ -256,6 +256,9 @@ def get_season_reward(tier: int):
     else:
         # MASTER
         rewards.append(chests.ChestReward('gems', 820))
+
+    rewards.append(chests.ChestReward('relic_stone', tier * 3 + 200))
+    rewards.append(chests.ChestReward('essence', formulas.dust_chest_reward(user, constants.ChestType.GOLD.value, tier) * 2))
 
     return rewards
 
