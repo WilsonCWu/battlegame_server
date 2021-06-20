@@ -115,7 +115,7 @@ class SeasonRewardAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
 
-        rewards = tier_system.get_season_reward(constants.Tiers.BRONZE_FIVE.value)
+        rewards = tier_system.get_season_reward(constants.Tiers.BRONZE_FIVE.value, self.u)
         self.assertEqual(response.data['rewards'][0]['reward_type'], rewards[0].reward_type)
         self.assertEqual(response.data['rewards'][0]['value'], rewards[0].value)
 
