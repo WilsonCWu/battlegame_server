@@ -85,7 +85,8 @@ def get_elo_rewards_list() -> List[EloReward]:
             if counter_offset % 10 == 0:
                 rewards.append(EloReward(reward_id, elo, 'chest', constants.ChestType.LEGENDARY.value))
             elif counter_offset % 5 == 0:
-                rewards.append(EloReward(reward_id, elo, 'champ_badge', 30))
+                # rewards.append(EloReward(reward_id, elo, 'champ_badge', 30))
+                rewards.append(EloReward(reward_id, elo, 'chest', constants.ChestType.GOLD.value))
             elif counter_offset % 5 == 4:
                 rewards.append(EloReward(reward_id, elo, 'gems', 600))
             elif counter_offset % 5 == 3:
@@ -93,7 +94,8 @@ def get_elo_rewards_list() -> List[EloReward]:
             elif counter_offset % 5 == 2:
                 rewards.append(EloReward(reward_id, elo, 'relic_stone', (elo // 10) - 20))
             elif counter_offset % 5 == 1:
-                rewards.append(EloReward(reward_id, elo, 'champ_badge', 20))
+                # rewards.append(EloReward(reward_id, elo, 'champ_badge', 20))
+                rewards.append(EloReward(reward_id, elo, 'gems', 600))
 
             reward_id += 1
 
