@@ -39,7 +39,7 @@ def char_level_to_coins(level):
 def coins_chest_reward(user, rarity, chest_tier=None):
     elo = min(user.userinfo.elo + 20, constants.MAX_ELO)  # light pad on elo for 0 elo case
 
-    if server.is_server_version_higher("0.3.2"):
+    if server.is_server_version_higher("0.3.1"):
         if chest_tier is None:
             chest_tier = user.userinfo.tier_rank
         elo = tier_system.get_tier_reward_elo(chest_tier)
@@ -141,7 +141,7 @@ def dust_chest_reward(user, rarity, chest_tier=None):
     userinfo = UserInfo.objects.get(user=user)
     elo = min(userinfo.elo + 20, constants.MAX_ELO)  # light pad on elo for 0 elo case
 
-    if server.is_server_version_higher("0.3.2"):
+    if server.is_server_version_higher("0.3.1"):
         if chest_tier is None:
             chest_tier = user.userinfo.tier_rank
         elo = tier_system.get_tier_reward_elo(chest_tier)
