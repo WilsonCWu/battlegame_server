@@ -59,7 +59,7 @@ def award_chest(user):
     user.userstats.save()
 
     tier_rank = tier_system.elo_to_tier(user.userinfo.elo)
-    chest = Chest.objects.create(user=user, rarity=chest_rarity, tier_rank=tier_rank)
+    chest = Chest.objects.create(user=user, rarity=chest_rarity, tier_rank=tier_rank.value)
 
     if user.inventory.chest_slot_1 is None:
         user.inventory.chest_slot_1 = chest
