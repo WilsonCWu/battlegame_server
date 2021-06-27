@@ -59,3 +59,16 @@ class PurchaseTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data['status'])
 
+
+class DealsTestCase(APITestCase):
+    fixtures = ['playerdata/tests/fixtures.json']
+
+    def setUp(self):
+        self.u = User.objects.get(username='battlegame')
+        self.client.force_authenticate(user=self.u)
+
+    def test_get_deals(self):
+        response = self.client.get('/deals/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsNotNone(response.data['world_pack'])

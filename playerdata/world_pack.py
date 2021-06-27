@@ -9,17 +9,17 @@ def get_world_expiration():
 
 
 # TODO: Tuning & costs
-def get_world_pack_rewards(user, world: int, purchase_id):
+# these rewards are "wrapped", i.e. the rarity of the chest instead of the contents of the chest
+def get_world_pack_rewards(user):
     rewards = []
-    if world < 6 and purchase_id == constants.WORLD_PACK_999:
-        rewards.extend(chests.generate_chest_rewards(constants.ChestType.MYTHICAL.value, user))
+    world = user.worldpack.world
+    if world < 6:
+        rewards.append(chests.ChestReward(reward_type="chest", value=constants.ChestType.MYTHICAL.value))
         rewards.append(chests.ChestReward(reward_type="gems", value="1200"))
         rewards.append(chests.ChestReward(reward_type="coins", value="50000"))
-    elif purchase_id == constants.WORLD_PACK_1999:
-        rewards.extend(chests.generate_chest_rewards(constants.ChestType.LEGENDARY.value, user))
-        rewards.extend(chests.generate_chest_rewards(constants.ChestType.MYTHICAL.value, user))
     else:
-        raise Exception("Invalid purchase id for world pack: " + purchase_id)
+        rewards.append(chests.ChestReward(reward_type="chest", value=constants.ChestType.LEGENDARY.value))
+        rewards.append(chests.ChestReward(reward_type="chest", value=constants.ChestType.MYTHICAL.value))
 
     return rewards
 

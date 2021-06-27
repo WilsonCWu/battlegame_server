@@ -5,7 +5,7 @@ from playerdata import wishlist
 from playerdata.models import User, Wishlist
 
 
-class RelicShopAPITestCase(APITestCase):
+class WishlistAPITestCase(APITestCase):
     fixtures = ['playerdata/tests/fixtures.json']
 
     def setUp(self):
