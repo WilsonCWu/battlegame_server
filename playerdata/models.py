@@ -1291,6 +1291,13 @@ class ChapterRewardPack(models.Model):
                                default=constants.ChapterRewardPackType.CHAPTER19.value)
 
 
+class WorldPack(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    expiration_date = models.DateTimeField()
+    world = models.IntegerField()
+    is_claimed = models.BooleanField(default=True)
+
+
 def create_user_referral(user):
     try:
         UserReferral.objects.create(user=user, referral_code=generate_referral_code())
@@ -1326,6 +1333,7 @@ def create_user_info(sender, instance, created, **kwargs):
         RelicShop.objects.create(user=instance)
         Wishlist.objects.create(user=instance)
         ChapterRewardPack.objects.create(user=instance)
+        WorldPack.objects.create(user=instance)
         create_user_referral(instance)
 
         # Add quests

@@ -17,7 +17,7 @@ from playerdata.models import Character, ChapterRewardPack
 from playerdata.models import InvalidReceipt
 from playerdata.models import Inventory
 from playerdata.models import PurchasedTracker, Item, ActiveDeal, BaseDeal, get_expiration_date
-from . import constants, chests, server, rolls, chapter_rewards_pack
+from . import constants, chests, server, rolls, chapter_rewards_pack, world_pack
 from .base import BaseItemSchema, BaseCharacterSchema
 from .constants import DealType
 from .questupdater import QuestUpdater
@@ -239,7 +239,11 @@ class GetDeals(APIView):
         # for deal in gemscost_deals:
         #     deal["is_available"] = deal["purchase_id"] not in daily_purchased_deals_ids
 
-        return Response({"daily_deals": daily_deals, 'weekly_deals': weekly_deals, 'gemcost_deals': []})
+        return Response({"daily_deals": daily_deals,
+                         'weekly_deals': weekly_deals,
+                         'gemcost_deals': [],
+                         'world_deal_expiration': world_pack.get_world_expiration(),
+                         })
 
 
 def make_deals(deal_type: int):
