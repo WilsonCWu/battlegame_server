@@ -124,7 +124,7 @@ def handle_purchase_world_pack(user, purchase_id, transaction_id):
         # unwrap the chest rewards
         if reward.reward_type == "chest":
             generated_rewards = chests.generate_chest_rewards(reward.value, user)
-            chest_rewards.append({reward.value: chests.ChestRewardSchema(generated_rewards, many=True).data})
+            chest_rewards.append({'chest_type': reward.value, 'rewards': chests.ChestRewardSchema(generated_rewards, many=True).data})
             chests.award_chest_rewards(user, generated_rewards)
         else:
             misc_rewards.append(reward)
