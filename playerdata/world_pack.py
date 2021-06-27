@@ -9,29 +9,19 @@ def get_world_expiration():
 
 
 # TODO: Tuning & costs
-def get_world_pack_rewards(user, world: int):
+def get_world_pack_rewards(user, world: int, purchase_id):
     rewards = []
-    if world < 6:
+    if world < 6 and purchase_id == constants.WORLD_PACK_999:
         rewards.extend(chests.generate_chest_rewards(constants.ChestType.MYTHICAL.value, user))
         rewards.append(chests.ChestReward(reward_type="gems", value="1200"))
         rewards.append(chests.ChestReward(reward_type="coins", value="50000"))
-    else:
+    elif purchase_id == constants.WORLD_PACK_1999:
         rewards.extend(chests.generate_chest_rewards(constants.ChestType.LEGENDARY.value, user))
         rewards.extend(chests.generate_chest_rewards(constants.ChestType.MYTHICAL.value, user))
+    else:
+        raise Exception("Invalid purchase id for world pack: " + purchase_id)
 
     return rewards
-
-
-def claim_world_pack(user):
-    curr_time = datetime.now()
-
-    if user.worldpack.expiration_date == "" or curr_time > user.worldpack.expiration_date:
-        return False
-
-    if user.worldpack.is_claimed:
-        return False
-
-    return get_world_pack_rewards(user, user.worldpack.world)
 
 
 def active_new_pack(user, world: int):
@@ -43,4 +33,3 @@ def active_new_pack(user, world: int):
     user.worldpack.expiration_date = get_world_expiration()
     user.worldpack.is_claimed = False
     user.worldpack.save()
-

@@ -13,11 +13,11 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from battlegame.settings import SERVICE_ACCOUNT_FILE
-from playerdata.models import Character, ChapterRewardPack
+from playerdata.models import Character
 from playerdata.models import InvalidReceipt
 from playerdata.models import Inventory
 from playerdata.models import PurchasedTracker, Item, ActiveDeal, BaseDeal, get_expiration_date
-from . import constants, chests, server, rolls, chapter_rewards_pack, world_pack
+from . import constants, chests, rolls, chapter_rewards_pack, world_pack
 from .base import BaseItemSchema, BaseCharacterSchema
 from .constants import DealType
 from .questupdater import QuestUpdater
@@ -91,6 +91,8 @@ def validate_google(request, receipt_raw):
             return handle_purchase_deal(request.user, purchase_id, transaction_id)
         elif purchase_id.startswith('com.salutationstudio.tinytitans.chapterrewards.'):
             return handle_purchase_chapterpack(request.user, purchase_id, transaction_id)
+        elif purchase_id.startswith('com.salutationstudio.tinytitans.worldpack.'):
+            return handle_purchase_world_pack(request.user, purchase_id, transaction_id)
         else:
             return Response({'status': False, 'reason': 'invalid id ' + purchase_id})
 
@@ -101,6 +103,25 @@ def validate_google(request, receipt_raw):
 
 
 def validate_apple(request, receipt_raw):
+    return Response({'status': True})
+
+
+def handle_purchase_world_pack(user, purchase_id, transaction_id):
+    curr_time = datetime.now(timezone.utc)
+
+    if user.worldpack.expiration_date == "" or curr_time > user.worldpack.expiration_date:
+        return Response({'status': False, 'reason': 'this purchase offer has now expired'})
+
+    if user.worldpack.is_claimed:
+        return Response({'status': False, 'reason': 'this can only be purchased once'})
+
+    rewards = world_pack.get_world_pack_rewards(user, user.worldpack.world, purchase_id)
+    chests.award_chest_rewards(user, rewards)
+
+    user.worldpack.is_claimed = True
+    user.worldpack.save()
+
+    PurchasedTracker.objects.create(user=user, transaction_id=transaction_id, purchase_id=purchase_id)
     return Response({'status': True})
 
 
