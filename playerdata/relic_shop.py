@@ -6,8 +6,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from playerdata import base, rolls
+from playerdata import base, rolls, constants
 from playerdata.models import BaseCharacter, RelicShop
+from .questupdater import QuestUpdater
 from .serializers import IntSerializer
 
 EPIC_COST = 600
@@ -44,6 +45,8 @@ class BuyRelicView(APIView):
         request.user.relicshop.save()
 
         rolls.insert_character(request.user, char_type)
+
+        QuestUpdater.add_progress_by_type(request.user, constants.PURCHASE_ITEM, 1)
 
         return Response({'status': True})
 
