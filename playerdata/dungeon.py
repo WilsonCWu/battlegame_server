@@ -12,7 +12,7 @@ from playerdata.models import DungeonProgress, Character, Placement
 from playerdata.models import DungeonStage
 from playerdata.models import UserMatchState
 from playerdata.models import ReferralTracker
-from . import constants, formulas, server, dungeon_gen, wishlist, chapter_rewards_pack
+from . import constants, formulas, dungeon_gen, wishlist, chapter_rewards_pack, world_pack
 from .constants import DungeonType
 from .matcher import PlacementSchema
 from .questupdater import QuestUpdater
@@ -309,15 +309,16 @@ class DungeonSetProgressView(APIView):
 
         if dungeon_type == constants.DungeonType.CAMPAIGN.value:
             stage = progress.campaign_stage
-            if progress.campaign_stage == constants.DUNGEON_REFERRAL_CONVERSION_STAGE:
+            if constants.DUNGEON_REFERRAL_CONVERSION_STAGE <= stage <= constants.DUNGEON_REFERRAL_CONVERSION_STAGE + 5:
                 complete_referral_conversion(request.user)
-                if server.is_server_version_higher("0.3.1"):
-                    wishlist.init_wishlist(request.user)
+                wishlist.init_wishlist(request.user)
 
-            # TODO: hasattr can be removed once backfilled
-            if progress.campaign_stage % 40 == 1 and hasattr(request.user, 'chapterrewardpack') and request.user.chapterrewardpack.is_active():
+            if stage % 40 == 1 and request.user.chapterrewardpack.is_active():
                 world_completed = progress.campaign_stage // 40
                 chapter_rewards_pack.complete_chapter_rewards(world_completed, request.user.chapterrewardpack)
+
+            if stage % 40 == 1:
+                world_pack.active_new_pack(request.user, stage // 40)
 
             QuestUpdater.set_progress_by_type(request.user, constants.COMPLETE_DUNGEON_LEVEL, progress.campaign_stage)
             QuestUpdater.add_progress_by_type(request.user, constants.WIN_DUNGEON_GAMES, 1)

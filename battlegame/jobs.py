@@ -187,3 +187,9 @@ def reset_expiration_20pack():
         pack.expiration_date = timezone.now() + timedelta(days=14)
 
     ChapterRewardPack.objects.bulk_update(reward_packs, ['expiration_date'])
+
+
+@transaction.atomic
+def backfill_worldpacks():
+    for user in User.objects.all():
+        _, _ = WorldPack.objects.get_or_create(user=user)

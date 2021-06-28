@@ -1291,6 +1291,17 @@ class ChapterRewardPack(models.Model):
                                default=constants.ChapterRewardPackType.CHAPTER19.value)
 
 
+def world_pack_default_expiration():
+    return timezone.now() - timedelta(days=3)
+
+
+class WorldPack(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    expiration_date = world_pack_default_expiration()
+    world = models.IntegerField(default=-1)
+    is_claimed = models.BooleanField(default=True)
+
+
 def create_user_referral(user):
     try:
         UserReferral.objects.create(user=user, referral_code=generate_referral_code())
@@ -1326,6 +1337,7 @@ def create_user_info(sender, instance, created, **kwargs):
         RelicShop.objects.create(user=instance)
         Wishlist.objects.create(user=instance)
         ChapterRewardPack.objects.create(user=instance)
+        WorldPack.objects.create(user=instance)
         create_user_referral(instance)
 
         # Add quests
@@ -1386,7 +1398,7 @@ def get_expiration_date(interval):
         if delta == 0:
             delta = 7
 
-    return datetime.combine(date.today(), time()) + timedelta(days=delta)
+    return datetime.combine(date.today(), time(tzinfo=timezone.utc)) + timedelta(days=delta)
 
 
 # Generates a random 12 letter uppercase string

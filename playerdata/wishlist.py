@@ -19,6 +19,9 @@ class WishlistSchema(Schema):
 
 
 def init_wishlist(user):
+    if user.wishlist.is_active:
+        return
+
     user.wishlist.legendaries = NUM_SLOTS_PER_RARITY[4] * [-1]
     user.wishlist.epics = NUM_SLOTS_PER_RARITY[3] * [-1]
     user.wishlist.rares = NUM_SLOTS_PER_RARITY[2] * [-1]

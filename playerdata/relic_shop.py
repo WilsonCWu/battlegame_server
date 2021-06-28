@@ -1,4 +1,3 @@
-import random
 from datetime import date, datetime, timedelta
 from functools import lru_cache
 

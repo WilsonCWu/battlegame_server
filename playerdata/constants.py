@@ -96,6 +96,9 @@ GEMS_2999 = 'com.salutationstudio.tinytitans.gems.2999'
 GEMS_4999 = 'com.salutationstudio.tinytitans.gems.4999'
 GEMS_9999 = 'com.salutationstudio.tinytitans.gems.9999'
 
+WORLD_PACK_999 = 'com.salutationstudio.tinytitans.worldpack.999'
+WORLD_PACK_1999 = 'com.salutationstudio.tinytitans.worldpack.1999'
+
 IAP_GEMS_AMOUNT = {
     GEMS_499: 800,
     GEMS_999: 2060,
