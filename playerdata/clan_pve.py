@@ -15,10 +15,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from . import chests
+from . import chests, constants
 from .inventory import CharacterSchema
 from .matcher import LightUserInfoSchema
 from .models import Character, ClanPVEResult, ClanPVEStatus, ClanPVEEvent, Clan2, ClanMember
+from .questupdater import QuestUpdater
 
 
 class ClanPVEBoss(enum.Enum):
@@ -312,6 +313,8 @@ class ClanPVEStatusView(APIView):
         # BUG: If a current boss exists, add 1 to its ticket.
         if event_status.current_boss != -1:
             tickets[str(event_status.current_boss)] += 1
+
+        QuestUpdater.add_progress_by_type(request.user, constants.FIGHT_MONSTER_HUNT, 1)
 
         # A borrowed character may not have been set yet.
         c = Character.objects.filter(char_id=event_status.current_borrowed_character).first()
