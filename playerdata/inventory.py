@@ -403,6 +403,7 @@ class EquipItemView(APIView):
             return Response({'status': False, 'reason': str(e)})
 
         char.save()
+        QuestUpdater.add_progress_by_type(request.user, constants.EQUIP_GEAR, 1)
         return Response({'status': True, 'unequip_char_id': unequip_char_id, 'unequip_slot': unequip_slot})
 
 
