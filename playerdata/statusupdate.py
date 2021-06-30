@@ -51,12 +51,12 @@ def award_chest(user):
     chest_rarity = rolls.weighted_pick_from_buckets(constants.CHEST_ODDS) + 1
 
     if chest_rarity == constants.ChestType.SILVER.value:
-        user.userstats.gold_chest_counter += 1
-        if user.userstats.gold_chest_counter == 6:
+        user.userstats.silver_chest_counter += 1
+        if user.userstats.silver_chest_counter == 6:
             chest_rarity = constants.ChestType.GOLD.value
-            user.userstats.gold_chest_counter = 0
+            user.userstats.silver_chest_counter = 0
     elif chest_rarity == constants.ChestType.GOLD.value:
-        user.userstats.gold_chest_counter = 0
+        user.userstats.silver_chest_counter = 0
 
     # chest cycle: drop 4 mythical chests in 240 quickplay chests
     user.userstats.chest_counter += 1
