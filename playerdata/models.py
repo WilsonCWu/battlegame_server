@@ -572,8 +572,6 @@ class UserStats(models.Model):
     longest_win_streak = models.IntegerField(default=0)
     daily_wins = models.IntegerField(default=0)
     mythic_pity_counter = models.IntegerField(default=0)
-    silver_pity_counter = models.IntegerField(default=0)
-    gold_pity_counter = models.IntegerField(default=0)
     chest_counter = models.IntegerField(default=0)
     gold_chest_counter = models.IntegerField(default=0)
     pvp_skips = models.IntegerField(default=5)
