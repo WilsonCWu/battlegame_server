@@ -32,13 +32,13 @@ class ClanFarmingTestCase(APITestCase):
         # Since the farming status was instantiated with a super old date, we
         # should get some unclaimed rewards, but none for this week.
         self.assertEqual(resp.data['total_farms'], 0)
-        self.assertEqual(resp.data['unclaimed_rewards'], 1)
+        self.assertEqual(resp.data['unclaimed_farm_count'], 1)
 
         # If we re-call this though, the reward would already be applied.
         resp = self.client.get('/clanfarm/status/')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
-        self.assertEqual(resp.data['unclaimed_rewards'], 0)
+        self.assertEqual(resp.data['unclaimed_farm_count'], 0)
 
     def test_anti_clan_hopping(self):
         farm_status = ClanFarming.objects.create(
@@ -53,7 +53,7 @@ class ClanFarmingTestCase(APITestCase):
         resp = self.client.get('/clanfarm/status/')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
-        self.assertEqual(resp.data['unclaimed_rewards'], 0)
+        self.assertEqual(resp.data['unclaimed_farm_count'], 0)
         
     def test_farm(self):
         resp = self.client.post('/clanfarm/farm/')

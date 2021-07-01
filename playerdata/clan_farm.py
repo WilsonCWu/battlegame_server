@@ -15,6 +15,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from . import chests
 from .models import Clan2, ClanMember, ClanFarming
 
 
@@ -38,7 +39,16 @@ def refresh_farm_status(status):
         }
         status.reset()
         status.save()
-        
+
+
+CLAN_FARM_RELIC_CAP = 200
+
+def farm_rewards(user, farms):
+    rewards = [chests.ChestReward(reward_type='relic_stone', value=min(farms * 2, CLAN_FARM_RELIC_CAP))]
+    chests.award_chest_rewards(user, rewards)
+    reward_schema = chests.ChestRewardSchema(rewards, many=True)
+    return reward_schema.data
+ 
 
 class ClanFarmingStatus(APIView):
     permission_classes = (IsAuthenticated,)
@@ -70,14 +80,17 @@ class ClanFarmingStatus(APIView):
             else:
                 clanmember.last_farm_reward = last_week()
                 clanmember.save()
-            # TODO: actually add reward to user inventory.
         else:
             unclaimed_rewards = 0
 
+        # Grant the rewards and serialize them to our chest format.
+        rewards_json = farm_rewards(request.user, unclaimed_rewards)
         return Response({'status': True,
                          'farmed_today': farmed_today,
                          'total_farms': total_farms,
-                         'unclaimed_rewards': unclaimed_rewards})
+                         'unclaimed_farm_count': unclaimed_rewards,
+                         'rewards': rewards_json,
+                         })
 
 
 class ClanFarmingFarm(APIView):
