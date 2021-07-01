@@ -47,6 +47,7 @@ urlpatterns = [
     path('wishlist/set/', wishlist.SetWishlistSlotView.as_view()),
     path('clanfarm/status/', clan_farm.ClanFarmingStatus.as_view()),
     path('clanfarm/farm/', clan_farm.ClanFarmingFarm.as_view()),
+    path('clanfarm/claim/', clan_farm.ClanFarmingClaim.as_view()),
     path('relicshop/buy/', relic_shop.BuyRelicView.as_view()),
     path('relicshop/get/', relic_shop.GetRelicShopView.as_view()),
     path('clanpve/start/', clan_pve.ClanPVEStartView.as_view()),

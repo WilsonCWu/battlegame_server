@@ -34,7 +34,11 @@ class ClanFarmingTestCase(APITestCase):
         self.assertEqual(resp.data['total_farms'], 0)
         self.assertEqual(resp.data['unclaimed_farm_count'], 1)
 
-        # If we re-call this though, the reward would already be applied.
+        # We can claim the reward and verify that it is removed.
+        resp = self.client.post('/clanfarm/claim/')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue(resp.data['status'])
+
         resp = self.client.get('/clanfarm/status/')
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
