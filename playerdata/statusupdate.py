@@ -50,6 +50,7 @@ def award_chest(user):
 
     chest_rarity = rolls.weighted_pick_from_buckets(constants.CHEST_ODDS) + 1
 
+    # pity for gold chests, if 6 silver chests in a row then we drop a gold
     if chest_rarity == constants.ChestType.SILVER.value:
         user.userstats.silver_chest_counter += 1
         if user.userstats.silver_chest_counter == 6:
