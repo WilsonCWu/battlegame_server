@@ -57,7 +57,7 @@ class ClanFarmingStatus(APIView):
         refresh_farm_status(status)
         
         weekday = datetime.datetime.today().date().weekday()
-        farmed_today = request.user.id in status.daily_farms[weekday]
+        farmed_today = str(request.user.id) in status.daily_farms[weekday]
         total_farms = sum(len(f) for f in status.daily_farms)
         if request.user.id in status.unclaimed_rewards['clan_members']:
             unclaimed_rewards = status.unclaimed_rewards['total_farms']
