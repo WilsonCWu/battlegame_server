@@ -15,6 +15,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from . import chests
 from .models import Clan2, ClanMember, ClanFarming
 
 
@@ -38,7 +39,10 @@ def refresh_farm_status(status):
         }
         status.reset()
         status.save()
-        
+
+
+CLAN_FARM_RELIC_CAP = 200
+
 
 class ClanFarmingStatus(APIView):
     permission_classes = (IsAuthenticated,)
@@ -57,8 +61,6 @@ class ClanFarmingStatus(APIView):
         total_farms = sum(len(f) for f in status.daily_farms)
         if request.user.id in status.unclaimed_rewards['clan_members']:
             unclaimed_rewards = status.unclaimed_rewards['total_farms']
-            status.unclaimed_rewards['clan_members'].remove(request.user.id)
-            status.save()
 
             # Check if users have already claimed rewards for the last week,
             # if they have force it to be 0 (NOTE: this is not visually
@@ -67,17 +69,51 @@ class ClanFarmingStatus(APIView):
             clanmember = request.user.userinfo.clanmember
             if clanmember.last_farm_reward == last_week():
                 unclaimed_rewards = 0
-            else:
-                clanmember.last_farm_reward = last_week()
-                clanmember.save()
-            # TODO: actually add reward to user inventory.
         else:
             unclaimed_rewards = 0
 
         return Response({'status': True,
                          'farmed_today': farmed_today,
                          'total_farms': total_farms,
-                         'unclaimed_rewards': unclaimed_rewards})
+                         'unclaimed_farm_count': unclaimed_rewards,
+                         })
+
+
+class ClanFarmingClaim(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic
+    def post(self, request):
+        clan = request.user.userinfo.clanmember.clan2
+        if not clan:
+            return Response({'status': False, 'reason': 'User not part of a clan!'})
+
+        status, _ = ClanFarming.objects.get_or_create(clan=clan)
+        refresh_farm_status(status)
+
+        # Logic is similar to ClanFarmingStatus, but we actually modify
+        # state here.
+        if request.user.id in status.unclaimed_rewards['clan_members']:
+            unclaimed_rewards = status.unclaimed_rewards['total_farms']
+            status.unclaimed_rewards['clan_members'].remove(request.user.id)
+            status.save()
+
+            # Mark that the user has claimed rewards for this week already.
+            clanmember = request.user.userinfo.clanmember
+            if clanmember.last_farm_reward == last_week():
+                return Response({'status': False, 'reason': 'Already claimed reward within the week!'})
+
+            clanmember.last_farm_reward = last_week()
+            clanmember.save()
+        else:
+            return Response({'status': False, 'reason': 'User has no rewards to claim!'})
+
+        # Grant the rewards and serialize them to our chest format.
+        stones = min(unclaimed_rewards * 2, CLAN_FARM_RELIC_CAP)
+        rewards = [chests.ChestReward(reward_type='relic_stone', value=stones)]
+        chests.award_chest_rewards(request.user, rewards)
+        reward_schema = chests.ChestRewardSchema(rewards, many=True)
+        return Response({'status': True, 'reward': reward_schema.data})
 
 
 class ClanFarmingFarm(APIView):
