@@ -643,6 +643,7 @@ admin.site.register(HackerAlert)
 admin.site.register(ClanPVEEvent)
 admin.site.register(ClanPVEResult)
 admin.site.register(ClanPVEStatus)
+admin.site.register(ClanFarming)
 
 admin.site.register(RelicShop, RelicShopAdmin)
 admin.site.register(LevelBooster)
