@@ -43,6 +43,7 @@ class PlacementSchema(Schema):
 class UserInfoSchema(Schema):
     user_id = fields.Int(attribute='user_id')
     highest_elo = fields.Int()
+    highest_season_elo = fields.Int()
     elo = fields.Int()
     tier_rank = fields.Int()
     best_moevasion_stage = fields.Int()

@@ -224,7 +224,7 @@ def restart_season():
     elo_trackers = []
     for userinfo in elo_reset_users:
         userinfo.elo = constants.TIER_ELO_INCREMENT * (constants.Tiers.GRANDMASTER.value - 1)
-        userinfo.highest_elo = userinfo.elo
+        userinfo.highest_season_elo = userinfo.elo
 
         # Reset their EloRewardTrackers so they can reclaim the new season rewards
         tracker = userinfo.user.elorewardtracker
@@ -232,7 +232,7 @@ def restart_season():
         tracker.last_completed = 59
         elo_trackers.append(tracker)
 
-    UserInfo.objects.bulk_update(elo_reset_users, ['elo', 'highest_elo'])
+    UserInfo.objects.bulk_update(elo_reset_users, ['elo', 'highest_season_elo'])
     EloRewardTracker.objects.bulk_update(elo_trackers, ['last_claimed', 'last_completed'])
 
 
