@@ -193,3 +193,12 @@ def reset_expiration_20pack():
 def backfill_worldpacks():
     for user in User.objects.all():
         _, _ = WorldPack.objects.get_or_create(user=user)
+
+
+@transaction.atomic
+def backfill_highest_seasonelo():
+    userinfos = UserInfo.objects.all()
+    for userinfo in userinfos:
+        userinfo.highest_season_elo = userinfo.elo
+
+    UserInfo.objects.bulk_update(userinfos, ['highest_season_elo'])
