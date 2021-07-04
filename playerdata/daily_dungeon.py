@@ -232,9 +232,9 @@ class DailyDungeonSkipView(APIView):
         if dd_status.stage % 5 == 0:
             return Response({'status': False, 'reason': 'cannot skip boss level'})
         
-        # Allow the user to skip to bosses until the best level - 20.
+        # Allow the user to skip to bosses until the best level - 10.
         best_stage = request.user.userinfo.best_daily_dungeon_stage
-        skip_until = max(0, (best_stage // 5) * 5 - 20)
+        skip_until = max(0, (best_stage // 5) * 5 - 10)
 
         skip_target = ((dd_status.stage // 5) + 1) * 5 
         if skip_target > skip_until:
