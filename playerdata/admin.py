@@ -546,7 +546,7 @@ class BaseCharacterAdmin(admin.ModelAdmin):
                     mr=20,
                     attack_range=1,
                     crit_chance=10,
-                    health_scale=100,
+                    health_scale=1500,
                     attack_scale=100,
                     ability_scale=100,
                     ar_scale=30,
