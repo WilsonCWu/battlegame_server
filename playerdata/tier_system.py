@@ -204,7 +204,7 @@ class ClaimSeasonRewardView(APIView):
 # The hour is 4am UTC or 12am EST during non-daylight savings
 def get_season_expiration_date():
     today = datetime.today()
-    return (datetime(today.year, today.month, 1, 4) + timedelta(days=32)).replace(day=1)
+    return (datetime(today.year, today.month, 1, 0) + timedelta(days=32)).replace(day=1)
 
 
 # EndSeasonRewards
