@@ -7,6 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError, transaction
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+from inapppy import AppStoreValidator, InAppPyValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -17,7 +18,7 @@ from playerdata.models import Character
 from playerdata.models import InvalidReceipt
 from playerdata.models import Inventory
 from playerdata.models import PurchasedTracker, Item, ActiveDeal, BaseDeal, get_expiration_date
-from . import constants, chests, rolls, chapter_rewards_pack, world_pack
+from . import constants, chests, rolls, chapter_rewards_pack, world_pack, server
 from .base import BaseItemSchema, BaseCharacterSchema
 from .constants import DealType
 from .questupdater import QuestUpdater
@@ -54,9 +55,11 @@ class ValidateView(APIView):
         serializer.is_valid(raise_exception=True)
         store = serializer.validated_data['store']
         receipt = serializer.validated_data['receipt']
+        if server.is_server_version_higher("0.3.3"):
+            transaction_id = serializer.validated_data['transaction_id']
 
         if store == 0:  # Apple
-            return validate_apple(request, receipt)
+            return validate_apple(request, receipt, transaction_id)
         elif store == 1:
             return validate_google(request, receipt)
 
@@ -80,30 +83,59 @@ def validate_google(request, receipt_raw):
                                                       productId=purchase_id,
                                                       token=receipt['purchaseToken']).execute()
 
-        # check if a duplicate purchase with the same transaction_id exists
-        if PurchasedTracker.objects.filter(user=request.user, transaction_id=transaction_id).exists():
-            # Already fulfilled purchase
-            return Response({'status': True})
-
-        if purchase_id.startswith('com.salutationstudio.tinytitans.gems.'):
-            return handle_purchase_gems(request.user, purchase_id, transaction_id)
-        elif purchase_id.startswith('com.salutationstudio.tinytitans.deal.'):
-            return handle_purchase_deal(request.user, purchase_id, transaction_id)
-        elif purchase_id.startswith('com.salutationstudio.tinytitans.chapterrewards.'):
-            return handle_purchase_chapterpack(request.user, purchase_id, transaction_id)
-        elif purchase_id.startswith('com.salutationstudio.tinytitans.worldpack.'):
-            return handle_purchase_world_pack(request.user, purchase_id, transaction_id)
-        else:
-            return Response({'status': False, 'reason': 'invalid id ' + purchase_id})
+        return reward_purchase(request.user, transaction_id, purchase_id)
 
     except Exception:
         InvalidReceipt.objects.create(user=request.user, order_number=str(receipt['orderId']),
                                       date=receipt['purchaseTime'], product_id=receipt['productId'], receipt=receipt_raw)
-        return Response({'status': False})
+        return Response({'status': False, 'reason': 'receipt validation failed'})
 
 
-def validate_apple(request, receipt_raw):
-    return Response({'status': True})
+def validate_apple(request, receipt_raw, transaction_id):
+    payload = json.loads(receipt_raw)['Payload']
+
+    bundle_id = 'com.salutationstudio.tinytitans'
+    validator = AppStoreValidator(bundle_id, auto_retry_wrong_env_request=True)
+
+    try:
+        validation_result = validator.validate(payload, None, exclude_old_transactions=False)
+        purchase_id = parse_apple_purchase_id(validation_result, transaction_id)
+        if purchase_id == '':
+            return Response({'status': False, 'reason': 'transaction_id not found'})
+
+        return reward_purchase(request.user, transaction_id, purchase_id)
+
+    except InAppPyValidationError as ex:
+        response_from_apple = ex.raw_response  # contains actual response from AppStore service.
+        return Response({'status': False, 'reason': 'receipt validation failed'})
+
+
+def parse_apple_purchase_id(validation_result, transaction_id):
+    iaps = validation_result["receipt"]["in_app"]
+
+    for iap in iaps:
+        if iap["transaction_id"] == transaction_id:
+            return iap["product_id"]
+
+    return ''
+
+
+def reward_purchase(user, transaction_id, purchase_id):
+    # check if a duplicate purchase with the same transaction_id exists
+    if PurchasedTracker.objects.filter(user=user, transaction_id=transaction_id).exists():
+        # Already fulfilled purchase
+        return Response({'status': True})
+
+    if purchase_id.startswith('com.salutationstudio.tinytitans.gems.'):
+        return handle_purchase_gems(user, purchase_id, transaction_id)
+    elif purchase_id.startswith('com.salutationstudio.tinytitans.deal.'):
+        return handle_purchase_deal(user, purchase_id, transaction_id)
+    elif purchase_id.startswith('com.salutationstudio.tinytitans.chapterrewards.'):
+        return handle_purchase_chapterpack(user, purchase_id, transaction_id)
+    elif purchase_id.startswith('com.salutationstudio.tinytitans.worldpack.'):
+        return handle_purchase_world_pack(user, purchase_id, transaction_id)
+    else:
+        return Response({'status': False, 'reason': 'invalid id ' + purchase_id})
 
 
 def handle_purchase_world_pack(user, purchase_id, transaction_id):
