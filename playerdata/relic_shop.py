@@ -83,9 +83,9 @@ def get_relics(seed_int=1):
 def get_relic_reset_date():
     today = datetime.today()
     if today.day >= 16:
-        return (datetime(today.year, today.month, 1, 4) + timedelta(days=32)).replace(day=1)
+        return (datetime(today.year, today.month, 1, 0) + timedelta(days=32)).replace(day=1)
     else:
-        return datetime(today.year, today.month, 16, 4)
+        return datetime(today.year, today.month, 16, 0)
 
 
 # Cron job on 1st and 16th day of the month
