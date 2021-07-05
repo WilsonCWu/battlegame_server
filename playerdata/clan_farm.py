@@ -113,7 +113,7 @@ class ClanFarmingClaim(APIView):
         rewards = [chests.ChestReward(reward_type='relic_stone', value=stones)]
         chests.award_chest_rewards(request.user, rewards)
         reward_schema = chests.ChestRewardSchema(rewards, many=True)
-        return Response({'status': True, 'reward': reward_schema.data})
+        return Response({'status': True, 'rewards': reward_schema.data})
 
 
 class ClanFarmingFarm(APIView):
