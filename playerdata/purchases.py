@@ -110,6 +110,8 @@ def validate_apple(request, receipt_raw, transaction_id):
         return Response({'status': False, 'reason': 'receipt validation failed'})
 
 
+# https://developer.apple.com/documentation/appstorereceipts/responsebody/receipt/in_app
+# Docs say the list of IAPs aren't in chronological order, so we need to iterate to check the transaction_id
 def parse_apple_purchase_id(validation_result, transaction_id):
     iaps = validation_result["receipt"]["in_app"]
 
