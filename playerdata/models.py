@@ -541,6 +541,7 @@ class UserInfo(models.Model):
     default_placement = models.ForeignKey(Placement, null=True, on_delete=models.SET_NULL)
     player_exp = models.IntegerField(default=0)
     is_bot = models.BooleanField(default=False)
+    is_monthly_sub = models.BooleanField(default=False)
 
     # Player skills ranking.
     elo = models.IntegerField(default=0)

@@ -79,9 +79,16 @@ def validate_google(request, receipt_raw):
     try:
         purchase_id = receipt['productId']
         transaction_id = receipt['orderId']
-        response = service.purchases().products().get(packageName=receipt['packageName'],
-                                                      productId=purchase_id,
-                                                      token=receipt['purchaseToken']).execute()
+        is_subscription = purchase_id.startswith('com.salutationstudio.tinytitans.monthlypass')
+
+        if is_subscription:
+            response = service.purchases().subscriptions().get(packageName=receipt['packageName'],
+                                                               subscriptionId=purchase_id,
+                                                               token=receipt['purchaseToken']).execute()
+        else:
+            response = service.purchases().products().get(packageName=receipt['packageName'],
+                                                          productId=purchase_id,
+                                                          token=receipt['purchaseToken']).execute()
 
         return reward_purchase(request.user, transaction_id, purchase_id)
 
@@ -136,8 +143,19 @@ def reward_purchase(user, transaction_id, purchase_id):
         return handle_purchase_chapterpack(user, purchase_id, transaction_id)
     elif purchase_id.startswith('com.salutationstudio.tinytitans.worldpack.'):
         return handle_purchase_world_pack(user, purchase_id, transaction_id)
+    elif purchase_id.startswith('com.salutationstudio.tinytitans.monthlypass'):
+        return handle_purchase_subscription(user, purchase_id, transaction_id)
     else:
         return Response({'status': False, 'reason': 'invalid id ' + purchase_id})
+
+
+def handle_purchase_subscription(user, purchase_id, transaction_id):
+    user.userinfo.is_monthly_sub = True
+    user.userinfo.save()
+
+    PurchasedTracker.objects.create(user=user, transaction_id=transaction_id, purchase_id=purchase_id)
+
+    return Response({'status': True})
 
 
 def handle_purchase_world_pack(user, purchase_id, transaction_id):
@@ -446,3 +464,14 @@ class PurchaseItemView(APIView):
 
         reward_schema = chests.ChestRewardSchema(rewards, many=True)
         return Response({'status': True, 'rewards': reward_schema.data})
+
+
+class CancelSubscriptionView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic()
+    def post(self, request):
+        request.user.userinfo.is_monthly_sub = False
+        request.user.userinfo.save()
+
+        return Response({'status': True})
