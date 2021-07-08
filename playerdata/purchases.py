@@ -150,8 +150,9 @@ def reward_purchase(user, transaction_id, purchase_id):
 
 
 def handle_purchase_subscription(user, purchase_id, transaction_id):
-    user.userinfo.is_monthly_sub = True
-    user.userinfo.save()
+    if not user.userinfo.is_monthly_sub:
+        user.userinfo.is_monthly_sub = True
+        user.userinfo.save()
 
     PurchasedTracker.objects.create(user=user, transaction_id=transaction_id, purchase_id=purchase_id)
 
