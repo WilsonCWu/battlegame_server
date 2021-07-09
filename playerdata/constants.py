@@ -101,6 +101,8 @@ GEMS_9999 = 'com.salutationstudio.tinytitans.gems.9999'
 WORLD_PACK_999 = 'com.salutationstudio.tinytitans.worldpack.999'
 WORLD_PACK_1999 = 'com.salutationstudio.tinytitans.worldpack.1999'
 
+MONTHLY_PASS = 'com.salutationstudio.tinytitans.monthlypass1'
+
 IAP_GEMS_AMOUNT = {
     GEMS_499: 800,
     GEMS_999: 2060,
