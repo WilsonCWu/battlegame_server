@@ -328,7 +328,6 @@ class QueueChestView(APIView):
         if not request.user.userinfo.is_monthly_sub:
             return Response({'status': False, 'reason': 'Please purchase Battle Pass to unlock this feature'})
 
-        # add unlock time + furthest away unlock time
         queued_chest = None
         chests = list(Chest.objects.filter(user=request.user).order_by('locked_until'))
 
@@ -342,9 +341,11 @@ class QueueChestView(APIView):
         if queued_chest is None:
             return Response({'status': False, 'reason': 'chest_id does not exist ' + chest_id})
 
+        # reinsert the chest
         chests.remove(queued_chest)
         chests.insert(1, queued_chest)
 
+        # reorder the queue timers
         for i, chest in enumerate(chests):
             if i == 0:
                 continue
@@ -352,5 +353,4 @@ class QueueChestView(APIView):
                 chest.locked_until = chests[i - 1].locked_until + chest_unlock_timedelta(chest.rarity)
 
         Chest.objects.bulk_update(chests, ['locked_until'])
-
         return Response({'status': True})
