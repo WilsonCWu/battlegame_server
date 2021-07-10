@@ -12,7 +12,7 @@ from playerdata import constants, formulas, rolls, tier_system, base
 from playerdata.constants import ChestType
 from playerdata.models import Chest, BaseItem, Item, DailyDungeonStatus, BaseCharacter
 from playerdata.questupdater import QuestUpdater
-from playerdata.serializers import ValueSerializer, CollectChestSerializer
+from playerdata.serializers import ValueSerializer, CollectChestSerializer, IntSerializer
 
 
 # Examples:
@@ -314,3 +314,49 @@ class CollectChest(APIView):
 
         reward_schema = ChestRewardSchema(rewards, many=True)
         return Response({'status': True, 'rewards': reward_schema.data})
+
+
+class QueueChestView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic
+    def post(self, request):
+        serializer = IntSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        chest_id = serializer.validated_data['value']
+
+        if not request.user.userinfo.is_monthly_sub:
+            return Response({'status': False, 'reason': 'Please purchase Battle Pass to unlock this feature'})
+
+        queued_chest = None
+        chests = list(Chest.objects.filter(user=request.user).order_by('locked_until'))
+
+        if chests[0].locked_until is None:
+            return Response({'status': False, 'reason': 'cannot queue chest, no other chests unlocking'})
+
+        num_chests_queued = 0
+        for chest in chests:
+            if chest.id == chest_id:
+                chest.locked_until = datetime.now(timezone.utc)  # placeholder until it is set later
+                queued_chest = chest
+
+            if chest.locked_until is not None:
+                num_chests_queued += 1
+
+        if queued_chest is None:
+            return Response({'status': False, 'reason': 'chest_id does not exist ' + chest_id})
+
+        # reinsert the chest at the end of queue
+        index_to_insert = num_chests_queued - 1
+        chests.remove(queued_chest)
+        chests.insert(index_to_insert, queued_chest)
+
+        # reorder the queue timers
+        for i, chest in enumerate(chests):
+            if i == 0:
+                continue
+            if chest.locked_until is not None or chest.id == chest_id:
+                chest.locked_until = chests[i - 1].locked_until + chest_unlock_timedelta(chest.rarity)
+
+        Chest.objects.bulk_update(chests, ['locked_until'])
+        return Response({'status': True})

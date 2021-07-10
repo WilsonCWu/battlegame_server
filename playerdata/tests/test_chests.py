@@ -14,6 +14,9 @@ class ChestAPITestCase(APITestCase):
         self.u = User.objects.get(username='battlegame')
         self.client.force_authenticate(user=self.u)
 
+        self.u.userinfo.is_monthly_sub = True
+        self.u.userinfo.save()
+
         # make some chests
         self.chest1 = Chest.objects.create(user=self.u, rarity=1)
         self.chest2 = Chest.objects.create(user=self.u, rarity=2)
@@ -81,3 +84,68 @@ class ChestAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
+
+    def test_queue_chest(self):
+        response = self.client.post('/chest/unlock/', {
+            'value': self.chest1.id,
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        self.assertIsNone(self.chest2.locked_until)
+
+        response = self.client.post('/chest/queue/', {
+            'value': self.chest2.id,
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        self.chest2.refresh_from_db()
+        self.assertIsNotNone(self.chest2.locked_until)
+
+    def test_queue_2chests(self):
+        response = self.client.post('/chest/unlock/', {
+            'value': self.chest1.id,
+        })
+
+        response = self.client.post('/chest/queue/', {
+            'value': self.chest2.id,
+        })
+
+        response = self.client.post('/chest/queue/', {
+            'value': self.chest3.id,
+        })
+
+        self.chest2.refresh_from_db()
+        self.chest3.refresh_from_db()
+        self.assertIsNotNone(self.chest3.locked_until)
+
+        self.assertTrue(self.chest3.locked_until > self.chest2.locked_until)
+
+    # unlock chest 1, queue chest 2, queue chest 3
+    # requeue chest 3, now it should be first in the queue, before chest 2
+    def test_requeue(self):
+        response = self.client.post('/chest/unlock/', {
+            'value': self.chest1.id,
+        })
+
+        response = self.client.post('/chest/queue/', {
+            'value': self.chest2.id,
+        })
+
+        response = self.client.post('/chest/queue/', {
+            'value': self.chest3.id,
+        })
+
+        response = self.client.post('/chest/queue/', {
+            'value': self.chest2.id,
+        })
+
+        self.chest1.refresh_from_db()
+        self.chest2.refresh_from_db()
+        self.chest3.refresh_from_db()
+        self.assertIsNotNone(self.chest3.locked_until)
+
+        self.assertTrue(self.chest1.locked_until < self.chest2.locked_until)
+        self.assertTrue(self.chest2.locked_until > self.chest3.locked_until)

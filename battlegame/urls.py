@@ -160,6 +160,7 @@ urlpatterns = [
     path('dungeon/setprogress', dungeon.DungeonSetProgressView.as_view()),
     path('dungeon/setprogress/stage/', dungeon.DungeonSetProgressStageView.as_view()),
     path('dungeon/setprogress/commit/', dungeon.DungeonSetProgressCommitView.as_view()),
+    path('chest/queue/', chests.QueueChestView.as_view()),
     path('chest/unlock/', chests.UnlockChest.as_view()),
     path('chest/collect/', chests.CollectChest.as_view()),
     path('status/', server.ServerStatusView.as_view()),
