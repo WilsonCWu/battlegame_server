@@ -334,16 +334,22 @@ class QueueChestView(APIView):
         if chests[0].locked_until is None:
             return Response({'status': False, 'reason': 'cannot queue chest, no other chests unlocking'})
 
+        num_chests_queued = 0
         for chest in chests:
             if chest.id == chest_id:
+                chest.locked_until = datetime.now(timezone.utc)  # placeholder until it is set later
                 queued_chest = chest
+
+            if chest.locked_until is not None:
+                num_chests_queued += 1
 
         if queued_chest is None:
             return Response({'status': False, 'reason': 'chest_id does not exist ' + chest_id})
 
-        # reinsert the chest
+        # reinsert the chest at the end of queue
+        index_to_insert = num_chests_queued - 1
         chests.remove(queued_chest)
-        chests.insert(1, queued_chest)
+        chests.insert(index_to_insert, queued_chest)
 
         # reorder the queue timers
         for i, chest in enumerate(chests):

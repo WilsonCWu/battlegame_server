@@ -121,7 +121,7 @@ class ChestAPITestCase(APITestCase):
         self.chest3.refresh_from_db()
         self.assertIsNotNone(self.chest3.locked_until)
 
-        self.assertTrue(self.chest3.locked_until < self.chest2.locked_until)
+        self.assertTrue(self.chest3.locked_until > self.chest2.locked_until)
 
     # unlock chest 1, queue chest 2, queue chest 3
     # requeue chest 3, now it should be first in the queue, before chest 2
@@ -148,4 +148,4 @@ class ChestAPITestCase(APITestCase):
         self.assertIsNotNone(self.chest3.locked_until)
 
         self.assertTrue(self.chest1.locked_until < self.chest2.locked_until)
-        self.assertTrue(self.chest2.locked_until < self.chest3.locked_until)
+        self.assertTrue(self.chest2.locked_until > self.chest3.locked_until)
