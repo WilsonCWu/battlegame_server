@@ -289,6 +289,7 @@ class DungeonSetProgressCommitView(APIView):
 class DungeonSetProgressView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         # Increment Dungeon progress
         serializer = SetDungeonProgressSerializer(data=request.data)

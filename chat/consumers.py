@@ -9,30 +9,37 @@ from playerdata.models import ChatMessage
 from playerdata.models import Chat
 from playerdata.models import ChatLastReadMessage
 
+profanity.load_censor_words(whitelist_words=['omg', 'omfg', 'lmao', 'lmfao', 'god', 'goddamn', 'goddammit', 'goddamned',
+                                             'pee', 'poop', 'suck', 'sucked', 'crap', 'turd', 'piss', 'ugly', 'vulgar',
+                                             'womb', 'virgin', 'retard', 'moron', 'doofus', 'dummy', 'douche',
+                                             'douchebag', 'gay', 'lesbian', 'damn', 'fart', 'fat', 'hell', 'quicky',
+                                             'sexual', 'wtf', 'kill', 'jerk', 'vomit', 'vulgar', 'vodka', 'wang',
+                                             'weirdo', 'xx', 'xxx', 'urinal', 'urine', 'unwed', 'thug', 'stupid',
+                                             'strip', 'steamy', 'sissy', 'seduce', 'pot'])
 
-profanity.load_censor_words(whitelist_words=['omg', 'omfg', 'lmao', 'lmfao', 'god', 'goddamn', 'pee', 'poop', 'suck', 'sucked', 'crap', 'turd', 'piss', 'ugly', 'vulgar', 'womb', 'virgin', 'retard', 'moron', 'doofus', 'dummy', 'douche', 'gay', 'lesbian', 'damn', 'fat', 'hell', 'quicky', 'sexual', 'wtf'])
 
 class MessageSchema(Schema):
     message = fields.Str()
-    #TODO: this is quite expensive, should not be in here
+    # TODO: this is quite expensive, should not be in here
     sender = fields.Str(attribute='sender.userinfo.name')
     sender_id = fields.Int(attribute='sender_id')
     sender_profile_picture_id = fields.Int(attribute='sender_profile_picture_id')
     time_send = fields.DateTime()
+
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
         self.user = self.scope["user"]
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = 'chat_%s' % self.room_name
-       
+
         if not self.room_name.isdigit():
-            raise Exception('<h1>room '+self.room_name+' must be an int</h1>')
-        
+            raise Exception('<h1>room ' + self.room_name + ' must be an int</h1>')
+
         chatSet = Chat.objects.filter(id=int(self.room_name))
-        
+
         if not chatSet:
-            raise Exception('<h1>room '+self.room_name+' not found</h1>')
+            raise Exception('<h1>room ' + self.room_name + ' not found</h1>')
 
         self.chat = chatSet[0]
 
@@ -73,12 +80,13 @@ class ChatConsumer(WebsocketConsumer):
             )
 
             # save to db
-            chat_message = ChatMessage.objects.create(chat=self.chat, message=message, sender=self.user, sender_profile_picture_id=pfp_id)
+            chat_message = ChatMessage.objects.create(chat=self.chat, message=message, sender=self.user,
+                                                      sender_profile_picture_id=pfp_id)
             ChatLastReadMessage.objects.update_or_create(chat=self.chat,
                                                          user=self.user,
                                                          defaults={"time_send": chat_message.time_send}
                                                          )
-        
+
         elif message_type == 'req':
             latest_timestamp = text_data_json['latest_timestamp']
 
@@ -124,5 +132,5 @@ class ChatConsumer(WebsocketConsumer):
             'message': message,
             'sender_id': sender_id,
             'sender': sender,
-            'sender_profile_picture_id':sender_profile_picture_id
+            'sender_profile_picture_id': sender_profile_picture_id
         }))

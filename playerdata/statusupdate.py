@@ -193,7 +193,7 @@ def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defend
 
     # rewards
     if request.user.userstats.daily_wins <= constants.MAX_DAILY_QUICKPLAY_WINS_FOR_GOLD and win:
-        coins = formulas.coins_chest_reward(request.user, constants.ChestType.SILVER.value) / 20
+        coins = formulas.coins_chest_reward(request.user, constants.ChestType.SILVER.value) * 0.15
         request.user.inventory.coins += coins
         request.user.inventory.save()
 
