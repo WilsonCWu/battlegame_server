@@ -57,6 +57,7 @@ class UserInfoSchema(Schema):
     num_games = fields.Int(attribute='user.userstats.num_games')
     time_started = fields.Str(attribute='user.userstats.time_started')
     longest_win_streak = fields.Int(attribute='user.userstats.longest_win_streak')
+    daily_wins = fields.Int(attribute='user.userstats.daily_wins')
     campaign_stage = fields.Int(attribute='user.dungeonprogress.campaign_stage')
     total_damage = fields.Function(lambda userinfo: CumulativeTracker.objects.get(user=userinfo.user, type=constants.DAMAGE_DEALT).progress)
 
