@@ -1305,6 +1305,24 @@ class WorldPack(models.Model):
     is_claimed = models.BooleanField(default=True)
 
 
+class StoryMode(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    available_stories = ArrayField(models.IntegerField(), default=list)
+    completed_stories = ArrayField(models.IntegerField(), default=list)
+    buff_points = models.IntegerField(default=0)
+    current_tier = models.IntegerField(default=0)
+
+    # Current Story progress fields
+    current_lvl = models.IntegerField(default=0)
+    num_runs = models.IntegerField(default=0)
+    story_id = models.IntegerField(default=-1)
+
+    # We expect character state to be in the format of
+    # {<character_id>: <character_health>}.
+    cur_character_state = JSONField(blank=True, null=True)
+    checkpoint_state = JSONField(blank=True, null=True)
+
+
 def create_user_referral(user):
     try:
         UserReferral.objects.create(user=user, referral_code=generate_referral_code())
