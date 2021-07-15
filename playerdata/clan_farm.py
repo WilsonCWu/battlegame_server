@@ -16,7 +16,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from . import chests
-from .models import Clan2, ClanMember, ClanFarming
+from .models import Clan2, ClanMember, ClanFarming, UserInfo
+from .matcher import LightUserInfoSchema
 
 
 def current_week():
@@ -58,6 +59,8 @@ class ClanFarmingStatus(APIView):
         
         weekday = datetime.datetime.today().date().weekday()
         farmed_today = str(request.user.id) in status.daily_farms[weekday]
+        all_farmer_ids = list({int(id) for farm in status.daily_farms for id in farm})
+        all_farmer_userinfos = UserInfo.objects.filter(user_id__in=all_farmer_ids)
         total_farms = sum(len(f) for f in status.daily_farms)
         if request.user.id in status.unclaimed_rewards['clan_members']:
             unclaimed_rewards = status.unclaimed_rewards['total_farms']
@@ -74,6 +77,7 @@ class ClanFarmingStatus(APIView):
 
         return Response({'status': True,
                          'farmed_today': farmed_today,
+                         'all_farmers': LightUserInfoSchema(all_farmer_userinfos, many=True).data,
                          'total_farms': total_farms,
                          'unclaimed_farm_count': unclaimed_rewards,
                          })
