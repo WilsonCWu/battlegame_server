@@ -2,7 +2,6 @@
 
 from django.db import transaction
 
-from playerdata import wishlist
 from playerdata.models import *
 
 
@@ -90,28 +89,6 @@ def backfill_clans():
     ClanRequest.objects.bulk_update(cr_objs, ['clan2'])
 
 
-@transaction.atomic
-def backfill_cumulative_quests():
-    users = User.objects.all()
-    # for all playerquest
-    bulk_quests2 = []
-    for user in users:
-        player_quests = PlayerQuestCumulative.objects.filter(user=user)
-        if PlayerQuestCumulative2.objects.filter(user=user).exists():
-            continue
-        quests2 = PlayerQuestCumulative2(user=user)
-        quests2.completed_quests = []
-        quests2.claimed_quests = []
-        for quest in player_quests:
-            if quest.completed:
-                quests2.completed_quests.append(quest.base_quest_id)
-            if quest.claimed:
-                quests2.claimed_quests.append(quest.base_quest_id)
-
-        bulk_quests2.append(quests2)
-
-    PlayerQuestCumulative2.objects.bulk_create(bulk_quests2)
-
 
 @transaction.atomic
 def fix_clan_count():
@@ -123,30 +100,12 @@ def fix_clan_count():
 
 
 @transaction.atomic
-def backfill_level_booster():
-    for user in User.objects.all():
-        _, _ = LevelBooster.objects.get_or_create(user=user)
-
-
-@transaction.atomic
-def backfill_relics():
-    for user in User.objects.all():
-        _, _ = RelicShop.objects.get_or_create(user=user)
-
-
-@transaction.atomic
 def backfill_pve_status():
     for member in ClanMember.objects.all():
         if not member.pve_character_lending:
             cs = Character.objects.filter(user_id=member.userinfo_id)[:3]
             member.pve_character_lending=[c.char_id for c in cs]
             member.save()
-
-
-@transaction.atomic
-def backfill_champbadge():
-    for user in User.objects.all():
-        _, _ = ChampBadgeTracker.objects.get_or_create(user=user)
 
 
 @transaction.atomic
@@ -166,20 +125,6 @@ def shorten_descriptions():
 
 
 @transaction.atomic
-def backfill_wishlist():
-    dungeons = DungeonProgress.objects.select_related('user')
-    for dungeon in dungeons:
-        if dungeon.campaign_stage >= constants.DUNGEON_REFERRAL_CONVERSION_STAGE:
-            wishlist.init_wishlist(dungeon.user)
-
-
-@transaction.atomic
-def backfill_chapterrewardpacks():
-    for user in User.objects.all():
-        _, _ = ChapterRewardPack.objects.get_or_create(user=user)
-
-
-@transaction.atomic
 def reset_expiration_20pack():
     # reset all the expiration dates to give everyone a chance
     reward_packs = ChapterRewardPack.objects.all()
@@ -190,15 +135,15 @@ def reset_expiration_20pack():
 
 
 @transaction.atomic
-def backfill_worldpacks():
-    for user in User.objects.all():
-        _, _ = WorldPack.objects.get_or_create(user=user)
-
-
-@transaction.atomic
 def backfill_highest_seasonelo():
     userinfos = UserInfo.objects.all()
     for userinfo in userinfos:
         userinfo.highest_season_elo = userinfo.elo
 
     UserInfo.objects.bulk_update(userinfos, ['highest_season_elo'])
+
+
+@transaction.atomic
+def backfill_storymode():
+    for user in User.objects.all():
+        _, _ = StoryMode.objects.get_or_create(user=user)

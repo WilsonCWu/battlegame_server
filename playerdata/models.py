@@ -1359,6 +1359,7 @@ def create_user_info(sender, instance, created, **kwargs):
         Wishlist.objects.create(user=instance)
         ChapterRewardPack.objects.create(user=instance)
         WorldPack.objects.create(user=instance)
+        StoryMode.objects.create(user=instance)
         create_user_referral(instance)
 
         # Add quests
