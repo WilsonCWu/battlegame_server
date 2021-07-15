@@ -480,6 +480,7 @@ class Character(models.Model):
     num_games = models.IntegerField(default=0)
     num_wins = models.IntegerField(default=0)
     is_tourney = models.BooleanField(default=False)
+    is_story = models.BooleanField(default=False)
     is_boosted = models.BooleanField(default=False)
 
     # Character equipments (hat, armor, weapon, boots, tricket 1/2).
