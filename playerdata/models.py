@@ -1320,8 +1320,7 @@ class StoryMode(models.Model):
 
     # We expect character state to be in the format of
     # {<character_id>: <character_health>}.
-    cur_character_state = JSONField(blank=True, null=True)
-    checkpoint_state = JSONField(blank=True, null=True)
+    character_state = JSONField(blank=True, null=True)
 
 
 def create_user_referral(user):

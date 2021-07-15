@@ -18,8 +18,7 @@ class StoryModeSchema(Schema):
     num_runs = fields.Int()
     story_id = fields.Int()
 
-    cur_character_state = fields.Str()
-    checkpoint_state = fields.Str()
+    character_state = fields.Str()
 
 
 class GetStoryModeView(APIView):
