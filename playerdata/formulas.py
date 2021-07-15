@@ -58,7 +58,13 @@ def coins_chest_reward(user, rarity, chest_tier=None):
         base_mult = 1.5
         base_exp = 1.65
 
-    return math.floor(elo * base_mult + 200 + (elo ** base_exp))
+    coins = math.floor(elo * base_mult + 200 + (elo ** base_exp))
+
+    # Bonus gold for subscribers
+    if user.userinfo.is_monthly_sub:
+        coins = coins * 1.15
+
+    return coins
 
 
 #########################

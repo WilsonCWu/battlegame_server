@@ -762,6 +762,8 @@ class Inventory(models.Model):
     essence = models.IntegerField(default=0)
     relic_stones = models.IntegerField(default=0)
     champ_badges = models.IntegerField(default=0)
+    pet_points = models.IntegerField(default=0)
+
     daily_dungeon_ticket = models.IntegerField(default=3)
     daily_dungeon_golden_ticket = models.IntegerField(default=1)
     hero_exp = models.IntegerField(default=0)
