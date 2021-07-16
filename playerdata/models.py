@@ -480,6 +480,7 @@ class Character(models.Model):
     num_games = models.IntegerField(default=0)
     num_wins = models.IntegerField(default=0)
     is_tourney = models.BooleanField(default=False)
+    is_story = models.BooleanField(default=False)
     is_boosted = models.BooleanField(default=False)
 
     # Character equipments (hat, armor, weapon, boots, tricket 1/2).
@@ -1305,6 +1306,23 @@ class WorldPack(models.Model):
     is_claimed = models.BooleanField(default=True)
 
 
+class StoryMode(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    available_stories = ArrayField(models.IntegerField(), default=list)
+    completed_stories = ArrayField(models.IntegerField(), default=list)
+    buff_points = models.IntegerField(default=0)
+    current_tier = models.IntegerField(default=0)
+
+    # Current Story progress fields
+    current_lvl = models.IntegerField(default=0)
+    num_runs = models.IntegerField(default=0)
+    story_id = models.IntegerField(default=-1)
+
+    # We expect character state to be in the format of
+    # {<character_id>: <character_health>}.
+    character_state = JSONField(blank=True, null=True)
+
+
 def create_user_referral(user):
     try:
         UserReferral.objects.create(user=user, referral_code=generate_referral_code())
@@ -1341,6 +1359,7 @@ def create_user_info(sender, instance, created, **kwargs):
         Wishlist.objects.create(user=instance)
         ChapterRewardPack.objects.create(user=instance)
         WorldPack.objects.create(user=instance)
+        StoryMode.objects.create(user=instance)
         create_user_referral(instance)
 
         # Add quests
