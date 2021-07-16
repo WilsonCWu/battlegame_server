@@ -39,8 +39,12 @@ from playerdata import public
 from playerdata import antihacking
 from playerdata import clan_pve
 from playerdata import clan_farm
+from playerdata import story_mode
 
 urlpatterns = [
+    path('storymode/get/', story_mode.GetStoryModeView.as_view()),
+    path('storymode/start/', story_mode.StartNewStoryView.as_view()),
+    path('storymode/result/', story_mode.StoryResultView.as_view()),
     path('chapterrewardspack/claim/', chapter_rewards_pack.ClaimChapterRewardView.as_view()),
     path('chapterrewardspack/get/', chapter_rewards_pack.GetChapterRewardListView.as_view()),
     path('wishlist/get/', wishlist.GetWishlistView.as_view()),

@@ -1311,7 +1311,7 @@ class StoryMode(models.Model):
     available_stories = ArrayField(models.IntegerField(), default=list)
     completed_stories = ArrayField(models.IntegerField(), default=list)
     buff_points = models.IntegerField(default=0)
-    current_tier = models.IntegerField(default=0)
+    current_tier = models.IntegerField(default=-1)
 
     # Current Story progress fields
     current_lvl = models.IntegerField(default=0)

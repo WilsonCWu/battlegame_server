@@ -11,7 +11,7 @@ from rest_marshmallow import Schema, fields
 
 from . import rolls, constants, chests, dungeon_gen
 from .questupdater import QuestUpdater
-from .serializers import DailyDungeonStartSerializer, DailyDungeonResultSerializer
+from .serializers import DailyDungeonStartSerializer, CharStateResultSerializer
 from .matcher import PlacementSchema
 from .models import DailyDungeonStatus, DailyDungeonStage, Placement, Character
 
@@ -193,7 +193,7 @@ class DailyDungeonResultView(APIView):
 
     @transaction.atomic
     def post(self, request):
-        serializer = DailyDungeonResultSerializer(data=request.data)
+        serializer = CharStateResultSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         dd_status = DailyDungeonStatus.objects.get(user=request.user)
