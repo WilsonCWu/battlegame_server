@@ -7,8 +7,8 @@ from rest_marshmallow import Schema, fields
 from playerdata.models import Character
 from playerdata.serializers import IntSerializer, CharStateResultSerializer
 
-CHARACTER_POOLS = [[13, 4, 24, 11], []]
-
+CHARACTER_POOLS = [[11, 4, 24, 13], []]
+NUM_STORY_LVLS = 25
 
 class StoryModeSchema(Schema):
     available_stories = fields.List(fields.Int())
@@ -48,23 +48,31 @@ class StartNewStoryView(APIView):
         serializer.is_valid(raise_exception=True)
         story_id = serializer.validated_data['value']
 
+        story_mode = request.user.storymode
+
+        if story_id not in story_mode.available_stories:
+            return Response({'status': False, 'reason': 'titan is not available yet'})
+
         reset_story(request.user, story_id)
 
-        story_mode = request.user.storymode
         story_mode.story_id = story_id
         story_mode.save()
 
         return Response({'status': True})
 
 
-def reset_story(user, story_id):
+def reset_story(user, story_id=None):
     Character.objects.filter(user=user, is_story=True).delete()
 
-    # TODO: get this from where we story pre-game buffs
-    starting_level = 21
-    starting_prestige = 0
+    # reset to a no story state
+    if story_id is None:
+        user.storymode.story_id = -1
+    else:
+        # TODO: get this from where we story pre-game buffs
+        starting_level = 21
+        starting_prestige = 0
 
-    Character.objects.create(user=user, char_type_id=story_id, level=starting_level, prestige=starting_prestige)
+        Character.objects.create(user=user, char_type_id=story_id, level=starting_level, prestige=starting_prestige)
 
     user.storymode.cur_character_state = ""
     user.storymode.current_lvl = 0
@@ -87,6 +95,11 @@ class StoryResultView(APIView):
 
         request.user.storymode.cur_character_state = characters
         request.user.storymode.current_lvl += 1
+
+        if request.user.storymode.current_lvl == NUM_STORY_LVLS:
+            # TODO: rewards
+            reset_story(request.user)
+
         request.user.storymode.save()
 
         return Response({'status': True})
