@@ -42,6 +42,8 @@ from playerdata import clan_farm
 from playerdata import story_mode
 
 urlpatterns = [
+    path('storymode/boons/set', story_mode.ChooseBoonView.as_view()),
+    path('storymode/boons/get', story_mode.GetBoonsView.as_view()),
     path('storymode/get/', story_mode.GetStoryModeView.as_view()),
     path('storymode/start/', story_mode.StartNewStoryView.as_view()),
     path('storymode/result/', story_mode.StoryResultView.as_view()),
