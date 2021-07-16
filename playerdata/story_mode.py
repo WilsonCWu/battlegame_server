@@ -7,8 +7,9 @@ from rest_marshmallow import Schema, fields
 from playerdata.models import Character
 from playerdata.serializers import IntSerializer, CharStateResultSerializer
 
-CHARACTER_POOLS = [[11, 4, 24, 13], []]
+CHARACTER_POOLS = [[11, 4, 24, 13]]  # TODO: more on the way as etilon works on dialogue
 NUM_STORY_LVLS = 25
+
 
 class StoryModeSchema(Schema):
     available_stories = fields.List(fields.Int())
@@ -26,7 +27,7 @@ class StoryModeSchema(Schema):
 
 def unlock_next_character_pool(user):
     user.storymode.current_tier += 1
-    user.storymode.available_stories = CHARACTER_POOLS[user.storymode.current_tier]
+    user.storymode.available_stories.extend(CHARACTER_POOLS[user.storymode.current_tier])
 
     user.storymode.save()
 
@@ -67,6 +68,7 @@ def reset_story(user, story_id=None):
     # reset to a no story state
     if story_id is None:
         user.storymode.story_id = -1
+        user.storymode.num_runs = 0
     else:
         # TODO: get this from where we story pre-game buffs
         starting_level = 21
@@ -91,6 +93,7 @@ class StoryResultView(APIView):
 
         if is_loss:
             reset_story(request.user, request.user.storymode.story_id)
+            request.user.storymode.num_runs += 1
             return Response({'status': True})
 
         request.user.storymode.cur_character_state = characters
@@ -98,6 +101,7 @@ class StoryResultView(APIView):
 
         if request.user.storymode.current_lvl == NUM_STORY_LVLS:
             # TODO: rewards
+            request.user.storymode.completed_stories.append(request.user.storymode.story_id)
             reset_story(request.user)
 
         request.user.storymode.save()

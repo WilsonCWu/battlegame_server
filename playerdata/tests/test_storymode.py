@@ -51,6 +51,7 @@ class StoryModeAPITestCase(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
         self.assertEqual(self.u.storymode.current_lvl, 0)
+        self.assertEqual(self.u.storymode.num_runs, 1)
 
     def test_result_finish_story(self):
         char_id = story_mode.CHARACTER_POOLS[0][1]
@@ -71,3 +72,4 @@ class StoryModeAPITestCase(APITestCase):
         self.assertTrue(resp.data['status'])
         self.assertEqual(self.u.storymode.current_lvl, 0)
         self.assertEqual(self.u.storymode.story_id, -1)
+        self.assertEqual(self.u.storymode.num_runs, 0)
