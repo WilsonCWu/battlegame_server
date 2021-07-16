@@ -101,6 +101,7 @@ class StoryResultView(APIView):
 
         if request.user.storymode.current_lvl == NUM_STORY_LVLS:
             # TODO: rewards
+            request.user.storymode.available_stories.remove(request.user.storymode.story_id)
             request.user.storymode.completed_stories.append(request.user.storymode.story_id)
             reset_story(request.user)
 
