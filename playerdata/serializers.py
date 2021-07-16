@@ -53,7 +53,7 @@ class DailyDungeonStartSerializer(serializers.Serializer):
     is_golden = serializers.BooleanField(required=True)
 
 
-class DailyDungeonResultSerializer(serializers.Serializer):
+class CharStateResultSerializer(serializers.Serializer):
     is_loss = serializers.BooleanField(required=True)
     characters = serializers.JSONField(required=True)
 
