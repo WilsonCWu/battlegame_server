@@ -146,7 +146,7 @@ class ChooseBoonView(APIView):
 def get_boons(user):
     # randomized to that user, that run, and that level
 
-    return []
+    return [{'id': 1, 'rarity': 1}, {'id': 2, 'rarity': 1}, {'id': 3, 'rarity': 1}]
 
 
 class GetBoonsView(APIView):

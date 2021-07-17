@@ -87,9 +87,10 @@ class BoonAPITestCase(APITestCase):
     def test_choose_boon(self):
         boon_id = 1
 
-        resp = self.client.post('/storymode/boon/set', {
+        resp = self.client.post('/storymode/boons/set/', {
             'value': boon_id,
         })
+
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
 

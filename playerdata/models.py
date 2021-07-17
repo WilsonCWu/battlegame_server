@@ -1323,7 +1323,7 @@ class StoryMode(models.Model):
     character_state = JSONField(blank=True, null=True)
 
     # {<boon_id>: {'rarity': <rarity>, 'level': <level>}}
-    boons = JSONField(blank=True, null=True)
+    boons = JSONField(blank=True, null=True, default=dict)
 
 
 def create_user_referral(user):
