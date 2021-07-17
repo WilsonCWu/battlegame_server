@@ -73,3 +73,23 @@ class StoryModeAPITestCase(APITestCase):
         self.assertEqual(self.u.storymode.current_lvl, 0)
         self.assertEqual(self.u.storymode.story_id, -1)
         self.assertEqual(self.u.storymode.num_runs, 0)
+
+
+class BoonAPITestCase(APITestCase):
+    fixtures = ['playerdata/tests/fixtures.json']
+
+    def setUp(self):
+        self.u = User.objects.get(username='battlegame')
+        self.client.force_authenticate(user=self.u)
+
+        story_mode.unlock_next_character_pool(self.u)
+
+    def test_choose_boon(self):
+        boon_id = 1
+
+        resp = self.client.post('/storymode/boon/set', {
+            'value': boon_id,
+        })
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue(resp.data['status'])
+

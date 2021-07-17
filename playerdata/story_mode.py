@@ -121,20 +121,38 @@ class ChooseBoonView(APIView):
         boon_id = serializer.validated_data['value']
 
         boons = request.user.storymode.boons
+        newboons = get_boons(request.user)
+        boon_rarity = -1
 
+        for b in newboons:
+            if boon_id == b['id']:
+                boon_rarity = b['rarity']
+
+        if boon_rarity == -1:
+            return Response({'status': False, 'reason': 'invalid boon selection'})
+
+        # If new boon, we set the rarity, else we just increase the level
         if boon_id in boons:
             boons[boon_id]['level'] += 1
         else:
-            boons[boon_id] = {'rarity': 1, 'level': 1}
+            boons[boon_id] = {'rarity': boon_rarity, 'level': 1}
 
         request.user.storymode.save()
         return Response({'status': True})
+
+
+# TODO: return a list of 3 boons to choose from
+# {'id' : <id>, 'rarity': <rarity>}
+def get_boons(user):
+    # randomized to that user, that run, and that level
+
+    return []
 
 
 class GetBoonsView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        # randomized to that user, that run, and that level
-        # TODO: return a list of 3 boons to choose from
-        return Response({'status': True})
+        boons = get_boons(request.user)
+
+        return Response({'status': True, 'boons': boons})
