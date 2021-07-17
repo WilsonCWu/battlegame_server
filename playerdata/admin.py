@@ -40,6 +40,10 @@ class WishlistAdmin(admin.ModelAdmin, DynamicArrayMixin):
     pass
 
 
+class StoryModeAdmin(admin.ModelAdmin, DynamicArrayMixin):
+    raw_id_fields = ("user",)
+
+
 class DungeonStageAdmin(bulk_admin.BulkModelAdmin):
     list_display = ('stage', 'dungeon_type', 'player_exp', 'coins', 'gems')
     raw_id_fields = ("mob",)
@@ -648,3 +652,4 @@ admin.site.register(ClanFarming)
 admin.site.register(RelicShop, RelicShopAdmin)
 admin.site.register(LevelBooster)
 admin.site.register(Wishlist, WishlistAdmin)
+admin.site.register(StoryMode, StoryModeAdmin)

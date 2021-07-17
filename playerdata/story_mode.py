@@ -23,6 +23,7 @@ class StoryModeSchema(Schema):
     story_id = fields.Int()
 
     character_state = fields.Str()
+    boons = fields.Str()
 
 
 def unlock_next_character_pool(user):
@@ -108,3 +109,50 @@ class StoryResultView(APIView):
         request.user.storymode.save()
 
         return Response({'status': True})
+
+
+class ChooseBoonView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic()
+    def post(self, request):
+        serializer = IntSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        boon_id = serializer.validated_data['value']
+
+        boons = request.user.storymode.boons
+        newboons = get_boons(request.user)
+        boon_rarity = -1
+
+        for b in newboons:
+            if boon_id == b['id']:
+                boon_rarity = b['rarity']
+
+        if boon_rarity == -1:
+            return Response({'status': False, 'reason': 'invalid boon selection'})
+
+        # If new boon, we set the rarity, else we just increase the level
+        if boon_id in boons:
+            boons[boon_id]['level'] += 1
+        else:
+            boons[boon_id] = {'rarity': boon_rarity, 'level': 1}
+
+        request.user.storymode.save()
+        return Response({'status': True})
+
+
+# TODO: return a list of 3 boons to choose from
+# {'id' : <id>, 'rarity': <rarity>}
+def get_boons(user):
+    # randomized to that user, that run, and that level
+
+    return [{'id': 1, 'rarity': 1}, {'id': 2, 'rarity': 1}, {'id': 3, 'rarity': 1}]
+
+
+class GetBoonsView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        boons = get_boons(request.user)
+
+        return Response({'status': True, 'boons': boons})

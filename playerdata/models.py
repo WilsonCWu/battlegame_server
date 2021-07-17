@@ -1319,8 +1319,11 @@ class StoryMode(models.Model):
     story_id = models.IntegerField(default=-1)
 
     # We expect character state to be in the format of
-    # {<character_id>: <character_health>}.
+    # {<character_id>: <character_health>}
     character_state = JSONField(blank=True, null=True)
+
+    # {<boon_id>: {'rarity': <rarity>, 'level': <level>}}
+    boons = JSONField(blank=True, null=True, default=dict)
 
 
 def create_user_referral(user):
