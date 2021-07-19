@@ -101,7 +101,7 @@ class StoryResultView(APIView):
         request.user.storymode.current_lvl += 1
 
         if request.user.storymode.current_lvl == NUM_STORY_LVLS:
-            # TODO: rewards
+            # TODO: rewards: boons and buff points
             request.user.storymode.available_stories.remove(request.user.storymode.story_id)
             request.user.storymode.completed_stories.append(request.user.storymode.story_id)
             reset_story(request.user)
@@ -156,3 +156,33 @@ class GetBoonsView(APIView):
         boons = get_boons(request.user)
 
         return Response({'status': True, 'boons': boons})
+
+
+# TODO: determine costs for various tiers of buffs
+def get_buff_cost(buff_id: int, level: int):
+    return 1
+
+
+class LevelBuffView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic()
+    def post(self, request):
+        serializer = IntSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        buff_id = serializer.validated_data['value']
+
+        story_mode = request.user.storymode
+
+        if buff_id in story_mode.pregame_buffs:
+            story_mode.pregame_buffs[buff_id] += 1
+        else:
+            story_mode.pregame_buffs[buff_id] = 1
+
+        pts_cost = get_buff_cost(buff_id, story_mode.pregame_buffs[buff_id])
+        if story_mode.buff_points < pts_cost:
+            return Response({'status': False, 'reason': 'not enough points to level'})
+
+        story_mode.buff_points -= pts_cost
+        story_mode.save()
+        return Response({'status': True})
