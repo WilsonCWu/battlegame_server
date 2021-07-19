@@ -10,6 +10,9 @@ from playerdata.serializers import IntSerializer, CharStateResultSerializer
 CHARACTER_POOLS = [[11, 4, 24, 13]]  # TODO: more on the way as etilon works on dialogue
 NUM_STORY_LVLS = 25
 
+# Pregame Buff ID Constants
+STARTING_LEVEL = 1
+
 
 class StoryModeSchema(Schema):
     available_stories = fields.List(fields.Int())
@@ -71,8 +74,8 @@ def reset_story(user, story_id=None):
         user.storymode.story_id = -1
         user.storymode.num_runs = 0
     else:
-        # TODO: get this from where we story pre-game buffs
-        starting_level = 21
+        # TODO: get this from where we start with pre-game buffs
+        starting_level = 21 + get_start_level_buff(user.storymode.pregame_buffs)
         starting_prestige = 0
 
         Character.objects.create(user=user, char_type_id=story_id, level=starting_level, prestige=starting_prestige)
@@ -161,6 +164,14 @@ class GetBoonsView(APIView):
 # TODO: determine costs for various tiers of buffs
 def get_buff_cost(buff_id: int, level: int):
     return 1
+
+
+# Returns the number of additional start levels this buff gives
+def get_start_level_buff(pregame_buffs):
+    if STARTING_LEVEL not in pregame_buffs:
+        return 0
+
+    return pregame_buffs[STARTING_LEVEL] * 5
 
 
 class LevelBuffView(APIView):
