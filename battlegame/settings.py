@@ -183,8 +183,8 @@ CRONJOBS = [
     ('0 5 * * *', 'battlegame.cron.daily_clean_matches_cron', '>> /tmp/daily_clean_matches.log'),
     ('0 0 * * *', 'battlegame.cron.reset_daily_wins_cron', '>> /tmp/reset_daily_wins_cron.log'),
 
-    ('0 0 * * *', 'battlegame.cron.daily_dungeon_ticket_drop', '>> /tmp/daily_dungeon_ticket_drop.log'),
-    ('0 0 * * 2,5', 'battlegame.cron.daily_dungeon_golden_ticket_drop', '>> /tmp/daily_dungeon_ticket_drop.log'),
+    ('0 0 * * 3,5,6,7', 'battlegame.cron.daily_dungeon_ticket_drop', '>> /tmp/daily_dungeon_ticket_drop.log'),
+    ('0 0 * * 5', 'battlegame.cron.daily_dungeon_golden_ticket_drop', '>> /tmp/daily_dungeon_ticket_drop.log'),
     ('0 0 * * *', 'battlegame.cron.refresh_daily_dungeon', '>> /tmp/refresh_daily_dungeon.log'),
 
     # At 0 UTC on the 1st of every month
