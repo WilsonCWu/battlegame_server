@@ -108,6 +108,8 @@ class ClanPVEResultView(APIView):
         chests.award_chest_rewards(request.user, rewards)
         reward_schema = chests.ChestRewardSchema(rewards, many=True)
 
+        QuestUpdater.add_progress_by_type(request.user, constants.FIGHT_MONSTER_HUNT, 1)
+
         return Response({'status': True, 'rewards': reward_schema.data})
 
 
@@ -313,8 +315,6 @@ class ClanPVEStatusView(APIView):
         # BUG: If a current boss exists, add 1 to its ticket.
         if event_status.current_boss != -1:
             tickets[str(event_status.current_boss)] += 1
-
-        QuestUpdater.add_progress_by_type(request.user, constants.FIGHT_MONSTER_HUNT, 1)
 
         # A borrowed character may not have been set yet.
         c = Character.objects.filter(char_id=event_status.current_borrowed_character).first()
