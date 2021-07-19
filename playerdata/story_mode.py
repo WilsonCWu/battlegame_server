@@ -10,6 +10,9 @@ from playerdata.serializers import IntSerializer, CharStateResultSerializer
 CHARACTER_POOLS = [[11, 4, 24, 13]]  # TODO: more on the way as etilon works on dialogue
 NUM_STORY_LVLS = 25
 
+# Pregame Buff ID Constants
+STARTING_LEVEL = 1
+
 
 class StoryModeSchema(Schema):
     available_stories = fields.List(fields.Int())
@@ -71,8 +74,8 @@ def reset_story(user, story_id=None):
         user.storymode.story_id = -1
         user.storymode.num_runs = 0
     else:
-        # TODO: get this from where we story pre-game buffs
-        starting_level = 21
+        # TODO: get this from where we start with pre-game buffs
+        starting_level = 21 + get_start_level_buff(user.storymode.pregame_buffs)
         starting_prestige = 0
 
         Character.objects.create(user=user, char_type_id=story_id, level=starting_level, prestige=starting_prestige)
@@ -101,7 +104,7 @@ class StoryResultView(APIView):
         request.user.storymode.current_lvl += 1
 
         if request.user.storymode.current_lvl == NUM_STORY_LVLS:
-            # TODO: rewards
+            # TODO: rewards: boons and buff points
             request.user.storymode.available_stories.remove(request.user.storymode.story_id)
             request.user.storymode.completed_stories.append(request.user.storymode.story_id)
             reset_story(request.user)
@@ -156,3 +159,41 @@ class GetBoonsView(APIView):
         boons = get_boons(request.user)
 
         return Response({'status': True, 'boons': boons})
+
+
+# TODO: determine costs for various tiers of buffs
+def get_buff_cost(buff_id: int, level: int):
+    return 1
+
+
+# Returns the number of additional start levels this buff gives
+def get_start_level_buff(pregame_buffs):
+    if STARTING_LEVEL not in pregame_buffs:
+        return 0
+
+    return pregame_buffs[STARTING_LEVEL] * 5
+
+
+class LevelBuffView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic()
+    def post(self, request):
+        serializer = IntSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        buff_id = serializer.validated_data['value']
+
+        story_mode = request.user.storymode
+
+        if buff_id in story_mode.pregame_buffs:
+            story_mode.pregame_buffs[buff_id] += 1
+        else:
+            story_mode.pregame_buffs[buff_id] = 1
+
+        pts_cost = get_buff_cost(buff_id, story_mode.pregame_buffs[buff_id])
+        if story_mode.buff_points < pts_cost:
+            return Response({'status': False, 'reason': 'not enough points to level'})
+
+        story_mode.buff_points -= pts_cost
+        story_mode.save()
+        return Response({'status': True})

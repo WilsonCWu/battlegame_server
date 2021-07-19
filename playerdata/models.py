@@ -1324,6 +1324,8 @@ class StoryMode(models.Model):
 
     # {<boon_id>: {'rarity': <rarity>, 'level': <level>}}
     boons = JSONField(blank=True, null=True, default=dict)
+    # {<buff_id>: <level>}
+    pregame_buffs = JSONField(blank=True, null=True, default=dict)
 
 
 def create_user_referral(user):
