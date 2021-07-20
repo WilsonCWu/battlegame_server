@@ -152,7 +152,7 @@ class DailyDungeonStatusView(APIView):
             return Response({'status': DailyDungeonStatusSchema(dd_status).data,
                              'next_refresh_time': get_next_refresh_time()})
 
-        return Response({'status': None})
+        return Response({'status': None, 'next_refresh_time': get_next_refresh_time()})
 
 
 class DailyDungeonStageView(APIView):
