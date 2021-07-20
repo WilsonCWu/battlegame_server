@@ -1,6 +1,6 @@
 import math
 import random
-from datetime import date
+from datetime import date, datetime, timedelta
 
 from django.db import transaction
 
@@ -126,6 +126,16 @@ class DailyDungeonStartView(APIView):
         return Response({'status': True})
 
 
+def get_next_refresh_time():
+    today = datetime.today()
+    if today.weekday() < 2:
+        return datetime(today.year, today.month, today.day, 0) + timedelta(days=(2 - today.weekday()))
+    elif today.weekday() < 5:
+        return datetime(today.year, today.month, today.day, 0) + timedelta(days=(5 - today.weekday()))
+    else:
+        return datetime(today.year, today.month, today.day, 0) + timedelta(days=1)
+
+
 class DailyDungeonStatusSchema(Schema):
     is_golden = fields.Bool()
     stage = fields.Int()
@@ -139,7 +149,8 @@ class DailyDungeonStatusView(APIView):
         # Return status of active dungeon run.
         dd_status = DailyDungeonStatus.get_active_for_user(request.user)
         if dd_status:
-            return Response({'status': DailyDungeonStatusSchema(dd_status).data})
+            return Response({'status': DailyDungeonStatusSchema(dd_status).data,
+                             'next_refresh_time': get_next_refresh_time()})
 
         return Response({'status': None})
 
