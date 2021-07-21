@@ -55,8 +55,7 @@ class ValidateView(APIView):
         serializer.is_valid(raise_exception=True)
         store = serializer.validated_data['store']
         receipt = serializer.validated_data['receipt']
-        if server.is_server_version_higher("0.3.3"):
-            transaction_id = serializer.validated_data['transaction_id']
+        transaction_id = serializer.validated_data['transaction_id']
 
         if store == 0:  # Apple
             return validate_apple(request, receipt, transaction_id)
