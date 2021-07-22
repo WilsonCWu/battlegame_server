@@ -84,6 +84,84 @@ def exp_to_level(exp):
     return bisect(ExpToLevel(), exp) - 1
 
 
+def is_level_up(userinfo, exp):
+    cur_level = exp_to_level(userinfo.player_exp)
+    new_level = exp_to_level(userinfo.player_exp + exp)
+
+    is_new_level = cur_level != new_level
+
+    if is_new_level:
+        if new_level == 10:
+            userinfo.vip_exp += 100
+        elif new_level == 30:
+            userinfo.vip_exp += 200
+        elif new_level == 70:
+            userinfo.vip_exp += 700
+        elif new_level == 75:
+            userinfo.vip_exp += 1000
+        elif new_level == 80:
+            userinfo.vip_exp += 2000
+        elif new_level == 85:
+            userinfo.vip_exp += 3000
+        elif new_level == 90:
+            userinfo.vip_exp += 3000
+        elif new_level == 95:
+            userinfo.vip_exp += 4000
+        elif new_level == 170:
+            userinfo.vip_exp += 6000
+        elif new_level == 200:
+            userinfo.vip_exp += 10000
+
+        userinfo.save()
+
+    return is_new_level
+
+
+def vip_exp_to_level(exp):
+    if exp < 100:
+        return 0
+    elif exp < 300:
+        return 1
+    elif exp < 1000:
+        return 2
+    elif exp < 2000:
+        return 3
+    elif exp < 4000:
+        return 4
+    elif exp < 7000:
+        return 5
+    elif exp < 10000:
+        return 6
+    elif exp < 14000:
+        return 7
+    elif exp < 20000:
+        return 8
+    elif exp < 30000:
+        return 9
+    elif exp < 50000:
+        return 10
+    elif exp < 80000:
+        return 11
+    elif exp < 150000:
+        return 12
+    elif exp < 300000:
+        return 13
+    elif exp < 500000:
+        return 14
+    elif exp < 1000000:
+        return 15
+    elif exp < 2000000:
+        return 16
+    elif exp < 5000000:
+        return 17
+    elif exp < 7500000:
+        return 18
+    elif exp < 10000000:
+        return 19
+    else:
+        return 20
+
+
 class ExpToLevel:
     def __len__(self):
         return constants.MAX_PLAYER_LEVEL
@@ -93,11 +171,11 @@ class ExpToLevel:
 
 
 def player_exp_reward_quickplay(dungeon_level):
-    return math.floor((dungeon_level / 5) * 6) + 6
+    return math.floor((dungeon_level / 10) * 3) + 3 + (1.15 ** (dungeon_level / 40))
 
 
 def player_exp_reward_dungeon(dungeon_level):
-    return math.floor((dungeon_level / 5) * 4) + 10
+    return math.floor((dungeon_level / 10) * 3) + 5 + (1.27 ** (dungeon_level / 40))
 
 
 def afk_exp_per_min(dungeon_level):

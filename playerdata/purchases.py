@@ -186,6 +186,9 @@ def handle_purchase_world_pack(user, purchase_id, transaction_id):
     user.worldpack.is_claimed = True
     user.worldpack.save()
 
+    user.userinfo.vip_exp += 5000
+    user.userinfo.save()
+
     PurchasedTracker.objects.create(user=user, transaction_id=transaction_id, purchase_id=purchase_id)
 
     return Response({'status': True,
@@ -204,6 +207,9 @@ def handle_purchase_chapterpack(user, purchase_id, transaction_id):
         chapter_rewards_pack.complete_chapter_rewards(world_completed, user.chapterrewardpack)
         user.chapterrewardpack.is_active = True
         user.chapterrewardpack.save()
+
+        user.userinfo.vip_exp += 5000
+        user.userinfo.save()
     else:
         return Response({'status': False, 'reason': 'invalid purchase_id ' + purchase_id})
 
@@ -215,10 +221,12 @@ def handle_purchase_gems(user, purchase_id, transaction_id):
     if purchase_id in constants.IAP_GEMS_AMOUNT:
         user.inventory.gems += constants.IAP_GEMS_AMOUNT[purchase_id]
         user.inventory.gems_bought += constants.IAP_GEMS_AMOUNT[purchase_id]
+        user.userinfo.vip_exp += constants.IAP_GEMS_AMOUNT[purchase_id]
     else:
         return Response({'status': False, 'reason': 'invalid purchase_id ' + purchase_id})
 
     user.inventory.save()
+    user.userinfo.save()
 
     PurchasedTracker.objects.create(user=user, transaction_id=transaction_id, purchase_id=purchase_id)
     return Response({'status': True})
@@ -234,6 +242,10 @@ def reward_deal(user, inventory, base_deal):
     inventory.dust += base_deal.dust
 
     inventory.save()
+
+    if base_deal.purchase_id != constants.DEAL_DAILY_0:
+        user.userinfo.vip_exp += base_deal.gems
+        user.userinfo.save()
 
     if base_deal.char_type is not None:
         rolls.insert_character(user, base_deal.char_type.char_type)

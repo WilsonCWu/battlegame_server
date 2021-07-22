@@ -541,6 +541,7 @@ class UserInfo(models.Model):
     profile_picture = models.IntegerField(default=0)
     default_placement = models.ForeignKey(Placement, null=True, on_delete=models.SET_NULL)
     player_exp = models.IntegerField(default=0)
+    vip_exp = models.IntegerField(default=0)
     is_bot = models.BooleanField(default=False)
     is_monthly_sub = models.BooleanField(default=False)
 
