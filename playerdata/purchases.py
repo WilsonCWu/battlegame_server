@@ -186,6 +186,7 @@ def handle_purchase_world_pack(user, purchase_id, transaction_id):
     user.worldpack.is_claimed = True
     user.worldpack.save()
 
+    # TODO: assign a reasonable vip amount for these deals
     user.userinfo.vip_exp += 5000
     user.userinfo.save()
 
@@ -208,6 +209,7 @@ def handle_purchase_chapterpack(user, purchase_id, transaction_id):
         user.chapterrewardpack.is_active = True
         user.chapterrewardpack.save()
 
+        # TODO: assign a reasonable vip amount for these deals
         user.userinfo.vip_exp += 5000
         user.userinfo.save()
     else:

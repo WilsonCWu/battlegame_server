@@ -280,7 +280,9 @@ class DungeonSetProgressCommitView(APIView):
         inventory.save()
 
         userinfo = request.user.userinfo
-        userinfo.player_exp += formulas.player_exp_reward_dungeon(stage)
+        player_exp = formulas.player_exp_reward_dungeon(stage)
+        formulas.level_up_check(request.user.userinfo, player_exp)
+        userinfo.player_exp += player_exp
         userinfo.save()
 
         return Response({'status': True})

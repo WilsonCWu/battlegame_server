@@ -84,37 +84,42 @@ def exp_to_level(exp):
     return bisect(ExpToLevel(), exp) - 1
 
 
-def is_level_up(userinfo, exp):
+def level_up_check(userinfo, exp):
     cur_level = exp_to_level(userinfo.player_exp)
-    new_level = exp_to_level(userinfo.player_exp + exp)
+    next_level = exp_to_level(userinfo.player_exp + exp)
 
-    is_new_level = cur_level != new_level
+    is_new_level = cur_level != next_level
 
     if is_new_level:
-        if new_level == 10:
-            userinfo.vip_exp += 100
-        elif new_level == 30:
-            userinfo.vip_exp += 200
-        elif new_level == 70:
-            userinfo.vip_exp += 700
-        elif new_level == 75:
-            userinfo.vip_exp += 1000
-        elif new_level == 80:
-            userinfo.vip_exp += 2000
-        elif new_level == 85:
-            userinfo.vip_exp += 3000
-        elif new_level == 90:
-            userinfo.vip_exp += 3000
-        elif new_level == 95:
-            userinfo.vip_exp += 4000
-        elif new_level == 170:
-            userinfo.vip_exp += 6000
-        elif new_level == 200:
-            userinfo.vip_exp += 10000
-
+        userinfo.vip_exp += vip_exp_per_player_level(next_level)
         userinfo.save()
 
-    return is_new_level
+
+# Fixed amounts of vip exp at Player Level thresholds for f2p
+# Gets you up to VIP level 10
+def vip_exp_per_player_level(player_level):
+    exp = 0
+    if player_level == 30:
+        exp = 100
+    elif player_level == 40:
+        exp = 200
+    elif player_level == 50:
+        exp = 700
+    elif player_level == 60:
+        exp = 1000
+    elif player_level == 70:
+        exp = 2000
+    elif player_level == 80:
+        exp = 3000
+    elif player_level == 90:
+        exp = 3000
+    elif player_level == 100:
+        exp = 4000
+    elif player_level == 110:
+        exp = 6000
+    elif player_level == 120:
+        exp = 10000
+    return exp
 
 
 def vip_exp_to_level(exp):
@@ -171,11 +176,11 @@ class ExpToLevel:
 
 
 def player_exp_reward_quickplay(dungeon_level):
-    return math.floor((dungeon_level / 10) * 3) + 3 + (1.15 ** (dungeon_level / 40))
+    return math.floor((dungeon_level / 15) + 2 + (1.15 ** (dungeon_level / 40)))
 
 
 def player_exp_reward_dungeon(dungeon_level):
-    return math.floor((dungeon_level / 10) * 3) + 5 + (1.27 ** (dungeon_level / 40))
+    return math.floor((dungeon_level / 10) * 3 + 5 + (1.27 ** (dungeon_level / 40)))
 
 
 def afk_exp_per_min(dungeon_level):
