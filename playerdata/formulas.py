@@ -180,7 +180,7 @@ def player_exp_reward_quickplay(dungeon_level):
 
 
 def player_exp_reward_dungeon(dungeon_level):
-    return math.floor((dungeon_level / 3) + (1.26 ** (dungeon_level / 40)) * 8)
+    return math.floor((dungeon_level / 3) + (1.23 ** (dungeon_level / 40)) * 8)
 
 
 def afk_exp_per_min(dungeon_level):
