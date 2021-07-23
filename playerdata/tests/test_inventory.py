@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.test import APITestCase
 import playerdata.constants
-from playerdata import formulas
+from playerdata import formulas, constants
 
 from playerdata.models import User, BaseCharacter, Character, BaseItem, Item
 
@@ -252,3 +252,38 @@ class RefundAPITestCase(APITestCase):
         self.assertEqual(inventory.gems, 0)
         self.assertEqual(inventory.coins, formulas.char_level_to_coins(200))
         self.assertEqual(inventory.dust, formulas.char_level_to_dust(200))
+
+
+class VIPExpLevelUpTestCase(APITestCase):
+    fixtures = ['playerdata/tests/fixtures.json']
+
+    def setUp(self):
+        self.u = User.objects.get(username='battlegame')
+        self.client.force_authenticate(user=self.u)
+
+    # check that the level up from 29 -> 30 gives vip exp
+    def test_level_up(self):
+        self.u.userinfo.player_exp = 13440  # this is level 29
+        self.u.userinfo.save()
+
+        self.assertEqual(self.u.userinfo.vip_exp, 0)
+
+        response = self.client.post('/dungeon/setprogress/stage/', {
+            'is_win': True,
+            'dungeon_type': constants.DungeonType.CAMPAIGN.value,
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        token = response.data['token']
+        response = self.client.post('/dungeon/setprogress/commit/', {
+            'is_win': True,
+            'dungeon_type': constants.DungeonType.CAMPAIGN.value,
+            'token': token,
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        self.u.userinfo.refresh_from_db()
+        self.assertEqual(self.u.userinfo.vip_exp, 100)

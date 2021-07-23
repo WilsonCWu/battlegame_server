@@ -244,6 +244,7 @@ def reward_deal(user, inventory, base_deal):
 
     inventory.save()
 
+    # we don't count the vip exp if free gems
     if base_deal.purchase_id != constants.DEAL_DAILY_0:
         user.userinfo.vip_exp += base_deal.gems
         user.userinfo.save()
