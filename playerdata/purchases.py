@@ -18,7 +18,7 @@ from playerdata.models import Character
 from playerdata.models import InvalidReceipt
 from playerdata.models import Inventory
 from playerdata.models import PurchasedTracker, Item, ActiveDeal, BaseDeal, get_expiration_date
-from . import constants, chests, rolls, chapter_rewards_pack, world_pack, server
+from . import constants, chests, rolls, chapter_rewards_pack, world_pack, server, formulas
 from .base import BaseItemSchema, BaseCharacterSchema
 from .constants import DealType
 from .questupdater import QuestUpdater
@@ -186,8 +186,7 @@ def handle_purchase_world_pack(user, purchase_id, transaction_id):
     user.worldpack.is_claimed = True
     user.worldpack.save()
 
-    # TODO: assign a reasonable vip amount for these deals
-    user.userinfo.vip_exp += 5000
+    user.userinfo.vip_exp += formulas.cost_to_vip_exp(formulas.product_to_dollar_cost(purchase_id))
     user.userinfo.save()
 
     PurchasedTracker.objects.create(user=user, transaction_id=transaction_id, purchase_id=purchase_id)
@@ -209,8 +208,7 @@ def handle_purchase_chapterpack(user, purchase_id, transaction_id):
         user.chapterrewardpack.is_active = True
         user.chapterrewardpack.save()
 
-        # TODO: assign a reasonable vip amount for these deals
-        user.userinfo.vip_exp += 5000
+        user.userinfo.vip_exp += formulas.cost_to_vip_exp(formulas.product_to_dollar_cost(purchase_id))
         user.userinfo.save()
     else:
         return Response({'status': False, 'reason': 'invalid purchase_id ' + purchase_id})
@@ -244,10 +242,8 @@ def reward_deal(user, inventory, base_deal):
 
     inventory.save()
 
-    # we don't count the vip exp if free gems
-    if base_deal.purchase_id != constants.DEAL_DAILY_0:
-        user.userinfo.vip_exp += base_deal.gems
-        user.userinfo.save()
+    user.userinfo.vip_exp += formulas.cost_to_vip_exp(formulas.product_to_dollar_cost(base_deal.purchase_id))
+    user.userinfo.save()
 
     if base_deal.char_type is not None:
         rolls.insert_character(user, base_deal.char_type.char_type)

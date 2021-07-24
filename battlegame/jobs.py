@@ -183,7 +183,7 @@ def backfill_vip_levels():
 
         # backfill the purchased gems if the person bought something more than the free deal
         pt = PurchasedTracker.objects.filter(user=userinfo.user)
-        if pt.count() > 1:
-            userinfo.vip_exp += userinfo.user.inventory.gems_bought
+        for purchase in pt:
+            userinfo.vip_exp += formulas.cost_to_vip_exp(formulas.product_to_dollar_cost(purchase.purchase_id))
 
     UserInfo.objects.bulk_update(userinfos, ['vip_exp'])

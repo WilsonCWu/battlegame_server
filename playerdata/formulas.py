@@ -95,6 +95,33 @@ def level_up_check(userinfo, exp):
         userinfo.save()
 
 
+def product_to_dollar_cost(product_id: str):
+    if product_id in [constants.DEAL_DAILY_0]:
+        return 0
+    elif product_id in [constants.DEAL_DAILY_1]:
+        return 1
+    elif product_id in [constants.DEAL_DAILY_2, constants.GEMS_499, constants.MONTHLY_PASS]:
+        return 5
+    elif product_id in [constants.GEMS_999, constants.WORLD_PACK_999]:
+        return 10
+    elif product_id in [constants.GEMS_1999, constants.WORLD_PACK_1999, constants.CHAPTER_REWARDS_PACK1]:
+        return 20
+    elif product_id in [constants.GEMS_2999]:
+        return 30
+    elif product_id in [constants.GEMS_4999]:
+        return 50
+    elif product_id in [constants.GEMS_9999]:
+        return 100
+    else:
+        raise Exception("Invalid product_id: " + product_id)
+
+
+# From these estimates https://afk.guide/afk-arena-vip-ranks/
+# $5 for 300 vip exp
+def cost_to_vip_exp(dollar_cost):
+    return math.floor((dollar_cost / 5) * 300)
+
+
 # Fixed amounts of vip exp at Player Level thresholds for f2p
 # Gets you up to VIP level 10
 def vip_exp_per_player_level(player_level):
