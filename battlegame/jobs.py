@@ -2,6 +2,7 @@
 
 from django.db import transaction
 
+from playerdata import formulas
 from playerdata.models import *
 
 
@@ -147,3 +148,62 @@ def backfill_highest_seasonelo():
 def backfill_storymode():
     for user in User.objects.all():
         _, _ = StoryMode.objects.get_or_create(user=user)
+
+
+@transaction.atomic
+def backfill_vip_levels():
+    userinfos = UserInfo.objects.all().select_related('user__inventory')
+    for userinfo in userinfos:
+        player_level = formulas.exp_to_level(userinfo.player_exp)
+
+        if player_level < 15:
+            exp = 0
+        elif player_level < 30:
+            exp = 50
+        elif player_level < 35:
+            exp = 100
+        elif player_level < 40:
+            exp = 200
+        elif player_level < 45:
+            exp = 300
+        elif player_level < 50:
+            exp = 650
+        elif player_level < 55:
+            exp = 1000
+        elif player_level < 60:
+            exp = 1500
+        elif player_level < 65:
+            exp = 2000
+        elif player_level < 70:
+            exp = 3000
+        elif player_level < 75:
+            exp = 4000
+        elif player_level < 80:
+            exp = 5500
+        elif player_level < 85:
+            exp = 7000
+        elif player_level < 90:
+            exp = 8500
+        elif player_level < 95:
+            exp = 10000
+        elif player_level < 100:
+            exp = 12000
+        elif player_level < 105:
+            exp = 14000
+        elif player_level < 110:
+            exp = 17000
+        elif player_level < 115:
+            exp = 20000
+        elif player_level < 120:
+            exp = 2500
+        else:
+            exp = 30000
+
+        userinfo.vip_exp = exp
+
+        # backfill the purchased gems if the person bought something more than the free deal
+        pt = PurchasedTracker.objects.filter(user=userinfo.user)
+        for purchase in pt:
+            userinfo.vip_exp += formulas.cost_to_vip_exp(formulas.product_to_dollar_cost(purchase.purchase_id))
+
+    UserInfo.objects.bulk_update(userinfos, ['vip_exp'])

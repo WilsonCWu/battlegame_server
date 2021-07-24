@@ -84,6 +84,136 @@ def exp_to_level(exp):
     return bisect(ExpToLevel(), exp) - 1
 
 
+def level_up_check(userinfo, exp):
+    cur_level = exp_to_level(userinfo.player_exp)
+    next_level = exp_to_level(userinfo.player_exp + exp)
+
+    is_new_level = cur_level != next_level
+
+    if is_new_level:
+        userinfo.vip_exp += vip_exp_per_player_level(next_level)
+        userinfo.save()
+
+
+def product_to_dollar_cost(product_id: str):
+    if product_id in [constants.DEAL_DAILY_0]:
+        return 0
+    elif product_id in [constants.DEAL_DAILY_1]:
+        return 1
+    elif product_id in [constants.DEAL_DAILY_2, constants.GEMS_499, constants.MONTHLY_PASS]:
+        return 5
+    elif product_id in [constants.GEMS_999, constants.WORLD_PACK_999]:
+        return 10
+    elif product_id in [constants.GEMS_1999, constants.WORLD_PACK_1999, constants.CHAPTER_REWARDS_PACK1]:
+        return 20
+    elif product_id in [constants.GEMS_2999]:
+        return 30
+    elif product_id in [constants.GEMS_4999]:
+        return 50
+    elif product_id in [constants.GEMS_9999]:
+        return 100
+    else:
+        raise Exception("Invalid product_id: " + product_id)
+
+
+# From these estimates https://afk.guide/afk-arena-vip-ranks/
+# $5 for 300 vip exp
+def cost_to_vip_exp(dollar_cost):
+    return math.floor((dollar_cost / 5) * 300)
+
+
+# Fixed amounts of vip exp at Player Level thresholds for f2p
+# Gets you up to VIP level 10
+def vip_exp_per_player_level(player_level):
+    exp = 0
+    if player_level == 15:
+        exp = 50
+    if player_level == 30:
+        exp = 50
+    elif player_level == 35:
+        exp = 100
+    elif player_level == 40:
+        exp = 100
+    elif player_level == 45:
+        exp = 350
+    elif player_level == 50:
+        exp = 350
+    elif player_level == 55:
+        exp = 500
+    elif player_level == 60:
+        exp = 500
+    elif player_level == 65:
+        exp = 1000
+    elif player_level == 70:
+        exp = 1000
+    elif player_level == 75:
+        exp = 1500
+    elif player_level == 80:
+        exp = 1500
+    elif player_level == 85:
+        exp = 1500
+    elif player_level == 90:
+        exp = 1500
+    elif player_level == 95:
+        exp = 2000
+    elif player_level == 100:
+        exp = 2000
+    elif player_level == 105:
+        exp = 3000
+    elif player_level == 110:
+        exp = 3000
+    elif player_level == 115:
+        exp = 5000
+    elif player_level == 120:
+        exp = 5000
+    return exp
+
+
+def vip_exp_to_level(exp):
+    if exp < 100:
+        return 0
+    elif exp < 300:
+        return 1
+    elif exp < 1000:
+        return 2
+    elif exp < 2000:
+        return 3
+    elif exp < 4000:
+        return 4
+    elif exp < 7000:
+        return 5
+    elif exp < 10000:
+        return 6
+    elif exp < 14000:
+        return 7
+    elif exp < 20000:
+        return 8
+    elif exp < 30000:
+        return 9
+    elif exp < 50000:
+        return 10
+    elif exp < 80000:
+        return 11
+    elif exp < 150000:
+        return 12
+    elif exp < 300000:
+        return 13
+    elif exp < 500000:
+        return 14
+    elif exp < 1000000:
+        return 15
+    elif exp < 2000000:
+        return 16
+    elif exp < 5000000:
+        return 17
+    elif exp < 7500000:
+        return 18
+    elif exp < 10000000:
+        return 19
+    else:
+        return 20
+
+
 class ExpToLevel:
     def __len__(self):
         return constants.MAX_PLAYER_LEVEL
@@ -93,11 +223,11 @@ class ExpToLevel:
 
 
 def player_exp_reward_quickplay(dungeon_level):
-    return math.floor((dungeon_level / 5) * 6) + 6
+    return math.floor((dungeon_level / 15) + (1.18 ** (dungeon_level / 40)))
 
 
 def player_exp_reward_dungeon(dungeon_level):
-    return math.floor((dungeon_level / 5) * 4) + 10
+    return math.floor((dungeon_level / 3) + (1.23 ** (dungeon_level / 40)) * 8)
 
 
 def afk_exp_per_min(dungeon_level):

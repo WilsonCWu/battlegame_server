@@ -64,6 +64,7 @@ class UserInfoSchema(Schema):
     default_placement = fields.Nested(PlacementSchema)
     clan = fields.Function(lambda userinfo: userinfo.clanmember.clan2.name if userinfo.clanmember.clan2 else '')
     player_level = fields.Function(lambda userinfo: formulas.exp_to_level(userinfo.player_exp))
+    vip_exp = fields.Function(lambda userinfo: formulas.vip_exp_to_level(userinfo.vip_exp))
     is_monthly_sub = fields.Bool()
 
 

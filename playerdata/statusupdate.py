@@ -205,7 +205,9 @@ def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defend
     request.user.userinfo.highest_elo = max(request.user.userinfo.highest_elo, elo_updates.attacker_new)
     request.user.userinfo.highest_season_elo = max(request.user.userinfo.highest_season_elo, elo_updates.attacker_new)
     tier_system.complete_any_elo_rewards(request.user.userinfo.highest_season_elo, request.user.elorewardtracker)
+
     request.user.userinfo.elo = elo_updates.attacker_new
+    formulas.level_up_check(request.user.userinfo, player_exp)
     request.user.userinfo.player_exp += player_exp
     request.user.userinfo.save()
 
