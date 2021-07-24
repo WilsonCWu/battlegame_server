@@ -5,15 +5,18 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
+from playerdata import server
 from playerdata.formulas import afk_coins_per_min, afk_exp_per_min, afk_dust_per_min, vip_exp_to_level
 from playerdata.models import DungeonProgress
 
 
-def mins_since_last_collection(last_collected_time):
+def mins_since_last_collection(last_collected_time, vip_level):
     now_time = datetime.now(timezone.utc)
     elapsed = now_time - last_collected_time
     elapsed_mins = int(elapsed.total_seconds() / 60)
-    return min(12 * 60, elapsed_mins)
+
+    max_hours = 12 + vip_afk_extra_hours(vip_level)
+    return min(max_hours * 60, elapsed_mins)
 
 
 class GetAFKRewardView(APIView):
@@ -23,13 +26,13 @@ class GetAFKRewardView(APIView):
         dungeon_progress = DungeonProgress.objects.get(user=request.user)
         last_collected_time = request.user.inventory.last_collected_rewards
 
-        time = mins_since_last_collection(last_collected_time)
+        vip_level = vip_exp_to_level(request.user.userinfo.vip_exp)
+        time = mins_since_last_collection(last_collected_time, vip_level)
 
         coins_per_min = afk_coins_per_min(dungeon_progress.campaign_stage)
         dust_per_min = afk_dust_per_min(dungeon_progress.campaign_stage)
         # exp_per_min = afk_exp_per_min(dungeon_progress.stage_id)
 
-        vip_level = vip_exp_to_level(request.user.userinfo.vip_exp)
         coins = math.floor(time * coins_per_min * afk_rewards_multiplier_vip(vip_level))
         dust = math.floor(time * dust_per_min * afk_rewards_multiplier_vip(vip_level))
         # exp = time * exp_per_min
@@ -52,8 +55,8 @@ class CollectAFKRewardView(APIView):
         last_collected_time = inventory.last_collected_rewards
         dungeon_progress = DungeonProgress.objects.get(user=request.user)
 
-        time = mins_since_last_collection(last_collected_time)
         vip_level = vip_exp_to_level(request.user.userinfo.vip_exp)
+        time = mins_since_last_collection(last_collected_time, vip_level)
         coins = math.floor(time * afk_coins_per_min(dungeon_progress.campaign_stage) * afk_rewards_multiplier_vip(vip_level))
         dust = math.floor(time * afk_dust_per_min(dungeon_progress.campaign_stage) * afk_rewards_multiplier_vip(vip_level))
         # exp = time * afk_exp_per_min(dungeon_progress.stage_id)
@@ -70,6 +73,9 @@ class CollectAFKRewardView(APIView):
 
 
 def afk_rewards_multiplier_vip(level: int):
+    if not server.is_server_version_higher("0.4"):
+        return 1
+
     if level == 1:
         return 1.05
     elif level == 2:
@@ -108,3 +114,37 @@ def afk_rewards_multiplier_vip(level: int):
         return 4
     else:
         return 1
+
+
+def vip_afk_extra_hours(level: int):
+    if not server.is_server_version_higher("0.4"):
+        return 0
+
+    if level == 3:
+        return 2
+    elif level == 4:
+        return 4
+    elif level == 5:
+        return 6
+    elif level == 6:
+        return 12
+    elif level == 7:
+        return 24
+    elif level == 8:
+        return 48
+    elif level == 9:
+        return 72
+    elif level == 10:
+        return 120
+    elif level == 11:
+        return 168
+    elif level == 12:
+        return 216
+    elif level == 13:
+        return 336
+    elif level == 14:
+        return 480
+    elif level >= 15:
+        return 720
+    else:
+        return 0
