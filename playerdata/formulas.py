@@ -126,26 +126,46 @@ def cost_to_vip_exp(dollar_cost):
 # Gets you up to VIP level 10
 def vip_exp_per_player_level(player_level):
     exp = 0
+    if player_level == 15:
+        exp = 50
     if player_level == 30:
+        exp = 50
+    elif player_level == 35:
         exp = 100
     elif player_level == 40:
-        exp = 200
+        exp = 100
+    elif player_level == 45:
+        exp = 350
     elif player_level == 50:
-        exp = 700
+        exp = 350
+    elif player_level == 55:
+        exp = 500
     elif player_level == 60:
+        exp = 500
+    elif player_level == 65:
         exp = 1000
     elif player_level == 70:
-        exp = 2000
+        exp = 1000
+    elif player_level == 75:
+        exp = 1500
     elif player_level == 80:
-        exp = 3000
+        exp = 1500
+    elif player_level == 85:
+        exp = 1500
     elif player_level == 90:
-        exp = 3000
+        exp = 1500
+    elif player_level == 95:
+        exp = 2000
     elif player_level == 100:
-        exp = 4000
+        exp = 2000
+    elif player_level == 105:
+        exp = 3000
     elif player_level == 110:
-        exp = 6000
+        exp = 3000
+    elif player_level == 115:
+        exp = 5000
     elif player_level == 120:
-        exp = 10000
+        exp = 5000
     return exp
 
 

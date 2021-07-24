@@ -242,8 +242,9 @@ def reward_deal(user, inventory, base_deal):
 
     inventory.save()
 
-    user.userinfo.vip_exp += formulas.cost_to_vip_exp(formulas.product_to_dollar_cost(base_deal.purchase_id))
-    user.userinfo.save()
+    if base_deal.purchase_id != constants.DEAL_DAILY_0:
+        user.userinfo.vip_exp += formulas.cost_to_vip_exp(formulas.product_to_dollar_cost(base_deal.purchase_id))
+        user.userinfo.save()
 
     if base_deal.char_type is not None:
         rolls.insert_character(user, base_deal.char_type.char_type)
