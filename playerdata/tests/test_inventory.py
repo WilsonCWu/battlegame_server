@@ -264,9 +264,8 @@ class VIPExpLevelUpTestCase(APITestCase):
     # check that the level up from 29 -> 30 gives vip exp
     def test_level_up(self):
         self.u.userinfo.player_exp = 13440  # this is level 29
+        self.u.userinfo.vip_exp = 50  # Assuming at level 15 they got 50 exp
         self.u.userinfo.save()
-
-        self.assertEqual(self.u.userinfo.vip_exp, 0)
 
         response = self.client.post('/dungeon/setprogress/stage/', {
             'is_win': True,
