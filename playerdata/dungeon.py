@@ -312,7 +312,7 @@ class DungeonSetProgressView(APIView):
 
         if dungeon_type == constants.DungeonType.CAMPAIGN.value:
             stage = progress.campaign_stage
-            if constants.DUNGEON_REFERRAL_CONVERSION_STAGE <= stage <= constants.DUNGEON_REFERRAL_CONVERSION_STAGE + 5:
+            if constants.DUNGEON_REFERRAL_CONVERSION_STAGE <= stage <= constants.DUNGEON_REFERRAL_CONVERSION_STAGE + 25:
                 complete_referral_conversion(request.user)
                 wishlist.init_wishlist(request.user)
 
