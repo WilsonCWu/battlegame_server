@@ -225,6 +225,7 @@ def handle_purchase_gems(user, purchase_id, transaction_id):
     else:
         return Response({'status': False, 'reason': 'invalid purchase_id ' + purchase_id})
 
+    user.inventory.save()
     user.userinfo.save()
 
     PurchasedTracker.objects.create(user=user, transaction_id=transaction_id, purchase_id=purchase_id)
