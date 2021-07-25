@@ -73,7 +73,8 @@ class CollectAFKRewardView(APIView):
 
 
 def afk_rewards_multiplier_vip(level: int):
-    if not server.is_server_version_higher("0.4"):
+    # TODO: flip to on whenever we launch VIP
+    if not server.is_server_version_higher("2.0.0"):
         return 1
 
     if level == 1:
@@ -117,7 +118,8 @@ def afk_rewards_multiplier_vip(level: int):
 
 
 def vip_afk_extra_hours(level: int):
-    if not server.is_server_version_higher("0.4"):
+    # TODO: flip to on whenever we launch VIP
+    if not server.is_server_version_higher("2.0.0"):
         return 0
 
     if level == 3:
