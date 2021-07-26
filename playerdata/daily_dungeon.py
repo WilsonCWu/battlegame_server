@@ -130,10 +130,12 @@ def get_next_refresh_time():
     today = datetime.today()
     if today.weekday() < 2:
         return datetime(today.year, today.month, today.day, 0) + timedelta(days=(2 - today.weekday()))
-    elif today.weekday() < 5:
-        return datetime(today.year, today.month, today.day, 0) + timedelta(days=(5 - today.weekday()))
-    else:
+    elif today.weekday() < 4:
+        return datetime(today.year, today.month, today.day, 0) + timedelta(days=(4 - today.weekday()))
+    elif today.weekday() < 6:
         return datetime(today.year, today.month, today.day, 0) + timedelta(days=1)
+    else:
+        return datetime(today.year, today.month, today.day, 0) + timedelta(days=3)
 
 
 class DailyDungeonStatusSchema(Schema):
