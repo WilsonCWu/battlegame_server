@@ -70,7 +70,6 @@ class ClaimMailView(APIView):
     def post(self, request):
         serializer = IntSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
         mail_id = serializer.validated_data['value']
 
         mail = Mail.objects.filter(id=mail_id, receiver=request.user).first()
@@ -87,3 +86,20 @@ class ClaimMailView(APIView):
         ClaimedCode.objects.create(user=request.user, code=mail.code)
         redeem_code_schema = redemptioncodes.RedeemCodeSchema(mail.code)
         return Response(redeem_code_schema.data)
+
+
+class DeleteMailView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic()
+    def post(self, request):
+        serializer = IntSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        mail_id = serializer.validated_data['value']
+
+        mail = Mail.objects.filter(id=mail_id, receiver=request.user).first()
+        if mail is None:
+            return Response({'status': False, 'reason': 'invalid mail id: ' + str(mail_id)})
+
+        mail.delete()
+        return Response({'status': True})

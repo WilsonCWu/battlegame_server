@@ -72,3 +72,22 @@ class InboxAPITestCase(APITestCase):
         })
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertFalse(resp.data['status'])
+
+    def test_delete_mail(self):
+        mail = Mail.objects.create(sender=self.sender, receiver_id=21, message='hello')
+        mail2 = Mail.objects.create(sender=self.sender, receiver_id=21, message='did you read this yet?')
+        resp = self.client.get('/inbox/get/')
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(resp.data), 2)
+
+        resp = self.client.post('/inbox/delete/', {
+            'value': mail.id
+        })
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue(resp.data['status'])
+
+        resp = self.client.get('/inbox/get/')
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(resp.data), 1)

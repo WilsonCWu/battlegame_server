@@ -42,6 +42,7 @@ from playerdata import clan_farm
 from playerdata import story_mode
 
 urlpatterns = [
+    path('inbox/delete/', inbox.DeleteMailView.as_view()),
     path('inbox/claim/', inbox.ClaimMailView.as_view()),
     path('inbox/send/', inbox.SendInboxView.as_view()),
     path('inbox/read/', inbox.ReadInboxView.as_view()),
