@@ -200,3 +200,8 @@ class GetMatchHistorySerializer(serializers.Serializer):
 class SlotSerializer(serializers.Serializer):
     slot_id = serializers.IntegerField(required=True)
     char_id = serializers.IntegerField(required=True)
+
+
+class SendMailSerializer(serializers.Serializer):
+    receiver_id = serializers.IntegerField(required=True)
+    message = serializers.CharField(required=True)

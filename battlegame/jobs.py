@@ -207,3 +207,34 @@ def backfill_vip_levels():
             userinfo.vip_exp += formulas.cost_to_vip_exp(formulas.product_to_dollar_cost(purchase.purchase_id))
 
     UserInfo.objects.bulk_update(userinfos, ['vip_exp'])
+
+
+# Send an inbox message to userid_list
+# if userid_list = ['all'] then it sends to all users
+#
+# Usage:
+# > python manage.py shell_plus
+#
+# > send_inbox("heya welcome to the game!", [349, 348])  # Sends a basic mail to the userid_list inboxes
+# > send_inbox("heya welcome to the game!", ['all'], 500) # Sends mail to all users and also creates a gem reward of 500
+
+@transaction.atomic
+def send_inbox(message, userid_list, gems=0, sender_id=27):
+    if userid_list == ['all']:
+        userid_list = User.objects.values_list('id', flat=True)
+
+    basecode = None
+    if gems != 0:
+        curr_time = datetime.now(timezone.utc)
+        codename = "inboxcode_"+curr_time.strftime("%H:%M:%S")
+        basecode = BaseCode.objects.create(code=codename, num_left=-1, start_time=curr_time,
+                                           end_time=curr_time + timedelta(days=30), gems=gems)
+
+    sender = User.objects.get(id=sender_id)
+    pfp_id = sender.userinfo.profile_picture
+
+    mails = []
+    for userid in userid_list:
+        mails.append(Mail(message=message, sender_id=sender_id, receiver_id=userid, code=basecode, sender_profile_picture_id=pfp_id))
+
+    Mail.objects.bulk_create(mails)
