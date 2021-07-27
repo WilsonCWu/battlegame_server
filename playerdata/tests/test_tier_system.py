@@ -110,6 +110,9 @@ class SeasonRewardAPITestCase(APITestCase):
         self.u = User.objects.get(username='battlegame')
         self.client.force_authenticate(user=self.u)
 
+        self.u.seasonreward.is_claimed = False
+        self.u.seasonreward.save()
+
     def test_claim_reward(self):
         response = self.client.post('/seasonreward/claim/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
