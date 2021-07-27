@@ -29,6 +29,7 @@ class BaseCharacterStatsSchema(Schema):
     health = fields.Int()
     starting_mana = fields.Int()
     mana = fields.Int()
+    ability_ticks = fields.Int()
     speed = fields.Int()
     attack_damage = fields.Int()
     ability_damage = fields.Int()
