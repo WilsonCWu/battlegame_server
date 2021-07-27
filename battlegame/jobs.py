@@ -211,6 +211,13 @@ def backfill_vip_levels():
 
 # Send an inbox message to userid_list
 # if userid_list = ['all'] then it sends to all users
+#
+# Usage:
+# > python manage.py shell_plus
+#
+# > send_inbox("heya welcome to the game!", [349, 348])  # Sends a basic mail to the userid_list inboxes
+# > send_inbox("heya welcome to the game!", ['all'], 500) # Sends mail to all users and also creates a gem reward of 500
+
 @transaction.atomic
 def send_inbox(message, userid_list, gems=0, sender_id=27):
     if userid_list == ['all']:
