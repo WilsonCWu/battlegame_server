@@ -1082,9 +1082,9 @@ class ClaimedCode(models.Model):
 
 
 class Mail(models.Model):
-    receiver = models.ForeignKey(User, on_delete=models.CASCADE)
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mailreceiver')
     message = models.TextField()
-    sender = models.ForeignKey(User, on_delete=models.CASCADE)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mailsender')
     sender_profile_picture_id = models.IntegerField(default=0)
     time_send = models.DateTimeField(auto_now_add=True)
     code = models.ForeignKey(BaseCode, on_delete=models.CASCADE, null=True, blank=True)

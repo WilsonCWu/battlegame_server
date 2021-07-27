@@ -38,7 +38,7 @@ class ReadInboxView(APIView):
 
         mail = Mail.objects.filter(id=mail_id, receiver=request.user).first()
         if mail is None:
-            return Response({'status': False, 'reason': 'invalid mail id: ' + mail_id})
+            return Response({'status': False, 'reason': 'invalid mail id: ' + str(mail_id)})
 
         mail.is_read = True
         mail.save()
@@ -75,10 +75,13 @@ class ClaimMailView(APIView):
 
         mail = Mail.objects.filter(id=mail_id, receiver=request.user).first()
         if mail is None:
-            return Response({'status': False, 'reason': 'invalid mail id: ' + mail_id})
+            return Response({'status': False, 'reason': 'invalid mail id: ' + str(mail_id)})
 
         if ClaimedCode.objects.filter(user=request.user, code=mail.code).exists():
             return Response({'status': False, 'reason': 'code has been redeemed already'})
+
+        if mail.code is None:
+            return Response({'status': False, 'reason': 'no code with this mail'})
 
         redemptioncodes.award_code(request.user, mail.code)
         ClaimedCode.objects.create(user=request.user, code=mail.code)
