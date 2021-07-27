@@ -748,7 +748,7 @@ class SeasonReward(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     tier_rank = models.IntegerField(choices=[(tier.value, tier.name) for tier in constants.Tiers],
                                     default=constants.Tiers.BRONZE_FIVE.value)
-    is_claimed = models.BooleanField(default=False)
+    is_claimed = models.BooleanField(default=True)
 
 
 def get_default_afk_datetime():
@@ -1101,6 +1101,21 @@ class ClaimedCode(models.Model):
 
     def __str__(self):
         return str(self.user) + ": " + str(self.code)
+
+
+class Mail(models.Model):
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE)
+    message = models.TextField()
+    sender = models.ForeignKey(User, on_delete=models.CASCADE)
+    sender_profile_picture_id = models.IntegerField(default=0)
+    time_send = models.DateTimeField(auto_now_add=True)
+    code = models.ForeignKey(BaseCode, on_delete=models.CASCADE, null=True, blank=True)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['time_send']),
+        ]
 
 
 class UserReferral(models.Model):

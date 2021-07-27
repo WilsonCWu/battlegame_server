@@ -16,7 +16,7 @@ Including another URLconf
 from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
-from playerdata import login, tier_system, level_booster, relic_shop, wishlist, chapter_rewards_pack
+from playerdata import login, tier_system, level_booster, relic_shop, wishlist, chapter_rewards_pack, inbox
 from playerdata import base
 from playerdata import daily_dungeon
 from playerdata import moevasion
@@ -42,6 +42,10 @@ from playerdata import clan_farm
 from playerdata import story_mode
 
 urlpatterns = [
+    path('inbox/claim/', inbox.ClaimMailView.as_view()),
+    path('inbox/send/', inbox.SendInboxView.as_view()),
+    path('inbox/read/', inbox.ReadInboxView.as_view()),
+    path('inbox/get/', inbox.GetInboxView.as_view()),
     path('storymode/buffs/set/', story_mode.LevelBuffView.as_view()),
     path('storymode/boons/set/', story_mode.ChooseBoonView.as_view()),
     path('storymode/boons/get/', story_mode.GetBoonsView.as_view()),
