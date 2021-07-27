@@ -430,6 +430,7 @@ class BaseCharacterStatsAdmin(admin.ModelAdmin):
                 health = a.health,
                 starting_mana = a.starting_mana,
                 mana = a.mana,
+                ability_ticks = a.ability_ticks,
                 speed = a.speed,
                 attack_damage = a.attack_damage,
                 ability_damage = a.ability_damage,
@@ -471,6 +472,8 @@ class BaseCharacterStatsAdmin(admin.ModelAdmin):
                     char_diff.append('STARTING MANA: %s -> %s' % (p.starting_mana, a.starting_mana))
                 if p.mana != a.mana:
                     char_diff.append('MANA: %s -> %s' % (p.mana, a.mana))
+                if p.ability_ticks != a.ability_ticks:
+                    char_diff.append('ABILITY TICKS: %s -> %s' % (p.ability_ticks, a.ability_ticks))
                 if p.speed != a.speed:
                     char_diff.append('SPEED: %s -> %s' % (p.speed, a.speed))
                 if p.attack_damage != a.attack_damage:
@@ -542,6 +545,7 @@ class BaseCharacterAdmin(admin.ModelAdmin):
                     health=700,
                     starting_mana=0,
                     mana=120,
+                    ability_ticks=3,
                     speed=100,
                     attack_damage=100,
                     ability_damage=100,
