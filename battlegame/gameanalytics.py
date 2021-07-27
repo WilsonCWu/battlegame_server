@@ -10,7 +10,7 @@ def percentile(data, perc: int):
 
 def print_player_prog(perc=50):
     today = datetime.now(timezone.utc)
-    print("day, elo, dungeon")
+    print("day, elo, dungeon, best_dd_stage")
 
     for day_delta in range(0, 185, 5):
         start_date = today - timedelta(days=day_delta + 5)
@@ -23,11 +23,11 @@ def print_player_prog(perc=50):
         best_dd = [x.user.userinfo.best_daily_dungeon_stage for x in active_players]
 
         if len(active_players) == 0:
-            print("Day " + str(day_delta) + ": 0, 0, 0")
+            print("Day " + str(day_delta) + " (" + str(len(active_players)) + " users)" + ": 0, 0, 0")
             continue
 
         elo_percentile = percentile(elos, perc)
         dungeon_percentile = percentile(dungeon_prog, perc)
         dd_percentile = percentile(best_dd, perc)
 
-        print("Day " + str(day_delta) + ": " + str(elo_percentile) + ", " + str(dungeon_percentile) + ", " + str(dd_percentile))
+        print("Day " + str(day_delta) + " (" + str(len(active_players)) + " users)" + ": " + str(elo_percentile) + ", " + str(dungeon_percentile) + ", " + str(dd_percentile))
