@@ -219,7 +219,7 @@ def backfill_vip_levels():
 # > send_inbox("heya welcome to the game!", ['all'], 500) # Sends mail to all users and also creates a gem reward of 500
 
 @transaction.atomic
-def send_inbox(message, userid_list, gems=0, sender_id=27):
+def send_inbox(message, userid_list, gems=0, sender_id=10506):
     if userid_list == ['all']:
         userid_list = User.objects.values_list('id', flat=True)
 
