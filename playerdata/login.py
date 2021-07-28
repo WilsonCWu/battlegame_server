@@ -64,7 +64,7 @@ class ChangeName(APIView):
         serializer.is_valid(raise_exception=True)
         name = serializer.validated_data['name']
 
-        if "Titan" in name:
+        if "titan" in name.lower() or "salutation studio" in name.lower():
             return Response({'status': False, 'reason': 'Invalid name'})
 
         if len(name) > 20:
