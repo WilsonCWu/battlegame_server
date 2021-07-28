@@ -209,9 +209,6 @@ class DungeonSetProgressStageView(APIView):
         
 
 class DungeonSetProgressCommitView(APIView):
-    """Duplicate of DungeonSetProgressView. Deprecate the other PvE view for
-    this after.
-    """
     permission_classes = (IsAuthenticated,)
 
     @transaction.atomic
@@ -283,66 +280,6 @@ class DungeonSetProgressCommitView(APIView):
         player_exp = formulas.player_exp_reward_dungeon(stage)
         formulas.level_up_check(request.user.userinfo, player_exp)
         userinfo.player_exp += player_exp
-        userinfo.save()
-
-        return Response({'status': True})
-
-
-class DungeonSetProgressView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    @transaction.atomic
-    def post(self, request):
-        # Increment Dungeon progress
-        serializer = SetDungeonProgressSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        is_win = serializer.validated_data['is_win']
-        dungeon_type = serializer.validated_data['dungeon_type']
-
-        if dungeon_type == constants.DungeonType.CAMPAIGN.value:
-            QuestUpdater.add_progress_by_type(request.user, constants.ATTEMPT_DUNGEON_GAMES, 1)
-        else:
-            QuestUpdater.add_progress_by_type(request.user, constants.ATTEMPT_TOWER_GAMES, 1)
-
-        if not is_win:
-            return Response({'status': True})
-
-        progress = DungeonProgress.objects.get(user=request.user)
-
-        if dungeon_type == constants.DungeonType.CAMPAIGN.value:
-            stage = progress.campaign_stage
-            if constants.DUNGEON_REFERRAL_CONVERSION_STAGE <= stage <= constants.DUNGEON_REFERRAL_CONVERSION_STAGE + 25:
-                complete_referral_conversion(request.user)
-                wishlist.init_wishlist(request.user)
-
-            if stage % 40 == 1 and request.user.chapterrewardpack.is_active():
-                world_completed = progress.campaign_stage // 40
-                chapter_rewards_pack.complete_chapter_rewards(world_completed, request.user.chapterrewardpack)
-
-            if stage % 40 == 1:
-                world_pack.active_new_pack(request.user, stage // 40)
-
-            QuestUpdater.set_progress_by_type(request.user, constants.COMPLETE_DUNGEON_LEVEL, progress.campaign_stage)
-            QuestUpdater.add_progress_by_type(request.user, constants.WIN_DUNGEON_GAMES, 1)
-            progress.campaign_stage += 1
-        else:
-            stage = progress.tower_stage
-
-            QuestUpdater.set_progress_by_type(request.user, constants.COMPLETE_TOWER_LEVEL, progress.tower_stage)
-            QuestUpdater.add_progress_by_type(request.user, constants.WIN_TOWER_GAMES, 1)
-            progress.tower_stage += 1
-
-        progress.save()
-
-        # dungeon rewards
-        inventory = request.user.inventory
-        inventory.coins += formulas.coins_reward_dungeon(stage, dungeon_type)
-        inventory.gems += formulas.gems_reward_dungeon(stage, dungeon_type)
-        inventory.save()
-
-        userinfo = request.user.userinfo
-        userinfo.player_exp += formulas.player_exp_reward_dungeon(stage)
         userinfo.save()
 
         return Response({'status': True})
