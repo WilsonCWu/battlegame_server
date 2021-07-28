@@ -10,6 +10,7 @@ from playerdata.serializers import IntSerializer, CharStateResultSerializer, Sen
 
 
 class MailSchema(Schema):
+    id = fields.Int()
     message = fields.Str()
     is_read = fields.Bool()
 
