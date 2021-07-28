@@ -130,12 +130,18 @@ class CreateFriendRequestView(APIView):
         if target_user is None:
             return Response({'status': False, 'reason': "user id doesn't exist"})
 
-        oldRequestSet1 = FriendRequest.objects.filter(user=request.user, target=target_user)
-        oldRequestSet2 = FriendRequest.objects.filter(user=target_user, target=request.user)
-        oldRequestSet = oldRequestSet1 | oldRequestSet2
+        request_set1 = FriendRequest.objects.filter(user=request.user, target=target_user)
+        request_set2 = FriendRequest.objects.filter(user=target_user, target=request.user)
+        request_set = request_set1 | request_set2
 
-        if oldRequestSet:
+        if request_set:
             return Response({'status': False, 'reason': "friend request already exists"})
+
+        friends1 = Friend.objects.filter(user_1=request.user, user_2=target_user)
+        friends2 = Friend.objects.filter(user_1=target_user, user_2=request.user)
+        friends_set = friends1 | friends2
+        if friends_set:
+            return Response({'status': False, 'reason': "you are already friends"})
 
         FriendRequest.objects.create(user=request.user, target=target_user)
 
