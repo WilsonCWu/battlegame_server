@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -55,6 +56,7 @@ def is_valid_code(base_code):
 class RedeemCodeView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = RedeemCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

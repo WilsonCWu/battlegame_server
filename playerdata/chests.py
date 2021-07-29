@@ -58,6 +58,7 @@ def skip_cost(chest: Chest):
 class UnlockChest(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = ValueSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

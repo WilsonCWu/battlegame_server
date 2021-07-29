@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 import math
 
+from django.db import transaction
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -50,6 +51,7 @@ class GetAFKRewardView(APIView):
 class CollectAFKRewardView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         inventory = request.user.inventory
         last_collected_time = inventory.last_collected_rewards

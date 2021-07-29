@@ -1,5 +1,6 @@
 from datetime import datetime, date, time, timedelta
 
+from django.db import transaction
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -84,6 +85,7 @@ def get_random_char_set(num, rarity_odds=None):
 class GetCardsView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = GetCardSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -105,6 +107,7 @@ class GetCardsView(APIView):
 class SelectCardsView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = SelectCardSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -145,6 +148,7 @@ class SelectCardsView(APIView):
 class SetDefense(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = SetDefenceSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -212,6 +216,7 @@ class TournamentRegView(APIView):
     permission_classes = (IsAuthenticated,)
 
     # registration
+    @transaction.atomic
     def post(self, request):
         tournament_reg = TournamentRegistration.objects.filter(user=request.user).first()
         if tournament_reg is not None:
