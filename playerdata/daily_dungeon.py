@@ -237,6 +237,7 @@ class DailyDungeonResultView(APIView):
 class DailyDungeonSkipView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         dd_status = DailyDungeonStatus.get_active_for_user(request.user)
         if not dd_status:

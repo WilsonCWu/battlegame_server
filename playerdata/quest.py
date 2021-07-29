@@ -1,6 +1,7 @@
 import random
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -130,6 +131,7 @@ def handle_claim_quest(request, quest_class):
 class ClaimQuestCumulativeView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = ClaimQuestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -149,6 +151,7 @@ class ClaimQuestCumulativeView(APIView):
 class ClaimQuestWeeklyView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         return handle_claim_quest(request, PlayerQuestWeekly)
 
@@ -156,6 +159,7 @@ class ClaimQuestWeeklyView(APIView):
 class ClaimQuestDailyView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         return handle_claim_quest(request, PlayerQuestDaily)
 
@@ -163,6 +167,7 @@ class ClaimQuestDailyView(APIView):
 class CompleteDiscordView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         QuestUpdater.add_progress_by_type(request.user, constants.DISCORD, 1)
         return Response({'status': True})
@@ -171,6 +176,7 @@ class CompleteDiscordView(APIView):
 class LinkAccountView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         QuestUpdater.add_progress_by_type(request.user, constants.ACCOUNT_LINK, 1)
         return Response({'status': True})

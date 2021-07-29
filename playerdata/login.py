@@ -4,6 +4,7 @@ from decouple import config
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.db import transaction
 from django.db.transaction import atomic
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
@@ -38,6 +39,7 @@ class CreateNewUser(APIView):
     def generate_password():
         return secrets.token_urlsafe(35)
 
+    @transaction.atomic
     def post(self, request):
         serializer = CreateNewUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -59,6 +61,7 @@ class ChangeName(APIView):
     throttle_classes = ()
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = ChangeNameSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -127,6 +130,8 @@ class UserRecoveryTokenGenerator(PasswordResetTokenGenerator):
 
 
 class RecoverAccount(APIView):
+
+    @transaction.atomic
     def post(self, request):
         serializer = RecoverAccountSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

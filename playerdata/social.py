@@ -118,6 +118,7 @@ class AcceptFriendRequestView(APIView):
 class CreateFriendRequestView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = ValueSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -151,6 +152,7 @@ class CreateFriendRequestView(APIView):
 class DeleteFriendView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = ValueSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -186,6 +188,7 @@ class FriendsView(APIView):
 class GetChatIdView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = GetUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -331,6 +334,7 @@ class NewClanView(APIView):
 class LeaveClanView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         clan_member = request.user.userinfo.clanmember
 
@@ -351,6 +355,7 @@ class LeaveClanView(APIView):
 class DeleteClanView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         clan_member = request.user.userinfo.clanmember
         clan_name = clan_member.clan2.name
@@ -430,6 +435,7 @@ class GetClanMember(APIView):
 class EditClanDescriptionView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = ValueSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -453,6 +459,7 @@ class EditClanDescriptionView(APIView):
 class EditProfileDescriptionView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = ValueSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -470,6 +477,7 @@ class EditProfileDescriptionView(APIView):
 class ChangeMemberStatusView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = UpdateClanMemberStatusSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -575,6 +583,7 @@ class GetClanRequestsView(APIView):
 class UpdateClanRequestView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = UpdateClanRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -619,6 +628,7 @@ class UpdateClanRequestView(APIView):
 class UpdateProfilePictureView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = ValueSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -633,6 +643,7 @@ class UpdateProfilePictureView(APIView):
 class UpdateClanProfilePictureView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = ValueSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

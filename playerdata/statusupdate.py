@@ -2,6 +2,7 @@ import collections
 import math
 
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from django.db.transaction import atomic
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -106,6 +107,7 @@ class UploadQuickplayResultView(APIView):
 class UploadTourneyResultView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = UploadResultSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
