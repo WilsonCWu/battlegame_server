@@ -1327,12 +1327,11 @@ class RotatingModeStatus(models.Model):
     in a single game mode run. A user can only have one run at a time.
     """
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    is_golden = models.BooleanField(default=False)
     stage = models.IntegerField(default=1)
     # We expect character state to be in the format of
     # {<character_id>: <character_health>}.
     character_state = JSONField(blank=True, null=True)
-    reward_claimed = models.BooleanField(default=True)
+    rewardz_claimed = models.IntegerField(default=0)
 
 
 def create_user_referral(user):
