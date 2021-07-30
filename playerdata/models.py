@@ -1331,7 +1331,7 @@ class RotatingModeStatus(models.Model):
     # We expect character state to be in the format of
     # {<character_id>: <character_health>}.
     character_state = JSONField(blank=True, null=True)
-    rewardz_claimed = models.IntegerField(default=0)
+    rewards_claimed = models.IntegerField(default=0)
 
 
 def create_user_referral(user):

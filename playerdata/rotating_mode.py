@@ -13,10 +13,9 @@ from .models import RotatingModeStatus
 
 
 class RotatingModeStatusSchema(Schema):
-    is_golden = fields.Bool()
     stage = fields.Int()
     character_state = fields.Str()
-    reward_claimed = fields.Bool()
+    rewards_claimed = fields.Int()
 
 
 def get_next_refresh_time():
@@ -44,7 +43,7 @@ class RotatingModeStageView(APIView):
         return Response({'status': True, 'stage_id': status.stage, 'mob': rotating_mode_stage_generator(status.stage)})
 
 
-def rotating_mode_reward(is_golden: bool, stage: int, user):
+def rotating_mode_reward(stage: int, user):
     return []
 
 
@@ -68,7 +67,6 @@ class RotatingModeResultView(APIView):
         else:
             if status.stage == get_rotating_mode_max_stages:
                 status.stage = 1
-                status.reward_claimed = False
                 status.character_state = ""
             else:
                 status.stage += 1
@@ -83,12 +81,8 @@ class ClaimRotatingModeRewardView(APIView):
     @transaction.atomic
     def post(self, request):
         status = RotatingModeStatus.objects.get(user=request.user)
-
-        if status.reward_claimed:
-            return Response({'status': False, 'reason': "already claimed reward"})
-
-        status.reward_claimed = True
+        status.rewards_claimed += 1
         status.save()
 
-        rewards = rotating_mode_reward(status.is_golden, status.stage, request.user)
+        rewards = rotating_mode_reward(status.stage, request.user)
         return Response({'status': True, 'rewards': rewards})
