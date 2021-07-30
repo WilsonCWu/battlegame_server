@@ -209,6 +209,13 @@ def backfill_vip_levels():
     UserInfo.objects.bulk_update(userinfos, ['vip_exp'])
 
 
+@transaction.atomic
+def backfill_rotating_mode():
+    for user in User.objects.all():
+        _, _ = RotatingModeStatus.objects.get_or_create(user=user)
+
+
+
 # Send an inbox message to userid_list
 # if userid_list = ['all'] then it sends to all users
 #
