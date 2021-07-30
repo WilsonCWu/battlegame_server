@@ -1328,8 +1328,7 @@ class RotatingModeStatus(models.Model):
     """
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     is_golden = models.BooleanField(default=False)
-    # Stage 0 implies that the player is currently NOT in a run.
-    stage = models.IntegerField(default=0)
+    stage = models.IntegerField(default=1)
     # We expect character state to be in the format of
     # {<character_id>: <character_health>}.
     character_state = JSONField(blank=True, null=True)
