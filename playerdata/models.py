@@ -1322,6 +1322,20 @@ class StoryMode(models.Model):
     pregame_buffs = JSONField(blank=True, null=True, default=dict)
 
 
+class RotatingModeStatus(models.Model):
+    """RotatingModeStatus represents a user's progress (or lack of progress)
+    in a single game mode run. A user can only have one run at a time.
+    """
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    is_golden = models.BooleanField(default=False)
+    # Stage 0 implies that the player is currently NOT in a run.
+    stage = models.IntegerField(default=0)
+    # We expect character state to be in the format of
+    # {<character_id>: <character_health>}.
+    character_state = JSONField(blank=True, null=True)
+    reward_claimed = models.BooleanField(default=True)
+
+
 def create_user_referral(user):
     try:
         UserReferral.objects.create(user=user, referral_code=generate_referral_code())
