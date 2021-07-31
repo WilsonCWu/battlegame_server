@@ -1322,6 +1322,18 @@ class StoryMode(models.Model):
     pregame_buffs = JSONField(blank=True, null=True, default=dict)
 
 
+class RotatingModeStatus(models.Model):
+    """RotatingModeStatus represents a user's progress (or lack of progress)
+    in a single game mode run. A user can only have one run at a time.
+    """
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    stage = models.IntegerField(default=1)
+    # We expect character state to be in the format of
+    # {<character_id>: <character_health>}.
+    character_state = JSONField(blank=True, null=True)
+    rewards_claimed = models.IntegerField(default=0)
+
+
 def create_user_referral(user):
     try:
         UserReferral.objects.create(user=user, referral_code=generate_referral_code())
@@ -1359,6 +1371,7 @@ def create_user_info(sender, instance, created, **kwargs):
         ChapterRewardPack.objects.create(user=instance)
         WorldPack.objects.create(user=instance)
         StoryMode.objects.create(user=instance)
+        RotatingModeStatus.objects.create(user=instance)
         create_user_referral(instance)
 
         # Add quests
