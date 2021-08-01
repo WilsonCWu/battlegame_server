@@ -214,7 +214,7 @@ def restart_season():
 
     for season in seasons:
         if hasattr(season.user, 'userinfo'):
-            season.tier_rank = elo_to_tier(season.user.userinfo.highest_season_elo)
+            season.tier_rank = elo_to_tier(season.user.userinfo.highest_season_elo).value
             season.is_claimed = False
 
     SeasonReward.objects.bulk_update(seasons, ['tier_rank', 'is_claimed'])
