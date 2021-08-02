@@ -445,6 +445,23 @@ class SlotValidator():
             raise ValidationError('item must be of type ' + self.slot_type)
 
 
+class RogueAllowedAbilities(models.Model):
+    char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE)
+    ability_type = models.CharField(max_length=1, choices=[
+        ("1", "Ability1"),
+        ("2", "Ability2"),
+        ("3", "Ability3"),
+        ("U", "Ultimate"),
+    ])
+    allowed = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('char_type', 'ability_type')
+
+    def __str__(self):
+        return "%s: %s %r" % (self.char_type, self.ability_type, self.allowed)
+
+
 class Character(models.Model):
     char_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
