@@ -215,7 +215,8 @@ def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defend
 
     return Response({'elo': elo_updates.attacker_new, 'prev_elo': original_elo,
                      'coins': coins, 'player_exp': player_exp,
-                     'chest_rarity': chest_rarity, 'match_id': match_id})
+                     'chest_rarity': chest_rarity, 'match_id': match_id,
+                     'daily_wins': request.user.userstats.daily_wins})
 
 
 def handle_tourney(request, win, opponent):
