@@ -198,35 +198,6 @@ def award_chest_rewards(user, rewards):
     QuestUpdater.add_progress_by_type(user, constants.CHESTS_OPENED, 1)
 
 
-def get_guaranteed_chars_rarity_odds(chest_rarity: int, user):
-    if chest_rarity == constants.ChestType.DAILY_DUNGEON.value:
-        dd_status = DailyDungeonStatus.get_active_for_user(user)
-
-        # guarantee an epic if finishing stage >60
-        # otherwise a rare
-        if dd_status.stage >= 80:
-            char_guarantees = [0, 3, 1, 0]
-        elif dd_status.stage >= 70:
-            char_guarantees = [0, 2, 1, 0]
-        elif dd_status.stage >= 60:
-            char_guarantees = [0, 1, 1, 0]
-        elif dd_status.stage >= 50:
-            char_guarantees = [0, 2, 0, 0]
-        elif dd_status.stage >= 40:
-            char_guarantees = [0, 2, 0, 0]
-        elif dd_status.stage >= 30:
-            char_guarantees = [0, 1, 0, 0]
-        elif dd_status.stage >= 20:
-            char_guarantees = [0, 1, 0, 0]
-        else:
-            char_guarantees = [0, 1, 0, 0]
-
-    else:
-        char_guarantees = constants.GUARANTEED_CHARS_PER_RARITY_PER_CHEST[chest_rarity - 1]
-
-    return char_guarantees
-
-
 # guarantee a coin and dust drop in chests
 def guarantee_resources(rewards, num_rewards, chest_rarity: int, user, chest_tier):
     if chest_rarity != constants.ChestType.LEGENDARY.value:
@@ -234,6 +205,21 @@ def guarantee_resources(rewards, num_rewards, chest_rarity: int, user, chest_tie
         rewards.append(pick_resource_reward(user, 'essence', chest_rarity, chest_tier))
         num_rewards -= 2
     return rewards, num_rewards
+
+
+def get_guaranteed_summons(chest_rarity: int, guaranteed_char_rewards, user):
+    num_guaranteed_summons = constants.GUARANTEED_SUMMONS[chest_rarity - 1] - len(guaranteed_char_rewards)
+
+    # Increase num summons based on stage if DailyDungeon
+    if chest_rarity == constants.ChestType.DAILY_DUNGEON.value:
+        dd_status = DailyDungeonStatus.get_active_for_user(user)
+
+        if dd_status.stage >= 60:
+            num_guaranteed_summons += 2
+        elif dd_status.stage >= 40:
+            num_guaranteed_summons += 1
+
+    return num_guaranteed_summons
 
 
 def generate_chest_rewards(chest_rarity: int, user, chest_tier=None):
@@ -249,13 +235,13 @@ def generate_chest_rewards(chest_rarity: int, user, chest_tier=None):
     rewards, num_rewards = guarantee_resources(rewards, num_rewards, chest_rarity, user, chest_tier)
 
     # pick guaranteed char rarities
-    char_guarantees = get_guaranteed_chars_rarity_odds(chest_rarity, user)
+    char_guarantees = constants.GUARANTEED_CHARS_PER_RARITY_PER_CHEST[chest_rarity - 1]
     guaranteed_char_rewards = roll_guaranteed_char_rewards(char_guarantees)
     rewards.extend(guaranteed_char_rewards)
     num_rewards -= len(guaranteed_char_rewards)
 
     # pick guaranteed number of summons
-    num_guaranteed_summons = constants.GUARANTEED_SUMMONS[chest_rarity - 1] - len(guaranteed_char_rewards)
+    num_guaranteed_summons = get_guaranteed_summons(chest_rarity, guaranteed_char_rewards, user)
     for i in range(0, num_guaranteed_summons):
         reward = pick_reward_char(user, chest_rarity)
         rewards.append(reward)

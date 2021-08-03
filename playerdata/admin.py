@@ -392,7 +392,7 @@ class BaseCharacterAbility2Admin(admin.ModelAdmin):
                             has_changes = True
                             ability_diff.append('NEW: %s' % str(new_keys))
 
-                        changed_keys = {k: str(v) + ' -> ' + str(prev_specs[lvl][k])
+                        changed_keys = {k: str(prev_specs[lvl][k]) + ' -> ' + str(v)
                                         for k, v in specs[lvl].items()
                                         if k in prev_specs[lvl] and v != prev_specs[lvl][k]}
                         if changed_keys:

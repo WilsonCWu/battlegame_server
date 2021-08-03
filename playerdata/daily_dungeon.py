@@ -128,14 +128,7 @@ class DailyDungeonStartView(APIView):
 
 def get_next_refresh_time():
     today = datetime.today()
-    if today.weekday() < 2:
-        return datetime(today.year, today.month, today.day, 0) + timedelta(days=(2 - today.weekday()))
-    elif today.weekday() < 4:
-        return datetime(today.year, today.month, today.day, 0) + timedelta(days=(4 - today.weekday()))
-    elif today.weekday() < 6:
-        return datetime(today.year, today.month, today.day, 0) + timedelta(days=1)
-    else:
-        return datetime(today.year, today.month, today.day, 0) + timedelta(days=3)
+    return datetime(today.year, today.month, today.day, 0) + timedelta(days=1)
 
 
 class DailyDungeonStatusSchema(Schema):
@@ -179,22 +172,22 @@ def daily_dungeon_reward(is_golden, stage, user):
 
     # 2x rewards for golden ticket
     if is_golden and stage % 5 == 0:
-        char_guarantees = [0, 0, 0, 0]
-
-        # TODO: tune how much we give in terms of heroes for golden ticket
-        if stage >= 60:
-            # +1 rare, +1 epic
-            char_guarantees[1] = 1
-            char_guarantees[2] = 1
-        else:
-            # +1 rare
-            char_guarantees[1] = 1
-        rewards.extend(chests.roll_guaranteed_char_rewards(char_guarantees))
-
         # 2x resource rewards
         for reward in rewards:
             if reward.reward_type in ['coins', 'gems', 'essence']:
                 reward.value = reward.value * 2
+
+    if is_golden and stage % 10 == 0:
+        num_extra_summons = 0
+
+        if stage >= 60:
+            num_extra_summons += 2
+        elif stage >= 40:
+            num_extra_summons += 1
+
+        for i in range(0, num_extra_summons):
+            reward = chests.pick_reward_char(user, constants.ChestType.DAILY_DUNGEON.value)
+            rewards.append(reward)
 
     chests.award_chest_rewards(user, rewards)
     reward_schema = chests.ChestRewardSchema(rewards, many=True)
