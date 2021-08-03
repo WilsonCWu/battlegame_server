@@ -179,17 +179,16 @@ def daily_dungeon_reward(is_golden, stage, user):
 
     # 2x rewards for golden ticket
     if is_golden and stage % 5 == 0:
-        char_guarantees = [0, 0, 0, 0]
+        num_extra_summons = 0
 
-        # TODO: tune how much we give in terms of heroes for golden ticket
         if stage >= 60:
-            # +1 rare, +1 epic
-            char_guarantees[1] = 1
-            char_guarantees[2] = 1
-        else:
-            # +1 rare
-            char_guarantees[1] = 1
-        rewards.extend(chests.roll_guaranteed_char_rewards(char_guarantees))
+            num_extra_summons += 2
+        elif stage >= 40:
+            num_extra_summons += 1
+
+        for i in range(0, num_extra_summons):
+            reward = chests.pick_reward_char(user, constants.ChestType.DAILY_DUNGEON.value)
+            rewards.append(reward)
 
         # 2x resource rewards
         for reward in rewards:
