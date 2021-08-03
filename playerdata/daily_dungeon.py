@@ -179,6 +179,12 @@ def daily_dungeon_reward(is_golden, stage, user):
 
     # 2x rewards for golden ticket
     if is_golden and stage % 5 == 0:
+        # 2x resource rewards
+        for reward in rewards:
+            if reward.reward_type in ['coins', 'gems', 'essence']:
+                reward.value = reward.value * 2
+
+    if is_golden and stage % 10 == 0:
         num_extra_summons = 0
 
         if stage >= 60:
@@ -189,11 +195,6 @@ def daily_dungeon_reward(is_golden, stage, user):
         for i in range(0, num_extra_summons):
             reward = chests.pick_reward_char(user, constants.ChestType.DAILY_DUNGEON.value)
             rewards.append(reward)
-
-        # 2x resource rewards
-        for reward in rewards:
-            if reward.reward_type in ['coins', 'gems', 'essence']:
-                reward.value = reward.value * 2
 
     chests.award_chest_rewards(user, rewards)
     reward_schema = chests.ChestRewardSchema(rewards, many=True)
