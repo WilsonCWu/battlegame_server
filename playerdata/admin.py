@@ -586,6 +586,7 @@ class MatchReplayAdmin(admin.ModelAdmin):
 class ChatMessageAdmin(admin.ModelAdmin):
     list_display = ('chat', 'message', 'sender', 'time_send')
     search_fields = ['=chat__id', 'chat__chat_name', 'message']
+    raw_id_fields = ('chat',)
 
 
 admin.site.register(DungeonStage, DungeonStageAdmin)
