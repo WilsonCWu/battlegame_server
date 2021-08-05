@@ -583,6 +583,11 @@ class MatchReplayAdmin(admin.ModelAdmin):
     raw_id_fields = ('match',)
 
 
+class ChatMessageAdmin(admin.ModelAdmin):
+    list_display = ('chat', 'message', 'sender', 'time_send')
+    search_fields = ['=chat__id', 'chat__chat_name', 'message']
+
+
 admin.site.register(DungeonStage, DungeonStageAdmin)
 admin.site.register(DungeonProgress)
 admin.site.register(DungeonBoss, DungeonBossAdmin)
@@ -600,7 +605,7 @@ admin.site.register(Match)
 admin.site.register(Inventory, InventoryAdmin)
 
 admin.site.register(Chat)
-admin.site.register(ChatMessage)
+admin.site.register(ChatMessage, ChatMessageAdmin)
 admin.site.register(Friend)
 admin.site.register(FriendRequest)
 admin.site.register(Clan2)
