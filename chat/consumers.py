@@ -18,6 +18,16 @@ profanity.load_censor_words(whitelist_words=['omg', 'omfg', 'lmao', 'lmfao', 'go
                                              'strip', 'steamy', 'sissy', 'seduce', 'pot'])
 
 
+def censor_referral(message: str):
+    tokens = message.split(' ')
+
+    for tok in tokens:
+        if tok.isupper() and len(tok) == 12:
+            return "****"
+
+    return message
+
+
 class MessageSchema(Schema):
     message = fields.Str()
     # TODO: this is quite expensive, should not be in here
@@ -65,6 +75,8 @@ class ChatConsumer(WebsocketConsumer):
 
         if message_type == 'msg':
             message = profanity.censor(text_data_json['message'])
+            message = censor_referral(message)
+
             pfp_id = self.user.userinfo.profile_picture
 
             # Send message to room group
