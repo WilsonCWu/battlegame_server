@@ -137,6 +137,9 @@ def update_stats(user, win, stats):
 
 
 def reduce_low_elo_loss(original_elo, new_elo):
+    if not server.is_server_version_higher("0.5.0"):
+        return new_elo
+
     diff = new_elo - original_elo
     if diff > 0:
         return new_elo
@@ -147,6 +150,10 @@ def reduce_low_elo_loss(original_elo, new_elo):
         return new_elo + (abs(diff) / 3) * 2  # Only lose 1/3 of the normal elo
     elif original_elo <= 400:
         return new_elo + (abs(diff) / 2)  # Lose only half of the normal elo
+    elif original_elo <= 2000:
+        return new_elo + (abs(diff) / 4)
+    elif original_elo <= 3000:
+        return new_elo + (abs(diff) / 5)
 
 
 def update_rating(original_elo, opponent, win):
