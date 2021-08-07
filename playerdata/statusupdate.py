@@ -151,8 +151,10 @@ def reduce_low_elo_loss(original_elo, new_elo):
     elif original_elo <= 600:
         return original_elo + (diff / 2)  # Lose 1/2 of the full amount
     elif original_elo <= 1000:
-        return original_elo + min(diff + 2, -1)
+        return original_elo + min(diff + 3, -1)
     elif original_elo <= 1500:
+        return original_elo + min(diff + 2, -1)
+    elif original_elo <= 3000:
         return original_elo + min(diff + 1, -1)
     else:
         return new_elo
