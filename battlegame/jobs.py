@@ -2,7 +2,7 @@
 
 from django.db import transaction
 
-from playerdata import formulas
+from playerdata import formulas, matcher
 from playerdata.models import *
 
 
@@ -245,3 +245,8 @@ def send_inbox(message, userid_list, gems=0, sender_id=10506):
         mails.append(Mail(message=message, sender_id=sender_id, receiver_id=userid, code=basecode, sender_profile_picture_id=pfp_id))
 
     Mail.objects.bulk_create(mails)
+
+
+@transaction.atomic
+def generate_bots_bulk(start_elo, end_elo, num_bots_per_elo_range):
+    matcher.generate_bots_bulk(start_elo, end_elo, num_bots_per_elo_range)
