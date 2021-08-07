@@ -136,16 +136,30 @@ def update_stats(user, win, stats):
     QuestUpdater.add_progress_by_type(user, constants.DAMAGE_DEALT, total_damage_dealt_stat)
 
 
+def reduce_low_elo_loss(original_elo, new_elo):
+    diff = new_elo - original_elo
+    if diff > 0:
+        return new_elo
+
+    if original_elo <= 100:
+        return new_elo + (abs(diff) / 4) * 3  # Only lose 1/4 of the normal elo
+    elif original_elo <= 200:
+        return new_elo + (abs(diff) / 3) * 2  # Only lose 1/3 of the normal elo
+    elif original_elo <= 400:
+        return new_elo + (abs(diff) / 2)  # Lose only half of the normal elo
+
+
 def update_rating(original_elo, opponent, win):
     other_user = get_user_model().objects.select_related('userinfo').get(id=opponent)
-    updated_rating = calculate_elo(original_elo, other_user.userinfo.elo, win)
+    new_elo = calculate_elo(original_elo, other_user.userinfo.elo, win)
+    updated_rating = reduce_low_elo_loss(original_elo, new_elo)
 
     original_opponent_elo = other_user.userinfo.elo
     updated_opponent_elo = other_user.userinfo.elo
     # update enemy elo if not a bot
     if not other_user.userinfo.is_bot:
         updated_opponent_elo = calculate_elo(other_user.userinfo.elo, original_elo, not win)
-        other_user.userinfo.elo = updated_opponent_elo
+        other_user.userinfo.elo = reduce_low_elo_loss(original_opponent_elo, updated_opponent_elo)
         other_user.userinfo.save()
 
     EloUpdates = collections.namedtuple('EloUpdated',
