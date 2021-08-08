@@ -659,6 +659,8 @@ admin.site.register(ClanPVEResult)
 admin.site.register(ClanPVEStatus)
 admin.site.register(ClanFarming)
 
+admin.site.register(RogueAllowedAbilities)
+
 admin.site.register(RelicShop, RelicShopAdmin)
 admin.site.register(LevelBooster)
 admin.site.register(Wishlist, WishlistAdmin)
