@@ -263,7 +263,7 @@ def new_test_user(name: str):
     print("username: " + name)
     print("password: " + password)
 
-    user.inventory.gems = 50000
+    user.inventory.gems = 1000000
     user.inventory.coins = 50000000
     user.inventory.dust = 1000000
     user.inventory.save()
