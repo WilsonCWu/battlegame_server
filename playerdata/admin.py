@@ -11,7 +11,7 @@ from .daily_dungeon import daily_dungeon_team_gen_cron
 from .dungeon import generate_dungeon_stages
 from .dungeon_gen import convert_placement_to_json
 from .login import UserRecoveryTokenGenerator
-from .matcher import generate_bots_from_users, generate_bots_bulk
+from .matcher import generate_bots_from_users
 from .models import *
 from .purchases import refresh_daily_deals_cronjob, refresh_weekly_deals_cronjob
 from .quest import queue_active_weekly_quests, queue_active_daily_quests, refresh_weekly_quests, refresh_daily_quests
@@ -70,16 +70,13 @@ class IPTrackerAdmin(admin.ModelAdmin):
 
 class UserInfoAdmin(admin.ModelAdmin):
     list_display = ('user_id', 'name', 'elo')
-    actions = ('generate_bots_from_users', 'generate_bots_bulk', 'create_otp',
+    actions = ('generate_bots_from_users', 'create_otp',
                'inventory_transfer_forward', 'inventory_transfer_reverse')
     search_fields = ('name',)
     raw_id_fields = ("user", "default_placement")
 
     def generate_bots_from_users(self, request, queryset):
         generate_bots_from_users(queryset)
-
-    def generate_bots_bulk(self, request, queryset):
-        generate_bots_bulk()
 
     def create_otp(self, request, queryset):
         token_generator = UserRecoveryTokenGenerator()

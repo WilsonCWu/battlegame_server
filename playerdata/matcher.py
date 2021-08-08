@@ -388,31 +388,39 @@ def _generate_bots(num_bots_per_user, elo, char_levels, num_chars=5):
         chosen_chars = random.sample(list(base_chars), num_chars)
 
         bot_placement = Placement.objects.get(user=bot_user)
-        positions = random.sample(range(1, 25), num_chars)
+
+        available_pos_frontline = [*constants.FRONTLINE_POS]
+        available_pos_backline = [*constants.BACKLINE_POS]
 
         for i in range(0, num_chars):
             new_char = Character.objects.create(user=bot_user, char_type=chosen_chars[i])
+            if new_char.char_type in constants.FRONTLINE_POS:
+                position = random.choice(available_pos_frontline)
+                available_pos_frontline.remove(position)
+            else:
+                position = random.choice(available_pos_backline)
+                available_pos_backline.remove(position)
 
             if i == 0:
                 level = char_levels[0]
                 bot_placement.char_1 = new_char
-                bot_placement.pos_1 = positions[0]
+                bot_placement.pos_1 = position
             elif i == 1:
                 level = char_levels[1]
                 bot_placement.char_2 = new_char
-                bot_placement.pos_2 = positions[1]
+                bot_placement.pos_2 = position
             elif i == 2:
                 level = char_levels[2]
                 bot_placement.char_3 = new_char
-                bot_placement.pos_3 = positions[2]
+                bot_placement.pos_3 = position
             elif i == 3:
                 level = char_levels[3]
                 bot_placement.char_4 = new_char
-                bot_placement.pos_4 = positions[3]
+                bot_placement.pos_4 = position
             else:
                 level = char_levels[4]
                 bot_placement.char_5 = new_char
-                bot_placement.pos_5 = positions[4]
+                bot_placement.pos_5 = position
 
             # generate a character +/- 10 levels of the user's char level
             level = random.randint(max(1, level - 10), min(240, level + 10))
@@ -441,12 +449,41 @@ def generate_bots_from_users(queryset):
 
 
 @transaction.atomic
-def generate_bots_bulk():
-    elo_range = [50, 200, 400, 600, 800, 900, 1000, 1100, 1200]
-    level_range = [10, 15, 35, 45, 55, 65, 75, 85, 95]
-
-    for elo, level, in zip(elo_range, level_range):
-        num_bots_per_elo_range = 10
+def generate_bots_bulk(start_elo, end_elo, num_bots_per_elo_range):
+    for elo in range(start_elo, end_elo, 100):
+        level = max(average_lvl_for_elo(elo) - 5, 10)
         char_levels = [level] * 5
 
         _generate_bots(num_bots_per_elo_range, elo, char_levels)
+
+
+def get_avg_lvl_placement(placement):
+    lvls = []
+    if placement.char_1:
+        lvls.append(placement.char_1.level)
+    if placement.char_2:
+        lvls.append(placement.char_2.level)
+    if placement.char_3:
+        lvls.append(placement.char_3.level)
+    if placement.char_4:
+        lvls.append(placement.char_4.level)
+    if placement.char_5:
+        lvls.append(placement.char_5.level)
+
+    return sum(lvls) / len(lvls)
+
+
+def average_lvl_for_elo(elo):
+    userinfos = UserInfo.objects.filter(elo__gte=elo - 50, elo__lte=elo + 50).select_related(
+        'default_placement__char_1') \
+                    .select_related('default_placement__char_2') \
+                    .select_related('default_placement__char_3') \
+                    .select_related('default_placement__char_4') \
+                    .select_related('default_placement__char_5')[:50]
+
+    avg_lvls = []
+    for userinfo in userinfos:
+        lvl = get_avg_lvl_placement(userinfo.default_placement)
+        avg_lvls.append(lvl)
+
+    return round(sum(avg_lvls) / len(avg_lvls))
