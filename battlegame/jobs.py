@@ -1,8 +1,10 @@
 """One off jobs."""
+import secrets
 
+from django.contrib.auth import get_user_model
 from django.db import transaction
 
-from playerdata import formulas, matcher
+from playerdata import formulas, matcher, rolls
 from playerdata.models import *
 
 
@@ -250,3 +252,27 @@ def send_inbox(message, userid_list, gems=0, sender_id=10506):
 @transaction.atomic
 def generate_bots_bulk(start_elo, end_elo, num_bots_per_elo_range):
     matcher.generate_bots_bulk(start_elo, end_elo, num_bots_per_elo_range)
+
+
+# Creates a test user account with full resources and all characters
+@transaction.atomic
+def new_test_user(name: str):
+    password = secrets.token_urlsafe(35)
+
+    user = get_user_model().objects.create_user(username=name, password=password)
+    print("username: " + name)
+    print("password: " + password)
+
+    user.inventory.gems = 50000
+    user.inventory.coins = 50000000
+    user.inventory.dust = 1000000
+    user.inventory.save()
+
+    basechars = BaseCharacter.objects.filter(rollable=True)
+    for basechar in basechars:
+        rolls.insert_character(user, basechar.char_type)
+
+    chars = Character.objects.filter(user=user)
+    for char in chars:
+        char.level = 81
+        char.save()
