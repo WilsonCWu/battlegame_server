@@ -109,6 +109,9 @@ def validate_apple(request, receipt_raw, transaction_id):
         if purchase_id == '':
             return Response({'status': False, 'reason': 'transaction_id not found'})
 
+        if not server.is_server_version_higher("0.4.1"):
+            return Response({'status': True})
+
         return reward_purchase(request.user, transaction_id, purchase_id)
 
     except InAppPyValidationError as ex:
