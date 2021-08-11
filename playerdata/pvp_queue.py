@@ -11,7 +11,7 @@ from playerdata.models import UserInfo
 
 
 ######################
-# Redis List Functions
+# Redis List Functions (https://redis.io/commands#list)
 # With these queues we've chosen to do right pushes and left pops
 
 def get_opponent_queue_key(user_id):
@@ -28,13 +28,13 @@ def next_opponent(user):
 
     r = get_redis_connection("default")
 
-    # push more opponents into the queue
+    # push more opponents into the queue if less than 10
     if r.llen(opponent_queue_key) < 10:
         exclude_list = r.lrange(recently_seen_key, 0, 10)
         user_ids = get_opponents_list(user, exclude_list)
         r.rpush(opponent_queue_key, *user_ids)
 
-    # pop the current opponent off the queue and push it into
+    # pop the current opponent off the queue and push it into recently seen
     opponent_id = r.lpop(opponent_queue_key)
     r.rpush(recently_seen_key, opponent_id)
 
@@ -59,6 +59,8 @@ def get_opponents_list(user, exclude_list):
     user_ids = []
     search_count = 1
 
+    # loop until we have at least 10 users in the queue
+    # each loop increases the elo bounds we search in
     while len(user_ids) < 10:
         bound = search_count * constants.MATCHER_INCREASE_RANGE + constants.MATCHER_START_RANGE
         user_ids = get_random_opponents(user.id, constants.MATCHER_DEFAULT_COUNT,
