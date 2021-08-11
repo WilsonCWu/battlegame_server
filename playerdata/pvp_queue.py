@@ -41,6 +41,10 @@ def next_opponent(user):
     if r.llen(recently_seen_key) > 10:
         r.lpop(recently_seen_key)
 
+    # expire the keys after 6 hours
+    r.expire(opponent_queue_key, 21600)
+    r.expire(recently_seen_key, 21600)
+
 
 def get_random_opponents(self_user_id, num_opponents, min_elo, max_elo, exclude_list=None):
     if exclude_list is None:

@@ -55,7 +55,7 @@ Set up Redis Cache
 We run two instances of Redis for Chat and Cache (pvp queueing). Chat is port 6379, Cache is 6380.
 
 ```sh
-docker run --name redis-6380 -d -p 6380:6379 redis redis-server --requirepass “REDISPASSWORD”
+docker run --name redis-6380 -d -p 127.0.0.1:6380:6379 redis redis-server --requirepass REDISPASSWORD --maxmemory 3gb --maxmemory-policy volatile-ttl
 ```
 
 ### Load staging data (recommended):
