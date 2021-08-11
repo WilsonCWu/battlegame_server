@@ -13,7 +13,7 @@ from playerdata.models import ServerStatus
 from playerdata.models import TournamentMatch
 from playerdata.models import TournamentMember
 from playerdata.models import UserStats
-from . import constants, formulas, rolls, tier_system, server
+from . import constants, formulas, rolls, tier_system, server, pvp_queue
 from .questupdater import QuestUpdater
 from .serializers import UploadResultSerializer
 
@@ -238,6 +238,9 @@ def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defend
     request.user.userinfo.player_exp += player_exp
     request.user.userinfo.save()
 
+    if server.is_server_version_higher("0.4.1"):
+        pvp_queue.next_opponent(request.user)
+
     return Response({'elo': elo_updates.attacker_new, 'prev_elo': original_elo,
                      'coins': coins, 'player_exp': player_exp,
                      'chest_rarity': chest_rarity, 'match_id': match_id,
@@ -305,23 +308,13 @@ class SkipView(APIView):
 
     @atomic
     def post(self, request):
-        if server.is_server_version_higher("0.2.5"):
-            if request.user.userstats.pvp_skips <= 0:
-                return Response({'status': False, 'reason': 'No more skips left today!'})
+        if request.user.userstats.pvp_skips <= 0:
+            return Response({'status': False, 'reason': 'No more skips left today!'})
 
-            request.user.userstats.pvp_skips -= 1
-            request.user.userstats.save()
-            return Response({'status': True})
+        request.user.userstats.pvp_skips -= 1
+        request.user.userstats.save()
 
+        if server.is_server_version_higher("0.4.1"):
+            pvp_queue.next_opponent(request.user)
 
-        cost = formulas.coins_chest_reward(request.user, constants.ChestType.SILVER.value) / 30
-
-        if request.user.inventory.coins >= cost:
-            request.user.inventory.coins -= cost
-        elif request.user.inventory.gems >= constants.SKIP_GEM_COST:
-            request.user.inventory.gems -= constants.SKIP_GEM_COST
-        else:
-            return Response({'status': False, 'reason': 'not enough gems to skip!'})
-
-        request.user.inventory.save()
         return Response({'status': True})
