@@ -24,6 +24,7 @@ django-crontab==0.7.1
 django-extensions==2.2.9
 django-json-widget==1.0.1
 django-prometheus==2.1.0
+django-redis==5.0.0
 django-rest-marshmallow==4.0.2
 djangorestframework==3.11.0
 future==0.18.2
@@ -57,6 +58,7 @@ pyparsing==2.4.7
 python-decouple==3.3
 pytz==2019.3
 random-username==1.0.2
+redis==3.5.3
 requests==2.23.0
 rsa==4.0
 sentry-sdk==0.19.2
