@@ -13,7 +13,7 @@ from playerdata.models import ServerStatus
 from playerdata.models import TournamentMatch
 from playerdata.models import TournamentMember
 from playerdata.models import UserStats
-from . import constants, formulas, rolls, tier_system, server, pvp_queue
+from . import constants, formulas, rolls, tier_system, server, pvp_queue, matcher
 from .questupdater import QuestUpdater
 from .serializers import UploadResultSerializer
 
@@ -315,7 +315,9 @@ class SkipView(APIView):
         request.user.userstats.save()
 
         if server.is_server_version_higher("0.4.1"):
-            # TODO: Return the next opponent in this response too
             next_opponent_id = pvp_queue.pop_pvp_queue(request.user)
+            query = matcher.userinfo_preloaded().filter(user_id=next_opponent_id).first()
+            enemy = matcher.UserInfoSchema(query)
+            return Response({'status': True, 'next_enemy': enemy.data})
 
         return Response({'status': True})
