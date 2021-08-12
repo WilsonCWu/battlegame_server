@@ -41,6 +41,7 @@ from playerdata import antihacking
 from playerdata import clan_pve
 from playerdata import clan_farm
 from playerdata import story_mode
+from playerdata import pvp_queue
 
 urlpatterns = [
     path('rotating/claim/', rotating_mode.ClaimRotatingModeRewardView.as_view()),
@@ -153,6 +154,7 @@ urlpatterns = [
     path('uploadresult/tourney/', statusupdate.UploadTourneyResultView.as_view()),
     path('skip/cost/', statusupdate.SkipsLeftView.as_view()),
     path('skip/', statusupdate.SkipView.as_view()),
+    path('opponent/', pvp_queue.GetOpponentView.as_view()),
     path('opponents/', matcher.GetOpponentsView.as_view()),
     path('user/', matcher.GetUserView.as_view()),
     path('bots/', matcher.BotsView.as_view()),

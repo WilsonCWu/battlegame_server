@@ -27,6 +27,7 @@ Make an `.env` in the root git folder with the following:
 SECRET_KEY=<type something here>
 POSTGRES_PASSWORD=postgres
 CREATEUSER_TOKEN=<ask someone for this>
+REDIS_PVP_PASSWORD=REDISPASSWORD
 ```
 
 Set up Postgres
@@ -47,6 +48,15 @@ Look for `port = XXXX`. In most cases, this should be 5432. If it is not 5432, y
 
 Migrate:
 `python manage.py migrate`
+
+
+Set up Redis Cache
+
+We run two instances of Redis for Chat and Cache (pvp queueing). Chat is port 6379, Cache is 6380.
+
+```sh
+docker run --name redis-6380 -d -p 127.0.0.1:6380:6379 redis redis-server --requirepass REDISPASSWORD --maxmemory 3gb --maxmemory-policy volatile-ttl
+```
 
 ### Load staging data (recommended):
 
