@@ -90,8 +90,8 @@ def get_opponents_list(user, exclude_list):
     # each loop increases the elo bounds we search in
     users = _get_opponents_within_elo(cur_elo, search_count, exclude_list)
     while users.count() < num_opponents:
-        users = _get_opponents_within_elo(cur_elo, search_count, exclude_list)
         search_count += 1
+        users = _get_opponents_within_elo(cur_elo, search_count, exclude_list)
 
     return random.sample(list(users), min(len(users), num_opponents))
 
