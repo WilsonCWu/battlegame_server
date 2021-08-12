@@ -238,8 +238,7 @@ def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defend
     request.user.userinfo.player_exp += player_exp
     request.user.userinfo.save()
 
-    if server.is_server_version_higher("0.4.1"):
-        pvp_queue.pop_pvp_queue(request.user)
+    pvp_queue.pop_pvp_queue(request.user)
 
     return Response({'elo': elo_updates.attacker_new, 'prev_elo': original_elo,
                      'coins': coins, 'player_exp': player_exp,
@@ -314,10 +313,7 @@ class SkipView(APIView):
         request.user.userstats.pvp_skips -= 1
         request.user.userstats.save()
 
-        if server.is_server_version_higher("0.4.1"):
-            next_opponent_id = pvp_queue.pop_pvp_queue(request.user)
-            query = matcher.userinfo_preloaded().filter(user_id=next_opponent_id).first()
-            enemy = matcher.UserInfoSchema(query)
-            return Response({'status': True, 'next_enemy': enemy.data})
-
-        return Response({'status': True})
+        next_opponent_id = pvp_queue.pop_pvp_queue(request.user)
+        query = matcher.userinfo_preloaded().filter(user_id=next_opponent_id).first()
+        enemy = matcher.UserInfoSchema(query)
+        return Response({'status': True, 'next_enemy': enemy.data})
