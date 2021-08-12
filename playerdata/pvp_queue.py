@@ -10,6 +10,9 @@ from playerdata import constants, matcher
 from playerdata.models import UserInfo
 
 
+# Pops the current opponent off of the queue
+# returns the next opponent
+# replenishes the queue if it was empty from the pop
 def pop_pvp_queue(user):
     r = get_redis_connection("default")
 
@@ -24,7 +27,7 @@ def pop_pvp_queue(user):
     opponent_id = r.lpop(opponent_queue_key)
     r.rpush(recently_seen_key, opponent_id)
 
-    if is_over_queue_limit(recently_seen_key, RECENTLY_SEEN_QUEUE_LIMIT):
+    if is_over_queue_limit(r, recently_seen_key, RECENTLY_SEEN_QUEUE_LIMIT):
         r.lpop(recently_seen_key)
 
     # expire the keys after 6 hours
@@ -49,8 +52,7 @@ def build_recently_seen_key(user_id):
     return "seen_" + str(user_id)
 
 
-def is_over_queue_limit(key, limit):
-    r = get_redis_connection("default")
+def is_over_queue_limit(r, key, limit):
     return r.llen(key) > limit
 
 
