@@ -19,8 +19,8 @@ def pop_pvp_queue(user):
     opponent_queue_key = build_opponent_queue_key(user.id)
     recently_seen_key = build_recently_seen_key(user.id)
 
-    # push more opponents into the queue if less than 10
-    if r.llen(opponent_queue_key) == 0:
+    # push more opponents into the queue if last one
+    if r.llen(opponent_queue_key) <= 1:
         add_opponents_to_queue(r, user, opponent_queue_key, recently_seen_key)
 
     # pop the current opponent off the queue and push it into recently seen
@@ -70,28 +70,30 @@ def add_opponents_to_queue(r, user, opponent_queue_key, recently_seen_key):
     r.rpush(opponent_queue_key, *user_ids)
 
 
+def _get_opponents_within_elo(cur_elo, search_count, exclude_list):
+    bound = search_count * constants.MATCHER_INCREASE_RANGE + constants.MATCHER_START_RANGE
+    min_elo = cur_elo - bound
+    max_elo = cur_elo + bound
+
+    return UserInfo.objects.filter(elo__gte=min_elo, elo__lte=max_elo) \
+                .exclude(user_id__in=exclude_list) \
+                .values_list('user_id', flat=True)[:50]
+
+
 def get_opponents_list(user, exclude_list):
     cur_elo = user.userinfo.elo
-    user_ids = []
     search_count = 1
     num_opponents = 7
     exclude_list.append(user.id)
 
     # loop until we have at least NUM_OPPONENTS users in the queue
     # each loop increases the elo bounds we search in
-    while len(user_ids) < num_opponents:
-        bound = search_count * constants.MATCHER_INCREASE_RANGE + constants.MATCHER_START_RANGE
-        min_elo = cur_elo - bound
-        max_elo = cur_elo + bound
-
-        users = UserInfo.objects.filter(elo__gte=min_elo, elo__lte=max_elo) \
-                    .exclude(user_id__in=exclude_list) \
-                    .values_list('user_id', flat=True)[:50]
-        user_ids = random.sample(list(users), min(len(users), num_opponents))
-
+    users = _get_opponents_within_elo(cur_elo, search_count, exclude_list)
+    while users.count() < num_opponents:
+        users = _get_opponents_within_elo(cur_elo, search_count, exclude_list)
         search_count += 1
 
-    return user_ids
+    return random.sample(list(users), min(len(users), num_opponents))
 
 
 class GetOpponentView(APIView):

@@ -239,8 +239,7 @@ def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defend
     request.user.userinfo.save()
 
     if server.is_server_version_higher("0.4.1"):
-        # TODO: Return the next opponent in this response too
-        next_opponent_id = pvp_queue.pop_pvp_queue(request.user)
+        pvp_queue.pop_pvp_queue(request.user)
 
     return Response({'elo': elo_updates.attacker_new, 'prev_elo': original_elo,
                      'coins': coins, 'player_exp': player_exp,
