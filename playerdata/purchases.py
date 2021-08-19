@@ -282,7 +282,7 @@ def handle_purchase_deal(user, purchase_id, transaction_id):
     except IntegrityError as e:
         return Response({'status': False, 'reason': 'already purchased this deal!'})
 
-    if user.inventory.gems < deal.base_deal.gems_cost:
+    if user.inventory.gems < deal.base_deal.gems_cost and deal.base_deal.gems_cost != 0:
         return Response({'status': False, 'reason': 'not enough gems!'})
 
     reward_deal(user, user.inventory, deal.base_deal)
