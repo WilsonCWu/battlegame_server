@@ -454,6 +454,7 @@ class RogueAllowedAbilities(models.Model):
         ("U", "Ultimate"),
     ])
     allowed = models.BooleanField(default=False)
+    is_passive = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('char_type', 'ability_type')

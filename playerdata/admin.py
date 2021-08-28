@@ -575,6 +575,11 @@ class BaseCharacterAdmin(admin.ModelAdmin):
                 Character.objects.create(user_id=21, char_type=base_char, copies=1)
 
 
+@admin.register(RogueAllowedAbilities)
+class RogueAllowedAbilitiesAdmin(admin.ModelAdmin):
+    list_filter = ('char_type', 'allowed')
+
+
 @admin.register(MatchReplay)
 class MatchReplayAdmin(admin.ModelAdmin):
     raw_id_fields = ('match',)
@@ -655,8 +660,6 @@ admin.site.register(ClanPVEEvent)
 admin.site.register(ClanPVEResult)
 admin.site.register(ClanPVEStatus)
 admin.site.register(ClanFarming)
-
-admin.site.register(RogueAllowedAbilities)
 
 admin.site.register(RelicShop, RelicShopAdmin)
 admin.site.register(LevelBooster)
