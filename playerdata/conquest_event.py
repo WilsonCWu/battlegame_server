@@ -28,7 +28,7 @@ class ClaimConquestEventRewardView(APIView):
 
         rewards = []
         rewards.append(chests.ChestReward('gems', 2700*3))
-        rewards.append(chests.ChestReward('profile_pic', 16))
+        rewards.append(chests.ChestReward('profile_pic', 15))
 
         chests.award_chest_rewards(request.user, rewards)
         reward_schema = chests.ChestRewardSchema(rewards, many=True)
