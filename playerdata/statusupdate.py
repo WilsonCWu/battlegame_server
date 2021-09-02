@@ -137,7 +137,7 @@ def update_stats(user, win, stats):
 
 
 def reduce_low_elo_loss(original_elo, new_elo):
-    if not server.is_server_version_higher("0.4.1"):
+    if not server.is_server_version_higher("0.5.0"):
         return new_elo
 
     diff = new_elo - original_elo
