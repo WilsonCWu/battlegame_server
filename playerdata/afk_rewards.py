@@ -11,13 +11,13 @@ from playerdata.formulas import afk_coins_per_min, afk_exp_per_min, afk_dust_per
 from playerdata.models import DungeonProgress
 
 
-def mins_since_last_collection(last_collected_time, vip_level):
+def secs_since_last_collection(last_collected_time, vip_level):
     now_time = datetime.now(timezone.utc)
     elapsed = now_time - last_collected_time
-    elapsed_mins = int(elapsed.total_seconds() / 60)
+    elapsed_secs = elapsed.total_seconds()
 
     max_hours = 12 + vip_afk_extra_hours(vip_level)
-    return min(max_hours * 60, elapsed_mins)
+    return min(max_hours * 60.0 * 60.0, elapsed_secs)
 
 
 class GetAFKRewardView(APIView):
@@ -28,14 +28,17 @@ class GetAFKRewardView(APIView):
         last_collected_time = request.user.inventory.last_collected_rewards
 
         vip_level = vip_exp_to_level(request.user.userinfo.vip_exp)
-        time = mins_since_last_collection(last_collected_time, vip_level)
 
         coins_per_min = afk_coins_per_min(dungeon_progress.campaign_stage)
         dust_per_min = afk_dust_per_min(dungeon_progress.campaign_stage)
         # exp_per_min = afk_exp_per_min(dungeon_progress.stage_id)
 
-        coins = math.floor(time * coins_per_min * afk_rewards_multiplier_vip(vip_level))
-        dust = math.floor(time * dust_per_min * afk_rewards_multiplier_vip(vip_level))
+        time = secs_since_last_collection(last_collected_time, vip_level)
+        coins_per_second = coins_per_min / 60
+        dust_per_second = dust_per_min / 60
+
+        coins = math.floor(time * coins_per_second * afk_rewards_multiplier_vip(vip_level))
+        dust = math.floor(time * dust_per_second * afk_rewards_multiplier_vip(vip_level))
         # exp = time * exp_per_min
 
         return Response({'coins_per_min': coins_per_min,
@@ -58,9 +61,12 @@ class CollectAFKRewardView(APIView):
         dungeon_progress = DungeonProgress.objects.get(user=request.user)
 
         vip_level = vip_exp_to_level(request.user.userinfo.vip_exp)
-        time = mins_since_last_collection(last_collected_time, vip_level)
-        coins = math.floor(time * afk_coins_per_min(dungeon_progress.campaign_stage) * afk_rewards_multiplier_vip(vip_level))
-        dust = math.floor(time * afk_dust_per_min(dungeon_progress.campaign_stage) * afk_rewards_multiplier_vip(vip_level))
+        time = secs_since_last_collection(last_collected_time, vip_level)
+        coins_per_second = afk_coins_per_min(dungeon_progress.campaign_stage) / 60
+        dust_per_second = afk_dust_per_min(dungeon_progress.campaign_stage) / 60
+
+        coins = math.floor(time * coins_per_second * afk_rewards_multiplier_vip(vip_level))
+        dust = math.floor(time * dust_per_second * afk_rewards_multiplier_vip(vip_level))
         # exp = time * afk_exp_per_min(dungeon_progress.stage_id)
 
         inventory.last_collected_rewards = datetime.now(timezone.utc)
