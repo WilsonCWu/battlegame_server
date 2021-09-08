@@ -308,7 +308,14 @@ class ScrapItemTestCase(APITestCase):
             exp=0,
         )
 
+        self.owned_bow3 = Item.objects.create(
+            user=self.u,
+            item_type=base_bow,
+            exp=0,
+        )
+
     def test_basic_scrap(self):
+        org_exp = self.owned_bow2.exp
         response = self.client.post('/inventory/scrapitems/', {
             'scrap_item_ids': "[" + str(self.owned_bow1.item_id) + "]",
             'target_item_id': self.owned_bow2.item_id,
@@ -316,3 +323,19 @@ class ScrapItemTestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
+
+        self.owned_bow2.refresh_from_db()
+        self.assertTrue(self.owned_bow2.exp > org_exp)
+
+    def test_scrap_two_items(self):
+        org_exp = self.owned_bow3.exp
+        response = self.client.post('/inventory/scrapitems/', {
+            'scrap_item_ids': "[" + str(self.owned_bow1.item_id) + ", " + str(self.owned_bow2.item_id) + "]",
+            'target_item_id': self.owned_bow3.item_id,
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        self.owned_bow3.refresh_from_db()
+        self.assertTrue(self.owned_bow3.exp > org_exp)

@@ -432,45 +432,63 @@ class UnequipItemView(APIView):
         return Response({'status': True})
 
 
+# TODO: Tune numbers
 def get_item_rarity_base_expvalue(rarity):
     if rarity == 0:
-        base = 1
+        base = 10
     elif rarity == 1:
-        base = 2
-    elif rarity == 2:
-        base = 5
-    elif rarity == 3:
         base = 20
+    elif rarity == 2:
+        base = 200
+    elif rarity == 3:
+        base = 2000
     else:
         raise Exception("invalid item rarity: " + str(rarity))
 
     return base
 
 
-def calculate_item_exp(rarity, stars):
-    base = get_item_rarity_base_expvalue(rarity)
-
-    multiplier = 2 ** (stars - 1)
-    return base * multiplier * 50
+def calculate_item_exp(item):
+    base = get_item_rarity_base_expvalue(item.item_type.rarity)
+    return base + item.exp
 
 
+# TODO: Tune numbers
 def exp_to_stars(exp, rarity):
     base = get_item_rarity_base_expvalue(rarity)
 
-    multiplier = exp / base / 50
-    stars = math.log(multiplier, 2) + 1
-    return math.floor(stars)
+    if exp < base:
+        return 1
+    elif exp < base * 2:
+        return 2
+    elif exp < base * 3:
+        return 3
+    elif exp < base * 4:
+        return 4
+    elif exp < base * 5:
+        return 5
+    elif exp < base * 7:
+        return 6
+    elif exp < base * 9:
+        return 7
+    elif exp < base * 11:
+        return 8
+    elif exp < base * 13:
+        return 9
+    else:
+        return 10
 
 
 def scrap_items(scraps, target_item):
     total_exp = 0
 
     for item in scraps:
-        total_exp += item.exp
+        total_exp += calculate_item_exp(item)
 
     scraps.delete()
     target_item.exp += total_exp
     target_item.save()
+    return target_item
 
 
 class ScrapItemsView(APIView):
@@ -491,7 +509,10 @@ class ScrapItemsView(APIView):
         if target_item.user != request.user:
             return Response({'status': False, 'reason': 'user does not own the item'})
 
-        scrap_items(scraps, target_item)
+        if target_item.item_type.rarity < 1:
+            return Response({'status': False, 'reason': 'cannot enhance Common items'})
+
+        target_item = scrap_items(scraps, target_item)
 
         target_item_schema = ItemSchema(target_item)
         return Response({'status': True, 'target_item': target_item_schema.data})
