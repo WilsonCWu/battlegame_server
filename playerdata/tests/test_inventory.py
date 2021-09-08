@@ -286,3 +286,33 @@ class VIPExpLevelUpTestCase(APITestCase):
 
         self.u.userinfo.refresh_from_db()
         self.assertEqual(self.u.userinfo.vip_exp, 100)
+
+
+class ScrapItemTestCase(APITestCase):
+    fixtures = ['playerdata/tests/fixtures.json']
+
+    def setUp(self):
+        self.u = User.objects.get(username='battlegame')
+        self.client.force_authenticate(user=self.u)
+
+        base_bow = BaseItem.objects.get(name="Bow")
+        self.owned_bow1 = Item.objects.create(
+            user=self.u,
+            item_type=base_bow,
+            exp=0,
+        )
+
+        self.owned_bow2 = Item.objects.create(
+            user=self.u,
+            item_type=base_bow,
+            exp=0,
+        )
+
+    def test_basic_scrap(self):
+        response = self.client.post('/inventory/scrapitems/', {
+            'scrap_item_ids': "[" + str(self.owned_bow1.item_id) + "]",
+            'target_item_id': self.owned_bow2.item_id,
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])

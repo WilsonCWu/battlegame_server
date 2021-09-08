@@ -1,3 +1,4 @@
+import math
 from enum import Enum
 from django.db import transaction
 from rest_framework.permissions import IsAuthenticated
@@ -10,7 +11,7 @@ from playerdata.models import Character, UserInfo, ServerStatus
 from playerdata.models import Item
 from . import formulas
 from .questupdater import QuestUpdater
-from .serializers import EquipItemSerializer, UnequipItemSerializer, ValueSerializer
+from .serializers import EquipItemSerializer, UnequipItemSerializer, ValueSerializer, ScrapItemSerializer
 from .serializers import TargetCharSerializer
 
 
@@ -19,6 +20,10 @@ class ItemSchema(Schema):
     user_id = fields.Int(attribute='user_id')
     item_type = fields.Int(attribute='item_type_id')
     exp = fields.Int()
+    stars = fields.Method('get_star_level')
+
+    def get_star_level(self, item):
+        return exp_to_stars(item.exp, item.item_type.rarity)
 
 
 class CharacterSchema(Schema):
@@ -425,3 +430,68 @@ class UnequipItemView(APIView):
 
         unequip_item_from_char(char, target_slot)
         return Response({'status': True})
+
+
+def get_item_rarity_base_expvalue(rarity):
+    if rarity == 0:
+        base = 1
+    elif rarity == 1:
+        base = 2
+    elif rarity == 2:
+        base = 5
+    elif rarity == 3:
+        base = 20
+    else:
+        raise Exception("invalid item rarity: " + str(rarity))
+
+    return base
+
+
+def calculate_item_exp(rarity, stars):
+    base = get_item_rarity_base_expvalue(rarity)
+
+    multiplier = 2 ** (stars - 1)
+    return base * multiplier * 50
+
+
+def exp_to_stars(exp, rarity):
+    base = get_item_rarity_base_expvalue(rarity)
+
+    multiplier = exp / base / 50
+    stars = math.log(multiplier, 2) + 1
+    return math.floor(stars)
+
+
+def scrap_items(scraps, target_item):
+    total_exp = 0
+
+    for item in scraps:
+        total_exp += item.exp
+
+    scraps.delete()
+    target_item.exp += total_exp
+    target_item.save()
+
+
+class ScrapItemsView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic
+    def post(self, request):
+        serializer = ScrapItemSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        scrap_item_ids = serializer.validated_data['scrap_item_ids']
+        target_item_id = serializer.validated_data['target_item_id']
+
+        scraps = Item.objects.filter(item_id__in=scrap_item_ids)
+        if scraps.first().user != request.user:
+            return Response({'status': False, 'reason': 'user does not own the item'})
+
+        target_item = Item.objects.get(item_id=target_item_id)
+        if target_item.user != request.user:
+            return Response({'status': False, 'reason': 'user does not own the item'})
+
+        scrap_items(scraps, target_item)
+
+        target_item_schema = ItemSchema(target_item)
+        return Response({'status': True, 'target_item': target_item_schema.data})
