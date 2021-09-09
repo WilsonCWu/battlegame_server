@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.test import APITestCase
 import playerdata.constants
-from playerdata import formulas, constants
+from playerdata import formulas, constants, inventory
 
 from playerdata.models import User, BaseCharacter, Character, BaseItem, Item
 
@@ -315,7 +315,7 @@ class ScrapItemTestCase(APITestCase):
         )
 
     def test_basic_scrap(self):
-        org_exp = self.owned_bow2.exp
+        expected_exp = inventory.calculate_item_exp(self.owned_bow1)
         response = self.client.post('/inventory/scrapitems/', {
             'scrap_item_ids': "[" + str(self.owned_bow1.item_id) + "]",
             'target_item_id': self.owned_bow2.item_id,
@@ -325,10 +325,11 @@ class ScrapItemTestCase(APITestCase):
         self.assertTrue(response.data['status'])
 
         self.owned_bow2.refresh_from_db()
-        self.assertTrue(self.owned_bow2.exp > org_exp)
+        self.assertEqual(self.owned_bow2.exp, expected_exp)
 
     def test_scrap_two_items(self):
-        org_exp = self.owned_bow3.exp
+        expected_exp = inventory.calculate_item_exp(self.owned_bow1) + inventory.calculate_item_exp(self.owned_bow2)
+
         response = self.client.post('/inventory/scrapitems/', {
             'scrap_item_ids': "[" + str(self.owned_bow1.item_id) + ", " + str(self.owned_bow2.item_id) + "]",
             'target_item_id': self.owned_bow3.item_id,
@@ -338,4 +339,4 @@ class ScrapItemTestCase(APITestCase):
         self.assertTrue(response.data['status'])
 
         self.owned_bow3.refresh_from_db()
-        self.assertTrue(self.owned_bow3.exp > org_exp)
+        self.assertEqual(self.owned_bow3.exp, expected_exp)
