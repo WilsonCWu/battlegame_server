@@ -480,10 +480,7 @@ def exp_to_stars(exp, rarity):
 
 
 def scrap_items(scraps, target_item):
-    total_exp = 0
-
-    for item in scraps:
-        total_exp += calculate_item_exp(item)
+    total_exp = sum(calculate_item_exp(item) for item in scraps)
 
     scraps.delete()
     target_item.exp += total_exp
