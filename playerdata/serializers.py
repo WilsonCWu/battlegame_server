@@ -182,6 +182,11 @@ class UnequipItemSerializer(serializers.Serializer):
     ), required=True)
 
 
+class ScrapItemSerializer(serializers.Serializer):
+    scrap_item_ids = serializers.JSONField(required=True)
+    target_item_id = serializers.IntegerField(required=True)
+
+
 class CollectChestSerializer(serializers.Serializer):
     chest_id = serializers.IntegerField(required=True)
     is_skip = serializers.BooleanField(required=True)
