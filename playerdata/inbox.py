@@ -14,7 +14,7 @@ class MailSchema(Schema):
     title = fields.Str()
     message = fields.Str()
     is_read = fields.Bool()
-    is_reward_claimed = fields.Bool()
+    has_unclaimed_reward = fields.Bool()
 
     sender = fields.Str(attribute='sender.userinfo.name')
     sender_id = fields.Int(attribute='sender_id')
@@ -88,7 +88,7 @@ class ClaimMailView(APIView):
         redemptioncodes.award_code(request.user, mail.code)
         ClaimedCode.objects.create(user=request.user, code=mail.code)
 
-        mail.is_reward_claimed = True
+        mail.has_unclaimed_reward = False
         mail.save()
 
         redeem_code_schema = redemptioncodes.RedeemCodeSchema(mail.code)

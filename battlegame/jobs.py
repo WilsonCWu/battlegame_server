@@ -241,10 +241,14 @@ def send_inbox(title, message, userid_list, gems=0, sender_id=10506):
 
     sender = User.objects.get(id=sender_id)
     pfp_id = sender.userinfo.profile_picture
+    has_unclaimed_reward = (gems != 0)
 
     mails = []
     for userid in userid_list:
-        mails.append(Mail(title=title, message=message, sender_id=sender_id, receiver_id=userid, code=basecode, sender_profile_picture_id=pfp_id))
+        mails.append(Mail(title=title, message=message,
+                          sender_id=sender_id, receiver_id=userid,
+                          code=basecode, sender_profile_picture_id=pfp_id,
+                          has_unclaimed_reward=has_unclaimed_reward))
 
     Mail.objects.bulk_create(mails)
 
