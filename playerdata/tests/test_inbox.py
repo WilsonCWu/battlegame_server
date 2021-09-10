@@ -50,7 +50,7 @@ class InboxAPITestCase(APITestCase):
         resp = self.client.get('/inbox/get/')
 
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(resp.data[0]['message'], msg)
+        self.assertEqual(resp.data['mail'][0]['message'], msg)
 
     def test_inbox_claim(self):
         curr_time = datetime.now(timezone.utc)
@@ -90,4 +90,4 @@ class InboxAPITestCase(APITestCase):
         resp = self.client.get('/inbox/get/')
 
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(resp.data), 1)
+        self.assertEqual(len(resp.data['mail']), 1)

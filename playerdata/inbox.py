@@ -11,6 +11,7 @@ from playerdata.serializers import IntSerializer, CharStateResultSerializer, Sen
 
 class MailSchema(Schema):
     id = fields.Int()
+    title = fields.Str()
     message = fields.Str()
     is_read = fields.Bool()
 
@@ -25,7 +26,7 @@ class GetInboxView(APIView):
 
     def get(self, request):
         all_mail = Mail.objects.filter(receiver=request.user).select_related('sender__userinfo').order_by('-time_send')
-        return Response(MailSchema(all_mail, many=True).data)
+        return Response({'status': True, 'mail': MailSchema(all_mail, many=True).data})
 
 
 class ReadInboxView(APIView):
