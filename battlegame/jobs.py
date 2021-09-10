@@ -241,7 +241,7 @@ def send_inbox(title, message, userid_list, gems=0, sender_id=10506):
 
     sender = User.objects.get(id=sender_id)
     pfp_id = sender.userinfo.profile_picture
-    has_unclaimed_reward = (gems != 0)
+    has_unclaimed_reward = basecode is not None
 
     mails = []
     for userid in userid_list:
