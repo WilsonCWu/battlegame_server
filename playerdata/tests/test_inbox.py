@@ -63,7 +63,7 @@ class InboxAPITestCase(APITestCase):
             'value': mail.id
         })
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(resp.data['gems'], 100)
+        self.assertEqual(resp.data['redeem_code']['gems'], 100)
         self.receiver.inventory.refresh_from_db()
         self.assertEqual(self.receiver.inventory.gems, receiver_gems + 100)
 

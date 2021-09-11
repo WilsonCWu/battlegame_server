@@ -92,7 +92,7 @@ class ClaimMailView(APIView):
         mail.save()
 
         redeem_code_schema = redemptioncodes.RedeemCodeSchema(mail.code)
-        return Response(redeem_code_schema.data)
+        return Response({'status': True, 'redeem_code': redeem_code_schema.data})
 
 
 class DeleteMailView(APIView):
