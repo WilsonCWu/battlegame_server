@@ -9,7 +9,7 @@ from django.utils import timezone
 from playerdata.models import Item
 from playerdata.models import BaseCode
 from playerdata.models import ClaimedCode
-from . import rolls
+from . import rolls, server
 
 from .serializers import RedeemCodeSerializer
 
@@ -75,4 +75,8 @@ class RedeemCodeView(APIView):
         award_code(request.user, base_code)
         ClaimedCode.objects.create(user=request.user, code=base_code)
         redeem_code_schema = RedeemCodeSchema(base_code)
-        return Response({'status': True, 'redeem_code': redeem_code_schema.data})
+
+        if server.is_server_version_higher("0.5.0"):
+            return Response({'status': True, 'redeem_code': redeem_code_schema.data})
+
+        return Response(redeem_code_schema.data)
