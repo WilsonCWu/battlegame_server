@@ -81,3 +81,22 @@ class ClanAPITestCase(APITestCase):
         response = self.client.get('/clanmember/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['is_elder'])
+
+class EditTextTestCase(APITestCase):
+    fixtures = ['playerdata/tests/fixtures.json']
+
+    def setUp(self):
+        self.u = User.objects.get(username='testWilson')
+        self.client.force_authenticate(user=self.u)
+
+    def test_bad_clan_description(self):
+        response = self.client.post('/clan/editdescription/',{
+            'value' : 'test description that will cause an error \\'
+        })
+        self.assertTrue(not response.data['status']) # don't allow backslash.
+    
+    def test_bad_name_change(self):
+        response = self.client.post('/profile/editdescription/',{
+            'value' : 'test description that will cause an error \\'
+        })
+        self.assertTrue(not response.data['status']) # don't allow backslash.
