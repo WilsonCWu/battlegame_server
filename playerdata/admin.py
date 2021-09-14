@@ -310,6 +310,11 @@ class CharacterAdmin(admin.ModelAdmin):
     raw_id_fields = ('user', 'hat', 'armor', 'weapon', 'boots', 'trinket_1', 'trinket_2')
 
 
+class MailAdmin(admin.ModelAdmin):
+    list_display = ('receiver', 'title', 'message', 'time_send')
+    raw_id_fields = ('receiver', 'sender')
+
+
 @admin.register(BaseCharacterAbility2)
 class BaseCharacterAbility2Admin(admin.ModelAdmin):
     formfield_overrides = {
@@ -665,4 +670,4 @@ admin.site.register(RelicShop, RelicShopAdmin)
 admin.site.register(LevelBooster)
 admin.site.register(Wishlist, WishlistAdmin)
 admin.site.register(StoryMode, StoryModeAdmin)
-admin.site.register(Mail)
+admin.site.register(Mail, MailAdmin)

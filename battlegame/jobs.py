@@ -224,11 +224,11 @@ def backfill_rotating_mode():
 # Usage:
 # > python manage.py shell_plus
 #
-# > send_inbox("heya welcome to the game!", [349, 348])  # Sends a basic mail to the userid_list inboxes
-# > send_inbox("heya welcome to the game!", ['all'], 500) # Sends mail to all users and also creates a gem reward of 500
+# > send_inbox("Welcome", "heya welcome to the game!", [349, 348])  # Sends a basic mail to the userid_list inboxes
+# > send_inbox("Welcome","heya welcome to the game!", ['all'], 500) # Sends mail to all users and also creates a gem reward of 500
 
 @transaction.atomic
-def send_inbox(message, userid_list, gems=0, sender_id=10506):
+def send_inbox(title, message, userid_list, gems=0, sender_id=10506):
     if userid_list == ['all']:
         userid_list = User.objects.values_list('id', flat=True)
 
@@ -241,10 +241,14 @@ def send_inbox(message, userid_list, gems=0, sender_id=10506):
 
     sender = User.objects.get(id=sender_id)
     pfp_id = sender.userinfo.profile_picture
+    has_unclaimed_reward = basecode is not None
 
     mails = []
     for userid in userid_list:
-        mails.append(Mail(message=message, sender_id=sender_id, receiver_id=userid, code=basecode, sender_profile_picture_id=pfp_id))
+        mails.append(Mail(title=title, message=message,
+                          sender_id=sender_id, receiver_id=userid,
+                          code=basecode, sender_profile_picture_id=pfp_id,
+                          has_unclaimed_reward=has_unclaimed_reward))
 
     Mail.objects.bulk_create(mails)
 

@@ -1,3 +1,4 @@
+import math
 from enum import Enum
 from django.db import transaction
 from rest_framework.permissions import IsAuthenticated
@@ -10,7 +11,7 @@ from playerdata.models import Character, UserInfo, ServerStatus
 from playerdata.models import Item
 from . import formulas
 from .questupdater import QuestUpdater
-from .serializers import EquipItemSerializer, UnequipItemSerializer, ValueSerializer
+from .serializers import EquipItemSerializer, UnequipItemSerializer, ValueSerializer, ScrapItemSerializer
 from .serializers import TargetCharSerializer
 
 
@@ -19,6 +20,10 @@ class ItemSchema(Schema):
     user_id = fields.Int(attribute='user_id')
     item_type = fields.Int(attribute='item_type_id')
     exp = fields.Int()
+    stars = fields.Method('get_star_level')
+
+    def get_star_level(self, item):
+        return exp_to_stars(item.exp, item.item_type.rarity)
 
 
 class CharacterSchema(Schema):
@@ -425,3 +430,86 @@ class UnequipItemView(APIView):
 
         unequip_item_from_char(char, target_slot)
         return Response({'status': True})
+
+
+# TODO: Tune numbers
+def get_item_rarity_base_expvalue(rarity):
+    if rarity == 0:
+        base = 10
+    elif rarity == 1:
+        base = 20
+    elif rarity == 2:
+        base = 200
+    elif rarity == 3:
+        base = 2000
+    else:
+        raise Exception("invalid item rarity: " + str(rarity))
+
+    return base
+
+
+def calculate_item_exp(item):
+    base = get_item_rarity_base_expvalue(item.item_type.rarity)
+    return base + item.exp
+
+
+# TODO: Tune numbers
+def exp_to_stars(exp, rarity):
+    base = get_item_rarity_base_expvalue(rarity)
+
+    if exp < base:
+        return 1
+    elif exp < base * 2:
+        return 2
+    elif exp < base * 3:
+        return 3
+    elif exp < base * 4:
+        return 4
+    elif exp < base * 5:
+        return 5
+    elif exp < base * 7:
+        return 6
+    elif exp < base * 9:
+        return 7
+    elif exp < base * 11:
+        return 8
+    elif exp < base * 13:
+        return 9
+    else:
+        return 10
+
+
+def scrap_items(scraps, target_item):
+    total_exp = sum(calculate_item_exp(item) for item in scraps)
+
+    scraps.delete()
+    target_item.exp += total_exp
+    target_item.save()
+    return target_item
+
+
+class ScrapItemsView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic
+    def post(self, request):
+        serializer = ScrapItemSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        scrap_item_ids = serializer.validated_data['scrap_item_ids']
+        target_item_id = serializer.validated_data['target_item_id']
+
+        scraps = Item.objects.filter(item_id__in=scrap_item_ids)
+        if scraps.first().user != request.user:
+            return Response({'status': False, 'reason': 'user does not own the item'})
+
+        target_item = Item.objects.get(item_id=target_item_id)
+        if target_item.user != request.user:
+            return Response({'status': False, 'reason': 'user does not own the item'})
+
+        if target_item.item_type.rarity < 1:
+            return Response({'status': False, 'reason': 'cannot enhance Common items'})
+
+        target_item = scrap_items(scraps, target_item)
+
+        target_item_schema = ItemSchema(target_item)
+        return Response({'status': True, 'target_item': target_item_schema.data})

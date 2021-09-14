@@ -1107,6 +1107,8 @@ class Mail(models.Model):
     time_send = models.DateTimeField(auto_now_add=True)
     code = models.ForeignKey(BaseCode, on_delete=models.CASCADE, null=True, blank=True)
     is_read = models.BooleanField(default=False)
+    has_unclaimed_reward = models.BooleanField(default=False)
+    title = models.TextField(default='')
 
     class Meta:
         indexes = [
