@@ -1,4 +1,5 @@
 import secrets
+import re
 
 from decouple import config
 from django.contrib.auth import authenticate
@@ -21,7 +22,7 @@ from .serializers import ChangeNameSerializer
 from .serializers import RecoverAccountSerializer
 
 from .models import UserInfo, IPTracker
-
+from playerdata.social import isTextSanitized
 
 class HelloView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -72,6 +73,9 @@ class ChangeName(APIView):
 
         if len(name) > 20:
             return Response({'status': False, 'reason': 'Your name cannot be more than 20 characters long'})
+
+        if (not isTextSanitized(name, False, False, False)): # No backslash, newline, return, or non-basic-ASCII in names.
+            return Response({'status': False, 'reason': 'Name contains invalid characters'})
 
         userinfo = UserInfo.objects.get(user=request.user)
         userinfo.name = name
