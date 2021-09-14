@@ -1,4 +1,5 @@
 import random
+import re
 
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -449,6 +450,9 @@ class EditClanDescriptionView(APIView):
         if len(new_description) > MAX_DESCRIPTION_LENGTH:
             return Response({'status': False, 'reason': 'description too long'})
 
+        if(re.search(r"\\|\n|\r", new_description)): # No backslash, returns, or newlines
+            return Response({'status': False, 'reason': 'description contains invalid characters'})
+
         clan2 = clanmember.clan2
         clan2.description = new_description
         clan2.save()
@@ -467,6 +471,9 @@ class EditProfileDescriptionView(APIView):
 
         if len(new_description) > MAX_DESCRIPTION_LENGTH:
             return Response({'status': False, 'reason': 'description too long'})
+
+        if(re.search(r"\\|\n|\r", new_description)): # No backslash, returns, or newlines
+            return Response({'status': False, 'reason': 'description contains invalid characters'})
 
         request.user.userinfo.description = new_description
         request.user.userinfo.save()

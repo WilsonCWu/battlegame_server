@@ -1,4 +1,5 @@
 import secrets
+import re
 
 from decouple import config
 from django.contrib.auth import authenticate
@@ -72,6 +73,9 @@ class ChangeName(APIView):
 
         if len(name) > 20:
             return Response({'status': False, 'reason': 'Your name cannot be more than 20 characters long'})
+
+        if (re.search(r"\\|\n|\r|[^\x00-\x7F]+", name)): # No backslash, newline, return, or non-basic-ASCII in names.
+            return Response({'status': False, 'reason': 'Name contains invalid characters'})
 
         userinfo = UserInfo.objects.get(user=request.user)
         userinfo.name = name
