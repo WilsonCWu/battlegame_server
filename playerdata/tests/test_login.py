@@ -13,16 +13,19 @@ class ChangeNameTestCase(APITestCase):
             'name' : 'errorName\\'
         })
         self.assertFalse(response.data['status']) # don't allow backslash.
+
     def test_bad_name_newline(self):
         response = self.client.post('/changename/',{
             'name' : 'error\nName'
         })
         self.assertFalse(response.data['status']) # don't allow newline.
+
     def test_bad_name_nonAscii(self):
         response = self.client.post('/changename/',{
             'name' : 'errorName😋'
         })
         self.assertFalse(response.data['status']) # don't allow non-printable-ASCII.
+        
     def test_ok_name(self):
         response = self.client.post('/changename/',{
             'name' : 'okName'

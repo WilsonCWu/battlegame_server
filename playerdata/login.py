@@ -22,15 +22,7 @@ from .serializers import ChangeNameSerializer
 from .serializers import RecoverAccountSerializer
 
 from .models import UserInfo, IPTracker
-
-def isTextSanitized(text, allowBackslash, allowNewline, allowNonAscii): #TODO: Move to a helper class if one is made
-    if((not allowBackslash) and re.search(r'\\', text)):
-        return False
-    if((not allowNewline) and re.search(r'\n|\r', text)):
-        return False
-    if((not allowNonAscii) and re.search(r'[^\x20-\x7E]+', text)): # only printable ascii are allowed
-        return False
-    return True
+from playerdata.social import isTextSanitized
 
 class HelloView(APIView):
     permission_classes = (IsAuthenticated,)
