@@ -82,21 +82,45 @@ class ClanAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['is_elder'])
 
+    def test_bad_clan_description_backslash(self):
+        response = self.client.post('/clan/editdescription/',{
+            'value' : 'test description that will cause an error \\'
+        })
+        self.assertFalse(response.data['status']) # don't allow backslash.
+
+    def test_bad_clan_description_newline(self):
+        response = self.client.post('/clan/editdescription/',{
+            'value' : 'test description that will cause an error \n because of newline'
+        })
+        self.assertFalse(response.data['status']) # don't allow newline.
+
+    def test_ok_clan_description(self):
+        response = self.client.post('/clan/editdescription/',{
+            'value' : 'test description that won\'t cause an error'
+        })
+        self.assertTrue(response.data['status'])
+
 class EditTextTestCase(APITestCase):
     fixtures = ['playerdata/tests/fixtures.json']
 
     def setUp(self):
         self.u = User.objects.get(username='testWilson')
         self.client.force_authenticate(user=self.u)
-
-    def test_bad_clan_description(self):
-        response = self.client.post('/clan/editdescription/',{
-            'value' : 'test description that will cause an error \\'
-        })
-        self.assertTrue(not response.data['status']) # don't allow backslash.
     
-    def test_bad_name_change(self):
+    def test_bad_description_change_backslash(self):
         response = self.client.post('/profile/editdescription/',{
             'value' : 'test description that will cause an error \\'
         })
-        self.assertTrue(not response.data['status']) # don't allow backslash.
+        self.assertFalse(response.data['status']) # don't allow backslash.
+
+    def test_bad_description_change_newline(self):
+        response = self.client.post('/profile/editdescription/',{
+            'value' : 'test description that will cause an error \n because of newline'
+        })
+        self.assertFalse(response.data['status']) # don't allow newline.
+
+    def test_ok_description_change(self):
+        response = self.client.post('/profile/editdescription/',{
+            'value' : 'test description that will not cause an error'
+        })
+        self.assertTrue(response.data['status'])
