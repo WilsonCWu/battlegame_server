@@ -52,6 +52,14 @@ def getGlobalChats():
 
     return [global1, feedback]
 
+def isTextSanitized(text, allowBackslash, allowNewline, allowNonAscii): #TODO: Move to a helper class if one is made
+    if((not allowBackslash) and re.search(r'\\', text)):
+        return False
+    if((not allowNewline) and re.search(r'\n|\r', text)):
+        return False
+    if((not allowNonAscii) and re.search(r'[^\x20-\x7E]+', text)): # only printable ascii are allowed
+        return False
+    return True
 
 class FriendSchema(Schema):
     user_1_id = fields.Int(attribute='user_1_id')
@@ -450,7 +458,7 @@ class EditClanDescriptionView(APIView):
         if len(new_description) > MAX_DESCRIPTION_LENGTH:
             return Response({'status': False, 'reason': 'description too long'})
 
-        if(re.search(r"\\|\n|\r", new_description)): # No backslash, returns, or newlines
+        if(not isTextSanitized(new_description, False, False, True)): # No backslash, returns, or newlines
             return Response({'status': False, 'reason': 'description contains invalid characters'})
 
         clan2 = clanmember.clan2
@@ -472,7 +480,7 @@ class EditProfileDescriptionView(APIView):
         if len(new_description) > MAX_DESCRIPTION_LENGTH:
             return Response({'status': False, 'reason': 'description too long'})
 
-        if(re.search(r"\\|\n|\r", new_description)): # No backslash, returns, or newlines
+        if(not isTextSanitized(new_description, False, False, True)): # No backslash, returns, or newlines
             return Response({'status': False, 'reason': 'description contains invalid characters'})
 
         request.user.userinfo.description = new_description

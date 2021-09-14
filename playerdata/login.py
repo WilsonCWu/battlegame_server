@@ -23,6 +23,14 @@ from .serializers import RecoverAccountSerializer
 
 from .models import UserInfo, IPTracker
 
+def isTextSanitized(text, allowBackslash, allowNewline, allowNonAscii): #TODO: Move to a helper class if one is made
+    if((not allowBackslash) and re.search(r'\\', text)):
+        return False
+    if((not allowNewline) and re.search(r'\n|\r', text)):
+        return False
+    if((not allowNonAscii) and re.search(r'[^\x20-\x7E]+', text)): # only printable ascii are allowed
+        return False
+    return True
 
 class HelloView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -74,7 +82,7 @@ class ChangeName(APIView):
         if len(name) > 20:
             return Response({'status': False, 'reason': 'Your name cannot be more than 20 characters long'})
 
-        if (re.search(r"\\|\n|\r|[^\x20-\x7E]+", name)): # No backslash, newline, return, or non-basic-ASCII in names.
+        if (not isTextSanitized(name, False, False, False)): # No backslash, newline, return, or non-basic-ASCII in names.
             return Response({'status': False, 'reason': 'Name contains invalid characters'})
 
         userinfo = UserInfo.objects.get(user=request.user)
