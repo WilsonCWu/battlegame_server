@@ -280,3 +280,9 @@ def new_test_user(name: str):
     for char in chars:
         char.level = 81
         char.save()
+
+
+@transaction.atomic
+def backfill_regal_rewards():
+    for user in User.objects.all():
+        _, _ = RegalRewards.objects.get_or_create(user=user)
