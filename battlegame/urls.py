@@ -17,7 +17,7 @@ from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
 from playerdata import login, tier_system, level_booster, relic_shop, wishlist, chapter_rewards_pack, inbox, \
-    rotating_mode, conquest_event
+    rotating_mode, conquest_event, regal_rewards
 from playerdata import base
 from playerdata import daily_dungeon
 from playerdata import moevasion
@@ -60,6 +60,8 @@ urlpatterns = [
     path('storymode/get/', story_mode.GetStoryModeView.as_view()),
     path('storymode/start/', story_mode.StartNewStoryView.as_view()),
     path('storymode/result/', story_mode.StoryResultView.as_view()),
+    path('regalrewards/claim/', regal_rewards.ClaimRegalRewardView.as_view()),
+    path('regalrewards/get/', regal_rewards.GetRegalRewardListView.as_view()),
     path('chapterrewardspack/claim/', chapter_rewards_pack.ClaimChapterRewardView.as_view()),
     path('chapterrewardspack/get/', chapter_rewards_pack.GetChapterRewardListView.as_view()),
     path('wishlist/get/', wishlist.GetWishlistView.as_view()),

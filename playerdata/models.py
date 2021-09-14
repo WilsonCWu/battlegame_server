@@ -1320,6 +1320,19 @@ class WorldPack(models.Model):
     is_claimed = models.BooleanField(default=True)
 
 
+def regal_rewards_refreshdate():
+    return timezone.now() + timedelta(days=50)
+
+
+class RegalRewards(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    is_premium = models.BooleanField(default=False)
+    expiration_date = regal_rewards_refreshdate()
+    points = models.IntegerField(default=0)
+    last_completed = models.IntegerField(default=-1)
+    last_claimed = models.IntegerField(default=-1)
+
+
 class StoryMode(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     available_stories = ArrayField(models.IntegerField(), default=list)
@@ -1392,6 +1405,7 @@ def create_user_info(sender, instance, created, **kwargs):
         WorldPack.objects.create(user=instance)
         StoryMode.objects.create(user=instance)
         RotatingModeStatus.objects.create(user=instance)
+        RegalRewards.objects.create(user=instance)
         create_user_referral(instance)
 
         # Add quests
