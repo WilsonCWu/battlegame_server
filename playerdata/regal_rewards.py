@@ -12,12 +12,13 @@ from playerdata.models import RegalRewards
 from playerdata.serializers import IntSerializer
 
 
+# Represents a single row in the Regal Rewards list
 class RegalRewardRowSchema(Schema):
     id = fields.Int()
     unlock_amount = fields.Int()
     completed = fields.Bool()
     claimed = fields.Bool()
-    reg_reward = fields.Nested(chests.ChestRewardSchema, many=True)
+    reg_rewards = fields.Nested(chests.ChestRewardSchema, many=True)
     premium_rewards = fields.Nested(chests.ChestRewardSchema, many=True)
 
 
@@ -25,7 +26,7 @@ class RegalRewardRow:
     def __init__(self, row_id, unlock_amount):
         self.id = row_id
         self.unlock_amount = unlock_amount
-        self.reg_reward = []
+        self.reg_rewards = []
         self.premium_rewards = []
 
 
@@ -46,7 +47,7 @@ def get_regal_rewards_list() -> List[RegalRewardRow]:
             rare_shards = 540
             epic_shards = 180
 
-        reward_group.reg_reward.append(chests.ChestReward("rare_shards", rare_shards))
+        reward_group.reg_rewards.append(chests.ChestReward("rare_shards", rare_shards))
         reward_group.premium_rewards.append(chests.ChestReward("epic_shards", epic_shards))
         reward_group.premium_rewards.append(chests.ChestReward("gems", gems))
 
@@ -101,7 +102,7 @@ class ClaimRegalRewardView(APIView):
             return Response({'status': False, 'reason': 'must claim the next reward in order'})
 
         regal_rewards = get_regal_rewards_list()[reward_id]
-        rewards = regal_rewards.reg_reward  # get the none premium rewards
+        rewards = regal_rewards.reg_rewards  # get the non-premium rewards
         if request.user.regalrewards.is_premium:
             rewards.extend(regal_rewards.premium_rewards)
 
