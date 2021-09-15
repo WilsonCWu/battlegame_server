@@ -1331,6 +1331,7 @@ class RegalRewards(models.Model):
     points = models.IntegerField(default=0)
     last_completed = models.IntegerField(default=-1)
     last_claimed = models.IntegerField(default=-1)
+    last_claimed_premium = models.IntegerField(default=-1)
 
 
 class StoryMode(models.Model):

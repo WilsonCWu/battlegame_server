@@ -9,15 +9,21 @@ from marshmallow import fields
 
 from playerdata import chests
 from playerdata.models import RegalRewards
-from playerdata.serializers import IntSerializer
+
+
+class RegalRewardsSchema(Schema):
+    is_premium = fields.Bool()
+    expiration_date = fields.DateTime()
+    points = fields.Int()
+    last_completed = fields.Int()
+    last_claimed = fields.Int()
+    last_claimed_premium = fields.Int()
 
 
 # Represents a single row in the Regal Rewards list
 class RegalRewardRowSchema(Schema):
     id = fields.Int()
     unlock_amount = fields.Int()
-    completed = fields.Bool()
-    claimed = fields.Bool()
     reg_rewards = fields.Nested(chests.ChestRewardSchema, many=True)
     premium_rewards = fields.Nested(chests.ChestRewardSchema, many=True)
 
@@ -30,7 +36,8 @@ class RegalRewardRow:
         self.premium_rewards = []
 
 
-# 25 intervals
+# TODO: Tune reward amounts
+# 25 reward intervals
 def get_regal_rewards_list() -> List[RegalRewardRow]:
     rewards = []
     unlock_amount = 0
@@ -73,14 +80,11 @@ class GetRegalRewardListView(APIView):
         regal_rewards = get_regal_rewards_list()
         rewards_data = RegalRewardRowSchema(regal_rewards, many=True).data
 
-        for reward in rewards_data:
-            reward['claimed'] = reward['id'] <= request.user.regalrewards.last_claimed
-            reward['completed'] = reward['id'] <= request.user.regalrewards.last_completed
+        regal_state = RegalRewardsSchema(request.user.regalrewards)
 
         return Response({'status': True,
                          'rewards': rewards_data,
-                         'is_premium': request.user.regalrewards.is_premium,
-                         'expiration_date': request.user.regalrewards.expiration_date})
+                         'regal_state': regal_state.data})
 
 
 class ClaimRegalRewardView(APIView):
@@ -88,27 +92,22 @@ class ClaimRegalRewardView(APIView):
 
     @atomic
     def post(self, request):
-        serializer = IntSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        reward_id = serializer.validated_data['value']
+        regal_rewards = get_regal_rewards_list()
 
-        if not request.user.regalrewards.is_premium:
-            return Response({'status': False, 'reason': 'Regal rewards is not activated'})
+        if not request.user.regalrewards.is_premium or request.user.regalrewards.last_claimed <= request.user.regalrewards.last_claimed_premium:
+            request.user.regalrewards.last_claimed += 1
+            reward_id = request.user.regalrewards.last_claimed
+            rewards = regal_rewards[reward_id].reg_rewards
+        else:
+            request.user.regalrewards.last_claimed_premium += 1
+            reward_id = request.user.regalrewards.last_claimed_premium
+            rewards = regal_rewards[reward_id].premium_rewards
 
         if reward_id > request.user.regalrewards.last_completed:
             return Response({'status': False, 'reason': 'not enough points for this reward'})
 
-        if reward_id != request.user.regalrewards.last_claimed + 1:
-            return Response({'status': False, 'reason': 'must claim the next reward in order'})
-
-        regal_rewards = get_regal_rewards_list()[reward_id]
-        rewards = regal_rewards.reg_rewards  # get the non-premium rewards
-        if request.user.regalrewards.is_premium:
-            rewards.extend(regal_rewards.premium_rewards)
+        request.user.regalrewards.save()
 
         # TODO: uncomment when shards are implemented
         # chests.award_chest_rewards(request.user, rewards)
-        request.user.regalrewards.last_claimed = reward_id
-        request.user.regalrewards.save()
-
         return Response({'status': True, 'rewards': chests.ChestRewardSchema(rewards, many=True).data})
