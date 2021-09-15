@@ -49,17 +49,46 @@ class RegalRewardsAPITestCase(APITestCase):
 
         response = self.client.post('/regalrewards/claim/', {})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(response.data['status'])
-
-        response = self.client.post('/regalrewards/claim/', {})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(response.data['status'])
+        self.assertFalse(response.data['status'])
 
     def test_claim_reward_not_premium(self):
         self.u.regalrewards.is_premium = False
         self.u.regalrewards.save()
 
         regal_rewards.complete_regal_rewards(801, self.u.regalrewards)
+
+        response = self.client.post('/regalrewards/claim/', {})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        response = self.client.post('/regalrewards/claim/', {})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        response = self.client.post('/regalrewards/claim/', {})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['status'])
+
+    def test_claim_reward_not_premium_then_premium(self):
+        self.u.regalrewards.is_premium = False
+        self.u.regalrewards.save()
+
+        regal_rewards.complete_regal_rewards(801, self.u.regalrewards)
+
+        response = self.client.post('/regalrewards/claim/', {})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        response = self.client.post('/regalrewards/claim/', {})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        response = self.client.post('/regalrewards/claim/', {})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['status'])
+
+        self.u.regalrewards.is_premium = True
+        self.u.regalrewards.save()
 
         response = self.client.post('/regalrewards/claim/', {})
         self.assertEqual(response.status_code, status.HTTP_200_OK)

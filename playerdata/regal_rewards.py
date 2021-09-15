@@ -38,6 +38,7 @@ class RegalRewardRow:
 
 # TODO: Tune reward amounts
 # 25 reward intervals
+# TODO: @lru_cache() when finalized
 def get_regal_rewards_list() -> List[RegalRewardRow]:
     rewards = []
     unlock_amount = 0
@@ -94,14 +95,19 @@ class ClaimRegalRewardView(APIView):
     def post(self, request):
         regal_rewards = get_regal_rewards_list()
 
-        if not request.user.regalrewards.is_premium or request.user.regalrewards.last_claimed <= request.user.regalrewards.last_claimed_premium:
+        if not request.user.regalrewards.is_premium:
             request.user.regalrewards.last_claimed += 1
             reward_id = request.user.regalrewards.last_claimed
             rewards = regal_rewards[reward_id].reg_rewards
-        else:
+        elif request.user.regalrewards.last_claimed_premium < request.user.regalrewards.last_claimed:
             request.user.regalrewards.last_claimed_premium += 1
             reward_id = request.user.regalrewards.last_claimed_premium
             rewards = regal_rewards[reward_id].premium_rewards
+        else:
+            request.user.regalrewards.last_claimed_premium += 1
+            request.user.regalrewards.last_claimed += 1
+            reward_id = request.user.regalrewards.last_claimed_premium
+            rewards = regal_rewards[reward_id].reg_rewards + regal_rewards[reward_id].premium_rewards
 
         if reward_id > request.user.regalrewards.last_completed:
             return Response({'status': False, 'reason': 'not enough points for this reward'})
