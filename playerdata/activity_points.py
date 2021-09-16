@@ -2,10 +2,21 @@ from django.db.transaction import atomic
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_marshmallow import Schema
+from marshmallow import fields
 
 from playerdata import chests
 from playerdata.models import ActivityPoints
 from playerdata.serializers import IntSerializer
+
+
+class ActivityPointsSchema(Schema):
+    daily_last_completed = fields.Int()
+    daily_last_claimed = fields.Int()
+    weekly_last_completed = fields.Int()
+    weekly_last_claimed = fields.Int()
+    daily_points = fields.Int()
+    weekly_points = fields.Int()
 
 
 class ActivityPointsReward:
