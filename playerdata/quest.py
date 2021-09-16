@@ -128,7 +128,7 @@ def handle_claim_quest(request, quest_class):
         if quest_class is PlayerQuestDaily:
             ActivityPointsUpdater.try_complete_daily_activity_points(quest.base_quest.points)
         else:
-            pass
+            ActivityPointsUpdater.try_complete_weekly_activity_points(quest.base_quest.points)
 
         return Response({'status': True})
 

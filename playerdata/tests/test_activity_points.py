@@ -15,7 +15,7 @@ class ActivityPointsAPITestCase(APITestCase):
         self.u.regalrewards.is_premium = True
         self.u.regalrewards.save()
 
-    def test_claim_reward(self):
+    def test_claim_reward_daily(self):
         activity_points.ActivityPointsUpdater.try_complete_daily_activity_points(self.u.activitypoints, 20)
 
         response = self.client.post('/activitypoints/claim/', {
@@ -25,3 +25,26 @@ class ActivityPointsAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
 
+        response = self.client.post('/activitypoints/claim/', {
+            'value': 0
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['status'])
+
+    def test_claim_reward_weekly(self):
+        activity_points.ActivityPointsUpdater.try_complete_weekly_activity_points(self.u.activitypoints, 20)
+
+        response = self.client.post('/activitypoints/claim/', {
+            'value': 1
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        response = self.client.post('/activitypoints/claim/', {
+            'value': 1
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['status'])
