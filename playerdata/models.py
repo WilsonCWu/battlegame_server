@@ -1332,7 +1332,7 @@ class WorldPack(models.Model):
 
 
 def regal_rewards_refreshdate():
-    return timezone.now() + timedelta(days=50)
+    return timezone.now() + timedelta(days=42)
 
 
 class RegalRewards(models.Model):
