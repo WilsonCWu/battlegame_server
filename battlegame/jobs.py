@@ -286,3 +286,9 @@ def new_test_user(name: str):
 def backfill_regal_rewards():
     for user in User.objects.all():
         _, _ = RegalRewards.objects.get_or_create(user=user)
+
+
+@transaction.atomic
+def backfill_activity_points():
+    for user in User.objects.all():
+        _, _ = ActivityPoints.objects.get_or_create(user=user)
