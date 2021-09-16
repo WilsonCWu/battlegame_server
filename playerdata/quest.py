@@ -13,6 +13,7 @@ from playerdata.models import PlayerQuestWeekly
 from playerdata.models import PlayerQuestDaily
 from playerdata.models import User
 from . import constants, server
+from .activity_points import ActivityPointsUpdater
 from .questupdater import QuestUpdater
 
 from .serializers import ClaimQuestSerializer
@@ -123,6 +124,12 @@ def handle_claim_quest(request, quest_class):
         award_quest(user.inventory, quest.base_quest)
         quest.claimed = True
         quest.save()
+
+        if quest_class is PlayerQuestDaily:
+            ActivityPointsUpdater.try_complete_daily_activity_points(quest.base_quest.points)
+        else:
+            pass
+
         return Response({'status': True})
 
     return Response({'status': False, 'reason': 'quest is still in progress'})
