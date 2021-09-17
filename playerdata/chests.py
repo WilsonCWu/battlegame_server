@@ -178,9 +178,18 @@ def award_chest_rewards(user, rewards):
             user.inventory.dust += reward.value
         elif reward.reward_type == 'relic_stone':
             user.inventory.relic_stones += reward.value
+        elif reward.reward_type == 'rare_shards':
+            user.inventory.rare_shards += reward.value
+        elif reward.reward_type == 'epic_shards':
+            user.inventory.epic_shards += reward.value
+        elif reward.reward_type == 'legendary_shards':
+            user.inventory.legendary_shards += reward.value
         elif reward.reward_type == 'champ_badge':
             user.inventory.champ_badges += reward.value
             tier_system.complete_any_champ_rewards(user.inventory.champ_badges, user.champbadgetracker)
+        elif reward.reward_type == 'regal_points':
+            user.regalrewards.points += reward.value
+            user.regalrewards.save()
         elif reward.reward_type == 'char_id':
             rolls.insert_character(user, reward.value)
         elif reward.reward_type == 'item_id':
@@ -192,15 +201,6 @@ def award_chest_rewards(user, rewards):
                 user.inventory.profile_pics = [reward.value]
             elif reward.value not in user.inventory.profile_pics:
                 user.inventory.profile_pics.append(reward.value)
-        elif reward.reward_type == 'regal_points':
-            user.regalrewards.points += reward.value
-            user.regalrewards.save()
-        elif reward.reward_type == 'rare_shards':
-            user.inventory.rare_shards += reward.value
-        elif reward.reward_type == 'epic_shards':
-            user.inventory.epic_shards += reward.value
-        elif reward.reward_type == 'legendary_shards':
-            user.inventory.legendary_shards += reward.value
         else:
             raise Exception("invalid reward_type, sorry friendo")
     user.inventory.save()
