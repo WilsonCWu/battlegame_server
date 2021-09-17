@@ -13,6 +13,7 @@ from playerdata.models import PlayerQuestWeekly
 from playerdata.models import PlayerQuestDaily
 from playerdata.models import User
 from . import constants, server
+from .activity_points import ActivityPointsUpdater, ActivityPointsSchema
 from .questupdater import QuestUpdater
 
 from .serializers import ClaimQuestSerializer
@@ -96,14 +97,21 @@ class QuestView(APIView):
             .select_related('base_quest__item_type').select_related('base_quest__char_type')\
             .order_by('claimed', '-completed')
 
-
         cumulative_schema = CumulativeQuestSchema2(cumulative_quests, many=True)
         weekly_schema = QuestSchema(weekly_quests, many=True)
         daily_schema = QuestSchema(daily_quests, many=True)
 
+        # TODO(0.5.0): remove check once active / backfilled
+        if hasattr(request.user, 'activitypoints'):
+            activity_data = ActivityPointsSchema(request.user.activitypoints).data
+        else:
+            activity_data = None
+
         return Response({'cumulative_quests': cumulative_schema.data,
                          'weekly_quests': weekly_schema.data,
-                         'daily_quests': daily_schema.data})
+                         'daily_quests': daily_schema.data,
+                         'activity_points': activity_data
+                         })
 
 
 def handle_claim_quest(request, quest_class):
@@ -123,6 +131,14 @@ def handle_claim_quest(request, quest_class):
         award_quest(user.inventory, quest.base_quest)
         quest.claimed = True
         quest.save()
+
+        # TODO(0.5.0): remove check once active / backfilled
+        if hasattr(request.user, 'activitypoints'):
+            if quest_class is PlayerQuestDaily:
+                ActivityPointsUpdater.try_complete_daily_activity_points(request.user.activitypoints, quest.base_quest.points)
+            else:
+                ActivityPointsUpdater.try_complete_weekly_activity_points(request.user.activitypoints, quest.base_quest.points)
+
         return Response({'status': True})
 
     return Response({'status': False, 'reason': 'quest is still in progress'})

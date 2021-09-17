@@ -1009,6 +1009,7 @@ class BaseQuest(models.Model):
     gems = models.IntegerField(default=0)
     coins = models.IntegerField(default=0)
     dust = models.IntegerField(default=0)
+    points = models.IntegerField(default=0)
     item_type = models.ForeignKey(BaseItem, on_delete=models.CASCADE, blank=True, null=True)
     char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE, blank=True, null=True)
 
@@ -1053,6 +1054,16 @@ class PlayerQuestWeekly(models.Model):
 
     def __str__(self):
         return "user:" + str(self.user_id) + " " + self.base_quest.title
+
+
+class ActivityPoints(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    daily_last_completed = models.IntegerField(default=-1)
+    daily_last_claimed = models.IntegerField(default=-1)
+    weekly_last_completed = models.IntegerField(default=-1)
+    weekly_last_claimed = models.IntegerField(default=-1)
+    daily_points = models.IntegerField(default=0)
+    weekly_points = models.IntegerField(default=0)
 
 
 class ActiveCumulativeQuest(models.Model):
@@ -1321,7 +1332,7 @@ class WorldPack(models.Model):
 
 
 def regal_rewards_refreshdate():
-    return timezone.now() + timedelta(days=50)
+    return timezone.now() + timedelta(days=42)
 
 
 class RegalRewards(models.Model):
@@ -1407,6 +1418,7 @@ def create_user_info(sender, instance, created, **kwargs):
         StoryMode.objects.create(user=instance)
         RotatingModeStatus.objects.create(user=instance)
         RegalRewards.objects.create(user=instance)
+        ActivityPoints.objects.create(user=instance)
         create_user_referral(instance)
 
         # Add quests
