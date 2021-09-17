@@ -107,8 +107,9 @@ class ActivityPointsUpdater:
     @staticmethod
     @atomic
     def try_complete_daily_activity_points(activity_points: ActivityPoints, points: int):
+        activity_points.daily_points += points
         for reward in get_daily_activitypoints_rewards():
-            if reward.unlock_amount > points:
+            if reward.unlock_amount > activity_points.daily_points:
                 break
             activity_points.daily_last_completed = max(reward.id, activity_points.daily_last_completed)
 
@@ -117,8 +118,9 @@ class ActivityPointsUpdater:
     @staticmethod
     @atomic
     def try_complete_weekly_activity_points(activity_points: ActivityPoints, points: int):
+        activity_points.weekly_points += points
         for reward in get_weekly_activitypoints_rewards():
-            if reward.unlock_amount > points:
+            if reward.unlock_amount > activity_points.weekly_points:
                 break
             activity_points.weekly_last_completed = max(reward.id, activity_points.weekly_last_completed)
 
