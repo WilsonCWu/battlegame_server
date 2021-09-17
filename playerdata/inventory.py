@@ -72,6 +72,9 @@ class InventorySchema(Schema):
     relic_stones = fields.Int()
     hero_exp = fields.Int()
     pet_points = fields.Int()
+    rare_shards = fields.Int()
+    epic_shards = fields.Int()
+    legendary_shards = fields.Int()
 
     chest_slot_1 = fields.Nested(ChestSchema)
     chest_slot_2 = fields.Nested(ChestSchema)

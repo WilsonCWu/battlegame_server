@@ -114,6 +114,5 @@ class ClaimRegalRewardView(APIView):
 
         request.user.regalrewards.save()
 
-        # TODO: uncomment when shards are implemented
-        # chests.award_chest_rewards(request.user, rewards)
+        chests.award_chest_rewards(request.user, rewards)
         return Response({'status': True, 'rewards': chests.ChestRewardSchema(rewards, many=True).data})

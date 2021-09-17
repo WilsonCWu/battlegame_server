@@ -43,9 +43,15 @@ class RegalRewardsAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
 
+        self.assertEqual(self.u.inventory.rare_shards, 540)
+        self.assertEqual(self.u.inventory.epic_shards, 180)
+
         response = self.client.post('/regalrewards/claim/', {})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
+
+        self.assertEqual(self.u.inventory.rare_shards, 630)
+        self.assertEqual(self.u.inventory.epic_shards, 210)
 
         response = self.client.post('/regalrewards/claim/', {})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -61,9 +67,15 @@ class RegalRewardsAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
 
+        self.assertEqual(self.u.inventory.rare_shards, 540)
+        self.assertEqual(self.u.inventory.epic_shards, 0)
+
         response = self.client.post('/regalrewards/claim/', {})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
+
+        self.assertEqual(self.u.inventory.rare_shards, 630)
+        self.assertEqual(self.u.inventory.epic_shards, 0)
 
         response = self.client.post('/regalrewards/claim/', {})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
