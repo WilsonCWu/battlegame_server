@@ -192,6 +192,15 @@ def award_chest_rewards(user, rewards):
                 user.inventory.profile_pics = [reward.value]
             elif reward.value not in user.inventory.profile_pics:
                 user.inventory.profile_pics.append(reward.value)
+        elif reward.reward_type == 'regal_points':
+            user.regalrewards.points += reward.value
+            user.regalrewards.save()
+        elif reward.reward_type == 'rare_shards':
+            user.inventory.rare_shards += reward.value
+        elif reward.reward_type == 'epic_shards':
+            user.inventory.epic_shards += reward.value
+        elif reward.reward_type == 'legendary_shards':
+            user.inventory.legendary_shards += reward.value
         else:
             raise Exception("invalid reward_type, sorry friendo")
     user.inventory.save()
