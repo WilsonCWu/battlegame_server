@@ -16,7 +16,9 @@ class ActivityPointsAPITestCase(APITestCase):
         self.u.regalrewards.save()
 
     def test_claim_reward_daily(self):
+        self.assertEqual(self.u.activitypoints.daily_points, 0)
         activity_points.ActivityPointsUpdater.try_complete_daily_activity_points(self.u.activitypoints, 20)
+        self.assertEqual(self.u.activitypoints.daily_points, 20)
 
         response = self.client.post('/activitypoints/claim/', {
             'value': 0
@@ -33,7 +35,9 @@ class ActivityPointsAPITestCase(APITestCase):
         self.assertFalse(response.data['status'])
 
     def test_claim_reward_weekly(self):
+        self.assertEqual(self.u.activitypoints.weekly_points, 0)
         activity_points.ActivityPointsUpdater.try_complete_weekly_activity_points(self.u.activitypoints, 20)
+        self.assertEqual(self.u.activitypoints.weekly_points, 20)
 
         response = self.client.post('/activitypoints/claim/', {
             'value': 1
