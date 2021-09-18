@@ -2,20 +2,19 @@ import random
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
-from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from playerdata.models import ActiveDailyQuest, get_expiration_date, ActiveWeeklyQuest, \
-    BaseQuest, PlayerQuestCumulative2, CumulativeTracker, ActiveCumulativeQuest
-from playerdata.models import PlayerQuestWeekly
+    BaseQuest, PlayerQuestCumulative2, CumulativeTracker, ActiveCumulativeQuest, ActivityPoints
 from playerdata.models import PlayerQuestDaily
+from playerdata.models import PlayerQuestWeekly
 from playerdata.models import User
-from . import constants, server
+from . import constants
 from .activity_points import ActivityPointsUpdater, ActivityPointsSchema
 from .questupdater import QuestUpdater
-
 from .serializers import ClaimQuestSerializer
 
 
@@ -229,15 +228,24 @@ def refresh_quests(PlayerQuestModel, ActiveQuestModel, num_quests, days_interval
     _delete_first_n_rows(ActiveQuestModel, num_quests)
 
 
+def reset_activity_points(attr_name: str):
+    ap_list = ActivityPoints.objects.all()
+    for ap in ap_list:
+        setattr(ap, attr_name, 0)
+    ActivityPoints.objects.bulk_update(ap_list, [attr_name])
+
+
 # refresh quests: deletes the previous ActiveQuests and uses new ones to propagate to users
 def refresh_daily_quests():
     refresh_quests(PlayerQuestDaily, ActiveDailyQuest, constants.NUM_DAILY_QUESTS, 1)
     queue_active_daily_quests()
+    reset_activity_points('daily_points')
 
 
 def refresh_weekly_quests():
     refresh_quests(PlayerQuestWeekly, ActiveWeeklyQuest, constants.NUM_WEEKLY_QUESTS, 7)
     queue_active_weekly_quests()
+    reset_activity_points('weekly_points')
 
 
 # randomly sample from pool of quest ids to populate ActiveQuest

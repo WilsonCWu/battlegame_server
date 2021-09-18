@@ -315,6 +315,18 @@ class MailAdmin(admin.ModelAdmin):
     raw_id_fields = ('receiver', 'sender')
 
 
+class RegalRewardsAdmin(admin.ModelAdmin):
+    raw_id_fields = ('user',)
+
+
+class ActivityPointsAdmin(admin.ModelAdmin):
+    raw_id_fields = ('user',)
+
+
+class ClanMemberAdmin(admin.ModelAdmin, DynamicArrayMixin):
+    raw_id_fields = ('userinfo', 'clan2')
+
+
 @admin.register(BaseCharacterAbility2)
 class BaseCharacterAbility2Admin(admin.ModelAdmin):
     formfield_overrides = {
@@ -617,7 +629,7 @@ admin.site.register(ChatMessage, ChatMessageAdmin)
 admin.site.register(Friend)
 admin.site.register(FriendRequest)
 admin.site.register(Clan2)
-admin.site.register(ClanMember)
+admin.site.register(ClanMember, ClanMemberAdmin)
 admin.site.register(ClanRequest)
 
 admin.site.register(BaseQuest, BaseQuestAdmin)
@@ -671,3 +683,6 @@ admin.site.register(LevelBooster)
 admin.site.register(Wishlist, WishlistAdmin)
 admin.site.register(StoryMode, StoryModeAdmin)
 admin.site.register(Mail, MailAdmin)
+
+admin.site.register(RegalRewards, RegalRewardsAdmin)
+admin.site.register(ActivityPoints, ActivityPointsAdmin)
