@@ -82,6 +82,9 @@ def convert_teamp_comp_to_stage(team_comp, stage_num, levels, prestiges, seed_in
 # returns a list of 5 levels based on which filler level it is or a boss stage
 def get_campaign_levels_for_stage(starting_level, stage_num, boss_stage):
 
+    if stage_num <= 20:
+        early_game_level = math.ceil(stage_num / 2)
+        return [early_game_level] * 3 + [max(early_game_level - 1, 1)] * 2
     if stage_num <= 620:
         boss_level = starting_level + 7 * (math.ceil(stage_num / 20) - 1)
         level_dip = 10 / 2  # keeping this to know we actually dip 10 on 20 stages, but half for half the stage
@@ -179,6 +182,10 @@ def get_campaign_prestige(boss_stage):
 
 # adds in some warm up peasants for the first couple levels after a boss
 def swap_in_peasants(stage_num, placement, prestiges, seed_int):
+    # Don't swap for first 20 hardcoded teams
+    if stage_num <= 20:
+        return placement
+
     rng = random.Random(seed_int)
 
     # if warmup level replace with any peasant
@@ -225,12 +232,32 @@ def convert_placement_to_json(dungeon_bosses):
         boss.save()
 
 
+# Hardcoding teams early game teams when the fighting isn't as interesting first 20 levels
+def early_campaign_teams(stage_num):
+    if stage_num <= 2:
+        team_comp = [{"char_id": 0, "position": 6}, {"char_id": 1, "position": 8}, {"char_id": 2, "position": 9}]
+    elif stage_num <= 5:
+        team_comp = [{"char_id": 0, "position": 6}, {"char_id": 8, "position": 5}, {"char_id": 3, "position": 4}, {"char_id": 2, "position": 9}]
+    elif stage_num <= 10:
+        team_comp = [{"char_id": 4, "position": 8}, {"char_id": 32, "position": 12}, {"char_id": 8, "position": 6}, {"char_id": 3, "position": 4}]
+    elif stage_num <= 15:
+        team_comp = [{"char_id": 5, "position": 2}, {"char_id": 1, "position": 10}, {"char_id": 8, "position": 3}, {"char_id": 11, "position": 14}]
+    elif stage_num <= 20:
+        team_comp = [{"char_id": 4, "position": 6}, {"char_id": 8, "position": 5}, {"char_id": 11, "position": 10}, {"char_id": 5, "position": 2}, {"char_id": 2, "position": 20}]
+
+    return team_comp
+
+
 # Although there's some duplicate code
 # keeping it separate to accommodate easier future changes
 def stage_generator(stage_num, dungeon_type):
     if dungeon_type == constants.DungeonType.CAMPAIGN.value:
         boss_stage = math.ceil(stage_num / constants.NUM_DUNGEON_SUBSTAGES[dungeon_type]) * constants.NUM_DUNGEON_SUBSTAGES[dungeon_type]
+
         dungeon_boss = DungeonBoss.objects.get(stage=boss_stage, dungeon_type=dungeon_type)
+        if stage_num <= 20:
+            dungeon_boss.team_comp = early_campaign_teams(stage_num)
+
         seed_int = stage_num
         levels = get_campaign_levels_for_stage(10, stage_num, boss_stage)
         prestiges = get_campaign_prestige(boss_stage)
