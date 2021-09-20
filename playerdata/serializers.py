@@ -210,3 +210,8 @@ class SlotSerializer(serializers.Serializer):
 class SendMailSerializer(serializers.Serializer):
     receiver_id = serializers.IntegerField(required=True)
     message = serializers.CharField(required=True)
+
+
+class SummonShardSerializer(serializers.Serializer):
+    num_chars = serializers.IntegerField(required=True)
+    rarity = serializers.IntegerField(required=True)

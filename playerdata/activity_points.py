@@ -153,8 +153,7 @@ class ClaimActivityPointsView(APIView):
             request.user.activitypoints.weekly_last_claimed += 1
             rewards = get_weekly_activitypoints_rewards()[last_claimed].rewards
 
-        # TODO: uncomment when shards are implemented
-        # chests.award_chest_rewards(request.user, rewards)
+        chests.award_chest_rewards(request.user, rewards)
         request.user.activitypoints.save()
 
         return Response({'status': True, 'rewards': chests.ChestRewardSchema(rewards, many=True).data})
