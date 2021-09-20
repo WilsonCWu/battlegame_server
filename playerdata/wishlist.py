@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from playerdata import base
+from playerdata import base, server
 from .models import Character
 from .serializers import SlotSerializer
 
@@ -35,6 +35,8 @@ class GetWishlistView(APIView):
 
     def get(self, request):
         wishlist = WishlistSchema(request.user.wishlist)
+        if server.is_server_version_higher('0.5.0'):
+            return Response({'status': True, 'wishlist': wishlist.data})
         return Response(wishlist.data)
 
 

@@ -104,7 +104,7 @@ class BaseInfoView(APIView):
             stats = BaseCharacterStats.get_active_under_version(version)
         else:
             stats = BaseCharacterStats.get_active()
-            
+
         for bc in BaseCharacter.objects.all():
             serialized = BaseCharacterSchema(bc).data
 
@@ -120,7 +120,6 @@ class BaseInfoView(APIView):
             flags[uf.flag.name]['value'] = uf.value
         return list(flags.values())
 
-
     def get(self, request, version=None):
         itemSerializer = BaseItemSchema(BaseItem.objects.all(), many=True)
         prestigeSerializer = BasePrestigeSchema(BasePrestige.objects.all(), many=True)
@@ -133,10 +132,10 @@ class BaseInfoView(APIView):
             specSerializer = BaseCharacterAbilitySchema(BaseCharacterAbility2.get_active(), many=True)
 
         return Response({
+            'status': True,
             'characters': list(BaseInfoView.serialize_base_characters(version)),
             'items': itemSerializer.data,
             'specs': specSerializer.data,
             'prestige': prestigeSerializer.data,
             'flags': BaseInfoView.flags(request.user),
         })
-

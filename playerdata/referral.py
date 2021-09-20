@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_marshmallow import Schema, fields
 
+from playerdata import server
 from playerdata.models import UserReferral
 from playerdata.models import ReferralTracker
 from . import constants
@@ -26,6 +27,8 @@ class ReferralView(APIView):
     def get(self, request):
         user_ref = UserReferral.objects.get(user=request.user)
         referral_schema = ReferralSchema(user_ref)
+        if server.is_server_version_higher('0.5.0'):
+            return Response({'status': True, 'referral_code': referral_schema.data})
         return Response(referral_schema.data)
 
     @atomic

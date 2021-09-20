@@ -24,6 +24,7 @@ class ServerStatusView(APIView):
         upcoming_maintenances = ServerStatus.objects.filter(event_type='M').filter(maintenance_start__gte=timezone.now())
 
         return Response({
+            'status': True,
             'version': latest_version.version_number,
             'patch_notes': latest_version.patch_notes,
             'last_required_update_version': latest_required.version_number,

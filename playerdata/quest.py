@@ -107,7 +107,8 @@ class QuestView(APIView):
         else:
             activity_data = None
 
-        return Response({'cumulative_quests': cumulative_schema.data,
+        return Response({'status': True,
+                         'cumulative_quests': cumulative_schema.data,
                          'weekly_quests': weekly_schema.data,
                          'daily_quests': daily_schema.data,
                          'activity_points': activity_data
@@ -272,4 +273,3 @@ def queue_active_weekly_quests():
     ActiveWeeklyQuest.objects.create(base_quest_id=33)  # Attempt 20 Dungeon games
     ActiveWeeklyQuest.objects.create(base_quest_id=11)  # Win 20 QuickPlay games
     add_quests_to_activequests(ActiveWeeklyQuest, constants.WEEKLY_QUEST_POOL_IDS, constants.NUM_WEEKLY_QUESTS - 2)
-
