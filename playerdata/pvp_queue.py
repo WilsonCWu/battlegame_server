@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from playerdata import constants, matcher
+from playerdata import constants, matcher, server
 from playerdata.models import UserInfo
 
 
@@ -112,5 +112,6 @@ class GetOpponentView(APIView):
         opponent_id = get_current_opponent_id(r, opponent_queue_key)
         query = matcher.userinfo_preloaded().filter(user_id=opponent_id).first()
         enemies = matcher.UserInfoSchema(query)
-
+        if server.is_server_version_higher('0.5.0'):
+            return Response({'status': True, 'userInfo': enemies.data})
         return Response(enemies.data)

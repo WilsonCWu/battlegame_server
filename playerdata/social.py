@@ -12,6 +12,7 @@ from rest_framework.status import (
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
+from playerdata import server
 from playerdata.models import Chat
 from playerdata.models import Clan2
 from playerdata.models import ClanMember
@@ -191,6 +192,9 @@ class FriendsView(APIView):
             'user_1__userinfo__clanmember').select_related('user_2__userinfo__clanmember')
         query = query1 | query2
         friends = FriendSchema(query, many=True)
+
+        if(server.is_server_version_higher('0.5.0')):
+            return Response({'status': True, 'friends': friends.data})
         return Response({'friends': friends.data})
 
 

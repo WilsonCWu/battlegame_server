@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
+from playerdata import server
 from playerdata.models import ActiveDailyQuest, get_expiration_date, ActiveWeeklyQuest, \
     BaseQuest, PlayerQuestCumulative2, CumulativeTracker, ActiveCumulativeQuest, ActivityPoints
 from playerdata.models import PlayerQuestDaily
@@ -106,11 +107,19 @@ class QuestView(APIView):
         else:
             activity_data = None
 
+        if server.is_server_version_higher('0.5.0'):
+            return Response({'status': True,
+                            'cumulative_quests': cumulative_schema.data,
+                            'weekly_quests': weekly_schema.data,
+                            'daily_quests': daily_schema.data,
+                            'activity_points': activity_data
+                            })
+                            
         return Response({'cumulative_quests': cumulative_schema.data,
-                         'weekly_quests': weekly_schema.data,
-                         'daily_quests': daily_schema.data,
-                         'activity_points': activity_data
-                         })
+                        'weekly_quests': weekly_schema.data,
+                        'daily_quests': daily_schema.data,
+                        'activity_points': activity_data
+                        })
 
 
 def handle_claim_quest(request, quest_class):

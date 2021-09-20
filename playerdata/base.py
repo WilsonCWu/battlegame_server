@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 from functools import lru_cache
 
+from playerdata import server
 from playerdata.models import BaseCharacter
 from playerdata.models import BaseCharacterAbility2
 from playerdata.models import BaseCharacterStats
@@ -131,6 +132,16 @@ class BaseInfoView(APIView):
             specSerializer = BaseCharacterAbilitySchema(BaseCharacterAbility2.get_active_under_version(version), many=True)
         else:
             specSerializer = BaseCharacterAbilitySchema(BaseCharacterAbility2.get_active(), many=True)
+
+        if server.is_server_version_higher("0.5.0"):
+            return Response({
+            'status': True,
+            'characters': list(BaseInfoView.serialize_base_characters(version)),
+            'items': itemSerializer.data,
+            'specs': specSerializer.data,
+            'prestige': prestigeSerializer.data,
+            'flags': BaseInfoView.flags(request.user),
+            })
 
         return Response({
             'characters': list(BaseInfoView.serialize_base_characters(version)),

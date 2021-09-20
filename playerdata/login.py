@@ -22,6 +22,7 @@ from .serializers import ChangeNameSerializer
 from .serializers import RecoverAccountSerializer
 
 from .models import UserInfo, IPTracker
+from playerdata import server
 from playerdata.social import isTextSanitized
 
 class HelloView(APIView):
@@ -47,6 +48,8 @@ class CreateNewUser(APIView):
         token = serializer.validated_data['token']
 
         if token != config('CREATEUSER_TOKEN'):
+            if server.is_server_version_higher('0.5.0'):
+                return Response({'status': False, 'reason': 'Invalid Credentials','detail': 'Invalid Credentials. Please contact support.'}, status=HTTP_401_UNAUTHORIZED)
             return Response({'detail': 'Invalid Credentials. Please contact support.'}, status=HTTP_401_UNAUTHORIZED)
 
         latest_id = get_user_model().objects.latest('id').id + 1
@@ -55,6 +58,8 @@ class CreateNewUser(APIView):
         user = get_user_model().objects.create_user(username=latest_id, password=password)
 
         content = {'username': str(latest_id), 'password': password, 'name': latest_id}
+        if server.is_server_version_higher('0.5.0'):
+            return Response({'status': True, 'newAccount': content})
         return Response(content)
 
 
@@ -107,6 +112,8 @@ class ObtainAuthToken(APIView):
             password=serializer.validated_data['password']
         )
         if not user:
+            if server.is_server_version_higher("0.5.0"):
+                return Response({'status': False, 'reason': 'Invalid Credentials', 'detail': 'Invalid Credentials. Please contact support.'}, status=HTTP_401_UNAUTHORIZED)
             return Response({'detail': 'Invalid Credentials. Please contact support.'}, status=HTTP_401_UNAUTHORIZED)
 
         Token.objects.filter(user=user).delete()
@@ -120,6 +127,8 @@ class ObtainAuthToken(APIView):
                 tracker.suspicious = True
         tracker.save()
 
+        if server.is_server_version_higher("0.5.0"):
+            return Response({'status': True, 'token': token.key, 'user_id': user.id})
         return Response({'token': token.key, 'user_id': user.id})
 
 
@@ -144,6 +153,8 @@ class RecoverAccount(APIView):
             user_id = serializer.validated_data['user_id']
             user = get_user_model().objects.get(id=user_id)
         except:
+            if server.is_server_version_higher('0.5.0'):
+                return Response({'status': False, 'reason': 'failed to get user with id=%s' % user_id}, status=HTTP_404_NOT_FOUND)
             return Response({'reason': 'failed to get user with id=%s' % user_id}, status=HTTP_404_NOT_FOUND)
 
         generator = UserRecoveryTokenGenerator()
@@ -151,8 +162,12 @@ class RecoverAccount(APIView):
             new_password = CreateNewUser.generate_password()
             user.set_password(new_password)
             user.save()
+            if server.is_server_version_higher('0.5.0'):
+                return Response({'status': True, 'password': new_password})
             return Response({'password': new_password})
         else:
+            if server.is_server_version_higher('0.5.0'):
+                return Response({'status': False, 'reason': 'invalid token!'}, status=HTTP_401_UNAUTHORIZED)
             return Response({'reason': 'invalid token!'}, status=HTTP_401_UNAUTHORIZED)
 
 
@@ -161,4 +176,6 @@ class GetRecoveryToken(APIView):
 
     def get(self, request):
         generator = UserRecoveryTokenGenerator()
+        if server.is_server_version_higher('0.5.0'):
+            return Response({'status': True, 'token': generator.make_token(request.user)})
         return Response({'token': generator.make_token(request.user)})

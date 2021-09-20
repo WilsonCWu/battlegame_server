@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from playerdata import constants
+from playerdata import constants, server
 from playerdata.models import Item, BaseItem
 from .inventory import ItemSchema
 from .serializers import BuyItemSerializer
@@ -45,4 +45,6 @@ class GetItemsView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
+        if server.is_server_version_higher('0.5.0'):
+            return Response({'status': True, 'item_types': constants.COIN_SHOP_ITEMS})
         return Response({'item_types': constants.COIN_SHOP_ITEMS})

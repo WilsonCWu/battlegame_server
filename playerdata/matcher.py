@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from playerdata import constants, formulas
+from playerdata import constants, formulas, server
 from playerdata.models import BaseCharacter, CumulativeTracker
 from playerdata.models import Character
 from playerdata.models import Placement
@@ -167,6 +167,8 @@ class GetUserView(APIView):
     # TODO(yanke): split up usecases for user infos that need placements and
     # all its equips.
     def get(self, request):
+        if server.is_server_version_higher('0.5.0'):
+            return Response({'status': True, 'userInfo': GetUserView._get_userinfo(request.user.id).data})
         return Response(GetUserView._get_userinfo(request.user.id).data)
 
     def post(self, request):
@@ -174,6 +176,8 @@ class GetUserView(APIView):
         serializer = GetUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         target_user = serializer.validated_data['target_user']
+        if server.is_server_version_higher('0.5.0'):
+            return Response({'status': True, 'userInfo': GetUserView._get_userinfo(request.user.id).data})
         return Response(GetUserView._get_userinfo(target_user).data)
 
 
@@ -202,6 +206,8 @@ class GetOpponentsView(APIView):
             .filter(user_id__in=user_ids)
 
         enemies = UserInfoSchema(query, many=True)
+        if server.is_server_version_higher('0.5.0'):
+            return Response({'status': True, 'users': enemies.data})
         return Response({'users': enemies.data})
 
 
@@ -210,6 +216,8 @@ class PlacementsView(APIView):
 
     def get(self, request):
         placements = Placement.objects.filter(user=request.user, is_tourney=False)
+        if server.is_server_version_higher('0.5.0'):
+            return Response({'status': True, 'placements': [PlacementSchema(p).data for p in placements]})
         return Response({'placements': [PlacementSchema(p).data for p in placements]})
 
     def post(self, request):
@@ -318,6 +326,9 @@ class GetMatchHistoryView(APIView):
         limit = serializer.validated_data['count']
         query = (attacker_query | defender_query).order_by('-uploaded_at')[:limit]
         matches = MatchHistorySchema(query, many=True)
+
+        if server.is_server_version_higher('0.5.0'):
+            return Response({'status': True, 'matches': matches.data})
         return Response({'matches': matches.data})
 
 

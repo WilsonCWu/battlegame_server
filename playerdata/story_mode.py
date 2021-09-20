@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
+from playerdata import server
 from playerdata.models import Character
 from playerdata.serializers import IntSerializer, CharStateResultSerializer
 
@@ -41,6 +42,8 @@ class GetStoryModeView(APIView):
 
     def get(self, request):
         schema = StoryModeSchema(request.user.storymode)
+        if server.is_server_version_higher('0.5.0'):
+            return Response({'status': True, 'storyMode': schema.data})
         return Response(schema.data)
 
 
