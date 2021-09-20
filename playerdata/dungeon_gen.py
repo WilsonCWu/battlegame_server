@@ -239,9 +239,9 @@ def early_campaign_teams(stage_num):
     elif stage_num <= 5:
         team_comp = [{"char_id": 0, "position": 6}, {"char_id": 8, "position": 5}, {"char_id": 3, "position": 4}, {"char_id": 2, "position": 9}]
     elif stage_num <= 10:
-        team_comp = [{"char_id": 4, "position": 8}, {"char_id": 32, "position": 12}, {"char_id": 8, "position": 6}, {"char_id": 3, "position": 4}]
+        team_comp = [{"char_id": 0, "position": 8}, {"char_id": 32, "position": 12}, {"char_id": 8, "position": 6}, {"char_id": 3, "position": 4}]
     elif stage_num <= 15:
-        team_comp = [{"char_id": 5, "position": 2}, {"char_id": 1, "position": 10}, {"char_id": 8, "position": 3}, {"char_id": 11, "position": 14}]
+        team_comp = [{"char_id": 4, "position": 2}, {"char_id": 1, "position": 10}, {"char_id": 8, "position": 3}, {"char_id": 11, "position": 14}]
     elif stage_num <= 20:
         team_comp = [{"char_id": 4, "position": 6}, {"char_id": 8, "position": 5}, {"char_id": 11, "position": 10}, {"char_id": 5, "position": 2}, {"char_id": 2, "position": 20}]
 
