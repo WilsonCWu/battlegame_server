@@ -58,7 +58,7 @@ class CreateNewUser(APIView):
 
         content = {'username': str(latest_id), 'password': password, 'name': latest_id}
         if server.is_server_version_higher('0.5.0'):
-            return Response({'status': True, 'newAccount': content})
+            return Response({'status': True, 'new_account': content})
         return Response(content)
 
 
