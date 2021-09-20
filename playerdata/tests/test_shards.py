@@ -31,7 +31,7 @@ class ShardsAPITestCase(APITestCase):
         copy_total = get_num_copies_of_rarity(self.u, rarity)
         self.assertEqual(org_num + num_summons, copy_total)
 
-    def test_summon1(self):
+    def test_summon1_rare(self):
         num_summons = 1
         rarity = 2
         self.u.inventory.rare_shards = shards.SHARD_SUMMON_COST * num_summons
@@ -39,7 +39,7 @@ class ShardsAPITestCase(APITestCase):
 
         self.run_summons(num_summons, rarity)
 
-    def test_summon5(self):
+    def test_summon5_epic(self):
         num_summons = 5
         rarity = 3
 
@@ -48,7 +48,7 @@ class ShardsAPITestCase(APITestCase):
 
         self.run_summons(num_summons, rarity)
 
-    def test_summon10(self):
+    def test_summon10_legendary(self):
         num_summons = 10
         rarity = 4
 
@@ -57,7 +57,7 @@ class ShardsAPITestCase(APITestCase):
 
         self.run_summons(num_summons, rarity)
 
-    def test_no_enough_shards(self):
+    def test_not_enough_shards(self):
         num_summons = 10
         rarity = 4
 
