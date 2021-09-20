@@ -56,3 +56,30 @@ class ShardsAPITestCase(APITestCase):
         self.u.inventory.save()
 
         self.run_summons(num_summons, rarity)
+
+    def test_no_enough_shards(self):
+        num_summons = 10
+        rarity = 4
+
+        response = self.client.post('/shards/summons/', {
+            'num_chars': num_summons,
+            'rarity': rarity
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['status'])
+
+    def test_negative_num_chars(self):
+        num_summons = -1
+        rarity = 3
+
+        self.u.inventory.epic_shards = shards.SHARD_SUMMON_COST * 10
+        self.u.inventory.save()
+
+        response = self.client.post('/shards/summons/', {
+            'num_chars': num_summons,
+            'rarity': rarity
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['status'])
