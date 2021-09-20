@@ -113,5 +113,5 @@ class GetOpponentView(APIView):
         query = matcher.userinfo_preloaded().filter(user_id=opponent_id).first()
         enemies = matcher.UserInfoSchema(query)
         if server.is_server_version_higher('0.5.0'):
-            return Response({'status': True, 'userInfo': enemies.data})
+            return Response({'status': True, 'user_info': enemies.data})
         return Response(enemies.data)

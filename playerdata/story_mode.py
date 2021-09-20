@@ -43,7 +43,7 @@ class GetStoryModeView(APIView):
     def get(self, request):
         schema = StoryModeSchema(request.user.storymode)
         if server.is_server_version_higher('0.5.0'):
-            return Response({'status': True, 'storyMode': schema.data})
+            return Response({'status': True, 'story_mode': schema.data})
         return Response(schema.data)
 
 
