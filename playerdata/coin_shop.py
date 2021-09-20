@@ -41,10 +41,9 @@ class TryBuyItemView(APIView):
 
         return Response({'status': True, 'item': ItemSchema(item).data})
 
+
 class GetItemsView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        if server.is_server_version_higher('0.5.0'):
-            return Response({'status': True, 'item_types': constants.COIN_SHOP_ITEMS})
-        return Response({'item_types': constants.COIN_SHOP_ITEMS})
+        return Response({'status': True, 'item_types': constants.COIN_SHOP_ITEMS})

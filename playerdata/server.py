@@ -23,16 +23,8 @@ class ServerStatusView(APIView):
         latest_required = ServerStatus.objects.filter(event_type='V', require_update=True).latest('creation_time')
         upcoming_maintenances = ServerStatus.objects.filter(event_type='M').filter(maintenance_start__gte=timezone.now())
 
-        if is_server_version_higher('0.5.0'):
-            return Response({
-            'status': True,
-            'version': latest_version.version_number,
-            'patch_notes': latest_version.patch_notes,
-            'last_required_update_version': latest_required.version_number,
-            'upcoming_maintenances': [MaintenanceSchema(m).data for m in upcoming_maintenances],
-            })
-
         return Response({
+            'status': True,
             'version': latest_version.version_number,
             'patch_notes': latest_version.patch_notes,
             'last_required_update_version': latest_required.version_number,

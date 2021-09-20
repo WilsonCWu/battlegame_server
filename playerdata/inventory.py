@@ -105,11 +105,8 @@ class InventoryView(APIView):
         char_serializer = CharacterSchema(Character.objects.filter(user=request.user), many=True)
         item_serializer = ItemSchema(Item.objects.filter(user=request.user), many=True)
         inventory_serializer = InventorySchema(request.user.inventory)
-        if server.is_server_version_higher('0.5.0'):
-            return Response(
-                {'status': True, 'characters': char_serializer.data, 'items': item_serializer.data, 'details': inventory_serializer.data})
         return Response(
-                {'characters': char_serializer.data, 'items': item_serializer.data, 'details': inventory_serializer.data})
+                {'status': True, 'characters': char_serializer.data, 'items': item_serializer.data, 'details': inventory_serializer.data})
 
 
 class InventoryHeaderView(APIView):
@@ -118,7 +115,7 @@ class InventoryHeaderView(APIView):
     def get(self, request):
         inventory_serializer = InventorySchema(request.user.inventory)
         if server.is_server_version_higher('0.5.0'):
-            return Response ({'status': True, 'inventoryDetails': inventory_serializer.data})
+            return Response({'status': True, 'inventoryDetails': inventory_serializer.data})
         return Response(inventory_serializer.data)
 
 

@@ -290,9 +290,7 @@ class SkipsLeftView(APIView):
     def get(self, request):
         if server.is_server_version_higher("0.2.5"):
             is_skips_capped = is_skip_capped(request.user)
-            if server.is_server_version_higher('0.5.0'):
-                return Response({'status': True, 'skips_left': request.user.userstats.pvp_skips, 'is_capped': is_skips_capped})
-            return Response({'skips_left': request.user.userstats.pvp_skips, 'is_capped': is_skips_capped})
+            return Response({'status': True, 'skips_left': request.user.userstats.pvp_skips, 'is_capped': is_skips_capped})
 
         coins_cost = formulas.coins_chest_reward(request.user, constants.ChestType.SILVER.value) / 30
         gems_cost = 0

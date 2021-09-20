@@ -105,7 +105,7 @@ class MatchReplaySchema(Schema):
     seed = fields.Int()
     attacking_team = fields.Str()
     defending_team = fields.Str()
-    
+
 
 class MatcherView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -206,9 +206,7 @@ class GetOpponentsView(APIView):
             .filter(user_id__in=user_ids)
 
         enemies = UserInfoSchema(query, many=True)
-        if server.is_server_version_higher('0.5.0'):
-            return Response({'status': True, 'users': enemies.data})
-        return Response({'users': enemies.data})
+        return Response({'status': True, 'users': enemies.data})
 
 
 class PlacementsView(APIView):
@@ -216,9 +214,7 @@ class PlacementsView(APIView):
 
     def get(self, request):
         placements = Placement.objects.filter(user=request.user, is_tourney=False)
-        if server.is_server_version_higher('0.5.0'):
-            return Response({'status': True, 'placements': [PlacementSchema(p).data for p in placements]})
-        return Response({'placements': [PlacementSchema(p).data for p in placements]})
+        return Response({'status': True, 'placements': [PlacementSchema(p).data for p in placements]})
 
     def post(self, request):
         serializer = UpdatePlacementSerializer(data=request.data)
@@ -241,7 +237,6 @@ class PlacementsView(APIView):
             placement = self._new_placement(request.user, serializer)
             return Response({'status': True, 'placement_id': placement.placement_id})
 
-
     def _update_placement(self, placement, serializer):
         characters = serializer.validated_data['characters']
         characters = [cid if cid != -1 else None for cid in characters]
@@ -258,7 +253,6 @@ class PlacementsView(APIView):
         placement.pos_4=positions[3]
         placement.pos_5=positions[4]
         placement.save()
-
 
     def _new_placement(self, user, serializer):
         characters = serializer.validated_data['characters']
@@ -278,6 +272,7 @@ class PlacementsView(APIView):
             pos_4=positions[3],
             pos_5=positions[4],
         )
+
 
 # TODO: add tests for this
 class PostBotResultsView(APIView):
@@ -327,9 +322,7 @@ class GetMatchHistoryView(APIView):
         query = (attacker_query | defender_query).order_by('-uploaded_at')[:limit]
         matches = MatchHistorySchema(query, many=True)
 
-        if server.is_server_version_higher('0.5.0'):
-            return Response({'status': True, 'matches': matches.data})
-        return Response({'matches': matches.data})
+        return Response({'status': True, 'matches': matches.data})
 
 
 class GetReplayView(APIView):
@@ -352,7 +345,7 @@ class GetReplayView(APIView):
 
         replay = MatchReplaySchema(replay_q[0])
         return Response({'status': True, 'replay': replay.data})
-    
+
 
 class BotsView(APIView):
     permission_classes = (IsAuthenticated,)

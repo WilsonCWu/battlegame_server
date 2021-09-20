@@ -53,14 +53,16 @@ def getGlobalChats():
 
     return [global1, feedback]
 
-def isTextSanitized(text, allowBackslash, allowNewline, allowNonAscii): #TODO: Move to a helper class if one is made
+
+def isTextSanitized(text, allowBackslash, allowNewline, allowNonAscii):  # TODO: Move to a helper class if one is made
     if((not allowBackslash) and re.search(r'\\', text)):
         return False
     if((not allowNewline) and re.search(r'\n|\r', text)):
         return False
-    if((not allowNonAscii) and re.search(r'[^\x20-\x7E]+', text)): # only printable ascii are allowed
+    if((not allowNonAscii) and re.search(r'[^\x20-\x7E]+', text)):  # only printable ascii are allowed
         return False
     return True
+
 
 class FriendSchema(Schema):
     user_1_id = fields.Int(attribute='user_1_id')
@@ -106,7 +108,7 @@ class AcceptFriendRequestView(APIView):
             friend_request = FriendRequest.objects.get(id=target_fr_id)
         except FriendRequest.DoesNotExist:
             return Response({'status': False, 'reason': "friend request does not exist"})
-        
+
         if friend_request.target != request.user:
             return Response({'status': False, 'reason': "friend request not for target user"})
 
@@ -136,7 +138,7 @@ class CreateFriendRequestView(APIView):
 
         if not target_user_id.isnumeric():
             return Response({'status': False, 'reason': "user id should be numeric"})
-        
+
         target_user = get_user_model().objects.filter(id=target_user_id).first()
         if target_user is None:
             return Response({'status': False, 'reason': "user id doesn't exist"})
@@ -193,9 +195,7 @@ class FriendsView(APIView):
         query = query1 | query2
         friends = FriendSchema(query, many=True)
 
-        if(server.is_server_version_higher('0.5.0')):
-            return Response({'status': True, 'friends': friends.data})
-        return Response({'friends': friends.data})
+        return Response({'status': True, 'friends': friends.data})
 
 
 class GetChatIdView(APIView):
@@ -356,7 +356,7 @@ class LeaveClanView(APIView):
 
         clan_member.clan2.num_members -= 1
         clan_member.clan2.save()
-        
+
         clan_member.clan2 = None
         clan_member.is_admin = False
         clan_member.is_owner = False
@@ -462,7 +462,7 @@ class EditClanDescriptionView(APIView):
         if len(new_description) > MAX_DESCRIPTION_LENGTH:
             return Response({'status': False, 'reason': 'description too long'})
 
-        if(not isTextSanitized(new_description, False, False, True)): # No backslash, returns, or newlines
+        if(not isTextSanitized(new_description, False, False, True)):  # No backslash, returns, or newlines
             return Response({'status': False, 'reason': 'description contains invalid characters'})
 
         clan2 = clanmember.clan2
@@ -484,7 +484,7 @@ class EditProfileDescriptionView(APIView):
         if len(new_description) > MAX_DESCRIPTION_LENGTH:
             return Response({'status': False, 'reason': 'description too long'})
 
-        if(not isTextSanitized(new_description, False, False, True)): # No backslash, returns, or newlines
+        if(not isTextSanitized(new_description, False, False, True)):  # No backslash, returns, or newlines
             return Response({'status': False, 'reason': 'description contains invalid characters'})
 
         request.user.userinfo.description = new_description
@@ -529,7 +529,7 @@ class ChangeMemberStatusView(APIView):
             clan2 = target_clanmember.clan2
             target_clanmember.clan2 = None
 
-            clan2.num_members -=1
+            clan2.num_members -= 1
             clan2.save()
         elif member_status == 'transfer' and clanmember.is_owner and target_clanmember.is_admin:
             clanmember.is_owner = False
