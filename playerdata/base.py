@@ -4,7 +4,6 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 from functools import lru_cache
 
-from playerdata import server
 from playerdata.models import BaseCharacter
 from playerdata.models import BaseCharacterAbility2
 from playerdata.models import BaseCharacterStats

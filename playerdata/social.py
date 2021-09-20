@@ -12,7 +12,6 @@ from rest_framework.status import (
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from playerdata import server
 from playerdata.models import Chat
 from playerdata.models import Clan2
 from playerdata.models import ClanMember

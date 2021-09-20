@@ -7,7 +7,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from playerdata import server
 from playerdata.models import ActiveDailyQuest, get_expiration_date, ActiveWeeklyQuest, \
     BaseQuest, PlayerQuestCumulative2, CumulativeTracker, ActiveCumulativeQuest, ActivityPoints
 from playerdata.models import PlayerQuestDaily
