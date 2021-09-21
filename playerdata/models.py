@@ -1269,6 +1269,7 @@ class PurchasedTracker(models.Model):
     purchase_id = models.TextField(default='')
     transaction_id = models.TextField(default='')
     purchase_time = models.DateTimeField(default=timezone.now)
+    is_refunded = models.BooleanField(default=False)
 
     class Meta:
         constraints = [
