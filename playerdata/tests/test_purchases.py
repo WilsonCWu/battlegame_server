@@ -9,8 +9,8 @@ from playerdata.purchases import generate_and_insert_characters
 
 
 class GenerateCharactersTestCase(APITestCase):
-
     fixtures = ['playerdata/tests/fixtures.json']
+
     def setUp(self):
         self.u = User.objects.get(username='battlegame')
         self.client.force_authenticate(user=self.u)
@@ -22,10 +22,10 @@ class GenerateCharactersTestCase(APITestCase):
         char_map = generate_and_insert_characters(self.u, 10)
         database_chars = Character.objects.filter(user=self.u)
 
-        #assert 10 generated
+        # assert 10 generated
         self.assertEqual(sum(list(map(lambda x: x[1].count, char_map.items()))), 10)
 
-        #assert database is accurate
+        # assert database is accurate
         for database_char in database_chars:
             self.assertEqual(char_map[database_char.char_id].count - 1, database_char.copies)
 
@@ -41,6 +41,9 @@ class PurchaseTestCase(APITestCase):
         base_deal = BaseDeal.objects.create(gems=1000, order=0, deal_type=constants.DealType.DAILY.value)
         ActiveDeal.objects.create(base_deal=base_deal, expiration_date=expiration)
 
+        base_deal = BaseDeal.objects.create(gems=1000, order=0, deal_type=constants.DealType.MONTHLY.value)
+        ActiveDeal.objects.create(base_deal=base_deal, expiration_date=expiration)
+
     # buy deal and try to buy same deal again
     def test_purchase_deal(self):
         response = self.client.post('/purchase/', {
@@ -54,6 +57,23 @@ class PurchaseTestCase(APITestCase):
         response = self.client.post('/purchase/', {
             'purchase_id': constants.DEAL_DAILY_0,
             'transaction_id': constants.DEAL_DAILY_0,
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['status'])
+
+    def test_purchase_deal_monthly(self):
+        response = self.client.post('/purchase/', {
+            'purchase_id': constants.DEAL_MONTHLY_0,
+            'transaction_id': constants.DEAL_MONTHLY_0,
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        response = self.client.post('/purchase/', {
+            'purchase_id': constants.DEAL_MONTHLY_0,
+            'transaction_id': constants.DEAL_MONTHLY_0,
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

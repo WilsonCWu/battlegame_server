@@ -18,6 +18,7 @@ from playerdata.models import Character
 from playerdata.models import InvalidReceipt
 from playerdata.models import Inventory
 from playerdata.models import PurchasedTracker, Item, ActiveDeal, BaseDeal, get_expiration_date
+from .tier_system import get_season_expiration_date
 from . import constants, chests, rolls, chapter_rewards_pack, world_pack, server, formulas
 from .base import BaseItemSchema, BaseCharacterSchema
 from .constants import DealType
@@ -246,7 +247,7 @@ def reward_deal(user, inventory, base_deal):
 
     inventory.save()
 
-    if base_deal.purchase_id not in [constants.DEAL_DAILY_0, '']:
+    if base_deal.purchase_id not in [constants.DEAL_DAILY_0, constants.DEAL_WEEKLY_0, constants.DEAL_MONTHLY_0, '']:
         user.userinfo.vip_exp += formulas.cost_to_vip_exp(formulas.product_to_dollar_cost(base_deal.purchase_id))
         user.userinfo.save()
 
@@ -263,6 +264,8 @@ def handle_purchase_deal(user, purchase_id, transaction_id):
         deal_type = DealType.DAILY.value
     elif purchase_id.startswith('com.salutationstudio.tinytitans.deal.weekly'):
         deal_type = DealType.WEEKLY.value
+    elif purchase_id.startswith('com.salutationstudio.tinytitans.deal.monthly'):
+        deal_type = DealType.MONTHLY.value
     else:
         deal_type = DealType.GEMS_COST.value
 
@@ -315,9 +318,11 @@ class GetDeals(APIView):
 
         daily_expiration_date = get_expiration_date(1) - timedelta(days=1)
         weekly_expiration_date = get_expiration_date(7) - timedelta(days=7)
+        monthly_expiration_date = get_season_expiration_date()
 
         daily_purchased_deals_ids = set(PurchasedTracker.objects.filter(user=request.user, purchase_time__gt=daily_expiration_date).values_list('purchase_id', flat=True))
         weekly_purchased_deals_ids = set(PurchasedTracker.objects.filter(user=request.user, purchase_time__gt=weekly_expiration_date).values_list('purchase_id', flat=True))
+        monthly_purchased_deals_ids = set(PurchasedTracker.objects.filter(user=request.user, purchase_time__gt=monthly_expiration_date).values_list('purchase_id', flat=True))
 
         daily_deals = deal_schema.dump(
             ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
@@ -327,6 +332,11 @@ class GetDeals(APIView):
         weekly_deals = deal_schema.dump(
             ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
                 base_deal__deal_type=DealType.WEEKLY.value,
+                expiration_date__gt=curr_time).order_by('base_deal__order'))
+
+        monthly_deals = deal_schema.dump(
+            ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
+                base_deal__deal_type=DealType.MONTHLY.value,
                 expiration_date__gt=curr_time).order_by('base_deal__order'))
 
         # gemscost_deals = deal_schema.dump(
@@ -340,6 +350,9 @@ class GetDeals(APIView):
         for deal in weekly_deals:
             deal["is_available"] = deal["purchase_id"] not in weekly_purchased_deals_ids
 
+        for deal in monthly_deals:
+            deal["is_available"] = deal["purchase_id"] not in monthly_purchased_deals_ids
+
         # for deal in gemscost_deals:
         #     deal["is_available"] = deal["purchase_id"] not in daily_purchased_deals_ids
 
@@ -347,6 +360,7 @@ class GetDeals(APIView):
 
         return Response({"daily_deals": daily_deals,
                          'weekly_deals': weekly_deals,
+                         'monthly_deals': monthly_deals,
                          'gemcost_deals': [],
                          'world_deal_expiration': world_pack.get_world_expiration(),
                          'world_pack': chests.ChestRewardSchema(world_pack_rewards, many=True).data
@@ -355,9 +369,11 @@ class GetDeals(APIView):
 
 def make_deals(deal_type: int):
     if deal_type == constants.DealType.DAILY.value:
-        interval = 1
+        expiration_date = get_expiration_date(1)
     elif deal_type == constants.DealType.WEEKLY.value:
-        interval = 7
+        expiration_date = get_expiration_date(7)
+    elif deal_type == constants.DealType.MONTHLY.value:
+        expiration_date = get_season_expiration_date()
     else:
         raise Exception("invalid deal_type, sorry friendo")
 
@@ -371,7 +387,6 @@ def make_deals(deal_type: int):
     pick2 = deals2[random.randrange(len(deals2))]
 
     bulk_deals = []
-    expiration_date = get_expiration_date(interval)
     for pick in [pick0, pick1, pick2]:
         active_deal = ActiveDeal(base_deal=pick, expiration_date=expiration_date)
         bulk_deals.append(active_deal)
@@ -391,7 +406,15 @@ def refresh_daily_deals_cronjob():
 @transaction.atomic()
 def refresh_weekly_deals_cronjob():
     ActiveDeal.objects.filter(base_deal__deal_type=constants.DealType.WEEKLY.value).delete()
+    PurchasedTracker.objects.filter(purchase_id=constants.DEAL_WEEKLY_0).delete()
     make_deals(constants.DealType.WEEKLY.value)
+
+
+@transaction.atomic()
+def refresh_monthly_deals_cronjob():
+    ActiveDeal.objects.filter(base_deal__deal_type=constants.DealType.MONTHLY.value).delete()
+    PurchasedTracker.objects.filter(purchase_id=constants.DEAL_MONTHLY_0).delete()
+    make_deals(constants.DealType.MONTHLY.value)
 
 
 CharacterCount = namedtuple("CharacterCount", "character count")

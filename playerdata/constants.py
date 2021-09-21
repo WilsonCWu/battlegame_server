@@ -90,6 +90,10 @@ DEAL_WEEKLY_0 = 'com.salutationstudio.tinytitans.deal.weekly0'
 DEAL_WEEKLY_1 = 'com.salutationstudio.tinytitans.deal.weekly1'
 DEAL_WEEKLY_2 = 'com.salutationstudio.tinytitans.deal.weekly2'
 
+DEAL_MONTHLY_0 = 'com.salutationstudio.tinytitans.deal.monthly0'
+DEAL_MONTHLY_1 = 'com.salutationstudio.tinytitans.deal.monthly1'
+DEAL_MONTHLY_2 = 'com.salutationstudio.tinytitans.deal.monthly2'
+
 GEMS_499 = 'com.salutationstudio.tinytitans.gems.499'
 GEMS_999 = 'com.salutationstudio.tinytitans.gems.999'
 GEMS_1999 = 'com.salutationstudio.tinytitans.gems.1999'
