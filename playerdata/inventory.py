@@ -115,7 +115,7 @@ class InventoryHeaderView(APIView):
     def get(self, request):
         inventory_serializer = InventorySchema(request.user.inventory)
         if server.is_server_version_higher('0.5.0'):
-            return Response({'status': True, 'inventoryDetails': inventory_serializer.data})
+            return Response({'status': True, 'inventory_details': inventory_serializer.data})
         return Response(inventory_serializer.data)
 
 

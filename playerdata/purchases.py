@@ -358,7 +358,8 @@ class GetDeals(APIView):
 
         world_pack_rewards = world_pack.get_world_pack_rewards(request.user)
 
-        return Response({"daily_deals": daily_deals,
+        return Response({'status': True,
+                         "daily_deals": daily_deals,
                          'weekly_deals': weekly_deals,
                          'monthly_deals': monthly_deals,
                          'gemcost_deals': [],

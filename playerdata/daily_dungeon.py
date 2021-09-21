@@ -1,4 +1,5 @@
 import math
+from playerdata import server
 import random
 from datetime import date, datetime, timedelta
 
@@ -135,7 +136,7 @@ class DailyDungeonStatusSchema(Schema):
     is_golden = fields.Bool()
     stage = fields.Int()
     character_state = fields.Str()
- 
+
 
 class DailyDungeonStatusView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -144,9 +145,16 @@ class DailyDungeonStatusView(APIView):
         # Return status of active dungeon run.
         dd_status = DailyDungeonStatus.get_active_for_user(request.user)
         if dd_status:
+            if server.is_server_version_higher('0.5.0'):
+                return Response({'status': True,
+                                 'dungeon': DailyDungeonStatusSchema(dd_status).data,
+                                 'next_refresh_time': get_next_refresh_time()})
             return Response({'status': DailyDungeonStatusSchema(dd_status).data,
                              'next_refresh_time': get_next_refresh_time()})
 
+        if server.is_server_version_higher('0.5.0'):
+            return Response({'status': False, 'dungeon': None,
+                             'next_refresh_time': get_next_refresh_time()})
         return Response({'status': None, 'next_refresh_time': get_next_refresh_time()})
 
 
