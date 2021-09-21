@@ -31,8 +31,6 @@ from .serializers import ValidateReceiptSerializer
 # TODO: Deprecated, this is only used for the free 100gems daily
 #  we don't do a separate call for purchases anymore
 #  it's directly in the Validate call we fulfill the purchase
-
-
 class PurchaseView(APIView):
     permission_classes = (IsAuthenticated,)
 
