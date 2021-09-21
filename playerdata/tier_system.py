@@ -201,7 +201,7 @@ class ClaimSeasonRewardView(APIView):
         return Response({'status': True, 'rewards': chests.ChestRewardSchema(rewards, many=True).data})
 
 
-# The hour is 4am UTC or 12am EST during non-daylight savings
+# At 0 UTC on the 1st of every month
 def get_season_expiration_date():
     today = datetime.today()
     return (datetime(today.year, today.month, 1, 0) + timedelta(days=32)).replace(day=1)
