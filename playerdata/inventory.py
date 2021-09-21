@@ -503,12 +503,12 @@ class ScrapItemsView(APIView):
         scrap_item_ids = serializer.validated_data['scrap_item_ids']
         target_item_id = serializer.validated_data['target_item_id']
 
-        scraps = Item.objects.filter(item_id__in=scrap_item_ids)
-        if scraps.first().user != request.user:
-            return Response({'status': False, 'reason': 'user does not own the item'})
+        scraps = Item.objects.filter(item_id__in=scrap_item_ids, user=request.user)
+        if scraps.first() is None:
+            return Response({'status': False, 'reason': 'invalid item ids'})
 
-        target_item = Item.objects.get(item_id=target_item_id)
-        if target_item.user != request.user:
+        target_item = Item.objects.filter(item_id=target_item_id, user=request.user).first()
+        if target_item is None:
             return Response({'status': False, 'reason': 'user does not own the item'})
 
         if target_item.item_type.rarity < 1:
