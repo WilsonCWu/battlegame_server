@@ -18,6 +18,7 @@ from playerdata.models import Character
 from playerdata.models import InvalidReceipt
 from playerdata.models import Inventory
 from playerdata.models import PurchasedTracker, Item, ActiveDeal, BaseDeal, get_expiration_date
+from .tier_system import get_season_expiration_date
 from . import constants, chests, rolls, chapter_rewards_pack, world_pack, server, formulas
 from .base import BaseItemSchema, BaseCharacterSchema
 from .constants import DealType
@@ -30,7 +31,6 @@ from .serializers import ValidateReceiptSerializer
 # TODO: Deprecated, this is only used for the free 100gems daily
 #  we don't do a separate call for purchases anymore
 #  it's directly in the Validate call we fulfill the purchase
-from .tier_system import get_season_expiration_date
 
 
 class PurchaseView(APIView):
