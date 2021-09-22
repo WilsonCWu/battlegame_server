@@ -41,7 +41,8 @@ class GetAFKRewardView(APIView):
         dust = math.floor(time * dust_per_second * afk_rewards_multiplier_vip(vip_level))
         # exp = time * exp_per_min
 
-        return Response({'coins_per_min': coins_per_min,
+        return Response({'status': True,
+                         'coins_per_min': coins_per_min,
                          'dust_per_min': dust_per_min,
                          # 'exp_per_min': exp_per_min,
                          'last_collected_time': last_collected_time,
