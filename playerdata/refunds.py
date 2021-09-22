@@ -14,7 +14,7 @@ def refund_purchase(purchase: PurchasedTracker):
         purchase.user.inventory.gems -= constants.IAP_GEMS_AMOUNT[purchase.purchase_id]
         purchase.user.inventory.save()
 
-    # TODO: update the refund if we give not just gems
+    # TODO(0.5.0): update the refund if we give not just gems in deals
     elif purchase.purchase_id.startswith('com.salutationstudio.tinytitans.deal'):
         try:
             deal = get_deal_from_purchase_id(purchase.purchase_id)
@@ -27,9 +27,11 @@ def refund_purchase(purchase: PurchasedTracker):
     elif purchase.purchase_id.startswith('com.salutationstudio.tinytitans.chapterrewards'):
         chapter_rewards_pack.refund_chapter_pack(purchase.user)
 
+    # TODO(0.5.0): figure out when we define rewards
     elif purchase.purchase_id.startswith('com.salutationstudio.tinytitans.worldpack'):
         pass
 
+    # TODO(0.5.0): figure out when we define rewards
     elif purchase.purchase_id.startswith('com.salutationstudio.tinytitans.monthlypass'):
         pass
 
@@ -54,6 +56,7 @@ def google_refund_cron():
 
     refund_items = PurchasedTracker.objects.filter(transaction_id__in=refund_ids, is_refunded=False)\
         .select_related('user__inventory').select_related('user__chapterrewardpack')
+
     for item in refund_items:
         item.is_refunded = True
         # revoke the proper gems / award based on type of item
