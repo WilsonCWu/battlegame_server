@@ -259,7 +259,7 @@ def reward_deal(user, inventory, base_deal):
             Item.objects.create(user=user, item_type=base_deal.item.item_type)
 
 
-def handle_purchase_deal(user, purchase_id, transaction_id):
+def get_deal_from_purchase_id(purchase_id):
     if purchase_id.startswith('com.salutationstudio.tinytitans.deal.daily'):
         deal_type = DealType.DAILY.value
     elif purchase_id.startswith('com.salutationstudio.tinytitans.deal.weekly'):
@@ -272,12 +272,16 @@ def handle_purchase_deal(user, purchase_id, transaction_id):
     order = int(purchase_id[-1])
     curr_time = datetime.now(timezone.utc)
 
+    return ActiveDeal.objects.get(base_deal__deal_type=deal_type, base_deal__order=order,
+                                  expiration_date__gt=curr_time)
+
+
+def handle_purchase_deal(user, purchase_id, transaction_id):
     try:
-        deal = ActiveDeal.objects.get(base_deal__deal_type=deal_type, base_deal__order=order,
-                                      expiration_date__gt=curr_time)
+        deal = get_deal_from_purchase_id(purchase_id)
         PurchasedTracker.objects.create(user=user, transaction_id=transaction_id, purchase_id=purchase_id, deal=deal)
 
-    # This is for the `ActiveDeal.objects.get` case
+    # This is for `get_deal_from_purchase_id`
     except ObjectDoesNotExist:
         return Response({'status': False, 'reason': 'invalid deal id'})
 

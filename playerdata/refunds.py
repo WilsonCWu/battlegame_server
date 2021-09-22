@@ -1,13 +1,37 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.transaction import atomic
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 from battlegame.settings import SERVICE_ACCOUNT_FILE
+from playerdata import constants, chapter_rewards_pack
 from playerdata.models import PurchasedTracker
+from playerdata.purchases import get_deal_from_purchase_id
 
 
 def refund_purchase(purchase: PurchasedTracker):
-    pass
+    if purchase.purchase_id.startswith('com.salutationstudio.tinytitans.gems'):
+        purchase.user.inventory.gems -= constants.IAP_GEMS_AMOUNT[purchase.purchase_id]
+        purchase.user.inventory.save()
+
+    # TODO: update the refund if we give not just gems
+    elif purchase.purchase_id.startswith('com.salutationstudio.tinytitans.deal'):
+        try:
+            deal = get_deal_from_purchase_id(purchase.purchase_id)
+        except ObjectDoesNotExist:
+            return  # invalid deal
+
+        purchase.user.inventory.gems -= deal.base_deal.gems
+        purchase.user.inventory.save()
+
+    elif purchase.purchase_id.startswith('com.salutationstudio.tinytitans.chapterrewards'):
+        chapter_rewards_pack.refund_chapter_pack(purchase.user)
+
+    elif purchase.purchase_id.startswith('com.salutationstudio.tinytitans.worldpack'):
+        pass
+
+    elif purchase.purchase_id.startswith('com.salutationstudio.tinytitans.monthlypass'):
+        pass
 
 
 # https://developers.google.com/android-publisher/voided-purchases
@@ -28,7 +52,8 @@ def google_refund_cron():
     for purchase in response['voidedPurchases']:
         refund_ids.append(purchase['orderId'])
 
-    refund_items = PurchasedTracker.objects.filter(purchase_id__in=refund_ids, is_refunded=False).select_related('user__inventory')
+    refund_items = PurchasedTracker.objects.filter(transaction_id__in=refund_ids, is_refunded=False)\
+        .select_related('user__inventory').select_related('user__chapterrewardpack')
     for item in refund_items:
         item.is_refunded = True
         # revoke the proper gems / award based on type of item

@@ -66,6 +66,21 @@ def complete_chapter_rewards(world: int, tracker: ChapterRewardPack):
     tracker.save()
 
 
+def refund_chapter_pack(user):
+    total = 0
+    for reward in get_chapter_rewards_list():
+        if reward.world <= user.chapterrewardpack.last_claimed:
+            total += reward.value
+
+    user.inventory.gems -= total
+    user.inventory.save()
+
+    user.chapterrewardpack.is_active = False
+    user.chapterrewardpack.last_completed = -1
+    user.chapterrewardpack.last_claimed = -1
+    user.chapterrewardpack.save()
+
+
 class GetChapterRewardListView(APIView):
     permission_classes = (IsAuthenticated,)
 
