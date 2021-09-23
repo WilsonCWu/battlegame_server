@@ -679,3 +679,40 @@ class UpdateClanProfilePictureView(APIView):
         clan2.profile_picture = profile_picture
         clan2.save()
         return Response({'status': True})
+
+
+class UpdatePetView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic
+    def post(self, request):
+        serializer = ValueSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        pet = serializer.validated_data['value']
+
+        if int(pet) not in request.user.inventory.pets_unlocked:
+            return Response({'status': False, 'reason': "Pet not unlocked!"})
+
+        request.user.inventory.active_pet_id = int(pet)
+        request.user.inventory.save()
+
+        return Response({'status': True})
+
+
+class UnlockPetView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic
+    def post(self, request):
+        serializer = ValueSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        pet = serializer.validated_data['value']
+
+        if int(pet) in request.user.inventory.pets_unlocked:
+            return Response({'status': False, 'reason': 'Pet already unlocked!'})
+
+        request.user.inventory.pets_unlocked.append(int(pet))
+        request.user.inventory.pets_unlocked.sort()
+        request.user.inventory.save()
+
+        return Response({'status': True})

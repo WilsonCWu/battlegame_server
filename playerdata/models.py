@@ -751,6 +751,10 @@ def get_default_afk_datetime():
     return timezone.now() - timedelta(hours=3)
 
 
+def default_pets_unlocked():
+    return [0]
+
+
 class Inventory(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     char_limit = models.IntegerField(default=50)
@@ -764,6 +768,7 @@ class Inventory(models.Model):
     rare_shards = models.IntegerField(default=0)
     epic_shards = models.IntegerField(default=0)
     legendary_shards = models.IntegerField(default=0)
+    active_pet_id = models.IntegerField(default=0)
 
     daily_dungeon_ticket = models.IntegerField(default=3)
     daily_dungeon_golden_ticket = models.IntegerField(default=1)
@@ -771,6 +776,7 @@ class Inventory(models.Model):
     is_auto_retire = models.BooleanField(default=False)
     last_collected_rewards = models.DateTimeField(default=get_default_afk_datetime)
     profile_pics = ArrayField(models.IntegerField(), blank=True, null=True)
+    pets_unlocked = ArrayField(models.IntegerField(), default=default_pets_unlocked)
 
     gems_bought = models.IntegerField(default=0)
 
