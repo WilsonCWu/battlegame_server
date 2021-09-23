@@ -12,6 +12,7 @@ from rest_framework.status import (
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
+from playerdata import server
 from playerdata.models import Chat
 from playerdata.models import Clan2
 from playerdata.models import ClanMember
@@ -90,7 +91,7 @@ class FriendRequestView(APIView):
         requestQuery = FriendRequest.objects.filter(target=request.user).select_related('user__userinfo')
         requestSchema = FriendRequestSchema(requestQuery, many=True)
 
-        return Response({'friend_requests': requestSchema.data})
+        return Response({'status': True, 'friend_requests': requestSchema.data})
 
 
 class AcceptFriendRequestView(APIView):
@@ -212,7 +213,7 @@ class GetChatIdView(APIView):
         friendSet = Friend.objects.filter(user_1=user1, user_2=user2)
         if not friendSet:
             return Response(
-                {'detail': 'Friend set with ' + str(user1.id) + ' and ' + str(user2.id) + ' does not exist'},
+                {'status': False, 'detail': 'Friend set with ' + str(user1.id) + ' and ' + str(user2.id) + ' does not exist'},
                 status=HTTP_404_NOT_FOUND)
 
         friendObject = friendSet[0]
@@ -222,7 +223,7 @@ class GetChatIdView(APIView):
             friendObject.chat = chat
             friendObject.save()
 
-        return Response({'chat_id': friendObject.chat.id})
+        return Response({'status': True, 'chat_id': friendObject.chat.id})
 
 
 class GetAllChatsView(APIView):
@@ -267,7 +268,7 @@ class GetAllChatsView(APIView):
             chat_list.append(clan_chat)
 
         chat_list_schema = ChatListSchema(many=True)
-        return Response({'chats': chat_list_schema.dump(chat_list)})
+        return Response({'status': True, 'chats': chat_list_schema.dump(chat_list)})
 
 
 class GetLeaderboardView(APIView):
@@ -281,17 +282,18 @@ class GetLeaderboardView(APIView):
         if leaderboard_type == 'solo_top_100':
             top_player_set = UserInfo.objects.all().order_by('-elo')[:100]
             players = LightUserInfoSchema(top_player_set, many=True)
-            return Response({'players': players.data})
+            return Response({'status': True, 'players': players.data})
         if leaderboard_type == 'clan_top_100':
             top_clan_set = Clan2.objects.all().order_by('-elo')[:100]
             clans = ClanSchema(top_clan_set, many=True)
-            return Response({'clans': clans.data})
+            return Response({'status': True, 'clans': clans.data})
         if leaderboard_type == 'moevasion_top_100':
             top_moevasion_set = UserInfo.objects.all().order_by('-best_moevasion_stage')[:100]
             players = LightUserInfoSchema(top_moevasion_set, many=True)
-            return Response({'players': players.data})
+            return Response({'status': True, 'players': players.data})
         else:
-            return Response({'detail': 'leaderboard ' + leaderboard_type + ' does not exist'},
+            return Response({'status': True, 'reason': 'leaderboard ' + leaderboard_type + ' does not exist',
+                             'detail': 'leaderboard ' + leaderboard_type + ' does not exist'},
                             status=HTTP_404_NOT_FOUND)
 
 
@@ -311,7 +313,7 @@ class GetClanSearchResultsView(APIView):
             clan_set = Clan2.objects.filter(name__icontains=search_name)
 
         clans = ClanSchema(clan_set, many=True)
-        return Response({'clans': clans.data})
+        return Response({'status': True, 'clans': clans.data})
 
 
 class NewClanView(APIView):
@@ -441,6 +443,8 @@ class GetClanMember(APIView):
 
     def get(self, request):
         clanmember = ClanMember.objects.get(userinfo=request.user.userinfo)
+        if server.is_server_version_higher('0.5.0'):
+            return Response({'status': True, 'clan_member': ClanMemberSchema(clanmember).data})
         return Response(ClanMemberSchema(clanmember).data)
 
 
@@ -595,7 +599,7 @@ class GetClanRequestsView(APIView):
         requestSet = ClanRequest.objects.filter(clan2=clanmember.clan2)
         requests = ClanRequestSchema(requestSet, many=True)
 
-        return Response({'requests': requests.data})
+        return Response({'status': True, 'requests': requests.data})
 
 
 class UpdateClanRequestView(APIView):
