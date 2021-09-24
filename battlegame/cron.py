@@ -3,7 +3,7 @@ import statistics
 import requests
 from sentry_sdk import capture_exception
 
-from playerdata import tier_system, relic_shop
+from playerdata import tier_system, relic_shop, refunds
 from playerdata.antihacking import MatchValidator
 from playerdata.constants import TOURNEY_SIZE
 from playerdata.daily_dungeon import daily_dungeon_team_gen_cron
@@ -126,6 +126,11 @@ def reset_season():
 @cron(uuid="fec82791-ace6-4e2c-aeb3-a987d538e7c9")
 def refresh_relic_shop():
     relic_shop.refresh_shop()
+
+
+@cron(uuid="5e327e1e-e954-45b7-815d-7feed9f7c6ca")
+def refund_google():
+    refunds.google_refund_cron()
  
 
 # Take all registered users
