@@ -139,6 +139,8 @@ urlpatterns = [
     path('clan/requests/update/', social.UpdateClanRequestView.as_view()),
     path('clan/requests/create/', social.CreateClanRequestView.as_view()),
     path('clan/profilepicture/update/', social.UpdateClanProfilePictureView.as_view()),
+    path('pet/update/', social.UpdatePetView.as_view()),
+    path('pet/unlock/', social.UnlockPetView.as_view()),
     path('profile/editdescription/', social.EditProfileDescriptionView.as_view()),
     path('friends/delete/', social.DeleteFriendView.as_view()),
     path('friends/get/', social.FriendsView.as_view()),

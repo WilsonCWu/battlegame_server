@@ -75,6 +75,7 @@ class InventorySchema(Schema):
     rare_shards = fields.Int()
     epic_shards = fields.Int()
     legendary_shards = fields.Int()
+    active_pet_id = fields.Int()
 
     chest_slot_1 = fields.Nested(ChestSchema)
     chest_slot_2 = fields.Nested(ChestSchema)
@@ -84,6 +85,7 @@ class InventorySchema(Schema):
     player_level = fields.Method("get_player_lvl")
     player_exp = fields.Method("get_player_exp")
 
+    pets_unlocked = fields.List(fields.Int())
     profile_pics = fields.List(fields.Int())
 
     daily_dungeon_ticket = fields.Int()
