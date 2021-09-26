@@ -656,6 +656,7 @@ class DailyDungeonStatus(models.Model):
     is_golden = models.BooleanField(default=False)
     # Stage 0 implies that the player is currently NOT in a daily dungeon run.
     stage = models.IntegerField(default=0)
+    tier = models.IntegerField(default=0)
     # We expect character state to be in the format of
     # {<character_id>: <character_health>}.
     character_state = JSONField(blank=True, null=True)

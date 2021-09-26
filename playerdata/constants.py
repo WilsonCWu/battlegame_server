@@ -298,6 +298,13 @@ REGULAR_ITEM_ODDS_PER_CHEST = [
     [400, 400, 200, 0, 0],  # DAILY_DUNGEON
 ]
 
+DD_ITEM_DROP_RATE_PER_TIER = [
+    [1000, 0, 0, 0],  # tier 0
+    [700, 300, 0, 0],  # tier 1
+    [420, 460, 120, 0],  # tier 2
+    [420, 350, 200, 30],  # tier 3
+]
+
 SKIP_GEM_COST = 2
 MAX_DAILY_QUICKPLAY_WINS_FOR_GOLD = 25
 MAX_ELO = 3500

@@ -1,6 +1,5 @@
 from rest_framework import status
 from rest_framework.test import APITestCase
-import playerdata.constants
 
 from playerdata.models import User, DailyDungeonStatus
 
@@ -16,6 +15,7 @@ class DailyDungeonStartAPITestCase(APITestCase):
         response = self.client.post('/dailydungeon/start/', {
             'is_golden': False,
             'characters': '{"11": 1}',
+            'tier': 0
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -28,6 +28,7 @@ class DailyDungeonStartAPITestCase(APITestCase):
         response = self.client.post('/dailydungeon/start/', {
             'is_golden': False,
             'characters': '{"11": 1}',
+            'tier': 0
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -41,6 +42,7 @@ class DailyDungeonStartAPITestCase(APITestCase):
         response = self.client.post('/dailydungeon/start/', {
             'is_golden': False,
             'characters': '{"11": 1}',
+            'tier': 0
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

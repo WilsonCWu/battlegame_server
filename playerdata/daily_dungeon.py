@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from . import rolls, constants, chests, dungeon_gen
+from . import rolls, constants, chests, dungeon_gen, server
 from .questupdater import QuestUpdater
 from .serializers import DailyDungeonStartSerializer, CharStateResultSerializer
 from .matcher import PlacementSchema
@@ -89,6 +89,10 @@ class DailyDungeonStartView(APIView):
         serializer = DailyDungeonStartSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        tier = 0
+        if server.is_server_version_higher('0.5.0'):
+            tier = serializer.validated_data['tier']
+
         # Ensure that we don't currently have a daily dungeon run going on.
         # The user needs to end their current run first.
         dd_status_query = DailyDungeonStatus.objects.filter(user=request.user)
@@ -116,11 +120,13 @@ class DailyDungeonStartView(APIView):
         if dd_status:
             dd_status.stage = 1
             dd_status.is_golden = serializer.validated_data['is_golden']
-            dd_status.character_state = "" 
+            dd_status.character_state = ""
+            dd_status.tier = tier
             dd_status.save()
         else:
             DailyDungeonStatus.objects.create(user=request.user,
                                               stage=1,
+                                              tier=tier,
                                               is_golden=serializer.validated_data['is_golden'],
                                               character_state="")
 
@@ -202,6 +208,23 @@ def daily_dungeon_reward(is_golden, stage, user):
     return reward_schema.data
 
 
+# TODO: Golden ticket rewards (shards)
+def dd_tiered_item_rewards(dd_status: DailyDungeonStatus, user):
+    rewards = []
+    depth = dd_status.stage - (dd_status.tier * 20)
+    num_drops = math.floor(depth / 6.6)  # Max 3 item drops tuned a bit lower than maybe needed
+
+    items = rolls.get_n_unique_weighted_odds_item(user, num_drops, constants.DD_ITEM_DROP_RATE_PER_TIER[tier])
+
+    for item in items:
+        item_reward = chests.ChestReward(reward_type='item_id', value=item.item_type)
+        rewards.append(item_reward)
+
+    chests.award_chest_rewards(user, rewards)
+    reward_schema = chests.ChestRewardSchema(rewards, many=True)
+    return reward_schema.data
+
+
 class DailyDungeonResultView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -211,7 +234,11 @@ class DailyDungeonResultView(APIView):
         serializer.is_valid(raise_exception=True)
 
         dd_status = DailyDungeonStatus.objects.get(user=request.user)
-        rewards = daily_dungeon_reward(dd_status.is_golden, dd_status.stage, request.user)
+
+        if server.is_server_version_higher('0.5.0'):
+            rewards = dd_tiered_item_rewards(dd_status, request.user)
+        else:
+            rewards = daily_dungeon_reward(dd_status.is_golden, dd_status.stage, request.user)
 
         if serializer.validated_data['is_loss']:
             dd_status.stage = 0
