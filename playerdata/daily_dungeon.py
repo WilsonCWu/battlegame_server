@@ -90,8 +90,10 @@ class DailyDungeonStartView(APIView):
         serializer.is_valid(raise_exception=True)
 
         tier = 0
+        stage = 1
         if server.is_server_version_higher('0.5.0'):
             tier = serializer.validated_data['tier']
+            stage = tier * 20 + 1
 
         # Ensure that we don't currently have a daily dungeon run going on.
         # The user needs to end their current run first.
@@ -118,14 +120,14 @@ class DailyDungeonStartView(APIView):
 
         # Create dungeon status.
         if dd_status:
-            dd_status.stage = 1
+            dd_status.stage = stage
             dd_status.is_golden = serializer.validated_data['is_golden']
             dd_status.character_state = ""
             dd_status.tier = tier
             dd_status.save()
         else:
             DailyDungeonStatus.objects.create(user=request.user,
-                                              stage=1,
+                                              stage=stage,
                                               tier=tier,
                                               is_golden=serializer.validated_data['is_golden'],
                                               character_state="")
@@ -232,15 +234,19 @@ class DailyDungeonResultView(APIView):
     def post(self, request):
         serializer = CharStateResultSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        is_loss = serializer.validated_data['is_loss']
 
         dd_status = DailyDungeonStatus.objects.get(user=request.user)
 
+        # TODO(0.5.0) can clean up this logic on version update
         if server.is_server_version_higher('0.5.0'):
-            rewards = dd_tiered_item_rewards(dd_status, request.user)
+            depth = dd_status.stage - (dd_status.tier * 20)
+            if is_loss or depth == 20:
+                rewards = dd_tiered_item_rewards(dd_status, request.user)
         else:
             rewards = daily_dungeon_reward(dd_status.is_golden, dd_status.stage, request.user)
 
-        if serializer.validated_data['is_loss']:
+        if is_loss:
             dd_status.stage = 0
         else:
             # Check if this is the best that the user has ever done in DD.
