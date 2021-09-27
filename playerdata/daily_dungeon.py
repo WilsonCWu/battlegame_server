@@ -1,5 +1,5 @@
 import math
-from playerdata import server
+from playerdata import server, shards
 import random
 from datetime import date, datetime, timedelta
 
@@ -210,7 +210,6 @@ def daily_dungeon_reward(is_golden, stage, user):
     return reward_schema.data
 
 
-# TODO: Golden ticket rewards (shards)
 def dd_tiered_item_rewards(dd_status: DailyDungeonStatus, user):
     rewards = []
     depth = dd_status.stage - (dd_status.tier * 20)
@@ -221,6 +220,9 @@ def dd_tiered_item_rewards(dd_status: DailyDungeonStatus, user):
     for item in items:
         item_reward = chests.ChestReward(reward_type='item_id', value=item.item_type)
         rewards.append(item_reward)
+
+    if dd_status.is_golden:
+        rewards.extend(shards.dd_rewards(depth))
 
     chests.award_chest_rewards(user, rewards)
     reward_schema = chests.ChestRewardSchema(rewards, many=True)
@@ -238,14 +240,6 @@ class DailyDungeonResultView(APIView):
 
         dd_status = DailyDungeonStatus.objects.get(user=request.user)
 
-        # TODO(0.5.0) can clean up this logic on version update
-        if server.is_server_version_higher('0.5.0'):
-            depth = dd_status.stage - (dd_status.tier * 20)
-            if is_loss or depth == 20:
-                rewards = dd_tiered_item_rewards(dd_status, request.user)
-        else:
-            rewards = daily_dungeon_reward(dd_status.is_golden, dd_status.stage, request.user)
-
         if is_loss:
             dd_status.stage = 0
         else:
@@ -261,6 +255,16 @@ class DailyDungeonResultView(APIView):
                 dd_status.stage = 0
             else:
                 dd_status.stage += 1
+
+        # TODO(0.5.0) can clean up this logic on version update
+        rewards = []
+        if server.is_server_version_higher('0.5.0'):
+            depth = dd_status.stage - (dd_status.tier * 20)
+            if is_loss or depth == 20:
+                rewards = dd_tiered_item_rewards(dd_status, request.user)
+                dd_status.stage = 0
+        else:
+            rewards = daily_dungeon_reward(dd_status.is_golden, dd_status.stage, request.user)
 
         # always save state, since we might have retries in the future
         dd_status.character_state = serializer.validated_data['characters']

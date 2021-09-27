@@ -298,6 +298,9 @@ REGULAR_ITEM_ODDS_PER_CHEST = [
     [400, 400, 200, 0, 0],  # DAILY_DUNGEON
 ]
 
+DD_SHARD_DROP_RATE = [0, 728, 257, 15]
+DD_BASE_SHARP_REWARD = [0, 116, 41, 3]
+
 DD_ITEM_DROP_RATE_PER_TIER = [
     [1000, 0, 0, 0],  # tier 0
     [700, 300, 0, 0],  # tier 1
