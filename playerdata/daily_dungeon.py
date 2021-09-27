@@ -215,7 +215,7 @@ def dd_tiered_item_rewards(dd_status: DailyDungeonStatus, user):
     depth = dd_status.stage - (dd_status.tier * 20)
     num_drops = math.floor(depth / 6.6)  # Max 3 item drops tuned a bit lower than maybe needed
 
-    items = rolls.get_n_unique_weighted_odds_item(user, num_drops, constants.DD_ITEM_DROP_RATE_PER_TIER[tier])
+    items = rolls.get_n_unique_weighted_odds_item(user, num_drops, constants.DD_ITEM_DROP_RATE_PER_TIER[dd_status.tier])
 
     for item in items:
         item_reward = chests.ChestReward(reward_type='item_id', value=item.item_type)
