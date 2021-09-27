@@ -40,7 +40,7 @@ def get_rand_base_item_from_rarity(rarity, excluded_ids=None):
 
 def get_n_unique_weighted_odds_item(user, num_rolls, rarity_odds=None):
     items = []
-    unique_ids = list(Item.objects.filter(user=user, item_type__is_unique=True).values_list('id', flat=True))
+    unique_ids = list(Item.objects.filter(user=user, item_type__is_unique=True).values_list('item_type_id', flat=True))
 
     for n in range(0, num_rolls):
         items.append(get_weighted_odds_item(rarity_odds, unique_ids))
