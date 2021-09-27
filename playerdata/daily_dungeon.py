@@ -240,22 +240,6 @@ class DailyDungeonResultView(APIView):
 
         dd_status = DailyDungeonStatus.objects.get(user=request.user)
 
-        if is_loss:
-            dd_status.stage = 0
-        else:
-            # Check if this is the best that the user has ever done in DD.
-            # TODO: refactor this as an auxiliary, non-critical path (e.g.
-            # for quests / stat updates).
-            userinfo = request.user.userinfo
-            if userinfo.best_daily_dungeon_stage < dd_status.stage:
-                userinfo.best_daily_dungeon_stage = dd_status.stage
-                userinfo.save()
-
-            if dd_status.stage == 80:
-                dd_status.stage = 0
-            else:
-                dd_status.stage += 1
-
         # TODO(0.5.0) can clean up this logic on version update
         rewards = []
         if server.is_server_version_higher('0.5.0'):
@@ -265,6 +249,22 @@ class DailyDungeonResultView(APIView):
                 dd_status.stage = 0
         else:
             rewards = daily_dungeon_reward(dd_status.is_golden, dd_status.stage, request.user)
+
+            if is_loss:
+                dd_status.stage = 0
+            else:
+                # Check if this is the best that the user has ever done in DD.
+                # TODO: refactor this as an auxiliary, non-critical path (e.g.
+                # for quests / stat updates).
+                userinfo = request.user.userinfo
+                if userinfo.best_daily_dungeon_stage < dd_status.stage:
+                    userinfo.best_daily_dungeon_stage = dd_status.stage
+                    userinfo.save()
+
+                if dd_status.stage == 80:
+                    dd_status.stage = 0
+                else:
+                    dd_status.stage += 1
 
         # always save state, since we might have retries in the future
         dd_status.character_state = serializer.validated_data['characters']
