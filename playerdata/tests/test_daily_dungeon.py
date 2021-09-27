@@ -109,7 +109,7 @@ class DailyDungeonResultAPITestCase(APITestCase):
         dd_status.refresh_from_db()
         self.assertEqual(dd_status.stage, 0)
 
-    def test_loss_version_1_0_0(self):
+    def test_win_version_1_0_0(self):
         ServerStatus.objects.create(
             event_type='V',
             version_number='1.0.0',  # important thing is that it's > 0.5.0
@@ -117,7 +117,7 @@ class DailyDungeonResultAPITestCase(APITestCase):
         )
         dd_status = DailyDungeonStatus.objects.create(user=self.u, stage=20)
         response = self.client.post('/dailydungeon/result/', {
-            'is_loss': True,
+            'is_loss': False,
             'characters': '{"11": 1}',
         })
 
