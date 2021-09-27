@@ -161,7 +161,7 @@ class DailyDungeonStatusView(APIView):
                              'next_refresh_time': get_next_refresh_time()})
 
         if server.is_server_version_higher('0.5.0'):
-            return Response({'status': False, 'dungeon': None,
+            return Response({'status': True, 'dungeon': None,
                              'next_refresh_time': get_next_refresh_time()})
         return Response({'status': None, 'next_refresh_time': get_next_refresh_time()})
 
