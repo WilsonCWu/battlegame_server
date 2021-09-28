@@ -4,10 +4,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.transaction import atomic
 
 from playerdata import constants
-from playerdata.models import PlayerQuestCumulative2, BaseQuest
+from playerdata.models import PlayerQuestCumulative2, BaseQuest, CumulativeTracker
 from playerdata.models import PlayerQuestWeekly
 from playerdata.models import PlayerQuestDaily
-from playerdata.models import CumulativeTracker
 
 
 def add_progress_to_quest_list(progress, quests):
@@ -36,9 +35,9 @@ def set_progress_to_quest_list(progress, quests):
 
 
 # quests is a list of BaseQuests
-def update_cumulative_progress2(quests, tracker, player_cumulative):
+def update_cumulative_progress2(quests, progress, player_cumulative):
     for quest in quests:
-        if tracker.progress >= quest.total:
+        if progress >= quest.total:
             player_cumulative.completed_quests.append(quest.id)
 
     player_cumulative.save()
@@ -66,10 +65,15 @@ class QuestUpdater:
                                                                                     completed=False, claimed=False)
 
         try:
+            # TODO(daniel): delete after tracker data is migrated
             tracker = CumulativeTracker.objects.get(user=user, type=UPDATE_TYPE)
             tracker.progress += amount
             tracker.save()
-            update_cumulative_progress2(cumulative_basequests, tracker, player_cumulative)
+
+            user.userstats.cumulative_stats[str(UPDATE_TYPE)] += amount
+            user.userstats.save()
+
+            update_cumulative_progress2(cumulative_basequests, tracker.progress, player_cumulative)
         except ObjectDoesNotExist:
             pass
         except OverflowError:
@@ -96,10 +100,15 @@ class QuestUpdater:
                                                                                     completed=False, claimed=False)
 
         try:
+            # TODO(daniel): delete after tracker data is migrated
             tracker = CumulativeTracker.objects.get(user=user, type=UPDATE_TYPE)
             tracker.progress = amount
             tracker.save()
-            update_cumulative_progress2(cumulative_basequests, tracker, player_cumulative)
+
+            user.userstats.cumulative_stats[str(UPDATE_TYPE)] = amount
+            user.userstats.save()
+
+            update_cumulative_progress2(cumulative_basequests, tracker.progress, player_cumulative)
         except ObjectDoesNotExist:
             pass
 
