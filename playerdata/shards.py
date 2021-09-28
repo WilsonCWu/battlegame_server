@@ -1,9 +1,11 @@
+import math
+
 from django.db.transaction import atomic
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from playerdata import chests, rolls
+from playerdata import chests, rolls, constants
 from playerdata.serializers import SummonShardSerializer
 
 SHARD_SUMMON_COST = 80
@@ -19,6 +21,31 @@ def roll_n_chars_of_rarity(num_chars: int, rarity: int):
     return rewards
 
 
+def get_shard_attr_from_rarity(rarity: int):
+    if rarity == 2:
+        shard_type = 'rare_shards'
+    elif rarity == 3:
+        shard_type = 'epic_shards'
+    elif rarity == 4:
+        shard_type = 'legendary_shards'
+    else:
+        raise Exception("invalid summon shard rarity: " + str(rarity))
+
+    return shard_type
+
+
+# Reward shards if a golden run
+def dd_rewards(depth: int):
+    rarity = rolls.weighted_pick_from_buckets(constants.DD_SHARD_DROP_RATE)
+
+    # Reaching the end gives full base_reward amount
+    base_shards = constants.DD_BASE_SHARD_REWARD[rarity] / 2
+    num_shards = math.floor(base_shards + (depth / 20) * base_shards)
+
+    shard_type = get_shard_attr_from_rarity(rarity)
+    return [chests.ChestReward(reward_type=shard_type, value=num_shards)]
+
+
 class SummonShardsView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -29,15 +56,7 @@ class SummonShardsView(APIView):
         num_chars = serializer.validated_data['num_chars']
         rarity = serializer.validated_data['rarity']
 
-        if rarity == 2:
-            shard_type = 'rare_shards'
-        elif rarity == 3:
-            shard_type = 'epic_shards'
-        elif rarity == 4:
-            shard_type = 'legendary_shards'
-        else:
-            raise Exception("invalid summon shard rarity: " + str(rarity))
-
+        shard_type = get_shard_attr_from_rarity(rarity)
         if num_chars <= 0:
             return Response({'status': False, 'reason': 'invalid num_chars'})
 

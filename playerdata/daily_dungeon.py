@@ -1,5 +1,5 @@
 import math
-from playerdata import server
+from playerdata import server, shards
 import random
 from datetime import date, datetime, timedelta
 
@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from . import rolls, constants, chests, dungeon_gen
+from . import rolls, constants, chests, dungeon_gen, server
 from .questupdater import QuestUpdater
 from .serializers import DailyDungeonStartSerializer, CharStateResultSerializer
 from .matcher import PlacementSchema
@@ -89,6 +89,12 @@ class DailyDungeonStartView(APIView):
         serializer = DailyDungeonStartSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        tier = 0
+        stage = 1
+        if server.is_server_version_higher('0.5.0'):
+            tier = serializer.validated_data['tier']
+            stage = tier * 20 + 1
+
         # Ensure that we don't currently have a daily dungeon run going on.
         # The user needs to end their current run first.
         dd_status_query = DailyDungeonStatus.objects.filter(user=request.user)
@@ -114,13 +120,15 @@ class DailyDungeonStartView(APIView):
 
         # Create dungeon status.
         if dd_status:
-            dd_status.stage = 1
+            dd_status.stage = stage
             dd_status.is_golden = serializer.validated_data['is_golden']
-            dd_status.character_state = "" 
+            dd_status.character_state = ""
+            dd_status.tier = tier
             dd_status.save()
         else:
             DailyDungeonStatus.objects.create(user=request.user,
-                                              stage=1,
+                                              stage=stage,
+                                              tier=tier,
                                               is_golden=serializer.validated_data['is_golden'],
                                               character_state="")
 
@@ -135,6 +143,7 @@ def get_next_refresh_time():
 class DailyDungeonStatusSchema(Schema):
     is_golden = fields.Bool()
     stage = fields.Int()
+    tier = fields.Int()
     character_state = fields.Str()
 
 
@@ -202,6 +211,25 @@ def daily_dungeon_reward(is_golden, stage, user):
     return reward_schema.data
 
 
+def dd_tiered_item_rewards(dd_status: DailyDungeonStatus, user):
+    rewards = []
+    depth = dd_status.stage - (dd_status.tier * 20)
+    num_drops = math.floor(depth / 6.6)  # Max 3 item drops tuned a bit lower than maybe needed
+
+    items = rolls.get_n_unique_weighted_odds_item(user, num_drops, constants.DD_ITEM_DROP_RATE_PER_TIER[dd_status.tier])
+
+    for item in items:
+        item_reward = chests.ChestReward(reward_type='item_id', value=item.item_type)
+        rewards.append(item_reward)
+
+    if dd_status.is_golden:
+        rewards.extend(shards.dd_rewards(depth))
+
+    chests.award_chest_rewards(user, rewards)
+    reward_schema = chests.ChestRewardSchema(rewards, many=True)
+    return reward_schema.data
+
+
 class DailyDungeonResultView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -209,25 +237,35 @@ class DailyDungeonResultView(APIView):
     def post(self, request):
         serializer = CharStateResultSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        is_loss = serializer.validated_data['is_loss']
 
         dd_status = DailyDungeonStatus.objects.get(user=request.user)
-        rewards = daily_dungeon_reward(dd_status.is_golden, dd_status.stage, request.user)
 
-        if serializer.validated_data['is_loss']:
-            dd_status.stage = 0
+        # TODO(0.5.0) can clean up this logic on version update
+        rewards = []
+        if server.is_server_version_higher('0.5.0'):
+            depth = dd_status.stage - (dd_status.tier * 20)
+            if is_loss or depth == 20:
+                rewards = dd_tiered_item_rewards(dd_status, request.user)
+                dd_status.stage = 0
         else:
-            # Check if this is the best that the user has ever done in DD.
-            # TODO: refactor this as an auxiliary, non-critical path (e.g.
-            # for quests / stat updates).
-            userinfo = request.user.userinfo
-            if userinfo.best_daily_dungeon_stage < dd_status.stage:
-                userinfo.best_daily_dungeon_stage = dd_status.stage
-                userinfo.save()
+            rewards = daily_dungeon_reward(dd_status.is_golden, dd_status.stage, request.user)
 
-            if dd_status.stage == 80:
+            if is_loss:
                 dd_status.stage = 0
             else:
-                dd_status.stage += 1
+                # Check if this is the best that the user has ever done in DD.
+                # TODO: refactor this as an auxiliary, non-critical path (e.g.
+                # for quests / stat updates).
+                userinfo = request.user.userinfo
+                if userinfo.best_daily_dungeon_stage < dd_status.stage:
+                    userinfo.best_daily_dungeon_stage = dd_status.stage
+                    userinfo.save()
+
+                if dd_status.stage == 80:
+                    dd_status.stage = 0
+                else:
+                    dd_status.stage += 1
 
         # always save state, since we might have retries in the future
         dd_status.character_state = serializer.validated_data['characters']
