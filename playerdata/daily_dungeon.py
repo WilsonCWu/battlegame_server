@@ -143,6 +143,7 @@ def get_next_refresh_time():
 class DailyDungeonStatusSchema(Schema):
     is_golden = fields.Bool()
     stage = fields.Int()
+    tier = fields.Int()
     character_state = fields.Str()
 
 

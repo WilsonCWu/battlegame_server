@@ -39,7 +39,7 @@ def dd_rewards(depth: int):
     rarity = rolls.weighted_pick_from_buckets(constants.DD_SHARD_DROP_RATE)
 
     # Reaching the end gives full base_reward amount
-    base_shards = constants.DD_BASE_SHARP_REWARD[rarity] / 2
+    base_shards = constants.DD_BASE_SHARD_REWARD[rarity] / 2
     num_shards = math.floor(base_shards + (depth / 20) * base_shards)
 
     shard_type = get_shard_attr_from_rarity(rarity)
