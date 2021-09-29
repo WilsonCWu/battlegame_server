@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.transaction import atomic
@@ -70,6 +71,7 @@ class QuestUpdater:
             tracker.progress += amount
             tracker.save()
 
+            user.userstats.cumulative_stats = defaultdict(int, user.userstats.cumulative_stats)
             user.userstats.cumulative_stats[str(UPDATE_TYPE)] += amount
             user.userstats.save()
 
