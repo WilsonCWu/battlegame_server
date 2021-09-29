@@ -461,6 +461,13 @@ def generate_bots_bulk(start_elo, end_elo, num_bots_per_elo_range):
         _generate_bots(num_bots_per_elo_range, elo, char_levels)
 
 
+@transaction.atomic
+def generate_bots_bulk_near_lvl(level, elo, num_bots):
+    char_levels = [level] * 5
+    _generate_bots(num_bots, elo, char_levels)
+
+
+
 def get_avg_lvl_placement(placement):
     lvls = []
     if placement.char_1:
