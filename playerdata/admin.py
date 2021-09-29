@@ -19,7 +19,7 @@ from .quest import queue_active_weekly_quests, queue_active_daily_quests, refres
 
 class InventoryAdmin(admin.ModelAdmin, DynamicArrayMixin):
     list_display = ('user_id', 'gems', 'gems_bought')
-    search_fields = ('user__id',)
+    search_fields = ('=user__id',)
     raw_id_fields = ("user", "chest_slot_1", "chest_slot_2", "chest_slot_3", "chest_slot_4")
 
 
@@ -175,7 +175,13 @@ class BaseQuestAdmin(bulk_admin.BulkModelAdmin):
 
 class CumulativeTrackerAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'progress', 'type')
-    search_fields = ('user__id',)
+    search_fields = ('=user__id',)
+
+
+class UserStatsAdmin(admin.ModelAdmin):
+    list_display = ('user', 'num_games', 'num_wins', 'time_started')
+    raw_id_fields = ('user',)
+    search_fields = ('=user__id',)
 
 
 class ActiveCumulativeQuestAdmin(bulk_admin.BulkModelAdmin):
@@ -204,7 +210,7 @@ class ActiveWeeklyQuestAdmin(bulk_admin.BulkModelAdmin):
 
 @admin.register(PlayerQuestCumulative2)
 class PlayerQuestCumulative2Admin(admin.ModelAdmin, DynamicArrayMixin):
-    search_fields = ('user__id',)
+    search_fields = ('=user__id',)
 
 
 class ActiveDealAdmin(admin.ModelAdmin):
@@ -231,7 +237,7 @@ class BaseDealAdmin(admin.ModelAdmin):
 
 class PurchasedTrackerAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'purchase_id', 'transaction_id', 'purchase_time')
-    search_fields = ('user__id',)
+    search_fields = ('=user__id',)
 
 
 class TournamentRegAdmin(admin.ModelAdmin):
@@ -620,7 +626,7 @@ admin.site.register(Item)
 
 admin.site.register(Placement, PlacementAdmin)
 admin.site.register(UserInfo, UserInfoAdmin)
-admin.site.register(UserStats)
+admin.site.register(UserStats, UserStatsAdmin)
 admin.site.register(Match)
 admin.site.register(Inventory, InventoryAdmin)
 
