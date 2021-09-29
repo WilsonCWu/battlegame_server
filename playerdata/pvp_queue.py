@@ -75,7 +75,7 @@ def _get_opponents_within_elo(cur_elo, search_count, exclude_list):
     min_elo = cur_elo - bound
     max_elo = cur_elo + bound
 
-    return UserInfo.objects.filter(elo__gte=min_elo, elo__lte=max_elo) \
+    return UserInfo.objects.filter(elo__gte=min_elo, elo__lte=max_elo, user__dungeonprogress__campaign_stage__gt=5) \
                 .exclude(user_id__in=exclude_list) \
                 .values_list('user_id', flat=True)[:50]
 
