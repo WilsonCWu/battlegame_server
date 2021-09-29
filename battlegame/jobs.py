@@ -48,7 +48,7 @@ def clean_placements():
 
         # Try to give this placement at least 1 character.
         if p.char_1 is None and p.char_2 is None and p.char_3 is None and \
-           p.char_4 is None and p.char_5 is None and p.user is not None:
+                p.char_4 is None and p.char_5 is None and p.user is not None:
             q = Character.objects.filter(user=p.user)
             if q:
                 changed = True
@@ -92,7 +92,6 @@ def backfill_clans():
     ClanRequest.objects.bulk_update(cr_objs, ['clan2'])
 
 
-
 @transaction.atomic
 def fix_clan_count():
     for c in Clan2.objects.all():
@@ -107,7 +106,7 @@ def backfill_pve_status():
     for member in ClanMember.objects.all():
         if not member.pve_character_lending:
             cs = Character.objects.filter(user_id=member.userinfo_id)[:3]
-            member.pve_character_lending=[c.char_id for c in cs]
+            member.pve_character_lending = [c.char_id for c in cs]
             member.save()
 
 
@@ -217,7 +216,6 @@ def backfill_rotating_mode():
         _, _ = RotatingModeStatus.objects.get_or_create(user=user)
 
 
-
 # Send an inbox message to userid_list
 # if userid_list = ['all'] then it sends to all users
 #
@@ -235,7 +233,7 @@ def send_inbox(title, message, userid_list, gems=0, sender_id=10506):
     basecode = None
     if gems != 0:
         curr_time = datetime.now(timezone.utc)
-        codename = "inboxcode_"+curr_time.strftime("%H:%M:%S")
+        codename = "inboxcode_" + curr_time.strftime("%H:%M:%S")
         basecode = BaseCode.objects.create(code=codename, num_left=-1, start_time=curr_time,
                                            end_time=curr_time + timedelta(days=30), gems=gems)
 
@@ -292,3 +290,22 @@ def backfill_regal_rewards():
 def backfill_activity_points():
     for user in User.objects.all():
         _, _ = ActivityPoints.objects.get_or_create(user=user)
+
+
+@transaction.atomic
+def backfill_cumulative_stats():
+    trackers = CumulativeTracker.objects.all()
+    tracker_dict = {}
+
+    for tracker in trackers:
+        if tracker.user.id not in tracker_dict:
+            tracker_dict[tracker.user.id] = {tracker.type: tracker.progress}
+        else:
+            tracker_dict[tracker.user.id][tracker.type] = tracker.progress
+
+    user_stats = UserStats.objects.all()
+    for stat in user_stats:
+        if stat.user.id in tracker_dict:
+            stat.cumulative_stats = tracker_dict[stat.user.id]
+
+    UserStats.objects.bulk_update(user_stats, ['cumulative_stats'])

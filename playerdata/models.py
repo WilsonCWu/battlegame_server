@@ -1,6 +1,7 @@
 import json
 import random
 import string
+from collections import defaultdict
 from datetime import datetime, date, time, timedelta
 from packaging import version
 import time as ptime
@@ -575,6 +576,8 @@ class UserStats(models.Model):
     chest_counter = models.IntegerField(default=0)
     silver_chest_counter = models.IntegerField(default=0)
     pvp_skips = models.IntegerField(default=5)
+
+    cumulative_stats = JSONField(blank=True, null=True, default=dict)
 
     def __str__(self):
         return self.user.userinfo.name + '(' + str(self.user.id) + ')'
