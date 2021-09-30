@@ -33,6 +33,11 @@ class PlacementsAPITestCase(APITestCase):
             user = self.u,
             char_type = base_archer,
         )
+        Placement.objects.filter(user=self.u).delete()
+        self._create_placement(
+            [self.archer.char_id] + [None] * 4,
+            [1] + [-1] * 4,
+        )
 
     def _create_placement(self, characters, positions, is_tourney=False):
         return Placement.objects.create(

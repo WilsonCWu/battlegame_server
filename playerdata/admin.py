@@ -173,11 +173,6 @@ class BaseQuestAdmin(bulk_admin.BulkModelAdmin):
     list_filter = ('type',)
 
 
-class CumulativeTrackerAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'progress', 'type')
-    search_fields = ('=user__id',)
-
-
 class UserStatsAdmin(admin.ModelAdmin):
     list_display = ('user', 'num_games', 'num_wins', 'time_started')
     raw_id_fields = ('user',)
@@ -641,7 +636,6 @@ admin.site.register(ClanRequest)
 admin.site.register(BaseQuest, BaseQuestAdmin)
 admin.site.register(PlayerQuestDaily)
 admin.site.register(PlayerQuestWeekly)
-admin.site.register(CumulativeTracker, CumulativeTrackerAdmin)
 
 admin.site.register(ActiveCumulativeQuest, ActiveCumulativeQuestAdmin)
 admin.site.register(ActiveDailyQuest, ActiveDailyQuestAdmin)

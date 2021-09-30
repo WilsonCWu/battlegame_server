@@ -1,13 +1,12 @@
 import logging
 from collections import defaultdict
 
-from django.core.exceptions import ObjectDoesNotExist
 from django.db.transaction import atomic
 
 from playerdata import constants
-from playerdata.models import PlayerQuestCumulative2, BaseQuest, CumulativeTracker
-from playerdata.models import PlayerQuestWeekly
+from playerdata.models import PlayerQuestCumulative2, BaseQuest
 from playerdata.models import PlayerQuestDaily
+from playerdata.models import PlayerQuestWeekly
 
 
 def add_progress_to_quest_list(progress, quests):
@@ -66,18 +65,11 @@ class QuestUpdater:
                                                                                     completed=False, claimed=False)
 
         try:
-            # TODO(daniel): delete after tracker data is migrated
-            tracker = CumulativeTracker.objects.get(user=user, type=UPDATE_TYPE)
-            tracker.progress += amount
-            tracker.save()
-
             user.userstats.cumulative_stats = defaultdict(int, user.userstats.cumulative_stats)
             user.userstats.cumulative_stats[str(UPDATE_TYPE)] += amount
             user.userstats.save()
 
-            update_cumulative_progress2(cumulative_basequests, tracker.progress, player_cumulative)
-        except ObjectDoesNotExist:
-            pass
+            update_cumulative_progress2(cumulative_basequests, user.userstats.cumulative_stats[str(UPDATE_TYPE)], player_cumulative)
         except OverflowError:
             logging.error("stats overflow error")
 
@@ -101,18 +93,10 @@ class QuestUpdater:
                                                                                     base_quest__type=UPDATE_TYPE,
                                                                                     completed=False, claimed=False)
 
-        try:
-            # TODO(daniel): delete after tracker data is migrated
-            tracker = CumulativeTracker.objects.get(user=user, type=UPDATE_TYPE)
-            tracker.progress = amount
-            tracker.save()
+        user.userstats.cumulative_stats[str(UPDATE_TYPE)] = amount
+        user.userstats.save()
 
-            user.userstats.cumulative_stats[str(UPDATE_TYPE)] = amount
-            user.userstats.save()
-
-            update_cumulative_progress2(cumulative_basequests, tracker.progress, player_cumulative)
-        except ObjectDoesNotExist:
-            pass
+        update_cumulative_progress2(cumulative_basequests, user.userstats.cumulative_stats[str(UPDATE_TYPE)], player_cumulative)
 
         set_progress_to_quest_list(amount, weekly_quests)
         set_progress_to_quest_list(amount, daily_quests)
