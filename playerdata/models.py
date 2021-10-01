@@ -1030,15 +1030,6 @@ class BaseQuest(models.Model):
         return "(" + str(self.id) + ") " + self.title
 
 
-class CumulativeTracker(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    progress = models.BigIntegerField(default=0)
-    type = models.IntegerField()
-
-    def __str__(self):
-        return "user: " + str(self.user.id) + ", type " + str(self.type) + ", progress: " + str(self.progress)
-
-
 class PlayerQuestCumulative2(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     completed_quests = ArrayField(models.IntegerField(), blank=True, null=True, default=list)
@@ -1438,7 +1429,6 @@ def create_user_info(sender, instance, created, **kwargs):
         # Add quests
         expiry_date_weekly = get_expiration_date(7)
         expiry_date_daily = get_expiration_date(1)
-        create_cumulative_trackers(instance)
         PlayerQuestCumulative2.objects.create(user=instance)
         create_quests_by_class(instance, ActiveWeeklyQuest.objects.all()[:constants.NUM_WEEKLY_QUESTS], PlayerQuestWeekly, expiry_date_weekly)
         create_quests_by_class(instance, ActiveDailyQuest.objects.all()[:constants.NUM_DAILY_QUESTS], PlayerQuestDaily, expiry_date_daily)
@@ -1461,19 +1451,6 @@ def create_user_info(sender, instance, created, **kwargs):
             ChatMessage.objects.create(chat=chat, message=welcomeMessage2, sender=devUser)
             ChatMessage.objects.create(chat=chat, message=welcomeMessage3, sender=devUser)
             ChatMessage.objects.create(chat=chat, message=welcomeMessage4, sender=devUser)
-
-
-def create_cumulative_trackers(user):
-    trackers = []
-    active_quests = ActiveCumulativeQuest.objects.all()
-    base_quest_types = []
-    for quest in active_quests:
-        if quest.base_quest.type not in base_quest_types:
-            progress_tracker = CumulativeTracker(user=user, type=quest.base_quest.type)
-            base_quest_types.append(quest.base_quest.type)
-            trackers.append(progress_tracker)
-
-    CumulativeTracker.objects.bulk_create(trackers)
 
 
 def create_quests_by_class(user, active_quests, quest_class, expiry_date):

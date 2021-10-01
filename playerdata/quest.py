@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from playerdata.models import ActiveDailyQuest, get_expiration_date, ActiveWeeklyQuest, \
-    BaseQuest, PlayerQuestCumulative2, CumulativeTracker, ActiveCumulativeQuest, ActivityPoints
+    BaseQuest, PlayerQuestCumulative2, ActiveCumulativeQuest, ActivityPoints
 from playerdata.models import PlayerQuestDaily
 from playerdata.models import PlayerQuestWeekly
 from playerdata.models import User
@@ -73,17 +73,12 @@ class QuestView(APIView):
         player_cumulative = PlayerQuestCumulative2.objects.filter(user=request.user).first()
         active_quests = ActiveCumulativeQuest.objects.select_related("base_quest").exclude(base_quest_id__in=player_cumulative.claimed_quests)
         cumulative_basequests = [quest.base_quest for quest in active_quests]
-        trackers = CumulativeTracker.objects.filter(user=request.user)
-        trackers_dict = {}
-
-        for tracker in trackers:
-            trackers_dict[tracker.type] = tracker.progress
 
         cumulative_quests = []
         for basequest in cumulative_basequests:
             quest = {
                 "base_quest": basequest,
-                "progress": trackers_dict[basequest.type],
+                "progress": request.user.userstats.cumulative_stats[str(basequest.type)],
                 "claimed": False,
                 "completed": basequest.id in player_cumulative.completed_quests
             }

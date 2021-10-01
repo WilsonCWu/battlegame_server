@@ -1,5 +1,7 @@
 import random
 import secrets
+from collections import defaultdict
+
 import packaging
 from random_username.generate import generate_username
 
@@ -11,7 +13,7 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from playerdata import constants, formulas, server
-from playerdata.models import BaseCharacter, CumulativeTracker
+from playerdata.models import BaseCharacter
 from playerdata.models import Character
 from playerdata.models import Placement
 from playerdata.models import UserInfo
@@ -59,7 +61,7 @@ class UserInfoSchema(Schema):
     longest_win_streak = fields.Int(attribute='user.userstats.longest_win_streak')
     daily_wins = fields.Int(attribute='user.userstats.daily_wins')
     campaign_stage = fields.Int(attribute='user.dungeonprogress.campaign_stage')
-    total_damage = fields.Function(lambda userinfo: CumulativeTracker.objects.get(user=userinfo.user, type=constants.DAMAGE_DEALT).progress)
+    total_damage = fields.Function(lambda userinfo: defaultdict(int, userinfo.user.userstats.cumulative_stats)[str(constants.DAMAGE_DEALT)])
 
     default_placement = fields.Nested(PlacementSchema)
     clan = fields.Function(lambda userinfo: userinfo.clanmember.clan2.name if userinfo.clanmember.clan2 else '')
