@@ -126,7 +126,6 @@ def update_stats(user, win, stats):
     user_stats.num_wins += 1 if win else 0
     user_stats.daily_wins += 1 if win else 0
     user_stats.win_streak = 0 if not win else user_stats.win_streak + 1
-    QuestUpdater.set_progress_by_type(user, constants.WIN_STREAK, user_stats.win_streak)
     user_stats.longest_win_streak = max(user_stats.win_streak, user_stats.longest_win_streak)
     user_stats.save()
 
@@ -134,6 +133,7 @@ def update_stats(user, win, stats):
     for stat in stats:
         total_damage_dealt_stat += stat['damage_dealt']
     QuestUpdater.add_progress_by_type(user, constants.DAMAGE_DEALT, total_damage_dealt_stat)
+    QuestUpdater.set_progress_by_type(user, constants.WIN_STREAK, user_stats.win_streak)
 
 
 def reduce_low_elo_loss(original_elo, new_elo):
