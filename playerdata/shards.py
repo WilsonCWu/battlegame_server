@@ -34,6 +34,17 @@ def get_shard_attr_from_rarity(rarity: int):
     return shard_type
 
 
+def get_afk_shards(num_rolls: int):
+    rewards = [0, 0, 0]
+
+    for n in range(0, num_rolls):
+        rarity = rolls.weighted_pick_from_buckets(constants.AFK_SHARD_DROP_RATE)
+        base_shards = constants.AFK_BASE_SHARD_REWARD[rarity]
+        rewards[rarity - 2] += base_shards
+
+    return rewards
+
+
 # Reward shards if a golden run
 def dd_rewards(depth: int):
     rarity = rolls.weighted_pick_from_buckets(constants.DD_SHARD_DROP_RATE)

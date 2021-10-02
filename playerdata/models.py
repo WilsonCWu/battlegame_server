@@ -751,6 +751,20 @@ class SeasonReward(models.Model):
     is_claimed = models.BooleanField(default=True)
 
 
+def default_afk_shard_list():
+    return [0]*3
+
+
+class AFKReward(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    unclaimed_gold = models.IntegerField(default=0)
+    unclaimed_dust = models.IntegerField(default=0)
+    unclaimed_shards = ArrayField(models.IntegerField(), default=default_afk_shard_list)
+    # leftover_shard_rolls = models.FloatField(default=0)
+    time_added = ArrayField(models.DateTimeField(), default=list)
+    runes_added = ArrayField(models.IntegerField(), default=list)
+
+
 def get_default_afk_datetime():
     return timezone.now() - timedelta(hours=3)
 
@@ -1424,6 +1438,7 @@ def create_user_info(sender, instance, created, **kwargs):
         RotatingModeStatus.objects.create(user=instance)
         RegalRewards.objects.create(user=instance)
         ActivityPoints.objects.create(user=instance)
+        AFKReward.objects.create(user=instance)
         create_user_referral(instance)
 
         # Add quests
