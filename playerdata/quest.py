@@ -1,4 +1,5 @@
 import random
+from collections import defaultdict
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
@@ -73,6 +74,7 @@ class QuestView(APIView):
         player_cumulative = PlayerQuestCumulative2.objects.filter(user=request.user).first()
         active_quests = ActiveCumulativeQuest.objects.select_related("base_quest").exclude(base_quest_id__in=player_cumulative.claimed_quests)
         cumulative_basequests = [quest.base_quest for quest in active_quests]
+        request.user.userstats.cumulative_stats = defaultdict(int, request.user.userstats.cumulative_stats)
 
         cumulative_quests = []
         for basequest in cumulative_basequests:
