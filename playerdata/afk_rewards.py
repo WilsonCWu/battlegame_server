@@ -11,7 +11,10 @@ from playerdata.formulas import afk_coins_per_min, afk_exp_per_min, afk_dust_per
 from playerdata.models import DungeonProgress, AFKReward
 
 
-def secs_since_last_collection(last_collected_time, vip_level):
+PVP_RUNE_REWARD = 3600  # 1 hr worth of afk
+
+
+def secs_since_last_collection(last_collected_time, vip_level: int):
     now_time = datetime.now(timezone.utc)
     elapsed = now_time - last_collected_time
     elapsed_secs = elapsed.total_seconds()
@@ -21,26 +24,21 @@ def secs_since_last_collection(last_collected_time, vip_level):
 
 
 # Calculate the number of runes consumed given the time it had to run
-def get_afk_runes_consumed(afk_rewards):
-    runes_leftover = 0
-    total_completed_runes = 0
+def evaluate_afk(afk_rewards: AFKReward, vip_level: int, added_runes=0):
     now_time = datetime.now(timezone.utc)
-    afk_rewards.time_added.append(now_time)
 
-    # Iterate through the times when runes were added to calculate "rune running time"
-    for i in range(1, len(afk_rewards.time_added)):
-        runes_leftover += afk_rewards.runes_added[i - 1]
-        passed_time = (afk_rewards.time_added[i] - afk_rewards.time_added[i-1]).total_seconds()
+    passed_time = int(secs_since_last_collection(afk_rewards.last_eval_time, vip_level))
+    runes_complete = min(passed_time, afk_rewards.runes_left)
 
-        runes_complete = min(passed_time, runes_leftover)
-        runes_leftover = max(0, runes_leftover - runes_complete)
+    # update values
+    afk_rewards.runes_left -= runes_complete + added_runes
+    afk_rewards.last_eval_time = now_time
 
-        total_completed_runes += runes_complete
+    max_hours = 12 + vip_afk_extra_hours(vip_level)
+    afk_rewards.consumed_rune_time = max(max_hours * 60 * 60, afk_rewards.consumed_rune_time + runes_complete)
 
-    # clean up
-    afk_rewards.time_added = [afk_rewards.time_added[-1]]
-    afk_rewards.runes_added = [runes_leftover]
-    return total_completed_runes
+    afk_rewards.save()
+    return afk_rewards
 
 
 class GetAFKRewardView(APIView):
@@ -65,22 +63,24 @@ class GetAFKRewardView(APIView):
         # exp = time * exp_per_min
 
         if server.is_server_version_higher('0.5.0'):
-            afk_rewards = AFKReward.objects.get(user=request.user)
-            runes_consumed = get_afk_runes_consumed(afk_rewards)
+            afk_rewards = evaluate_afk(request.user.afkreward, vip_level)
 
-            afk_rewards.unclaimed_gold += math.floor(runes_consumed * coins_per_second * afk_rewards_multiplier_vip(vip_level))
-            afk_rewards.unclaimed_dust += math.floor(runes_consumed * dust_per_second * afk_rewards_multiplier_vip(vip_level))
+            afk_rewards.unclaimed_gold += math.floor(afk_rewards.consumed_rune_time * coins_per_second * afk_rewards_multiplier_vip(vip_level))
+            afk_rewards.unclaimed_dust += math.floor(afk_rewards.consumed_rune_time * dust_per_second * afk_rewards_multiplier_vip(vip_level))
 
             # roll shards once every 15 minutes
-            runes_consumed += afk_rewards.leftover_shards
-            shard_rolls = math.floor(runes_consumed / 60 / 15)
-            afk_rewards.leftover_shards = runes_consumed % (60 * 15)
+            shard_runes_consumed = afk_rewards.consumed_rune_time + afk_rewards.leftover_shards
+            shard_rolls = math.floor(shard_runes_consumed / 60 / 15)
+
+            afk_rewards.leftover_shards = shard_runes_consumed % (60 * 15)
             shards_dropped = shards.get_afk_shards(shard_rolls)
 
             for i, shard_amount in enumerate(shards_dropped):
                 afk_rewards.unclaimed_shards[i] += shard_amount
 
+            afk_rewards.consumed_rune_time = 0
             afk_rewards.save()
+
             return Response({'status': True,
                              'coins_per_min': coins_per_min,
                              'dust_per_min': dust_per_min,
@@ -92,7 +92,7 @@ class GetAFKRewardView(APIView):
                              'unclaimed_gold': afk_rewards.unclaimed_gold,
                              'unclaimed_dust': afk_rewards.unclaimed_dust,
                              'unclaimed_shards': afk_rewards.unclaimed_shards,
-                             'runes_left': afk_rewards.runes_added[0]
+                             'runes_left': afk_rewards.runes_left
                              })
 
         return Response({'status': True,

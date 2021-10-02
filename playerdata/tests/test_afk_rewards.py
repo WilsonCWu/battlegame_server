@@ -20,12 +20,9 @@ class AFKRewardsAPITestCase(APITestCase):
 
     def test_get_afk_rewards(self):
         d1 = datetime.today().replace(tzinfo=timezone.utc) - timedelta(days=1)
-        d2 = d1 + timedelta(hours=1)
-        d3 = d2 + timedelta(hours=1)
-        d4 = d3 + timedelta(hours=1)
 
-        self.u.afkreward.runes_added = [3600, 3600, 3600, 3600]
-        self.u.afkreward.time_added = [d1, d2, d3, d4]
+        self.u.afkreward.runes_left = 3000
+        self.u.afkreward.last_eval_time = d1
         self.u.afkreward.save()
 
         response = self.client.get('/afkrewards/get')
@@ -34,4 +31,5 @@ class AFKRewardsAPITestCase(APITestCase):
         self.assertTrue(response.data['status'])
 
         self.u.afkreward.refresh_from_db()
-        self.assertEqual(len(self.u.afkreward.runes_added), 1)
+        self.assertEqual(self.u.afkreward.consumed_rune_time, 0)
+        self.assertEqual(self.u.afkreward.runes_left, 0)

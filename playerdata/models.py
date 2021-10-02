@@ -763,8 +763,9 @@ class AFKReward(models.Model):
 
     # shards that were consumed, but remainder of the 15 min shard cycle
     leftover_shards = models.FloatField(default=0)
-    time_added = ArrayField(models.DateTimeField(), default=list)
-    runes_added = ArrayField(models.IntegerField(), default=list)
+    last_eval_time = models.DateTimeField(auto_now_add=True)
+    consumed_rune_time = models.IntegerField(default=0)
+    runes_left = models.IntegerField(default=0)
 
 
 def get_default_afk_datetime():
