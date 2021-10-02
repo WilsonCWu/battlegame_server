@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from playerdata import constants, formulas, rolls, tier_system, base
+from playerdata import constants, formulas, rolls, tier_system, base, server
 from playerdata.constants import ChestType
 from playerdata.models import Chest, BaseItem, Item, DailyDungeonStatus, BaseCharacter
 from playerdata.questupdater import QuestUpdater
@@ -217,7 +217,7 @@ def guarantee_resources(rewards, num_rewards, chest_rarity: int, user, chest_tie
 
 
 def get_guaranteed_summons(chest_rarity: int, guaranteed_char_rewards, user):
-    num_guaranteed_summons = constants.GUARANTEED_SUMMONS[chest_rarity - 1] - len(guaranteed_char_rewards)
+    num_guaranteed_summons = constants.guaranteed_summons(chest_rarity - 1) - len(guaranteed_char_rewards)
 
     # Increase num summons based on stage if DailyDungeon
     if chest_rarity == constants.ChestType.DAILY_DUNGEON.value:
