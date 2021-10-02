@@ -20,31 +20,14 @@ def secs_since_last_collection(last_collected_time, vip_level):
     return min(max_hours * 60.0 * 60.0, elapsed_secs)
 
 
-def accumulate_shards(time_added, runes_added):
-    # time_added = [1, 2, 3]
-    # runes_added = [30, 30, 30]
-
-    runes_leftover = 0
-    total_completed_runes = 0
-
-    for i, time in enumerate(time_added, start=1):
-        runes_leftover += runes_added[i]
-        passed_time = time - time_added[i-1]
-
-        runes_complete = min(passed_time, runes_leftover)
-        runes_leftover -= min(runes_leftover, runes_complete)
-
-        total_completed_runes += runes_complete
-
-    return shards.get_afk_shards(total_completed_runes)
-
-
+# Calculate the number of runes consumed given the time it had to run
 def get_afk_runes_consumed(afk_rewards):
     runes_leftover = 0
     total_completed_runes = 0
     now_time = datetime.now(timezone.utc)
     afk_rewards.time_added.append(now_time)
 
+    # Iterate through the times when runes were added to calculate "rune running time"
     for i in range(1, len(afk_rewards.time_added)):
         runes_leftover += afk_rewards.runes_added[i - 1]
         passed_time = (afk_rewards.time_added[i] - afk_rewards.time_added[i-1]).total_seconds()
@@ -89,7 +72,9 @@ class GetAFKRewardView(APIView):
             afk_rewards.unclaimed_dust += math.floor(runes_consumed * dust_per_second * afk_rewards_multiplier_vip(vip_level))
 
             # roll shards once every 15 minutes
+            runes_consumed += afk_rewards.leftover_shards
             shard_rolls = math.floor(runes_consumed / 60 / 15)
+            afk_rewards.leftover_shards = runes_consumed % (60 * 15)
             shards_dropped = shards.get_afk_shards(shard_rolls)
 
             for i, shard_amount in enumerate(shards_dropped):
