@@ -1,6 +1,7 @@
 import random
 import re
 
+from better_profanity import profanity
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Prefetch
@@ -330,6 +331,9 @@ class NewClanView(APIView):
         if Clan2.objects.filter(name=clan_name):  # if exists already
             return Response({'status': False, 'reason': 'Clan name ' + clan_name + ' already taken!'})
 
+        if profanity.contains_profanity(clan_name) or profanity.contains_profanity(clan_description):
+            return Response({'status': False, 'reason': 'Invalid text contains profanity'})
+
         clan_chat = Chat.objects.create(chat_name=clan_name)
 
         clan2 = Clan2.objects.create(name=clan_name, chat=clan_chat,
@@ -466,8 +470,11 @@ class EditClanDescriptionView(APIView):
         if len(new_description) > MAX_DESCRIPTION_LENGTH:
             return Response({'status': False, 'reason': 'description too long'})
 
-        if(not isTextSanitized(new_description, False, False, True)):  # No backslash, returns, or newlines
+        if not isTextSanitized(new_description, False, False, True):  # No backslash, returns, or newlines
             return Response({'status': False, 'reason': 'description contains invalid characters'})
+
+        if profanity.contains_profanity(new_description):
+            return Response({'status': False, 'reason': 'invalid text contains profanity'})
 
         clan2 = clanmember.clan2
         clan2.description = new_description
@@ -488,8 +495,11 @@ class EditProfileDescriptionView(APIView):
         if len(new_description) > MAX_DESCRIPTION_LENGTH:
             return Response({'status': False, 'reason': 'description too long'})
 
-        if(not isTextSanitized(new_description, False, False, True)):  # No backslash, returns, or newlines
+        if not isTextSanitized(new_description, False, False, True):  # No backslash, returns, or newlines
             return Response({'status': False, 'reason': 'description contains invalid characters'})
+
+        if profanity.contains_profanity(new_description):
+            return Response({'status': False, 'reason': 'invalid text contains profanity'})
 
         request.user.userinfo.description = new_description
         request.user.userinfo.save()
