@@ -761,10 +761,13 @@ class AFKReward(models.Model):
     unclaimed_dust = models.IntegerField(default=0)
     unclaimed_shards = ArrayField(models.IntegerField(), default=default_afk_shard_list)
 
+    # the amount of rewards that have accumulated in terms of runes
+    unclaimed_converted_runes = models.IntegerField(default=0)
+
     # shards that were consumed, but remainder of the 15 min shard cycle
-    leftover_shards = models.FloatField(default=0)
+    leftover_shards = models.IntegerField(default=0)
     last_eval_time = models.DateTimeField(auto_now_add=True)
-    consumed_rune_time = models.IntegerField(default=0)
+    runes_to_be_converted = models.IntegerField(default=0)
     runes_left = models.IntegerField(default=0)
 
 

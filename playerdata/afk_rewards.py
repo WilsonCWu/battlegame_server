@@ -12,11 +12,13 @@ from playerdata.models import DungeonProgress, AFKReward
 
 
 PVP_RUNE_REWARD = 3600  # 1 hr worth of afk
+SHARDS_PER_INTERVAL = 60 * 15
 
 
-def secs_since_last_collection(last_collected_time, vip_level: int):
+# Return seconds since last datetime capped at the afk time maximum
+def afk_secs_since_last_datetime(last_datetime, vip_level: int):
     now_time = datetime.now(timezone.utc)
-    elapsed = now_time - last_collected_time
+    elapsed = now_time - last_datetime
     elapsed_secs = elapsed.total_seconds()
 
     max_hours = 12 + vip_afk_extra_hours(vip_level)
@@ -25,17 +27,29 @@ def secs_since_last_collection(last_collected_time, vip_level: int):
 
 # Calculate the number of runes consumed given the time it had to run
 def evaluate_afk(afk_rewards: AFKReward, vip_level: int, added_runes=0):
-    now_time = datetime.now(timezone.utc)
+    max_hours = 12 + vip_afk_extra_hours(vip_level)
+    max_runes = max_hours * 60 * 60
 
-    passed_time = int(secs_since_last_collection(afk_rewards.last_eval_time, vip_level))
-    runes_complete = min(passed_time, afk_rewards.runes_left)
+    # the max number of runes that can still be converted to rewards on top of what's already converted
+    runes_conversion_cap = max_runes - afk_rewards.unclaimed_converted_runes
+
+    # stop consuming runes if capped out on both converted runes or to-be-converted runes
+    if afk_rewards.unclaimed_converted_runes >= max_runes or afk_rewards.runes_to_be_converted >= runes_conversion_cap:
+        afk_rewards.runes_left = min(max_runes, afk_rewards.runes_left + added_runes)
+        return afk_rewards
+
+    # runes_complete needs to be capped by 3 things:
+    # elapsed secs, amount of runes that can still be converted, and the runes available
+    elapsed_secs = int(afk_secs_since_last_datetime(afk_rewards.last_eval_time, vip_level))
+    runes_complete = min(elapsed_secs, runes_conversion_cap, afk_rewards.runes_left)
 
     # update values
-    afk_rewards.runes_left -= runes_complete + added_runes
-    afk_rewards.last_eval_time = now_time
+    afk_rewards.last_eval_time = datetime.now(timezone.utc)
+    afk_rewards.runes_left = min(max_runes, afk_rewards.runes_left + added_runes - runes_complete)
 
-    max_hours = 12 + vip_afk_extra_hours(vip_level)
-    afk_rewards.consumed_rune_time = max(max_hours * 60 * 60, afk_rewards.consumed_rune_time + runes_complete)
+    # capped at the max runes available to be converted
+    # adding runes_complete is guaranteed to be <= runes_conversion_cap
+    afk_rewards.runes_to_be_converted += runes_complete
 
     afk_rewards.save()
     return afk_rewards
@@ -54,7 +68,7 @@ class GetAFKRewardView(APIView):
         dust_per_min = afk_dust_per_min(dungeon_progress.campaign_stage)
         # exp_per_min = afk_exp_per_min(dungeon_progress.stage_id)
 
-        time = secs_since_last_collection(last_collected_time, vip_level)
+        time = afk_secs_since_last_datetime(last_collected_time, vip_level)
         coins_per_second = coins_per_min / 60
         dust_per_second = dust_per_min / 60
 
@@ -65,20 +79,22 @@ class GetAFKRewardView(APIView):
         if server.is_server_version_higher('0.5.0'):
             afk_rewards = evaluate_afk(request.user.afkreward, vip_level)
 
-            afk_rewards.unclaimed_gold += math.floor(afk_rewards.consumed_rune_time * coins_per_second * afk_rewards_multiplier_vip(vip_level))
-            afk_rewards.unclaimed_dust += math.floor(afk_rewards.consumed_rune_time * dust_per_second * afk_rewards_multiplier_vip(vip_level))
+            afk_rewards.unclaimed_gold += math.floor(afk_rewards.runes_to_be_converted * coins_per_second * afk_rewards_multiplier_vip(vip_level))
+            afk_rewards.unclaimed_dust += math.floor(afk_rewards.runes_to_be_converted * dust_per_second * afk_rewards_multiplier_vip(vip_level))
 
             # roll shards once every 15 minutes
-            shard_runes_consumed = afk_rewards.consumed_rune_time + afk_rewards.leftover_shards
-            shard_rolls = math.floor(shard_runes_consumed / 60 / 15)
+            shard_runes_consumed = afk_rewards.runes_to_be_converted + afk_rewards.leftover_shards
+            shard_rolls = math.floor(shard_runes_consumed / SHARDS_PER_INTERVAL)
 
-            afk_rewards.leftover_shards = shard_runes_consumed % (60 * 15)
+            afk_rewards.leftover_shards = max(0, shard_runes_consumed - (shard_rolls * SHARDS_PER_INTERVAL))
             shards_dropped = shards.get_afk_shards(shard_rolls)
 
             for i, shard_amount in enumerate(shards_dropped):
                 afk_rewards.unclaimed_shards[i] += shard_amount
 
-            afk_rewards.consumed_rune_time = 0
+            # Keep track of the amount of rewards (in terms of runes) that are unclaimed so we can cap it
+            afk_rewards.unclaimed_converted_runes += afk_rewards.runes_to_be_converted
+            afk_rewards.runes_to_be_converted = 0
             afk_rewards.save()
 
             return Response({'status': True,
@@ -116,7 +132,7 @@ class CollectAFKRewardView(APIView):
         dungeon_progress = DungeonProgress.objects.get(user=request.user)
 
         vip_level = vip_exp_to_level(request.user.userinfo.vip_exp)
-        time = secs_since_last_collection(last_collected_time, vip_level)
+        time = afk_secs_since_last_datetime(last_collected_time, vip_level)
         coins_per_second = afk_coins_per_min(dungeon_progress.campaign_stage) / 60
         dust_per_second = afk_dust_per_min(dungeon_progress.campaign_stage) / 60
 

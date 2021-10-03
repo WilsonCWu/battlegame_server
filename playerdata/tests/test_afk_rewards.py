@@ -31,5 +31,5 @@ class AFKRewardsAPITestCase(APITestCase):
         self.assertTrue(response.data['status'])
 
         self.u.afkreward.refresh_from_db()
-        self.assertEqual(self.u.afkreward.consumed_rune_time, 0)
+        self.assertEqual(self.u.afkreward.runes_to_be_converted, 0)
         self.assertEqual(self.u.afkreward.runes_left, 0)
