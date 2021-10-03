@@ -1,5 +1,5 @@
 import math
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import List
 from functools import lru_cache
 
@@ -204,7 +204,7 @@ class ClaimSeasonRewardView(APIView):
 # At 0 UTC on the 1st of every month
 def get_season_expiration_date():
     today = datetime.today()
-    return (datetime(today.year, today.month, 1, 0, tzinfo=timezone.utc) + timedelta(days=32)).replace(day=1)
+    return (datetime(today.year, today.month, 1, 0) + timedelta(days=32)).replace(day=1)
 
 
 # EndSeasonRewards
