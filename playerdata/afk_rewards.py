@@ -8,8 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from playerdata import server, shards
 from playerdata.formulas import afk_coins_per_min, afk_exp_per_min, afk_dust_per_min, vip_exp_to_level
-from playerdata.models import DungeonProgress, AFKReward
-
+from playerdata.models import DungeonProgress, AFKReward, default_afk_shard_list
 
 PVP_RUNE_REWARD = 3600  # 1 hr worth of afk
 SHARDS_PER_INTERVAL = 60 * 15
@@ -140,13 +139,27 @@ class CollectAFKRewardView(APIView):
         dust = math.floor(time * dust_per_second * afk_rewards_multiplier_vip(vip_level))
         # exp = time * afk_exp_per_min(dungeon_progress.stage_id)
 
-        inventory.last_collected_rewards = datetime.now(timezone.utc)
-        inventory.coins += coins
-        inventory.dust += dust
-        inventory.save()
+        if server.is_server_version_higher('0.5.0'):
+            inventory.coins += request.user.afkreward.unclaimed_gold
+            inventory.dust += request.user.afkreward.unclaimed_dust
+            inventory.rare_shards += request.user.afkreward.unclaimed_shards[0]
+            inventory.epic_shards += request.user.afkreward.unclaimed_shards[1]
+            inventory.legendary_shards += request.user.afkreward.unclaimed_shards[2]
+
+            request.user.afkreward.unclaimed_gold = 0
+            request.user.afkreward.unclaimed_dust = 0
+            request.user.afkreward.unclaimed_shards = default_afk_shard_list()
+            request.user.afkreward.unclaimed_converted_runes = 0
+            request.user.afkreward.save()
+        else:
+            inventory.last_collected_rewards = datetime.now(timezone.utc)
+            inventory.coins += coins
+            inventory.dust += dust
 
         # request.user.userinfo.player_exp += exp
         # request.user.userinfo.save()
+
+        inventory.save()
 
         return Response({'status': True, 'coins': coins, 'dust': dust})
 
