@@ -23,6 +23,12 @@ class InventoryAdmin(admin.ModelAdmin, DynamicArrayMixin):
     raw_id_fields = ("user", "chest_slot_1", "chest_slot_2", "chest_slot_3", "chest_slot_4")
 
 
+class AFKRewardAdmin(admin.ModelAdmin, DynamicArrayMixin):
+    list_display = ('user', )
+    search_fields = ('=user__id',)
+    raw_id_fields = ("user",)
+
+
 class BaseCodeAdmin(admin.ModelAdmin, DynamicArrayMixin):
     pass
 
@@ -686,3 +692,5 @@ admin.site.register(Mail, MailAdmin)
 
 admin.site.register(RegalRewards, RegalRewardsAdmin)
 admin.site.register(ActivityPoints, ActivityPointsAdmin)
+
+admin.site.register(AFKReward, AFKRewardAdmin)

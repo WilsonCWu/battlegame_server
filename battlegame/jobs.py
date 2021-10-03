@@ -309,3 +309,9 @@ def backfill_cumulative_stats():
             stat.cumulative_stats = tracker_dict[stat.user.id]
 
     UserStats.objects.bulk_update(user_stats, ['cumulative_stats'])
+
+
+@transaction.atomic
+def backfill_afk_rewards():
+    for user in User.objects.all():
+        _, _ = AFKReward.objects.get_or_create(user=user)

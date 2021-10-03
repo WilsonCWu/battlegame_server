@@ -79,7 +79,7 @@ def get_relics(seed_int=1):
     return epics + rares
 
 
-# The hour is 4am UTC or 12am EST during non-daylight savings
+# At 0 UTC on the 1st and 16th of every month
 def get_relic_reset_date():
     today = datetime.today()
     if today.day >= 16:

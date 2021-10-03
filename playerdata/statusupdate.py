@@ -13,7 +13,8 @@ from playerdata.models import ServerStatus
 from playerdata.models import TournamentMatch
 from playerdata.models import TournamentMember
 from playerdata.models import UserStats
-from . import constants, formulas, rolls, tier_system, server, pvp_queue, matcher
+from . import constants, formulas, rolls, tier_system, server, pvp_queue, matcher, afk_rewards
+from .formulas import vip_exp_to_level
 from .questupdater import QuestUpdater
 from .serializers import UploadResultSerializer
 
@@ -215,6 +216,10 @@ def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defend
         if tier_system.elo_to_tier(elo_updates.attacker_new).value > request.user.userinfo.tier_rank:
             request.user.userinfo.tier_rank = tier_system.elo_to_tier(elo_updates.attacker_new).value
 
+        if server.is_server_version_higher('0.5.0'):
+            vip_level = vip_exp_to_level(request.user.userinfo.vip_exp)
+            afk_rewards.evaluate_afk(request.user.afkreward, vip_level, afk_rewards.PVP_RUNE_REWARD)
+
         chest_rarity = award_chest(request.user)
         QuestUpdater.add_progress_by_type(request.user, constants.WIN_QUICKPLAY_GAMES, 1)
 
@@ -244,7 +249,8 @@ def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defend
                      'elo': elo_updates.attacker_new, 'prev_elo': original_elo,
                      'coins': coins, 'player_exp': player_exp,
                      'chest_rarity': chest_rarity, 'match_id': match_id,
-                     'daily_wins': request.user.userstats.daily_wins})
+                     'daily_wins': request.user.userstats.daily_wins,
+                     'runes': afk_rewards.PVP_RUNE_REWARD})
 
 
 def handle_tourney(request, win, opponent):
