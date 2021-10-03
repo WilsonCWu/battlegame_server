@@ -76,6 +76,7 @@ class InventorySchema(Schema):
     epic_shards = fields.Int()
     legendary_shards = fields.Int()
     active_pet_id = fields.Int()
+    gems_bought = fields.Int()
 
     chest_slot_1 = fields.Nested(ChestSchema)
     chest_slot_2 = fields.Nested(ChestSchema)
@@ -354,6 +355,7 @@ def unequip_item_from_char(char, slot):
     char.save()
 
 
+# TODO(0.5.0): Can be removed after
 ITEM_RARITY_MIN_LEVEL = {
     0: 20,
     1: 80,
@@ -386,7 +388,8 @@ class EquipItemView(APIView):
         if item.item_type.gear_slot != target_slot[0]:
             return Response({'status': False, 'reason': 'item does not belong in the slot'})
 
-        if char.level < ITEM_RARITY_MIN_LEVEL[item.item_type.rarity]:
+        # TODO(0.5.0): Remove
+        if char.level < ITEM_RARITY_MIN_LEVEL[item.item_type.rarity] and not server.is_server_version_higher('0.5.0'):
             return Response({'status': False, 'reason': 'character not high enough level to equip item'})
 
         # Unequip item if already equipped.

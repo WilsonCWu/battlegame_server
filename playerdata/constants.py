@@ -265,6 +265,7 @@ CHEST_GEMS_PER_HOUR = 120
 # Number of guaranteed summons per chest rarity
 GUARANTEED_SUMMONS = [1, 3, 6, 0, 1, 1]
 
+
 # The number of chars of each char_rarity guaranteed for a chest_rarity
 # Ex: CHAR_RARITY_GUARANTEE[0][0] is number of guaranteed rarity=1 chars for a SILVER chest
 GUARANTEED_CHARS_PER_RARITY_PER_CHEST = [

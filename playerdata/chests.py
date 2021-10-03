@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from playerdata import constants, formulas, rolls, tier_system, base
+from playerdata import constants, formulas, rolls, tier_system, base, server
 from playerdata.constants import ChestType
 from playerdata.models import Chest, BaseItem, Item, DailyDungeonStatus, BaseCharacter
 from playerdata.questupdater import QuestUpdater
@@ -218,6 +218,10 @@ def guarantee_resources(rewards, num_rewards, chest_rarity: int, user, chest_tie
 
 def get_guaranteed_summons(chest_rarity: int, guaranteed_char_rewards, user):
     num_guaranteed_summons = constants.GUARANTEED_SUMMONS[chest_rarity - 1] - len(guaranteed_char_rewards)
+
+    # TODO(0.5.0): remove and replace constant with 8 mythic summons
+    if server.is_server_version_higher('0.5.0') and chest_rarity == ChestType.MYTHICAL.value:
+        num_guaranteed_summons = 8
 
     # Increase num summons based on stage if DailyDungeon
     if chest_rarity == constants.ChestType.DAILY_DUNGEON.value:

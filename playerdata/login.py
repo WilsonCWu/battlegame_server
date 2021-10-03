@@ -1,5 +1,4 @@
 import secrets
-import re
 
 from decouple import config
 from django.contrib.auth import authenticate
@@ -16,14 +15,14 @@ from rest_framework.status import (
 )
 from rest_framework.views import APIView
 
-from .serializers import AuthTokenSerializer
-from .serializers import CreateNewUserSerializer
-from .serializers import ChangeNameSerializer
-from .serializers import RecoverAccountSerializer
-
-from .models import UserInfo, IPTracker
 from playerdata import server
 from playerdata.social import isTextSanitized
+from .models import UserInfo, IPTracker
+from .serializers import AuthTokenSerializer
+from .serializers import ChangeNameSerializer
+from .serializers import CreateNewUserSerializer
+from .serializers import RecoverAccountSerializer
+from better_profanity import profanity
 
 
 class HelloView(APIView):
@@ -78,8 +77,11 @@ class ChangeName(APIView):
         if len(name) > 20:
             return Response({'status': False, 'reason': 'Your name cannot be more than 20 characters long'})
 
-        if (not isTextSanitized(name, False, False, False)):  # No backslash, newline, return, or non-basic-ASCII in names.
+        if not isTextSanitized(name, False, False, False):  # No backslash, newline, return, or non-basic-ASCII in names
             return Response({'status': False, 'reason': 'Name contains invalid characters'})
+
+        if profanity.contains_profanity(name):
+            return Response({'status': False, 'reason': 'Please pick another name'})
 
         userinfo = UserInfo.objects.get(user=request.user)
         userinfo.name = name
