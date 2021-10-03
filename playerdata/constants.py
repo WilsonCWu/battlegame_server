@@ -1,8 +1,6 @@
 # Constants
 from enum import Enum, auto
 
-from playerdata import server
-
 QUICKPLAY = 0
 DUNGEON = 1
 TOURNAMENT = 2
@@ -267,13 +265,6 @@ CHEST_GEMS_PER_HOUR = 120
 # Number of guaranteed summons per chest rarity
 GUARANTEED_SUMMONS = [1, 3, 6, 0, 1, 1]
 
-
-def guaranteed_summons(rarity: int):
-    # TODO(0.5.0): remove and replace constant with 8 mythic summons
-    if server.is_server_version_higher('0.5.0') and rarity == ChestType.MYTHICAL.value:
-        return 8
-
-    return GUARANTEED_SUMMONS[rarity]
 
 # The number of chars of each char_rarity guaranteed for a chest_rarity
 # Ex: CHAR_RARITY_GUARANTEE[0][0] is number of guaranteed rarity=1 chars for a SILVER chest
