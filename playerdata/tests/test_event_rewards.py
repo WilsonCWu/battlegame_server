@@ -33,7 +33,7 @@ class EventRewardsTestCase(APITestCase):
     def test_bad_mid_event_get(self):
         self.u.eventrewards.last_claimed_reward = -1
         response = self.client.get('/eventreward/get/')
-        self.assertFalse(response.data['highest_unlocked'] == 3)   
+        self.assertFalse(response.data['highest_unlocked'] == 3)
 
     # We don't test an OK claim because the characters aren't in the lightweight db yet.
     @freeze_time("2022-01-01")
