@@ -27,6 +27,7 @@ django-prometheus==2.1.0
 django-redis==5.0.0
 django-rest-marshmallow==4.0.2
 djangorestframework==3.11.0
+freezegun==1.1.0
 future==0.18.2
 google-api-core==1.19.1
 google-api-python-client==1.9.1

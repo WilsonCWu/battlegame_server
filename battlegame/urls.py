@@ -42,6 +42,7 @@ from playerdata import clan_pve
 from playerdata import clan_farm
 from playerdata import story_mode
 from playerdata import pvp_queue
+from playerdata import event_rewards
 
 urlpatterns = [
     path('shards/summons/', shards.SummonShardsView.as_view()),
@@ -92,6 +93,8 @@ urlpatterns = [
     path('champbadge/claim/', tier_system.ClaimChampRewardView.as_view()),
     path('eloreward/get/', tier_system.GetEloRewardListView.as_view()),
     path('eloreward/claim/', tier_system.ClaimEloRewardView.as_view()),
+    path('eventreward/get/', event_rewards.GetEventRewardListView.as_view()),
+    path('eventreward/claim/', event_rewards.ClaimEventRewardView.as_view()),
     path('dailydungeon/start/', daily_dungeon.DailyDungeonStartView.as_view()),
     path('dailydungeon/status/', daily_dungeon.DailyDungeonStatusView.as_view()),
     path('dailydungeon/stage/', daily_dungeon.DailyDungeonStageView.as_view()),
