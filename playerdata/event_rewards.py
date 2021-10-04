@@ -14,7 +14,7 @@ from playerdata.models import EventRewards
 
 
 # Returns a list[list[ChestReward]]
-@lru_cache
+@lru_cache()
 def get_event_rewards_list() -> List[List[chests.ChestReward]]:
     day_one = []
     day_one.append(chests.ChestReward('char_id', 38))  # Technician
