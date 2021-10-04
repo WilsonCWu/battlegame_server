@@ -18,28 +18,26 @@ from playerdata.models import EventRewards
 def get_event_rewards_list() -> List[List[chests.ChestReward]]:
     day_one = []
     day_one.append(chests.ChestReward('char_id', 38))  # Technician
+    day_one.append(chests.ChestReward('gems', 500))
 
     day_two = []
     day_two.append(chests.ChestReward('char_id', 33))  # Demolitionist
+    day_two.append(chests.ChestReward('gems', 800))
 
     day_three = []
     day_three.append(chests.ChestReward('char_id', 37))  # Blob
+    day_three.append(chests.ChestReward('gems', 1100))
 
     day_four = []
     day_four.append(chests.ChestReward('char_id', 35))  # Hunter
+    day_four.append(chests.ChestReward('gems', 1400))
 
     day_five = []
     day_five.append(chests.ChestReward('char_id', 34))  # Spacemage
-    day_five.append(chests.ChestReward('profile_pic', 15))  # Profile pic
+    day_five.append(chests.ChestReward('gems', 2700))
+    day_five.append(chests.ChestReward('profile_pic', 16))  # Profile pic
 
-    rewards = []
-    rewards.append(day_one)
-    rewards.append(day_two)
-    rewards.append(day_three)
-    rewards.append(day_four)
-    rewards.append(day_five)
-
-    return rewards
+    return [day_one, day_two, day_three, day_four, day_five]
 
 
 # Returns an int, number of days passed since event started. First day returns 0

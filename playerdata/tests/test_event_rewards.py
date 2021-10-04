@@ -23,6 +23,18 @@ class EventRewardsTestCase(APITestCase):
         response = self.client.get('/eventreward/get/')
         self.assertTrue(response.data['highest_unlocked'] < 1)
 
+    @freeze_time("2021-10-14")  # Day two
+    def test_ok_mid_event_get(self):
+        self.u.eventrewards.last_claimed_reward = -1
+        response = self.client.get('/eventreward/get/')
+        self.assertTrue(response.data['highest_unlocked'] == 1)
+
+    @freeze_time("2021-10-15")  # Day three
+    def test_bad_mid_event_get(self):
+        self.u.eventrewards.last_claimed_reward = -1
+        response = self.client.get('/eventreward/get/')
+        self.assertFalse(response.data['highest_unlocked'] == 3)   
+
     # We don't test an OK claim because the characters aren't in the lightweight db yet.
     @freeze_time("2022-01-01")
     def test_bad_event_claim(self):
