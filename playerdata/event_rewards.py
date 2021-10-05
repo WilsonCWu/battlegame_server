@@ -18,23 +18,23 @@ from playerdata.models import EventRewards
 def get_event_rewards_list() -> List[List[chests.ChestReward]]:
     day_one = []
     day_one.append(chests.ChestReward('char_id', 38))  # Technician
-    day_one.append(chests.ChestReward('gems', 500))
+    day_one.append(chests.ChestReward('gems', 300))
 
     day_two = []
     day_two.append(chests.ChestReward('char_id', 33))  # Demolitionist
-    day_two.append(chests.ChestReward('gems', 800))
+    day_two.append(chests.ChestReward('gems', 600))
 
     day_three = []
     day_three.append(chests.ChestReward('char_id', 37))  # Blob
-    day_three.append(chests.ChestReward('gems', 1100))
+    day_three.append(chests.ChestReward('gems', 1200))
 
     day_four = []
     day_four.append(chests.ChestReward('char_id', 35))  # Hunter
-    day_four.append(chests.ChestReward('gems', 1400))
+    day_four.append(chests.ChestReward('gems', 2400))
 
     day_five = []
     day_five.append(chests.ChestReward('char_id', 34))  # Spacemage
-    day_five.append(chests.ChestReward('gems', 2700))
+    day_five.append(chests.ChestReward('gems', 4800))
     day_five.append(chests.ChestReward('profile_pic', 16))  # Profile pic
 
     return [day_one, day_two, day_three, day_four, day_five]
