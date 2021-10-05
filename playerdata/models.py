@@ -1169,6 +1169,25 @@ class ReferralTracker(models.Model):
         return str(self.user) + ": " + str(self.referral.referral_code)
 
 
+class UserCreatorCode(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    creator_code = models.TextField(unique=True)
+
+    def __str__(self):
+        return str(self.user) + ": " + str(self.referral_code)
+
+
+class CreatorCodeTracker(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # The one who entered the code
+    code = models.ForeignKey(UserCreatorCode, on_delete=models.CASCADE)  # The user reference within is the creator
+    code_entered = models.DateTimeField()
+    is_expired = models.BooleanField(default=False)
+    device_id = models.TextField()
+
+    def __str__(self):
+        return str(self.user) + ": " + str(self.code.creator_code)
+
+
 class IPTracker(models.Model):
     ip = models.TextField(unique=True)
     user_list = ArrayField(models.IntegerField(), blank=True, null=True, default=list)

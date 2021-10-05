@@ -14,6 +14,7 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from battlegame.settings import SERVICE_ACCOUNT_FILE
+from playerdata.creatorcode import award_supported_creator
 from playerdata.models import Character
 from playerdata.models import InvalidReceipt
 from playerdata.models import Inventory
@@ -202,7 +203,7 @@ def handle_purchase_world_pack(user, purchase_id, transaction_id):
 
 def handle_purchase_chapterpack(user, purchase_id, transaction_id):
     curr_time = datetime.now(timezone.utc)
-    
+
     if curr_time > user.chapterrewardpack.expiration_date:
         return Response({'status': False, 'reason': 'this purchase offer has now expired'})
 
@@ -239,6 +240,7 @@ def handle_purchase_gems(user, purchase_id, transaction_id):
 def reward_deal(user, inventory, base_deal):
     if base_deal.deal_type == constants.DealType.GEMS_COST.value:
         inventory.gems -= base_deal.gems_cost
+        award_supported_creator(user, base_deal.gems_cost)
 
     inventory.coins += base_deal.coins
     inventory.gems += base_deal.gems
@@ -496,6 +498,7 @@ class PurchaseItemView(APIView):
 
         # deduct gems, update quests
         inventory.gems -= constants.SUMMON_GEM_COST[purchase_item_id]
+        award_supported_creator(user, constants.SUMMON_GEM_COST[purchase_item_id])
         inventory.save()
 
         QuestUpdater.add_progress_by_type(request.user, constants.PURCHASE_ITEM, 1)
