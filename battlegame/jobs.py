@@ -315,3 +315,9 @@ def backfill_cumulative_stats():
 def backfill_afk_rewards():
     for user in User.objects.all():
         _, _ = AFKReward.objects.get_or_create(user=user)
+
+
+@transaction.atomic
+def backfill_event_rewards():
+    for user in User.objects.all():
+        _, _ = EventRewards.objects.get_or_create(user=user)

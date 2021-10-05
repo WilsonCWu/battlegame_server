@@ -1370,6 +1370,11 @@ class RegalRewards(models.Model):
     last_claimed_premium = models.IntegerField(default=-1)
 
 
+class EventRewards(models.Model):  # login rewards for launch event
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    last_claimed_reward = models.IntegerField(default=-1)
+
+
 class StoryMode(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     available_stories = ArrayField(models.IntegerField(), default=list)
@@ -1443,6 +1448,7 @@ def create_user_info(sender, instance, created, **kwargs):
         StoryMode.objects.create(user=instance)
         RotatingModeStatus.objects.create(user=instance)
         RegalRewards.objects.create(user=instance)
+        EventRewards.objects.create(user=instance)
         ActivityPoints.objects.create(user=instance)
         AFKReward.objects.create(user=instance)
         create_user_referral(instance)
