@@ -321,3 +321,15 @@ def backfill_afk_rewards():
 def backfill_event_rewards():
     for user in User.objects.all():
         _, _ = EventRewards.objects.get_or_create(user=user)
+
+
+@transaction.atomic
+def backfill_login_chest():
+    invs = Inventory.objects.all()
+    for inv in invs:
+        if inv.login_chest is None:
+            login_chest = Chest.objects.create(user=inv.user, rarity=constants.ChestType.LOGIN_GEMS.value,
+                                               locked_until=timezone.now())
+            inv.login_chest = login_chest
+
+    Inventory.objects.bulk_update(invs, ['login_chest'])

@@ -238,6 +238,7 @@ class ChestType(Enum):
     EPIC = 4
     LEGENDARY = 5
     DAILY_DUNGEON = 6
+    LOGIN_GEMS = 7
 
 
 CHEST_ODDS = [750, 250, 0, 0, 0, 0]

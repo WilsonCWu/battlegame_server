@@ -82,6 +82,8 @@ class InventorySchema(Schema):
     chest_slot_2 = fields.Nested(ChestSchema)
     chest_slot_3 = fields.Nested(ChestSchema)
     chest_slot_4 = fields.Nested(ChestSchema)
+    login_chest = fields.Nested(ChestSchema)
+
     # TODO: delete this on 0.1.2
     player_level = fields.Method("get_player_lvl")
     player_exp = fields.Method("get_player_exp")
