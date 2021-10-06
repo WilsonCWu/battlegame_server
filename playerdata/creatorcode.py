@@ -25,13 +25,6 @@ def generate_creator_code(user, code):
     return user_code
 
 
-# User's side
-class CreatorCodeSchema(Schema):
-    creator_code = fields.Str()
-    code_entered = fields.DateTime()
-    is_expired = fields.Bool()
-
-
 # Used to actually get a user's creator code.
 class CreatorCodeGetView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -74,7 +67,7 @@ class CreatorCodeChangeView(APIView):
         creator_code = serializer.validated_data['value']
         current_code = CreatorCodeTracker.objects.filter(user=request.user)
 
-        if creator_code == "NONE":
+        if creator_code == "NONE":  # We send "NONE" to clear our current entry.
             if current_code.count() != 0:
                 current_code.delete()
             return Response({'status': True})
