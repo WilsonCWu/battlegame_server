@@ -1177,7 +1177,7 @@ class UserCreatorCode(models.Model):
     creator_code = models.TextField(unique=True)
 
     def __str__(self):
-        return str(self.user) + ": " + str(self.referral_code)
+        return str(self.user) + ": " + str(self.creator_code)
 
 
 class CreatorCodeTracker(models.Model):
