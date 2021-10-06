@@ -205,11 +205,14 @@ CRONJOBS = [
     ('0 0 1,16 * *', 'battlegame.cron.refresh_relic_shop', '>> /tmp/refresh_relic_shop.log'),
 
     # At 4 UTC daily
-    ('0 4 * * *', 'battlegame.cron.refund_google', '>> /tmp/refund_google.log')
+    ('0 4 * * *', 'battlegame.cron.refund_google', '>> /tmp/refund_google.log'),
 
     # ('0 16 * * THU', 'battlegame.cron.setup_tournament', '>> /tmp/setup_tournament_scheduled_job.log'),
     # ('0 16 * * 5-7', 'battlegame.cron.next_round', '>> /tmp/next_round_scheduled_job.log'),
     # ('5 16 * * TUE', 'battlegame.cron.end_tourney', '>> /tmp/end_tourney_scheduled_job.log')
+
+    # At 0 UTC daily
+    ('0 0 * * *', 'battlegame.cron.expire_creator_codes', '>> /tmp/expire_creator_codes.log')
 ]
 
 # Monitoring

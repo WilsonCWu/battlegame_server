@@ -3,6 +3,8 @@ import statistics
 import requests
 from sentry_sdk import capture_exception
 
+from datetime import timedelta
+import pytz
 from playerdata import tier_system, relic_shop, refunds
 from playerdata.antihacking import MatchValidator
 from playerdata.constants import TOURNEY_SIZE
@@ -335,3 +337,13 @@ def end_tourney():
     TournamentTeam.objects.all().delete()
     TournamentMember.objects.all().delete()
     Tournament.objects.all().delete()
+
+
+@cron(uuid='788e2963-6794-4011-a4b2-baf7c0c1b1dd')
+def expire_creator_codes():
+    codes = CreatorCodeTracker.objects.all()
+    expiretime = pytz.UTC.localize(datetime.utcnow() - timedelta(days=7))  # Anything earlier than this is expired.
+    for code_tracker in codes:
+        if expiretime > code_tracker.code_entered:
+            code_tracker.is_expired = True
+            code_tracker.save()

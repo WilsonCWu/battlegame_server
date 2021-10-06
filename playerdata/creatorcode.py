@@ -79,5 +79,7 @@ class CreatorCodeChangeView(APIView):
         if current_code.count() == 0:
             CreatorCodeTracker.objects.create(user=request.user, code=user_ref, code_entered=datetime.utcnow())
         else:
-            current_code.user = request.user, current_code.code = user_ref,
+            current_code.user = request.user
+            current_code.code = user_ref
+            current_code.save()
         return Response({'status': True})
