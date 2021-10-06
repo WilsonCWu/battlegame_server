@@ -314,12 +314,12 @@ class CollectChest(APIView):
             gems = rolls.login_chest_gems()
             rewards = [ChestReward('gems', gems)]
             chest.locked_until = datetime.now(timezone.utc) + chest_unlock_timedelta(constants.ChestType.LOGIN_GEMS.value)
+            award_chest_rewards(request.user, rewards)
             chest.save()
         else:
             rewards = generate_chest_rewards(chest.rarity, request.user, chest.tier_rank)
+            award_chest_rewards(request.user, rewards)
             chest.delete()
-
-        award_chest_rewards(request.user, rewards)
 
         reward_schema = ChestRewardSchema(rewards, many=True)
         return Response({'status': True, 'rewards': reward_schema.data})
