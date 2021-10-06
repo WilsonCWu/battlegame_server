@@ -82,6 +82,8 @@ class InventorySchema(Schema):
     chest_slot_2 = fields.Nested(ChestSchema)
     chest_slot_3 = fields.Nested(ChestSchema)
     chest_slot_4 = fields.Nested(ChestSchema)
+    login_chest = fields.Nested(ChestSchema)
+
     # TODO: delete this on 0.1.2
     player_level = fields.Method("get_player_lvl")
     player_exp = fields.Method("get_player_exp")
@@ -463,27 +465,32 @@ def calculate_item_exp(item):
     return base + item.exp
 
 
+MAX_ITEM_STAR = 5
+
+
 # TODO: Tune numbers
 def exp_to_stars(exp, rarity):
     base = get_item_rarity_base_expvalue(rarity)
 
     if exp < base:
-        return 1
-    elif exp < base * 2:
-        return 2
+        return 0
     elif exp < base * 3:
-        return 3
-    elif exp < base * 4:
-        return 4
-    elif exp < base * 5:
-        return 5
+        return 1
     elif exp < base * 7:
+        return 2
+    elif exp < base * 15:
+        return 3
+    elif exp < base * 31:
+        return 4
+    elif exp < base * 63:
+        return 5
+    elif exp < base * 111:
         return 6
-    elif exp < base * 9:
+    elif exp < base * 175:
         return 7
-    elif exp < base * 11:
+    elif exp < base * 303:
         return 8
-    elif exp < base * 13:
+    elif exp < base * 495:
         return 9
     else:
         return 10
@@ -508,6 +515,9 @@ class ScrapItemsView(APIView):
         scrap_item_ids = serializer.validated_data['scrap_item_ids']
         target_item_id = serializer.validated_data['target_item_id']
 
+        if target_item_id in scrap_item_ids:
+            return Response({'status': False, 'reason': 'target item cannot be in the scrapped items'})
+
         scraps = Item.objects.filter(item_id__in=scrap_item_ids, user=request.user)
         if scraps.first() is None:
             return Response({'status': False, 'reason': 'invalid item ids'})
@@ -518,6 +528,9 @@ class ScrapItemsView(APIView):
 
         if target_item.item_type.rarity < 1:
             return Response({'status': False, 'reason': 'cannot enhance Common items'})
+
+        if exp_to_stars(target_item.exp, target_item.item_type.rarity) == MAX_ITEM_STAR:
+            return Response({'status': False, 'reason': 'max star level reached'})
 
         target_item = scrap_items(scraps, target_item)
 

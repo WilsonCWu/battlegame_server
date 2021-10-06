@@ -54,6 +54,21 @@ class ChestAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
 
+    def test_collect_login_chest(self):
+        original_gems = self.u.inventory.gems
+        self.u.inventory.login_chest = Chest.objects.create(user=self.u, rarity=constants.ChestType.LOGIN_GEMS.value,
+                                                            locked_until=datetime.now(timezone.utc))
+        response = self.client.post('/chest/collect/', {
+            'chest_id': self.u.inventory.login_chest.id,
+            'is_skip': False,
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+        self.u.inventory.refresh_from_db()
+        self.assertTrue(self.u.inventory.login_chest.locked_until > datetime.now(timezone.utc))
+        self.assertTrue(self.u.inventory.gems > original_gems)
+
     def test_collect_chests_skip(self):
         response = self.client.post('/chest/unlock/', {
             'value': self.chest3.id,
