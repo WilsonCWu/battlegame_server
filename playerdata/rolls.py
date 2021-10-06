@@ -110,3 +110,17 @@ def insert_character(user, chosen_char_id):
     new_char = Character.objects.create(user=user, char_type_id=chosen_char_id)
     QuestUpdater.add_progress_by_type(user, constants.OWN_HEROES, 1)
     return new_char
+
+
+# Normal distribution gem drop
+# minimum of 150 gems
+# if you win the lottery you get 10k gems
+def login_chest_gems():
+    # lotto max jackpot
+    retire_young_baby = random.randint(1, 1000)
+    if retire_young_baby == 888:
+        return 10000
+
+    mu = 250
+    sigma = 100
+    return int(max(random.gauss(mu, sigma), 150))

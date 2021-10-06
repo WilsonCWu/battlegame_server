@@ -40,6 +40,8 @@ def chest_unlock_timedelta(rarity: int):
         hours = 12
     elif rarity == ChestType.EPIC.value:
         hours = 12
+    elif rarity == ChestType.LOGIN_GEMS.value:
+        hours = 22
     else:  # Max / Legendary
         hours = 24
 
@@ -308,9 +310,16 @@ class CollectChest(APIView):
             if datetime.now(timezone.utc) < chest.locked_until:
                 return Response({'status': False, 'reason': 'chest is not ready to open'})
 
-        rewards = generate_chest_rewards(chest.rarity, request.user, chest.tier_rank)
+        if chest.rarity == constants.ChestType.LOGIN_GEMS.value:
+            gems = rolls.login_chest_gems()
+            rewards = [ChestReward('gems', gems)]
+            chest.locked_until = datetime.now(timezone.utc) + chest_unlock_timedelta(constants.ChestType.LOGIN_GEMS.value)
+            chest.save()
+        else:
+            rewards = generate_chest_rewards(chest.rarity, request.user, chest.tier_rank)
+            chest.delete()
+
         award_chest_rewards(request.user, rewards)
-        chest.delete()
 
         reward_schema = ChestRewardSchema(rewards, many=True)
         return Response({'status': True, 'rewards': reward_schema.data})

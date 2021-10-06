@@ -813,6 +813,9 @@ class Inventory(models.Model):
     chest_slot_4 = models.ForeignKey(Chest, null=True, blank=True,
                                      on_delete=models.SET_NULL, related_name='chest_slot_4')
 
+    login_chest = models.ForeignKey(Chest, null=True, blank=True,
+                                    on_delete=models.SET_NULL, related_name='login_chest')
+
     def __str__(self):
         return self.user.userinfo.name + '(' + str(self.user.id) + ')'
 
@@ -1432,7 +1435,11 @@ def create_user_info(sender, instance, created, **kwargs):
 
         userinfo = UserInfo.objects.create(user=instance, default_placement=default_placement)
         UserStats.objects.create(user=instance)
-        Inventory.objects.create(user=instance)
+
+        login_chest = Chest.objects.create(user=instance, rarity=constants.ChestType.LOGIN_GEMS.value,
+                                           locked_until=timezone.now())
+
+        Inventory.objects.create(user=instance, login_chest=login_chest)
         ClanMember.objects.create(userinfo=userinfo, pve_character_lending=[
             peasant_archer.char_id, peasant_mage.char_id,
             peasant_swordsman.char_id])
