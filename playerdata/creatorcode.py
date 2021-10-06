@@ -11,7 +11,7 @@ from playerdata.models import UserCreatorCode
 from playerdata.models import CreatorCodeTracker
 
 
-# Call this whenever gems are spent and creator code should be credited.  Checks for creatorCodes, then credits appropriately
+# Call this whenever gems are spent and creator code should be credited.
 def award_supported_creator(user, amountSpent):
     entered_code = CreatorCodeTracker.objects.filter(user=user).first()
     if entered_code is None or entered_code.is_expired or entered_code.code.creator_code == "NONE":
@@ -32,7 +32,6 @@ class CreatorCodeGetView(APIView):
     def get(self, request):
         user_ref = UserCreatorCode.objects.filter(user=request.user).first()
         if user_ref is None:
-            generate_creator_code(request.user, 'TEST')  # TEMP
             return Response({'status': True,
                              'creator_code': 'NONE'})
         return Response({'status': True,
