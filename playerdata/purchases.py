@@ -110,7 +110,13 @@ def validate_apple(request, receipt_raw, transaction_id):
         if purchase_id == '':
             return Response({'status': False, 'reason': 'transaction_id not found'})
 
-        if not server.is_server_version_higher("0.5.0"):
+        # if not server.is_server_version_higher("0.5.0"):
+        #     return Response({'status': True})
+
+        # this is really jank, but current testflight users might try to buy gems we shouldn't reward
+        # but we need to reward gems for our apple reviewer, turning on until review is complete
+        # we can contain or track any abuse within only new users
+        if request.user.id < 15906 or PurchasedTracker.objects.filter(user_id=request.user.id, purchase_id=purchase_id).count() > 3:
             return Response({'status': True})
 
         return reward_purchase(request.user, transaction_id, purchase_id)
