@@ -20,7 +20,7 @@ from .quest import queue_active_weekly_quests, queue_active_daily_quests, refres
 class InventoryAdmin(admin.ModelAdmin, DynamicArrayMixin):
     list_display = ('user_id', 'gems', 'gems_bought')
     search_fields = ('=user__id',)
-    raw_id_fields = ("user", "chest_slot_1", "chest_slot_2", "chest_slot_3", "chest_slot_4")
+    raw_id_fields = ("user", "chest_slot_1", "chest_slot_2", "chest_slot_3", "chest_slot_4", "login_chest")
 
 
 class AFKRewardAdmin(admin.ModelAdmin, DynamicArrayMixin):
