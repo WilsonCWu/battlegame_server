@@ -77,6 +77,7 @@ class ValidateReceiptSerializer(serializers.Serializer):
     receipt = serializers.CharField(required=True)
     store = serializers.IntegerField(required=True)
     transaction_id = serializers.CharField(required=True)
+    new_purchase_token = serializers.CharField(required=False)
 
 
 class PurchaseSerializer(serializers.Serializer):

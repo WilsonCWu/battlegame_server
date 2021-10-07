@@ -59,7 +59,8 @@ class ValidateView(APIView):
         transaction_id = serializer.validated_data['transaction_id']
 
         if store == 0:  # Apple
-            return validate_apple(request, receipt, transaction_id)
+            new_purchase_token = serializer.validated_data['new_purchase_token'] if 'new_purchase_token' in serializer.validated_data else ''
+            return validate_apple(request, receipt, transaction_id, new_purchase_token)
         elif store == 1:
             return validate_google(request, receipt)
 
@@ -98,7 +99,7 @@ def validate_google(request, receipt_raw):
         return Response({'status': False, 'reason': 'receipt validation failed'})
 
 
-def validate_apple(request, receipt_raw, transaction_id):
+def validate_apple(request, receipt_raw, transaction_id, new_purchase_token):
     payload = json.loads(receipt_raw)['Payload']
 
     bundle_id = 'com.salutationstudio.tinytitans'
@@ -110,13 +111,7 @@ def validate_apple(request, receipt_raw, transaction_id):
         if purchase_id == '':
             return Response({'status': False, 'reason': 'transaction_id not found'})
 
-        # if not server.is_server_version_higher("0.5.0"):
-        #     return Response({'status': True})
-
-        # this is really jank, but current testflight users might try to buy gems we shouldn't reward
-        # but we need to reward gems for our apple reviewer, turning on until review is complete
-        # we can contain or track any abuse within only new users
-        if request.user.id < 15906 or PurchasedTracker.objects.filter(user_id=request.user.id, purchase_id=purchase_id).count() > 3:
+        if new_purchase_token != "UD5QKLWvv7fVbnfkCZ2dsUq4wZ":
             return Response({'status': True})
 
         return reward_purchase(request.user, transaction_id, purchase_id)
