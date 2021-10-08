@@ -162,11 +162,10 @@ class DailyDungeonStatusView(APIView):
             return Response({'status': DailyDungeonStatusSchema(dd_status).data,
                              'next_refresh_time': get_next_refresh_time()})
 
-        # TODO: jank needs clean up on logic
-        dd_status = DailyDungeonStatus.objects.filter(user=request.user).first()
-        dungeon_data = None if dd_status is None else DailyDungeonStatusSchema(dd_status).data
-
         if server.is_server_version_higher('0.5.0'):
+            # TODO: jank needs clean up on logic
+            dd_status = DailyDungeonStatus.objects.filter(user=request.user).first()
+            dungeon_data = None if dd_status is None else DailyDungeonStatusSchema(dd_status).data
             return Response({'status': True, 'dungeon': dungeon_data,
                              'next_refresh_time': get_next_refresh_time()})
         return Response({'status': None, 'next_refresh_time': get_next_refresh_time()})
