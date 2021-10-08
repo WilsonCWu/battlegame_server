@@ -163,7 +163,10 @@ class DailyDungeonStatusView(APIView):
                              'next_refresh_time': get_next_refresh_time()})
 
         if server.is_server_version_higher('0.5.0'):
-            return Response({'status': True, 'dungeon': None,
+            # TODO: jank needs clean up on logic
+            dd_status = DailyDungeonStatus.objects.filter(user=request.user).first()
+            dungeon_data = None if dd_status is None else DailyDungeonStatusSchema(dd_status).data
+            return Response({'status': True, 'dungeon': dungeon_data,
                              'next_refresh_time': get_next_refresh_time()})
         return Response({'status': None, 'next_refresh_time': get_next_refresh_time()})
 
@@ -251,6 +254,8 @@ class DailyDungeonResultView(APIView):
                 dd_status.stage = 0
                 if depth == 20 and dd_status.cur_tier == dd_status.furthest_tier:
                     dd_status.furthest_tier = min(3, dd_status.furthest_tier + 1)
+            else:
+                dd_status.stage += 1
         else:
             rewards = daily_dungeon_reward(dd_status.is_golden, dd_status.stage, request.user)
 
