@@ -223,7 +223,7 @@ def get_guaranteed_summons(chest_rarity: int, guaranteed_char_rewards, user):
 
     # TODO(0.5.0): remove and replace constant with 8 mythic summons
     if server.is_server_version_higher('0.5.0') and chest_rarity == ChestType.MYTHICAL.value:
-        num_guaranteed_summons = 8
+        num_guaranteed_summons = 7
 
     # Increase num summons based on stage if DailyDungeon
     if chest_rarity == constants.ChestType.DAILY_DUNGEON.value:
@@ -249,6 +249,8 @@ def generate_chest_rewards(chest_rarity: int, user, chest_tier=None):
     resource_reward_odds = constants.RESOURCE_TYPE_ODDS_PER_CHEST[chest_rarity - 1]
     rewards, num_rewards = guarantee_resources(rewards, num_rewards, chest_rarity, user, chest_tier)
 
+    # TODO(daniel): this should go after we guarantee number of summons,
+    #  and only if guaranteed rarity wasn't rolled do we roll one
     # pick guaranteed char rarities
     char_guarantees = constants.GUARANTEED_CHARS_PER_RARITY_PER_CHEST[chest_rarity - 1]
     guaranteed_char_rewards = roll_guaranteed_char_rewards(char_guarantees)

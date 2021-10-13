@@ -123,12 +123,12 @@ class DailyDungeonStartView(APIView):
             dd_status.stage = stage
             dd_status.is_golden = serializer.validated_data['is_golden']
             dd_status.character_state = ""
-            dd_status.tier = tier
+            dd_status.cur_tier = tier
             dd_status.save()
         else:
             DailyDungeonStatus.objects.create(user=request.user,
                                               stage=stage,
-                                              tier=tier,
+                                              cur_tier=tier,
                                               is_golden=serializer.validated_data['is_golden'],
                                               character_state="")
 
@@ -143,7 +143,8 @@ def get_next_refresh_time():
 class DailyDungeonStatusSchema(Schema):
     is_golden = fields.Bool()
     stage = fields.Int()
-    tier = fields.Int()
+    cur_tier = fields.Int()
+    furthest_tier = fields.Int()
     character_state = fields.Str()
 
 
@@ -162,7 +163,10 @@ class DailyDungeonStatusView(APIView):
                              'next_refresh_time': get_next_refresh_time()})
 
         if server.is_server_version_higher('0.5.0'):
-            return Response({'status': True, 'dungeon': None,
+            # TODO: jank needs clean up on logic
+            dd_status = DailyDungeonStatus.objects.filter(user=request.user).first()
+            dungeon_data = None if dd_status is None else DailyDungeonStatusSchema(dd_status).data
+            return Response({'status': True, 'dungeon': dungeon_data,
                              'next_refresh_time': get_next_refresh_time()})
         return Response({'status': None, 'next_refresh_time': get_next_refresh_time()})
 
@@ -213,10 +217,10 @@ def daily_dungeon_reward(is_golden, stage, user):
 
 def dd_tiered_item_rewards(dd_status: DailyDungeonStatus, user):
     rewards = []
-    depth = dd_status.stage - (dd_status.tier * 20)
+    depth = dd_status.stage - (dd_status.cur_tier * 20)
     num_drops = math.floor(depth / 6.6)  # Max 3 item drops tuned a bit lower than maybe needed
 
-    items = rolls.get_n_unique_weighted_odds_item(user, num_drops, constants.DD_ITEM_DROP_RATE_PER_TIER[dd_status.tier])
+    items = rolls.get_n_unique_weighted_odds_item(user, num_drops, constants.DD_ITEM_DROP_RATE_PER_TIER[dd_status.cur_tier])
 
     for item in items:
         item_reward = chests.ChestReward(reward_type='item_id', value=item.item_type)
@@ -244,10 +248,14 @@ class DailyDungeonResultView(APIView):
         # TODO(0.5.0) can clean up this logic on version update
         rewards = []
         if server.is_server_version_higher('0.5.0'):
-            depth = dd_status.stage - (dd_status.tier * 20)
+            depth = dd_status.stage - (dd_status.cur_tier * 20)
             if is_loss or depth == 20:
                 rewards = dd_tiered_item_rewards(dd_status, request.user)
                 dd_status.stage = 0
+                if depth == 20 and dd_status.cur_tier == dd_status.furthest_tier:
+                    dd_status.furthest_tier = min(3, dd_status.furthest_tier + 1)
+            else:
+                dd_status.stage += 1
         else:
             rewards = daily_dungeon_reward(dd_status.is_golden, dd_status.stage, request.user)
 

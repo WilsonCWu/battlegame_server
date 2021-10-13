@@ -153,6 +153,7 @@ urlpatterns = [
     path('leaderboards/', social.GetLeaderboardView.as_view()),
     path('getchatid/', social.GetChatIdView.as_view()),
     path('getallchats/', social.GetAllChatsView.as_view()),
+    path('purchase/collectbonus/', purchases.CollectBonusGems.as_view()),
     path('purchase/cancel/sub/', purchases.CancelSubscriptionView.as_view()),
     path('validate/', purchases.ValidateView.as_view()),
     path('purchaseitem/', purchases.PurchaseItemView.as_view()),

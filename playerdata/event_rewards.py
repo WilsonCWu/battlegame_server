@@ -21,11 +21,11 @@ def get_event_rewards_list() -> List[List[chests.ChestReward]]:
     day_one.append(chests.ChestReward('gems', 300))
 
     day_two = []
-    day_two.append(chests.ChestReward('char_id', 33))  # Demolitionist
+    day_two.append(chests.ChestReward('char_id', 37))  # Blob
     day_two.append(chests.ChestReward('gems', 600))
 
     day_three = []
-    day_three.append(chests.ChestReward('char_id', 37))  # Blob
+    day_three.append(chests.ChestReward('char_id', 33))  # Demolitionist
     day_three.append(chests.ChestReward('gems', 1200))
 
     day_four = []
@@ -42,7 +42,7 @@ def get_event_rewards_list() -> List[List[chests.ChestReward]]:
 
 # Returns an int, number of days passed since event started. First day returns 0
 def get_event_rewards_unlocked():
-    day0 = date(2021, 10, 13)  # hardcoded to first day of launch event
+    day0 = date(2021, 10, 14)  # hardcoded to first day of launch event
     delta = (datetime.utcnow().date() - day0).days
     return delta
 
