@@ -42,7 +42,7 @@ def get_event_rewards_list() -> List[List[chests.ChestReward]]:
 
 # Returns an int, number of days passed since event started. First day returns 0
 def get_event_rewards_unlocked():
-    day0 = date(2021, 10, 13)  # hardcoded to first day of launch event
+    day0 = date(2021, 10, 14)  # hardcoded to first day of launch event
     delta = (datetime.utcnow().date() - day0).days
     return delta
 
