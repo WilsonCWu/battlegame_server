@@ -118,7 +118,6 @@ urlpatterns = [
     path('tournament/get', tournament.TournamentView.as_view()),
     path('referral', referral.ReferralView.as_view()),
     path('creatorcode/get/', creatorcode.CreatorCodeGetView.as_view()),
-    path('creatorcode/status/', creatorcode.CreatorCodeStatusView.as_view()),
     path('creatorcode/set/', creatorcode.CreatorCodeChangeView.as_view()),
     path('redeemcode', redemptioncodes.RedeemCodeView.as_view()),
     path('afkrewards/get', afk_rewards.GetAFKRewardView.as_view()),

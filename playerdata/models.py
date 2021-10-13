@@ -1173,7 +1173,7 @@ class ReferralTracker(models.Model):
         return str(self.user) + ": " + str(self.referral.referral_code)
 
 
-class UserCreatorCode(models.Model):
+class CreatorCode(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     creator_code = models.TextField(unique=True)
 
@@ -1183,8 +1183,8 @@ class UserCreatorCode(models.Model):
 
 class CreatorCodeTracker(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # The one who entered the code
-    code = models.ForeignKey(UserCreatorCode, on_delete=models.CASCADE)  # The user reference within is the creator
-    code_entered = models.DateTimeField()
+    code = models.ForeignKey(CreatorCode, on_delete=models.CASCADE)  # The user reference within is the creator
+    created_time = models.DateTimeField()
     is_expired = models.BooleanField(default=False)
     device_id = models.TextField()
 
