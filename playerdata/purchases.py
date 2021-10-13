@@ -519,3 +519,17 @@ class CancelSubscriptionView(APIView):
         request.user.userinfo.save()
 
         return Response({'status': True})
+
+
+class CollectBonusGems(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic()
+    def post(self, request):
+        rewards = [chests.ChestReward('gems', request.user.inventory.gems_bought)]
+
+        request.user.inventory.gems += request.user.inventory.gems_bought
+        request.user.inventory.gems_bought = 0
+        request.user.inventory.save()
+
+        return Response({'status': True, 'rewards': chests.ChestRewardSchema(rewards, many=True).data})
