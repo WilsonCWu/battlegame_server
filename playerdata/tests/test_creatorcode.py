@@ -12,10 +12,6 @@ class CreatorCodeTestCase(APITestCase):
         self.client.force_authenticate(user=self.u)
         generate_creator_code(self.u, 'TESTINGCODE')
 
-    def test_get_status(self):
-        response = self.client.get('/creatorcode/status/')
-        self.assertTrue(response.data['status'])
-
     def test_bad_set_code_unknowncode(self):
         response = self.client.post('/creatorcode/set/', {
             'value': 'TESTINGCODE'
@@ -28,7 +24,6 @@ class CreatorCodeTestCase(APITestCase):
         })
         self.assertFalse(response.data['status'])
 
-    def test_get_own_code(self):
+    def test_get_status(self):
         response = self.client.get('/creatorcode/get/')
         self.assertTrue(response.data['status'])
-        self.assertTrue(response.data['creator_code'] == 'TESTINGCODE')
