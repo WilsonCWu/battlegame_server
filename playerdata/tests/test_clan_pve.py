@@ -127,4 +127,4 @@ class ClanLendingTestCase(APITestCase):
         self.client.force_authenticate(user=self.u2)
         resp = self.client.get('/clanpve/lending/list/')
         lent_characters = [r['character']['char_id'] for r in resp.data['lent_characters']]
-        self.assertListEqual([1, 71, 72], lent_characters)
+        self.assertSetEqual({1, 71, 72}, set(lent_characters))
