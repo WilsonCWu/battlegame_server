@@ -23,13 +23,13 @@ class EventRewardsTestCase(APITestCase):
         response = self.client.get('/eventreward/get/')
         self.assertTrue(response.data['highest_unlocked'] < 1)
 
-    @freeze_time("2021-10-14")  # Day two
+    @freeze_time("2021-10-15")  # Day two
     def test_ok_mid_event_get(self):
         self.u.eventrewards.last_claimed_reward = -1
         response = self.client.get('/eventreward/get/')
         self.assertTrue(response.data['highest_unlocked'] == 1)
 
-    @freeze_time("2021-10-15")  # Day three
+    @freeze_time("2021-10-16")  # Day three
     def test_bad_mid_event_get(self):
         self.u.eventrewards.last_claimed_reward = -1
         response = self.client.get('/eventreward/get/')
