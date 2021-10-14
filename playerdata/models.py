@@ -1182,7 +1182,7 @@ class CreatorCode(models.Model):
 
 
 class CreatorCodeTracker(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)  # The one who entered the code
+    user = models.OneToOneField(User, on_delete=models.CASCADE)  # The one who entered the code
     code = models.ForeignKey(CreatorCode, on_delete=models.CASCADE, null=True)  # The user reference within is the creator
     created_time = models.DateTimeField()
     is_expired = models.BooleanField(default=False)
