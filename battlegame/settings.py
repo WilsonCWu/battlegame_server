@@ -211,8 +211,8 @@ CRONJOBS = [
     # ('0 16 * * 5-7', 'battlegame.cron.next_round', '>> /tmp/next_round_scheduled_job.log'),
     # ('5 16 * * TUE', 'battlegame.cron.end_tourney', '>> /tmp/end_tourney_scheduled_job.log')
 
-    # At 0 UTC daily
-    ('0 0 * * *', 'battlegame.cron.expire_creator_codes', '>> /tmp/expire_creator_codes.log')
+    # At 12:30AM UTC daily
+    ('30 0 * * *', 'battlegame.cron.expire_creator_codes', '>> /tmp/expire_creator_codes.log')
 ]
 
 # Monitoring

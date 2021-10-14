@@ -1,7 +1,7 @@
 from rest_framework.test import APITestCase
 
 from playerdata.models import User
-from playerdata.creatorcode import generate_creator_code
+from playerdata.creatorcode import CreatorCode
 
 
 class CreatorCodeTestCase(APITestCase):
@@ -10,7 +10,7 @@ class CreatorCodeTestCase(APITestCase):
     def setUp(self):
         self.u = User.objects.get(username='testWilson')
         self.client.force_authenticate(user=self.u)
-        generate_creator_code(self.u, 'TESTINGCODE')
+        CreatorCode.objects.create(user=self.u, creator_code='TESTINGCODE')
 
     def test_bad_set_code_unknowncode(self):
         response = self.client.post('/creatorcode/set/', {
