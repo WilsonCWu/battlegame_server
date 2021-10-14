@@ -341,7 +341,4 @@ def end_tourney():
 @cron(uuid='788e2963-6794-4011-a4b2-baf7c0c1b1dd')
 def expire_creator_codes():
     expiretime = datetime.utcnow() - timedelta(days=7)
-    codes = CreatorCodeTracker.objects.filter(created_time__lt=expiretime)
-    for code_tracker in codes:
-        code_tracker.is_expired = True
-        code_tracker.save()
+    CreatorCodeTracker.objects.filter(created_time__lt=expiretime).update(is_expired=True)

@@ -11,6 +11,16 @@ from playerdata.models import CreatorCode
 from playerdata.models import CreatorCodeTracker
 
 
+class CreatorCodeSchema(Schema):
+    creator_code = fields.Str()
+
+
+class CreatorCodeStatusSchema(Schema):
+    code = fields.Nested(CreatorCodeSchema)
+    created_time = fields.DateTime()
+    is_expired = fields.Boolean()
+
+
 # Call this whenever gems are spent and creator code should be credited.
 def award_supported_creator(user, amountSpent):
     entered_code = CreatorCodeTracker.objects.filter(user=user).first()
@@ -25,31 +35,19 @@ def generate_creator_code(user, code):
     return user_code
 
 
-class CreatorCodeSchema(Schema):
-    creator_code = fields.Str()
-
-
-class CreatorCodeStatusSchema(Schema):
-    code = fields.Nested(CreatorCodeSchema)
-    created_time = fields.DateTime()
-    is_expired = fields.Boolean()
-
-
 class CreatorCodeGetView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        user_ref = CreatorCodeTracker.objects.filter(user=request.user).first()
-        status_schema = CreatorCodeStatusSchema(user_ref)
+        user_tracker = request.user.creatorcodetracker
+        status_schema = CreatorCodeStatusSchema(user_tracker)
 
-        own_code_ref = CreatorCode.objects.filter(user=request.user).first()
-        if own_code_ref is None:
+        own_code_object = CreatorCode.objects.filter(user=request.user).first()
+        if own_code_object is None:
             own_code = ""
         else:
-            own_code = own_code_ref.creator_code
+            own_code = own_code_object.creator_code
 
-        if user_ref is None:
-            return Response({'status': True})
         return Response({'status': True,
                          'code_status': status_schema.data,
                          'own_code': own_code})
@@ -63,27 +61,22 @@ class CreatorCodeChangeView(APIView):
         serializer = NullableValueSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         creator_code = serializer.validated_data['value']
-        current_code = CreatorCodeTracker.objects.filter(user=request.user)
+        current_code = request.user.creatorcodetracker
 
         if creator_code == "NONE":  # We send "NONE" to clear our current entry.
             if current_code.count() != 0:
-                current_code.delete()
+                current_code.code = None
             return Response({'status': True})
 
         # check if creator code exists and is not owned by request user
-        user_ref = CreatorCode.objects.filter(creator_code=creator_code).first()
-        if user_ref is None:
+        entered_code = CreatorCode.objects.filter(creator_code=creator_code).first()
+        if entered_code is None:
             return Response({'status': False, 'reason': 'invalid creator code'})
-        if user_ref.user == request.user:
+        if entered_code.user == request.user:
             return Response({'status': False, 'reason': 'cannot enter own code'})
 
-        if current_code.count() == 0:
-            CreatorCodeTracker.objects.create(user=request.user, code=user_ref, created_time=datetime.utcnow())
-        else:
-            current_code = current_code.first()
-            current_code.user = request.user
-            current_code.code = user_ref
-            current_code.created_time = datetime.utcnow()
-            current_code.is_expired = False
-            current_code.save()
+        current_code.code = entered_code
+        current_code.created_time = datetime.utcnow()
+        current_code.is_expired = False
+        current_code.save()
         return Response({'status': True})
