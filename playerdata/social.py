@@ -585,14 +585,11 @@ class CreateClanRequestView(APIView):
             return Response({'status': False, 'reason': 'User already part of a clan.'})
 
         # This model is 1-1 on userinfo, so this can only be 0 or 1 request.
-        existing_request = ClanRequest.objects.filter(userinfo=userinfo).first()
-        if existing_request:
-            if existing_request.clan2 == target_clan:
-                return Response({'status': False, 'reason': 'Clan request already exists.'})
-            else:
-                existing_request.clan2 = target_clan
-                existing_request.save()
-                return Response({'status': True, 'message': 'Overwritten existing request.'})
+        existing_request = ClanRequest.objects.filter(userinfo=userinfo)
+        if existing_request.count() > 0:
+            for single_request in existing_request:
+                if single_request.clan2 == target_clan:
+                    return Response({'status': False, 'reason': 'Clan request already exists.'})
 
         ClanRequest.objects.create(userinfo=userinfo, clan2=target_clan)
         return Response({'status': True})

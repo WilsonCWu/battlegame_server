@@ -985,7 +985,7 @@ class ClanPVEStatus(models.Model):
 
 
 class ClanRequest(models.Model):
-    userinfo = models.OneToOneField(UserInfo, on_delete=models.CASCADE)
+    userinfo = models.ForeignKey(UserInfo, on_delete=models.CASCADE)
     clan2 = models.ForeignKey(Clan2, on_delete=models.CASCADE)
 
 
