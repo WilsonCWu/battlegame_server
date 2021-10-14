@@ -1184,9 +1184,9 @@ class CreatorCode(models.Model):
 class CreatorCodeTracker(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)  # The one who entered the code
     code = models.ForeignKey(CreatorCode, on_delete=models.CASCADE, null=True)  # The user reference within is the creator
-    created_time = models.DateTimeField()
+    created_time = models.DateTimeField(null=True)
     is_expired = models.BooleanField(default=False)
-    device_id = models.TextField()
+    device_id = models.TextField(null=True)
 
     def __str__(self):
         if self.code is not None:
