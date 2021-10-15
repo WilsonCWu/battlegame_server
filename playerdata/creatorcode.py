@@ -52,6 +52,7 @@ class CreatorCodeChangeView(APIView):
 
         if entered_code == "NONE":  # We send "NONE" to clear our current entry.
             current_code.code = None
+            current_code.save()
             return Response({'status': True})
 
         # check if creator code exists and is not owned by request user
