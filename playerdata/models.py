@@ -1471,7 +1471,7 @@ def create_user_info(sender, instance, created, **kwargs):
         # Add welcome messages, if developer account IDs are defined in env
         if DEV_ACCOUNT_IDS:
             Mail.objects.create(title="Welcome Adventurer",
-                                message="Thanks for trying out Early Access, we're super thrilled you're here!\n\nTo get you a sweet head start, here's 3 Mythical Chests worth of gems. Also be sure to check out our Discord, the heart of our community <3\n\nFight tiny, win big.",
+                                message="Thanks for trying out our brand new game, we're super thrilled you're here!\n\nTo get you a sweet head start, here's 3 Mythical Chests worth of gems. Also be sure to check out our Discord, the heart of our community <3\n\nFight tiny, win big.",
                                 sender_id=10506, receiver=instance,
                                 code_id=96, sender_profile_picture_id=1,
                                 has_unclaimed_reward=True)
