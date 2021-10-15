@@ -61,7 +61,7 @@ class CreatorCodeChangeView(APIView):
         if creator_code.user == request.user:
             return Response({'status': False, 'reason': 'cannot enter own code'})
 
-        current_code.code = entered_code
+        current_code.code = creator_code
         current_code.created_time = datetime.utcnow()
         current_code.is_expired = False
         current_code.save()
