@@ -152,23 +152,10 @@ class DailyDungeonStatusView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        # Return status of active dungeon run.
-        dd_status = DailyDungeonStatus.get_active_for_user(request.user)
-        if dd_status:
-            if server.is_server_version_higher('0.5.0'):
-                return Response({'status': True,
-                                 'dungeon': DailyDungeonStatusSchema(dd_status).data,
-                                 'next_refresh_time': get_next_refresh_time()})
-            return Response({'status': DailyDungeonStatusSchema(dd_status).data,
-                             'next_refresh_time': get_next_refresh_time()})
-
-        if server.is_server_version_higher('0.5.0'):
-            # TODO: jank needs clean up on logic
-            dd_status = DailyDungeonStatus.objects.filter(user=request.user).first()
-            dungeon_data = None if dd_status is None else DailyDungeonStatusSchema(dd_status).data
-            return Response({'status': True, 'dungeon': dungeon_data,
-                             'next_refresh_time': get_next_refresh_time()})
-        return Response({'status': None, 'next_refresh_time': get_next_refresh_time()})
+        dd_status = DailyDungeonStatus.objects.filter(user=request.user).first()
+        dungeon_data = None if dd_status is None else DailyDungeonStatusSchema(dd_status).data
+        return Response({'status': True, 'dungeon': dungeon_data,
+                         'next_refresh_time': get_next_refresh_time()})
 
 
 class DailyDungeonStageView(APIView):

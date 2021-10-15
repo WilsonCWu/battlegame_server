@@ -116,6 +116,7 @@ def daily_dungeon_ticket_drop():
 @cron(uuid="b843e92a-fb04-4332-831f-e086cc4ffe5e")
 def refresh_daily_dungeon():
     daily_dungeon_team_gen_cron()
+    DailyDungeonStatus.objects.all().update(stage=0)
 
 
 @cron(uuid="3f972350-ea40-40cf-bb94-36a68b3f5d5b")
