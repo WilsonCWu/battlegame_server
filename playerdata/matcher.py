@@ -179,7 +179,7 @@ class GetUserView(APIView):
         serializer.is_valid(raise_exception=True)
         target_user = serializer.validated_data['target_user']
         if server.is_server_version_higher('0.5.0'):
-            return Response({'status': True, 'user_info': GetUserView._get_userinfo(request.user.id).data})
+            return Response({'status': True, 'user_info': GetUserView._get_userinfo(target_user).data})
         return Response(GetUserView._get_userinfo(target_user).data)
 
 
