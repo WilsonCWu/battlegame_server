@@ -153,7 +153,10 @@ class DailyDungeonStatusView(APIView):
 
     def get(self, request):
         dd_status = DailyDungeonStatus.objects.filter(user=request.user).first()
-        dungeon_data = None if dd_status is None else DailyDungeonStatusSchema(dd_status).data
+        if dd_status is None:
+            dungeon_data = None
+        else:
+            dungeon_data = DailyDungeonStatusSchema(dd_status).data
         return Response({'status': True, 'dungeon': dungeon_data,
                          'next_refresh_time': get_next_refresh_time()})
 
