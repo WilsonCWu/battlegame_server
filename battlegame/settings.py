@@ -232,4 +232,5 @@ if not DEVELOPMENT:
 
 SHELL_PLUS_PRE_IMPORTS = [('battlegame.shell_settings', '*'),
                           ('battlegame.jobs', '*'),
-                          ('battlegame.gameanalytics', '*')]
+                          ('battlegame.gameanalytics', '*'),
+                          ('battlegame.cron', '*')]
