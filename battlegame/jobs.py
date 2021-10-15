@@ -233,7 +233,7 @@ def send_inbox(title, message, userid_list, gems=0, sender_id=10506):
     basecode = None
     if gems != 0:
         curr_time = datetime.now(timezone.utc)
-        codename = "inboxcode_" + curr_time.strftime("%H:%M:%S")
+        codename = "inboxcode_" + curr_time.strftime("%m_%d_%Y_%H:%M:%S")
         basecode = BaseCode.objects.create(code=codename, num_left=-1, start_time=curr_time,
                                            end_time=curr_time + timedelta(days=30), gems=gems)
 
