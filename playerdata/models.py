@@ -668,19 +668,10 @@ class DailyDungeonStatus(models.Model):
     run_date = models.DateField(auto_now=True)
 
     def is_active(self):
-        return self.stage > 0 and self.run_date == date.today()
-
-    def get_expired_for_user(user):
-        q = DailyDungeonStatus.objects.filter(user=user,
-                                              stage__gt=0,
-                                              run_date__lt=date.today())
-        return q[0] if q else None
+        return self.stage > 0
 
     def get_active_for_user(user):
-        q = DailyDungeonStatus.objects.filter(user=user,
-                                              stage__gt=0,
-                                              run_date=date.today())
-        return q[0] if q else None
+        return DailyDungeonStatus.objects.filter(user=user).first()
 
 
 class DailyDungeonStage(models.Model):
