@@ -64,7 +64,6 @@ def get_relic_seed_int():
     return date.today().year + date.today().month + date.today().day
 
 
-# TODO: use cache if good way to invalidate the cache when we release new chars
 # Returns a list of basechar id's that are available for purchase (bimonthly)
 @lru_cache()
 def get_relics(seed_int=1):
