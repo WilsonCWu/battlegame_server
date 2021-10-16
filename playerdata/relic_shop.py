@@ -1,5 +1,4 @@
 from datetime import date, datetime, timedelta
-from functools import lru_cache
 
 from django.db import transaction
 from rest_framework.permissions import IsAuthenticated
@@ -65,7 +64,6 @@ def get_relic_seed_int():
 
 
 # Returns a list of basechar id's that are available for purchase (bimonthly)
-@lru_cache()
 def get_relics(seed_int=1):
     # random seed to the half month
     # rng = random.Random(seed_int)

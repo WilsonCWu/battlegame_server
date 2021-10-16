@@ -1,20 +1,17 @@
 import math
-from playerdata import server, shards
 import random
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 
 from django.db import transaction
-
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from . import rolls, constants, chests, dungeon_gen, server
-from .questupdater import QuestUpdater
+from playerdata import shards
+from . import rolls, constants, chests, dungeon_gen
+from .models import DailyDungeonStatus, DailyDungeonStage
 from .serializers import DailyDungeonStartSerializer, CharStateResultSerializer
-from .matcher import PlacementSchema
-from .models import DailyDungeonStatus, DailyDungeonStage, Placement, Character
 
 
 class DDCharModel:
@@ -51,6 +48,7 @@ def pick_line(available_positions, available_chars, num_chars):
 
 # Creates a fresh set of 8 bosses that will be used to generate
 # the individual Daily Dungeon stages for the day
+@transaction.atomic
 def daily_dungeon_team_gen_cron():
     teams_list = []
 
