@@ -1,4 +1,5 @@
 from datetime import date, datetime, timedelta
+from functools import lru_cache
 
 from django.db import transaction
 from rest_framework.permissions import IsAuthenticated
@@ -60,11 +61,12 @@ def get_relic_cost(char_type: int):
 
 # Isolate for better mocking
 def get_relic_seed_int():
-    return date.today().month + (date.today().day // 16)
+    return date.today().year + date.today().month + date.today().day
 
 
 # TODO: use cache if good way to invalidate the cache when we release new chars
 # Returns a list of basechar id's that are available for purchase (bimonthly)
+@lru_cache()
 def get_relics(seed_int=1):
     # random seed to the half month
     # rng = random.Random(seed_int)
