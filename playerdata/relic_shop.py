@@ -63,6 +63,7 @@ def get_relic_seed_int():
     return date.today().month + (date.today().day // 16)
 
 
+# TODO: use cache if good way to invalidate the cache when we release new chars
 # Returns a list of basechar id's that are available for purchase (bimonthly)
 def get_relics(seed_int=1):
     # random seed to the half month
