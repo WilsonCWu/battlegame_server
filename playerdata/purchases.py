@@ -225,8 +225,14 @@ def handle_purchase_chapterpack(user, purchase_id, transaction_id):
 def handle_purchase_gems(user, purchase_id, transaction_id):
     if purchase_id in constants.IAP_GEMS_AMOUNT:
         user.inventory.gems += constants.IAP_GEMS_AMOUNT[purchase_id]
-        user.inventory.gems_bought += constants.IAP_GEMS_AMOUNT[purchase_id]
         user.userinfo.vip_exp += constants.IAP_GEMS_AMOUNT[purchase_id]
+
+        # TODO: to be removed when we bring back the gems deal for a week
+        curr_time = datetime.now(timezone.utc)
+        expiration_time = datetime(2021, 10, 19, tzinfo=timezone.utc)
+        if curr_time < expiration_time or server.is_server_version_higher('1.0.0'):
+            user.inventory.gems_bought += constants.IAP_GEMS_AMOUNT[purchase_id]
+
     else:
         return Response({'status': False, 'reason': 'invalid purchase_id ' + purchase_id})
 
@@ -243,8 +249,13 @@ def reward_deal(user, inventory, base_deal):
 
     inventory.coins += base_deal.coins
     inventory.gems += base_deal.gems
-    inventory.gems_bought += base_deal.gems
     inventory.dust += base_deal.dust
+
+    # TODO: to be removed when we bring back the gems deal for a week
+    curr_time = datetime.now(timezone.utc)
+    expiration_time = datetime(2021, 10, 19, tzinfo=timezone.utc)
+    if curr_time < expiration_time or server.is_server_version_higher('1.0.0'):
+        inventory.gems_bought += base_deal.gems
 
     inventory.save()
 
