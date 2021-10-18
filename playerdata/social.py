@@ -628,7 +628,7 @@ class UpdateClanRequestView(APIView):
             return Response({'status': True, 'reason': 'already in clan ' + target_clanmember.clan2.name})
 
         if not accept:
-            ClanRequest.objects.get(userinfo=target_clanmember.userinfo, clan2=clan2).delete()
+            ClanRequest.objects.filter(userinfo=target_clanmember.userinfo, clan2=clan2).delete()
             return Response({'status': True})
 
         # TODO: petition to just use a clanmember query to track this instead
