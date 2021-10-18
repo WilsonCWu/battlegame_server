@@ -338,4 +338,4 @@ def backfill_login_chest():
 @transaction.atomic
 def backfill_creatorcode():
     for user in User.objects.all():
-        _, _ = CreatorCodeTracker.objects.get_or_create(user=user, created_time=datetime.now(), code=None)
+        _, _ = CreatorCodeTracker.objects.get_or_create(user=user, created_time=None, code=None)
