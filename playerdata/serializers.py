@@ -51,7 +51,7 @@ class UploadResultSerializer(serializers.Serializer):
 
 class DailyDungeonStartSerializer(serializers.Serializer):
     is_golden = serializers.BooleanField(required=True)
-    tier = serializers.IntegerField(required=False)
+    tier = serializers.IntegerField(required=True)
 
 
 class CharStateResultSerializer(serializers.Serializer):

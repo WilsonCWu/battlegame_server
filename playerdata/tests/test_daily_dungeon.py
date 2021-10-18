@@ -61,21 +61,14 @@ class DailyDungeonStatusAPITestCase(APITestCase):
     def test_missing_status(self):
         response = self.client.get('/dailydungeon/status/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], None)
-
-    def test_inactive_status(self):
-        DailyDungeonStatus.objects.create(user=self.u, stage=0)
-
-        response = self.client.get('/dailydungeon/status/')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], None)
+        self.assertEqual(response.data['dungeon'], None)
 
     def test_existing_status(self):
         DailyDungeonStatus.objects.create(user=self.u, stage=11)
 
         response = self.client.get('/dailydungeon/status/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status']['stage'], 11)
+        self.assertEqual(response.data['dungeon']['stage'], 11)
 
 
 class DailyDungeonResultAPITestCase(APITestCase):

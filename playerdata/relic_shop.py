@@ -61,7 +61,7 @@ def get_relic_cost(char_type: int):
 
 # Isolate for better mocking
 def get_relic_seed_int():
-    return date.today().month + (date.today().day // 16)
+    return date.today().toordinal()
 
 
 # Returns a list of basechar id's that are available for purchase (bimonthly)

@@ -1,20 +1,17 @@
 import math
-from playerdata import server, shards
 import random
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 
 from django.db import transaction
-
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from . import rolls, constants, chests, dungeon_gen, server
-from .questupdater import QuestUpdater
+from playerdata import shards
+from . import rolls, constants, chests, dungeon_gen
+from .models import DailyDungeonStatus, DailyDungeonStage
 from .serializers import DailyDungeonStartSerializer, CharStateResultSerializer
-from .matcher import PlacementSchema
-from .models import DailyDungeonStatus, DailyDungeonStage, Placement, Character
 
 
 class DDCharModel:
@@ -51,6 +48,7 @@ def pick_line(available_positions, available_chars, num_chars):
 
 # Creates a fresh set of 8 bosses that will be used to generate
 # the individual Daily Dungeon stages for the day
+@transaction.atomic
 def daily_dungeon_team_gen_cron():
     teams_list = []
 
@@ -88,12 +86,8 @@ class DailyDungeonStartView(APIView):
     def post(self, request):
         serializer = DailyDungeonStartSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        tier = 0
-        stage = 1
-        if server.is_server_version_higher('0.5.0'):
-            tier = serializer.validated_data['tier']
-            stage = tier * 20 + 1
+        tier = serializer.validated_data['tier']
+        stage = tier * 20 + 1
 
         # Ensure that we don't currently have a daily dungeon run going on.
         # The user needs to end their current run first.
@@ -152,23 +146,13 @@ class DailyDungeonStatusView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        # Return status of active dungeon run.
         dd_status = DailyDungeonStatus.get_active_for_user(request.user)
-        if dd_status:
-            if server.is_server_version_higher('0.5.0'):
-                return Response({'status': True,
-                                 'dungeon': DailyDungeonStatusSchema(dd_status).data,
-                                 'next_refresh_time': get_next_refresh_time()})
-            return Response({'status': DailyDungeonStatusSchema(dd_status).data,
-                             'next_refresh_time': get_next_refresh_time()})
-
-        if server.is_server_version_higher('0.5.0'):
-            # TODO: jank needs clean up on logic
-            dd_status = DailyDungeonStatus.objects.filter(user=request.user).first()
-            dungeon_data = None if dd_status is None else DailyDungeonStatusSchema(dd_status).data
-            return Response({'status': True, 'dungeon': dungeon_data,
-                             'next_refresh_time': get_next_refresh_time()})
-        return Response({'status': None, 'next_refresh_time': get_next_refresh_time()})
+        if dd_status is None:
+            dungeon_data = None
+        else:
+            dungeon_data = DailyDungeonStatusSchema(dd_status).data
+        return Response({'status': True, 'dungeon': dungeon_data,
+                         'next_refresh_time': get_next_refresh_time()})
 
 
 class DailyDungeonStageView(APIView):
@@ -245,35 +229,15 @@ class DailyDungeonResultView(APIView):
 
         dd_status = DailyDungeonStatus.objects.get(user=request.user)
 
-        # TODO(0.5.0) can clean up this logic on version update
         rewards = []
-        if server.is_server_version_higher('0.5.0'):
-            depth = dd_status.stage - (dd_status.cur_tier * 20)
-            if is_loss or depth == 20:
-                rewards = dd_tiered_item_rewards(dd_status, request.user)
-                dd_status.stage = 0
-                if depth == 20 and dd_status.cur_tier == dd_status.furthest_tier:
-                    dd_status.furthest_tier = min(3, dd_status.furthest_tier + 1)
-            else:
-                dd_status.stage += 1
+        depth = dd_status.stage - (dd_status.cur_tier * 20)
+        if is_loss or depth == 20:
+            rewards = dd_tiered_item_rewards(dd_status, request.user)
+            dd_status.stage = 0
+            if depth == 20 and dd_status.cur_tier == dd_status.furthest_tier:
+                dd_status.furthest_tier = min(3, dd_status.furthest_tier + 1)
         else:
-            rewards = daily_dungeon_reward(dd_status.is_golden, dd_status.stage, request.user)
-
-            if is_loss:
-                dd_status.stage = 0
-            else:
-                # Check if this is the best that the user has ever done in DD.
-                # TODO: refactor this as an auxiliary, non-critical path (e.g.
-                # for quests / stat updates).
-                userinfo = request.user.userinfo
-                if userinfo.best_daily_dungeon_stage < dd_status.stage:
-                    userinfo.best_daily_dungeon_stage = dd_status.stage
-                    userinfo.save()
-
-                if dd_status.stage == 80:
-                    dd_status.stage = 0
-                else:
-                    dd_status.stage += 1
+            dd_status.stage += 1
 
         # always save state, since we might have retries in the future
         dd_status.character_state = serializer.validated_data['characters']
@@ -312,7 +276,7 @@ class DailyDungeonForfeitView(APIView):
 
     def get(self, request):
         dd_status = DailyDungeonStatus.get_active_for_user(request.user)
-        if not dd_status:
+        if not dd_status or dd_status.stage == 0:
             return Response({'status': False, 'reason': 'No active dungeon!'})
 
         dd_status.stage = 0
