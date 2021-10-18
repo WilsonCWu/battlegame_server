@@ -653,6 +653,9 @@ admin.site.register(ClaimedCode)
 admin.site.register(UserReferral)
 admin.site.register(ReferralTracker)
 
+admin.site.register(CreatorCode)
+admin.site.register(CreatorCodeTracker)
+
 admin.site.register(Tournament, TournamentAdmin)
 admin.site.register(TournamentMember)
 admin.site.register(TournamentTeam)

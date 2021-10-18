@@ -16,7 +16,7 @@ Including another URLconf
 from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
-from playerdata import login, tier_system, level_booster, relic_shop, wishlist, chapter_rewards_pack, inbox, \
+from playerdata import creatorcode, login, tier_system, level_booster, relic_shop, wishlist, chapter_rewards_pack, inbox, \
     rotating_mode, conquest_event, regal_rewards, activity_points, shards
 from playerdata import base
 from playerdata import daily_dungeon
@@ -117,6 +117,8 @@ urlpatterns = [
     path('tournament/register', tournament.TournamentRegView.as_view()),
     path('tournament/get', tournament.TournamentView.as_view()),
     path('referral', referral.ReferralView.as_view()),
+    path('creatorcode/get/', creatorcode.CreatorCodeGetView.as_view()),
+    path('creatorcode/set/', creatorcode.CreatorCodeChangeView.as_view()),
     path('redeemcode', redemptioncodes.RedeemCodeView.as_view()),
     path('afkrewards/get', afk_rewards.GetAFKRewardView.as_view()),
     path('afkrewards/collect', afk_rewards.CollectAFKRewardView.as_view()),

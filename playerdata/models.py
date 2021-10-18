@@ -1164,6 +1164,28 @@ class ReferralTracker(models.Model):
         return str(self.user) + ": " + str(self.referral.referral_code)
 
 
+class CreatorCode(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    creator_code = models.TextField(unique=True)
+
+    def __str__(self):
+        return str(self.user) + ": " + str(self.creator_code)
+
+
+class CreatorCodeTracker(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)  # The one who entered the code
+    code = models.ForeignKey(CreatorCode, on_delete=models.CASCADE, null=True)  # The user reference within is the creator
+    created_time = models.DateTimeField(null=True)
+    is_expired = models.BooleanField(default=False)
+    device_id = models.TextField(null=True)
+
+    def __str__(self):
+        if self.code is not None:
+            return str(self.user) + ": " + str(self.code.creator_code)
+        else:
+            return str(self.user) + ": NONE"
+
+
 class IPTracker(models.Model):
     ip = models.TextField(unique=True)
     user_list = ArrayField(models.IntegerField(), blank=True, null=True, default=list)
@@ -1451,6 +1473,7 @@ def create_user_info(sender, instance, created, **kwargs):
         ActivityPoints.objects.create(user=instance)
         AFKReward.objects.create(user=instance)
         create_user_referral(instance)
+        CreatorCodeTracker.objects.create(user=instance)
 
         # Add quests
         expiry_date_weekly = get_expiration_date(7)

@@ -3,6 +3,7 @@ import statistics
 import requests
 from sentry_sdk import capture_exception
 
+from datetime import timedelta
 from playerdata import tier_system, relic_shop, refunds
 from playerdata.antihacking import MatchValidator
 from playerdata.constants import TOURNEY_SIZE
@@ -335,3 +336,9 @@ def end_tourney():
     TournamentTeam.objects.all().delete()
     TournamentMember.objects.all().delete()
     Tournament.objects.all().delete()
+
+
+@cron(uuid='788e2963-6794-4011-a4b2-baf7c0c1b1dd')
+def expire_creator_codes():
+    expiretime = datetime.utcnow() - timedelta(days=7)
+    CreatorCodeTracker.objects.filter(created_time__lt=expiretime).update(is_expired=True)
