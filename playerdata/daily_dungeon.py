@@ -55,7 +55,7 @@ def daily_dungeon_team_gen_cron():
     num_frontline = random.randint(2, 3)
     num_backline = 5 - num_frontline
 
-    for n in range(0, 8):
+    for n in range(0, 20):
         char_list = []
         available_char_frontline = list(constants.FRONTLINE_CHARS)
         available_char_backline = list(constants.BACKLINE_CHARS)

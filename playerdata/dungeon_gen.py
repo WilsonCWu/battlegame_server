@@ -279,7 +279,7 @@ def stage_generator(stage_num, dungeon_type):
         placement = convert_teamp_comp_to_stage(team_comp, stage_num, levels, prestiges, seed_int)
 
     elif dungeon_type == constants.DungeonType.TUNNELS.value:
-        boss_stage = math.ceil(stage_num / 10)
+        boss_stage = math.ceil(stage_num / 4)
         team_comp = DailyDungeonStage.objects.get(stage=boss_stage).team_comp
         levels = get_tunnels_levels_for_stage(10, stage_num, boss_stage)
         seed_int = date.today().month + date.today().day + stage_num
