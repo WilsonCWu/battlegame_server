@@ -133,8 +133,8 @@ def get_tower_levels_for_stage(starting_level, stage_num, boss_stage):
 
 
 # returns a list of 5 levels based on which filler level it is or a boss stage
-def get_tunnels_levels_for_stage(starting_level, stage_num, boss_stage):
-    boss_level = starting_level + (boss_stage * 25)
+def get_tunnels_levels_for_stage(starting_level, stage_num):
+    boss_level = starting_level + math.ceil(stage_num * 2.5)
     position_in_stage = stage_num % 10
 
     # TODO: this is hardcoded level progression for the 10 filler stages
@@ -281,7 +281,7 @@ def stage_generator(stage_num, dungeon_type):
     elif dungeon_type == constants.DungeonType.TUNNELS.value:
         boss_stage = math.ceil(stage_num / 4)
         team_comp = DailyDungeonStage.objects.get(stage=boss_stage).team_comp
-        levels = get_tunnels_levels_for_stage(10, stage_num, boss_stage)
+        levels = get_tunnels_levels_for_stage(10, stage_num)
         seed_int = date.today().month + date.today().day + stage_num
         # TODO: perfect place to add in some more prestige as you go deeper
         prestiges = [0] * 5
