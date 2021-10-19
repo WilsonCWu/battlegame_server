@@ -30,7 +30,7 @@ def coins_reward_dungeon(dungeon_level, dungeon_type: int):
 
 def afk_coins_per_min(dungeon_level):
     if server.is_server_version_higher('1.0.0'):
-        return ((dungeon_level - 1) ** 1.47) / 42 + 5
+        return ((dungeon_level - 1) ** 1.47) / 31 + 5
     return (dungeon_level * 20 + (dungeon_level - 1) ** 1.4) / 45 + 60
 
 
