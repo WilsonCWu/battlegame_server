@@ -29,6 +29,8 @@ def coins_reward_dungeon(dungeon_level, dungeon_type: int):
 
 
 def afk_coins_per_min(dungeon_level):
+    if server.is_server_version_higher('1.0.0'):
+        return ((dungeon_level - 1) ** 1.47) / 42 + 5
     return (dungeon_level * 20 + (dungeon_level - 1) ** 1.4) / 45 + 60
 
 
@@ -267,6 +269,8 @@ def char_level_to_dust(level):
 
 
 def afk_dust_per_min(dungeon_level):
+    if server.is_server_version_higher('1.0.0'):
+        return dungeon_level * 0.00055 + 0.04
     return dungeon_level * 0.0025 + 0.025
 
 
@@ -283,6 +287,8 @@ def dust_chest_reward(user, rarity, chest_tier=None):
         base_mult = 0.25
     elif rarity == constants.ChestType.MYTHICAL.value:
         base_mult = 0.4
+        if server.is_server_version_higher('1.0.0'):
+            base_mult = 0.9
 
     return math.floor(elo * base_mult + 10)
 
