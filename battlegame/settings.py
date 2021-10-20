@@ -190,6 +190,8 @@ CRONJOBS = [
     ('0 0 * * MON', 'battlegame.cron.weekly_quests_cron', '>> /tmp/weekly_quest_job.log'),
 
     ('0 0 * * *', 'battlegame.cron.daily_deals_cron', '>> /tmp/daily_deals_job.log'),
+    ('0 0 * * MON', 'battlegame.cron.weekly_deals_cron', '>> /tmp/weekly_deals_job.log'),
+    ('0 0 1 * *', 'battlegame.cron.monthly_deals_cron', '>> /tmp/monthly_deals_job.log'),
 
     ('0 5 * * *', 'battlegame.cron.daily_clean_matches_cron', '>> /tmp/daily_clean_matches.log'),
     ('0 0 * * *', 'battlegame.cron.reset_daily_wins_cron', '>> /tmp/reset_daily_wins_cron.log'),
