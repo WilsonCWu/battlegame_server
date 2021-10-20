@@ -32,16 +32,16 @@ def init_wishlist(user):
 
 def get_wishlist_chars_for_rarity(wishlist: Wishlist, rarity: int):
     if rarity == 2:
-        wishlist = wishlist.rares
+        wishlist_chars = wishlist.rares
     elif rarity == 3:
-        wishlist = wishlist.epics
+        wishlist_chars = wishlist.epics
     elif rarity == 4:
-        wishlist = wishlist.legendaries
+        wishlist_chars = wishlist.legendaries
     else:
         raise Exception("invalid rarity for wishlist roll")
 
-    wishlist = [char for char in wishlist if char != -1]  # filter out the -1s
-    return wishlist
+    wishlist_chars = [char for char in wishlist_chars if char != -1]  # filter out the -1s
+    return wishlist_chars
 
 
 class GetWishlistView(APIView):
