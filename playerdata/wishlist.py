@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from playerdata import base, server
-from .models import Character
+from .models import Character, Wishlist
 from .serializers import SlotSerializer
 
 NUM_SLOTS_PER_RARITY = [0, 0, 1, 2, 1]
@@ -28,6 +28,20 @@ def init_wishlist(user):
 
     user.wishlist.is_active = True
     user.wishlist.save()
+
+
+def get_wishlist_chars_for_rarity(wishlist: Wishlist, rarity: int):
+    if rarity == 2:
+        wishlist_chars = wishlist.rares
+    elif rarity == 3:
+        wishlist_chars = wishlist.epics
+    elif rarity == 4:
+        wishlist_chars = wishlist.legendaries
+    else:
+        raise Exception("invalid rarity for wishlist roll")
+
+    wishlist_chars = [char for char in wishlist_chars if char != -1]  # filter out the -1s
+    return wishlist_chars
 
 
 class GetWishlistView(APIView):

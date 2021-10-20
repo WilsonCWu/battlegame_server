@@ -24,7 +24,7 @@ class CreatorCodeTrackerSchema(Schema):
 # Call this whenever gems are spent and creator code should be credited.
 def award_supported_creator(user, amountSpent):
     entered_code = CreatorCodeTracker.objects.filter(user=user).first()
-    if entered_code is None or entered_code.is_expired or entered_code.code.creator_code == "NONE":
+    if entered_code is None or entered_code.is_expired or entered_code.code is None:
         return
     entered_code.code.user.inventory.gems += amountSpent * constants.CREATOR_CODE_SHARED_PERCENT
     entered_code.code.user.inventory.save()
