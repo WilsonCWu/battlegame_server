@@ -9,7 +9,8 @@ from playerdata.antihacking import MatchValidator
 from playerdata.constants import TOURNEY_SIZE
 from playerdata.daily_dungeon import daily_dungeon_team_gen_cron
 from playerdata.models import *
-from playerdata.purchases import refresh_daily_deals_cronjob, refresh_weekly_deals_cronjob
+from playerdata.purchases import refresh_daily_deals_cronjob, refresh_weekly_deals_cronjob, \
+    refresh_monthly_deals_cronjob
 from playerdata.quest import refresh_daily_quests, refresh_weekly_quests
 from playerdata.statusupdate import calculate_tourney_elo
 from playerdata.tournament import get_next_round_time, TOURNAMENT_BOTS, get_random_char_set
@@ -71,8 +72,14 @@ def daily_deals_cron():
     refresh_daily_deals_cronjob()
 
 
+@cron(uuid="e89b6f19-473b-42d1-9093-25aac7e57ad3")
 def weekly_deals_cron():
     refresh_weekly_deals_cronjob()
+
+
+@cron(uuid="e84bbafc-c0f2-4c69-9f7d-f59b5d9d3b8d")
+def monthly_deals_cron():
+    refresh_monthly_deals_cronjob()
 
 
 @cron(uuid="222e1a79-98e1-4d9f-8d74-6dcf31cb00bd")
