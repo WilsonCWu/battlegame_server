@@ -51,10 +51,14 @@ def google_refund_cron():
     response = service.purchases().voidedpurchases().list(packageName=bundle_id).execute()
 
     refund_ids = []
+    # Exit early if no refunds exist
+    if 'voidedPurchases' not in response:
+        return
+
     for purchase in response['voidedPurchases']:
         refund_ids.append(purchase['orderId'])
 
-    refund_items = PurchasedTracker.objects.filter(transaction_id__in=refund_ids, is_refunded=False)\
+    refund_items = PurchasedTracker.objects.filter(transaction_id__in=refund_ids, is_refunded=False) \
         .select_related('user__inventory').select_related('user__chapterrewardpack')
 
     for item in refund_items:
