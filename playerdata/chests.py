@@ -153,7 +153,7 @@ def pick_reward_char(user, chest_rarity):
     rarity_odds = constants.REGULAR_CHAR_ODDS_PER_CHEST[chest_rarity - 1]
     char_id = rolls.get_weighted_odds_character(rarity_odds).char_type
     if user.wishlist.is_active:
-        char_id = rolls.get_wishlist_odds_char_type(user, rarity_odds)
+        char_id = rolls.get_wishlist_odds_char_type(user.wishlist, rarity_odds)
 
     return ChestReward(reward_type='char_id', value=char_id)
 

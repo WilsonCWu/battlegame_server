@@ -1,5 +1,5 @@
 import random
-from playerdata import constants
+from playerdata import constants, wishlist
 from playerdata.models import BaseItem, BaseCharacter, Character, Item
 from playerdata.questupdater import QuestUpdater
 
@@ -59,31 +59,25 @@ def get_weighted_odds_character(rarity_odds=None, available_chars=None):
 
 # returns a random character with weighted odds + wishlist odds
 # double chance wrt non-wishlist chars
-def get_wishlist_odds_char_type(user, rarity_odds=None):
+def get_wishlist_odds_char_type(wish_list, rarity_odds=None):
     if rarity_odds is None:
         rarity_odds = constants.SUMMON_RARITY_BASE
 
     rarity = constants.CHAR_RARITY_INDEX[weighted_pick_from_buckets(rarity_odds)]
+    return get_wishlist_base_char_from_rarity(wish_list, rarity)
+
+
+def get_wishlist_base_char_from_rarity(wish_list, rarity) -> int:
     base_chars = list(BaseCharacter.objects.filter(rarity=rarity, rollable=True).values_list('char_type', flat=True))
-
-    if rarity == 2:
-        wishlist = user.wishlist.rares
-    elif rarity == 3:
-        wishlist = user.wishlist.epics
-    elif rarity == 4:
-        wishlist = user.wishlist.legendaries
-    else:
-        raise Exception("invalid rarity for wishlist roll")
-
-    wishlist = [char for char in wishlist if char != -1]  # filter out the -1s
-    base_chars.extend(wishlist)  # Add another copy per wishlist char into the pick pool
+    wishlist_copies = wishlist.get_wishlist_chars_for_rarity(wish_list, rarity)
+    base_chars.extend(wishlist_copies)
     num_chars = len(base_chars)
 
     chosen_char = base_chars[random.randrange(num_chars)]
     return chosen_char
 
 
-def get_rand_base_char_from_rarity(rarity, available_chars=None):
+def get_rand_base_char_from_rarity(rarity, available_chars=None) -> BaseCharacter:
     if available_chars is None:
         base_chars = BaseCharacter.objects.filter(rarity=rarity, rollable=True)
     else:
