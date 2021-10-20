@@ -69,6 +69,9 @@ def get_wishlist_odds_char_type(wish_list, rarity_odds=None):
 
 def get_wishlist_base_char_from_rarity(wish_list, rarity) -> int:
     base_chars = list(BaseCharacter.objects.filter(rarity=rarity, rollable=True).values_list('char_type', flat=True))
+    # TODO: Can remove this once we hit 40 chars
+    base_chars *= 2  # Double the pool
+
     wishlist_copies = wishlist.get_wishlist_chars_for_rarity(wish_list, rarity)
     base_chars.extend(wishlist_copies)
     num_chars = len(base_chars)
