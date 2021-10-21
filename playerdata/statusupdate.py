@@ -222,7 +222,7 @@ def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defend
         runes = afk_rewards.PVP_RUNE_REWARD
         if server.is_server_version_higher('1.0.0'):
             if afkrewards.runes_left == afk_rewards.get_accumulated_runes_limit(vip_level):
-                runes = -1
+                runes = afk_rewards.RUNES_FULL
             else:
                 runes = afk_rewards.PVP_RUNE_REWARD
 

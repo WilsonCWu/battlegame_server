@@ -12,7 +12,7 @@ from playerdata.models import DungeonProgress, AFKReward, default_afk_shard_list
 
 PVP_RUNE_REWARD = 3600  # 1 hr worth of afk
 SHARDS_PER_INTERVAL = 60 * 15
-
+RUNES_FULL = -1
 
 # Return seconds since last datetime capped at the afk time maximum
 def afk_secs_since_last_datetime(last_datetime, vip_level: int):
