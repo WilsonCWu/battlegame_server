@@ -24,17 +24,27 @@ def afk_secs_since_last_datetime(last_datetime, vip_level: int):
     return min(max_hours * 60.0 * 60.0, elapsed_secs)
 
 
+# Max amount of AFK rewards (converted runes) that can sit uncollected
+def get_afk_runes_limit(vip_level: int):
+    return (12 + vip_afk_extra_hours(vip_level)) * 60 * 60
+
+
+# Max amount of runes_left (non-converted) runes that can accumulate in the bank
+def get_accumulated_runes_limit(vip_level: int):
+    return (24 + vip_afk_extra_hours(vip_level)) * 60 * 60
+
+
 # Calculate the number of runes consumed given the time it had to run
 def evaluate_afk(afk_rewards: AFKReward, vip_level: int, added_runes=0):
-    max_hours = 12 + vip_afk_extra_hours(vip_level)
-    max_runes = max_hours * 60 * 60
+    afk_runes_limit = get_afk_runes_limit(vip_level)
+    runes_bank_limit = get_accumulated_runes_limit(vip_level)
 
-    # the max number of runes that can still be converted to rewards on top of what's already converted
-    runes_conversion_cap = max_runes - afk_rewards.unclaimed_converted_runes
+    # max number of runes that can still be converted to rewards (on top of what's already converted)
+    runes_conversion_cap = afk_runes_limit - afk_rewards.unclaimed_converted_runes
 
-    # stop consuming runes if capped out on both converted runes or to-be-converted runes
-    if afk_rewards.unclaimed_converted_runes >= max_runes or afk_rewards.runes_to_be_converted >= runes_conversion_cap:
-        afk_rewards.runes_left = min(max_runes, afk_rewards.runes_left + added_runes)
+    # capped at 12 hours worth of rune rewards converted and uncollected
+    if afk_rewards.unclaimed_converted_runes + afk_rewards.runes_to_be_converted >= afk_runes_limit:
+        afk_rewards.runes_left = min(runes_bank_limit, afk_rewards.runes_left + added_runes)
         return afk_rewards
 
     # runes_complete needs to be capped by 3 things:
@@ -44,7 +54,7 @@ def evaluate_afk(afk_rewards: AFKReward, vip_level: int, added_runes=0):
 
     # update values
     afk_rewards.last_eval_time = datetime.now(timezone.utc)
-    afk_rewards.runes_left = min(max_runes, afk_rewards.runes_left + added_runes - runes_complete)
+    afk_rewards.runes_left = min(runes_bank_limit, afk_rewards.runes_left + added_runes - runes_complete)
 
     # capped at the max runes available to be converted
     # adding runes_complete is guaranteed to be <= runes_conversion_cap
@@ -145,6 +155,11 @@ class CollectAFKRewardView(APIView):
             inventory.rare_shards += request.user.afkreward.unclaimed_shards[0]
             inventory.epic_shards += request.user.afkreward.unclaimed_shards[1]
             inventory.legendary_shards += request.user.afkreward.unclaimed_shards[2]
+
+            if server.is_server_version_higher('1.0.0'):
+                inventory.last_collected_rewards = datetime.now(timezone.utc)
+                inventory.coins += coins
+                inventory.dust += dust
 
             request.user.afkreward.unclaimed_gold = 0
             request.user.afkreward.unclaimed_dust = 0
