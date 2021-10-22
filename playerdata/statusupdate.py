@@ -4,6 +4,7 @@ import math
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.transaction import atomic
+from django_redis import get_redis_connection
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -200,8 +201,45 @@ def update_match_history(attacker, defender_id, win, elo_updates, seed, attackin
     return match.id
 
 
+# Character type is an int
+def get_redis_usage_key(char_type):
+    return "usage_" + str(char_type)
+
+
+# Called every game
+def update_usage(win, attacking_team):
+    r = get_redis_connection("default")
+    # For each member of attacking_team, increment the redis keys as appropriate
+    if(attacking_team['char_1'] is not None and attacking_team['char_1']['char_type'] != 0):
+        char_type = attacking_team['char_1']['char_type']
+        r.incr(get_redis_usage_key(char_type) + "_games")
+        if(win):
+            r.incr(get_redis_usage_key(char_type) + "_wins")
+    if(attacking_team['char_2'] is not None and attacking_team['char_2']['char_type'] != 0):
+        char_type = attacking_team['char_2']['char_type']
+        r.incr(get_redis_usage_key(char_type) + "_games")
+        if(win):
+            r.incr(get_redis_usage_key(char_type) + "_wins")
+    if(attacking_team['char_3'] is not None and attacking_team['char_3']['char_type'] != 0):
+        char_type = attacking_team['char_3']['char_type']
+        r.incr(get_redis_usage_key(char_type) + "_games")
+        if(win):
+            r.incr(get_redis_usage_key(char_type) + "_wins")
+    if(attacking_team['char_4'] is not None and attacking_team['char_4']['char_type'] != 0):
+        char_type = attacking_team['char_4']['char_type']
+        r.incr(get_redis_usage_key(char_type) + "_games")
+        if(win):
+            r.incr(get_redis_usage_key(char_type) + "_wins")
+    if(attacking_team['char_5'] is not None and attacking_team['char_5']['char_type'] != 0):
+        char_type = attacking_team['char_5']['char_type']
+        r.incr(get_redis_usage_key(char_type) + "_games")
+        if(win):
+            r.incr(get_redis_usage_key(char_type) + "_wins")
+
+
 def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defending_team):
     update_stats(request.user, win, stats)
+    update_usage(win, attacking_team)
 
     chest_rarity = 0
     coins = 0

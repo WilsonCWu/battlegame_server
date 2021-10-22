@@ -2,7 +2,7 @@ import statistics
 
 import requests
 from sentry_sdk import capture_exception
-
+from django_redis import get_redis_connection
 from datetime import timedelta
 from playerdata import tier_system, relic_shop, refunds
 from playerdata.antihacking import MatchValidator
@@ -349,3 +349,29 @@ def end_tourney():
 def expire_creator_codes():
     expiretime = datetime.utcnow() - timedelta(days=7)
     CreatorCodeTracker.objects.filter(created_time__lt=expiretime).update(is_expired=True)
+
+
+def get_redis_usage_key(char_type):
+    return "usage_" + str(char_type)
+
+
+# Regularly save redis usage statistics into the postgres database.
+def push_redis_usage():
+    r = get_redis_connection("default")
+    # Increment every base character usage object by what we have stored
+    all_usage = BaseCharacterUsage.objects.all()
+    for single_usage in all_usage:
+        redis_key = str(get_redis_usage_key(single_usage.char_type.char_type))
+
+        games = r.get(redis_key+"_games")
+        wins = r.get(redis_key+"_wins")
+        if(games is not None):
+            single_usage.num_games += int(games)
+        if(wins is not None):
+            single_usage.num_wins += int(wins)
+
+        # Also clear redis after recording.
+        r.set(redis_key+"_games", 0)
+        r.set(redis_key+"_wins", 0)
+
+    BaseCharacterUsage.objects.bulk_update(all_usage, ['num_games', 'num_wins'])
