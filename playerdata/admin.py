@@ -599,6 +599,15 @@ class BaseCharacterAdmin(admin.ModelAdmin):
                 Character.objects.create(user_id=21, char_type=base_char, copies=1)
 
 
+@admin.register(BaseCharacterUsage)
+class BaseCharacterUsageAdmin(admin.ModelAdmin):
+    actions = ('reset_to_zero',)
+
+    def reset_to_zero(self, request, queryset):
+        now = datetime.utcnow()
+        queryset.update(num_games=0, num_wins=0, last_reset_time=now)
+
+
 @admin.register(RogueAllowedAbilities)
 class RogueAllowedAbilitiesAdmin(admin.ModelAdmin):
     list_filter = ('char_type', 'allowed')
@@ -619,7 +628,6 @@ admin.site.register(DungeonStage, DungeonStageAdmin)
 admin.site.register(DungeonProgress)
 admin.site.register(DungeonBoss, DungeonBossAdmin)
 
-admin.site.register(BaseCharacterUsage)
 admin.site.register(BaseItem, BaseItemAdmin)
 admin.site.register(BasePrestige)
 admin.site.register(Character, CharacterAdmin)
