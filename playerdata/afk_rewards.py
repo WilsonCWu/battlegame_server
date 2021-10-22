@@ -64,7 +64,7 @@ def afk_secs_elapsed_between(datetime1, datetime2, vip_level: int):
     elapsed_secs = elapsed.total_seconds()
 
     max_hours = 12 + vip_afk_extra_hours(vip_level)
-    return min(max_hours * 60.0 * 60.0, elapsed_secs)
+    return min(max_hours * 60 * 60, elapsed_secs)
 
 
 # Calculate the number of runes consumed given the time it had to run
@@ -72,7 +72,7 @@ def evaluate_afk(afk_rewards: AFKReward, last_collected_time, vip_level: int, ad
     max_hours = 12 + vip_afk_extra_hours(vip_level)
     max_runes_in_bank = (24 + vip_afk_extra_hours(vip_level)) * 60 * 60
 
-    # No runes ticked if past the afk deadlinen
+    # No runes ticked if past the afk deadline
     afk_deadline = last_collected_time + timedelta(hours=max_hours)
     cur_time = datetime.now(timezone.utc)
     cur_eval_time = min(cur_time, afk_deadline)
@@ -81,7 +81,7 @@ def evaluate_afk(afk_rewards: AFKReward, last_collected_time, vip_level: int, ad
 
     # runes_completed needs to be capped by:
     # elapsed secs and the runes left
-    runes_completed = int(min(elapsed_rune_secs, afk_rewards.runes_left))
+    runes_completed = min(elapsed_rune_secs, afk_rewards.runes_left)
 
     # update values
     afk_rewards.last_eval_time = datetime.now(timezone.utc)
