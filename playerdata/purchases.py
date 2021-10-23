@@ -247,6 +247,9 @@ def reward_deal(user, inventory, base_deal):
     inventory.coins += base_deal.coins
     inventory.gems += base_deal.gems
     inventory.dust += base_deal.dust
+    inventory.rare_shards += base_deal.rare_shards
+    inventory.epic_shards += base_deal.epic_shards
+    inventory.legendary_shards += base_deal.legendary_shards
 
     inventory.save()
 
@@ -304,6 +307,9 @@ class DealSchema(Schema):
     gems = fields.Int(attribute='base_deal.gems')
     coins = fields.Int(attribute='base_deal.coins')
     dust = fields.Int(attribute='base_deal.dust')
+    rare_shards = fields.Int(attribute='base_deal.rare_shards')
+    epic_shards = fields.Int(attribute='base_deal.epic_shards')
+    legendary_shards = fields.Int(attribute='base_deal.legendary_shards')
     item = fields.Nested(BaseItemSchema, attribute='base_deal.item')
     item_quantity = fields.Int(attribute='base_deal.item_quantity')
     char_type = fields.Nested(BaseCharacterSchema, attribute='base_deal.char_type')
