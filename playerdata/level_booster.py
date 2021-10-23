@@ -1,3 +1,5 @@
+import math
+
 from django.db.transaction import atomic
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -177,8 +179,10 @@ def level_up_coins_cost(level: int):
 
 
 # Returns the cost to level up TO this level
+# https://www.desmos.com/calculator/sk1c8k11wz
 def level_up_dust_cost(level: int):
-    return 5000 * (level - 240) + 50000
+    x = level - 240
+    return 38000 * (1 - math.exp(-0.01 * x)) + 30*x + 10000
 
 
 class LevelUpBooster(APIView):
