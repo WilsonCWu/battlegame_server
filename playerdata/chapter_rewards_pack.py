@@ -94,6 +94,7 @@ class GetChapterRewardListView(APIView):
 
         return Response({'status': True,
                          'rewards': rewards_data,
+                         'last_claimed': request.user.chapterrewardpack.last_claimed,
                          'is_active': request.user.chapterrewardpack.is_active,
                          'expiration_date': request.user.chapterrewardpack.expiration_date})
 
