@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from playerdata import shards
+from playerdata import shards, server
 from . import rolls, constants, chests, dungeon_gen
 from .models import DailyDungeonStatus, DailyDungeonStage
 from .serializers import DailyDungeonStartSerializer, CharStateResultSerializer
@@ -202,16 +202,25 @@ def daily_dungeon_reward(is_golden, stage, user):
 def dd_tiered_item_rewards(dd_status: DailyDungeonStatus, user):
     rewards = []
     depth = dd_status.stage - (dd_status.cur_tier * 20)
-    num_drops = math.floor(depth / 6.6)  # Max 3 item drops tuned a bit lower than maybe needed
 
-    items = rolls.get_n_unique_weighted_odds_item(user, num_drops, constants.DD_ITEM_DROP_RATE_PER_TIER[dd_status.cur_tier])
+    # TODO(1.0.0): Remove old code on update
+    if server.is_server_version_higher('1.0.0'):
+        if dd_status.is_golden:
+            num_drops = math.floor(depth / 6.6)  # Max 3 item drops
+            items = rolls.get_n_unique_weighted_odds_item(user, num_drops, constants.DD_GOLDEN_ITEM_DROP_RATE_PER_TIER[dd_status.cur_tier])
+            rewards.extend(shards.dd_rewards(depth))
+        else:
+            num_drops = math.floor(depth / 3.3)  # Max 6 item drops
+            items = rolls.get_n_unique_weighted_odds_item(user, num_drops, constants.DD_SILVER_ITEM_DROP_RATE_PER_TIER[dd_status.cur_tier])
+    else:
+        num_drops = math.floor(depth / 6.6)  # Max 3 item drops tuned a bit lower than maybe needed
+        items = rolls.get_n_unique_weighted_odds_item(user, num_drops, constants.DD_ITEM_DROP_RATE_PER_TIER[dd_status.cur_tier])
+        if dd_status.is_golden:
+            rewards.extend(shards.dd_rewards(depth))
 
     for item in items:
         item_reward = chests.ChestReward(reward_type='item_id', value=item.item_type)
         rewards.append(item_reward)
-
-    if dd_status.is_golden:
-        rewards.extend(shards.dd_rewards(depth))
 
     chests.award_chest_rewards(user, rewards)
     reward_schema = chests.ChestRewardSchema(rewards, many=True)

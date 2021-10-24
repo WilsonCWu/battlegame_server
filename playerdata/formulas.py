@@ -287,8 +287,6 @@ def dust_chest_reward(user, rarity, chest_tier=None):
         base_mult = 0.25
     elif rarity == constants.ChestType.MYTHICAL.value:
         base_mult = 0.4
-        if server.is_server_version_higher('1.0.0'):
-            base_mult = 0.9
 
     return math.floor(elo * base_mult + 10)
 

@@ -20,7 +20,7 @@ class DungeonType(Enum):
     TOWER = 1
     TUNNELS = 2
 
-MAX_DUNGEON_STAGE = [1440, 60]
+MAX_DUNGEON_STAGE = [1440, 80]
 NUM_DUNGEON_SUBSTAGES = [20, 5]
 CHAR_LEVEL_DIFF_BETWEEN_STAGES = [1, 5]
 
@@ -306,11 +306,26 @@ AFK_BASE_SHARD_REWARD = [0, 0, 8, 9, 4]
 DD_SHARD_DROP_RATE = [0, 0, 745, 240, 15]
 DD_BASE_SHARD_REWARD = [0, 0, 328, 106, 7]
 
+# TODO(1.0.0): Remove after update
 DD_ITEM_DROP_RATE_PER_TIER = [
     [1000, 0, 0, 0],  # tier 0
     [700, 300, 0, 0],  # tier 1
     [420, 460, 120, 0],  # tier 2
     [420, 350, 200, 30],  # tier 3
+]
+
+DD_SILVER_ITEM_DROP_RATE_PER_TIER = [
+    [1000, 0, 0, 0],  # tier 0
+    [700, 300, 0, 0],  # tier 1
+    [400, 500, 100, 0],  # tier 2
+    [100, 740, 150, 10],  # tier 3
+]
+
+DD_GOLDEN_ITEM_DROP_RATE_PER_TIER = [
+    [500, 500, 0, 0],  # tier 0
+    [300, 700, 0, 0],  # tier 1
+    [220, 430, 350, 0],  # tier 2
+    [70, 400, 500, 30],  # tier 3
 ]
 
 SKIP_GEM_COST = 2
