@@ -203,38 +203,21 @@ def update_match_history(attacker, defender_id, win, elo_updates, seed, attackin
 
 # Character type is an int
 def get_redis_usage_key(char_type):
-    return "usage_" + str(char_type)
+    return f"quickplay_usage_{char_type}"
 
 
 # Called every game
 def update_usage(win, attacking_team):
     r = get_redis_connection("default")
     # For each member of attacking_team, increment the redis keys as appropriate
-    if(attacking_team['char_1'] is not None and attacking_team['char_1']['char_type'] != 0):
-        char_type = attacking_team['char_1']['char_type']
-        r.incr(get_redis_usage_key(char_type) + "_games")
-        if(win):
-            r.incr(get_redis_usage_key(char_type) + "_wins")
-    if(attacking_team['char_2'] is not None and attacking_team['char_2']['char_type'] != 0):
-        char_type = attacking_team['char_2']['char_type']
-        r.incr(get_redis_usage_key(char_type) + "_games")
-        if(win):
-            r.incr(get_redis_usage_key(char_type) + "_wins")
-    if(attacking_team['char_3'] is not None and attacking_team['char_3']['char_type'] != 0):
-        char_type = attacking_team['char_3']['char_type']
-        r.incr(get_redis_usage_key(char_type) + "_games")
-        if(win):
-            r.incr(get_redis_usage_key(char_type) + "_wins")
-    if(attacking_team['char_4'] is not None and attacking_team['char_4']['char_type'] != 0):
-        char_type = attacking_team['char_4']['char_type']
-        r.incr(get_redis_usage_key(char_type) + "_games")
-        if(win):
-            r.incr(get_redis_usage_key(char_type) + "_wins")
-    if(attacking_team['char_5'] is not None and attacking_team['char_5']['char_type'] != 0):
-        char_type = attacking_team['char_5']['char_type']
-        r.incr(get_redis_usage_key(char_type) + "_games")
-        if(win):
-            r.incr(get_redis_usage_key(char_type) + "_wins")
+    chars = ['char_1', 'char_2', 'char_3', 'char_4', 'char_5']
+    for char_num in chars:
+        if(attacking_team[char_num] is not None and attacking_team[char_num]['char_type'] != 0):
+            char_type = attacking_team[char_num]['char_type']
+            key = get_redis_usage_key(char_type)
+            r.incr(f"{key}_games")
+            if(win):
+                r.incr(f"{key}_wins")
 
 
 def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defending_team):

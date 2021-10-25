@@ -217,7 +217,7 @@ CRONJOBS = [
     ('30 0 * * *', 'battlegame.cron.expire_creator_codes', '>> /tmp/expire_creator_codes.log'),
 
     # At 12:15AM UTC daily
-    ('15 * * * *', 'battlegame.cron.push_redis_usage', '>> /tmp/push_redis_usage.log')
+    ('15 * * * *', 'battlegame.cron.push_quickplay_usage_to_db', '>> /tmp/push_quickplay_usage_to_db.log')
 ]
 
 # Monitoring

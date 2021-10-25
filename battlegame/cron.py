@@ -12,7 +12,7 @@ from playerdata.models import *
 from playerdata.purchases import refresh_daily_deals_cronjob, refresh_weekly_deals_cronjob, \
     refresh_monthly_deals_cronjob
 from playerdata.quest import refresh_daily_quests, refresh_weekly_quests
-from playerdata.statusupdate import calculate_tourney_elo
+from playerdata.statusupdate import calculate_tourney_elo, get_redis_usage_key
 from playerdata.tournament import get_next_round_time, TOURNAMENT_BOTS, get_random_char_set
 from . import settings
 
@@ -351,27 +351,23 @@ def expire_creator_codes():
     CreatorCodeTracker.objects.filter(created_time__lt=expiretime).update(is_expired=True)
 
 
-def get_redis_usage_key(char_type):
-    return "usage_" + str(char_type)
-
-
-# Regularly save redis usage statistics into the postgres database.
-def push_redis_usage():
+# Regularly save quickplay usage numbers from redis to the db.
+def push_quickplay_usage_to_db():
     r = get_redis_connection("default")
     # Increment every base character usage object by what we have stored
     all_usage = BaseCharacterUsage.objects.all()
     for single_usage in all_usage:
-        redis_key = str(get_redis_usage_key(single_usage.char_type.char_type))
+        redis_key = get_redis_usage_key(single_usage.char_type.char_type)
 
-        games = r.get(redis_key+"_games")
-        wins = r.get(redis_key+"_wins")
+        games = r.get(f"{redis_key}_games")
+        wins = r.get(f"{redis_key}_wins")
         if(games is not None):
             single_usage.num_games += int(games)
         if(wins is not None):
             single_usage.num_wins += int(wins)
 
         # Also clear redis after recording.
-        r.set(redis_key+"_games", 0)
-        r.set(redis_key+"_wins", 0)
+        r.set(f"{redis_key}_games", 0)
+        r.set(f"{redis_key}_wins", 0)
 
     BaseCharacterUsage.objects.bulk_update(all_usage, ['num_games', 'num_wins'])
