@@ -4,6 +4,7 @@ import math
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.transaction import atomic
+from django_redis import get_redis_connection
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -200,8 +201,28 @@ def update_match_history(attacker, defender_id, win, elo_updates, seed, attackin
     return match.id
 
 
+# Character type is an int
+def get_redis_quickplay_usage_key(char_type):
+    return f"quickplay_usage_{char_type}"
+
+
+# Called every game
+def update_usage(win, attacking_team):
+    r = get_redis_connection("default")
+    # For each member of attacking_team, increment the redis keys as appropriate
+    chars = ['char_1', 'char_2', 'char_3', 'char_4', 'char_5']
+    for char_num in chars:
+        if(attacking_team[char_num] is not None and attacking_team[char_num]['char_type'] != 0):
+            char_type = attacking_team[char_num]['char_type']
+            key = get_redis_quickplay_usage_key(char_type)
+            r.incr(f"{key}_games")
+            if(win):
+                r.incr(f"{key}_wins")
+
+
 def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defending_team):
     update_stats(request.user, win, stats)
+    update_usage(win, attacking_team)
 
     chest_rarity = 0
     coins = 0

@@ -332,6 +332,7 @@ class BaseCharacterUsage(models.Model):
     char_type = models.OneToOneField(BaseCharacter, on_delete=models.CASCADE, primary_key=True)
     num_games = models.IntegerField(default=0)
     num_wins = models.IntegerField(default=0)
+    last_reset_time = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return self.char_type.name
