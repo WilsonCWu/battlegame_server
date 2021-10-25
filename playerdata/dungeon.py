@@ -259,11 +259,11 @@ class DungeonSetProgressCommitView(APIView):
                 complete_referral_conversion(request.user)
                 wishlist.init_wishlist(request.user)
 
-            if stage % 40 == 1 and request.user.chapterrewardpack.is_active:
+            if stage % 40 == 0 and request.user.chapterrewardpack.is_active:
                 world_completed = progress.campaign_stage // 40
                 chapter_rewards_pack.complete_chapter_rewards(world_completed, request.user.chapterrewardpack)
 
-            if stage % 40 == 1:
+            if stage % 40 == 0:
                 world_pack.active_new_pack(request.user, stage // 40)
 
             QuestUpdater.set_progress_by_type(request.user, constants.COMPLETE_DUNGEON_LEVEL, progress.campaign_stage)
