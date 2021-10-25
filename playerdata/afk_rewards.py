@@ -118,14 +118,8 @@ class GetAFKRewardView(APIView):
         dust_per_min = afk_dust_per_min(dungeon_progress.campaign_stage)
         # exp_per_min = afk_exp_per_min(dungeon_progress.stage_id)
 
-        time = afk_secs_since_last_datetime(last_collected_time, vip_level)
         coins_per_second = coins_per_min / 60
         dust_per_second = dust_per_min / 60
-
-        # TODO: these values are all to be removed in favor of unclaimed_gold, etc
-        coins = math.floor(time * coins_per_second * afk_rewards_multiplier_vip(vip_level))
-        dust = math.floor(time * dust_per_second * afk_rewards_multiplier_vip(vip_level))
-        # exp = time * exp_per_min
 
         if server.is_server_version_higher('1.0.0'):
             afk_rewards = evaluate_afk(request.user.afkreward, last_collected_time, vip_level)
@@ -163,8 +157,8 @@ class GetAFKRewardView(APIView):
                          'dust_per_min': dust_per_min,
                          # 'exp_per_min': exp_per_min,
                          'last_collected_time': last_collected_time,
-                         'coins': coins,
-                         'dust': dust,
+                         'coins': 0,  # TODO: these values are all to be removed in favor of unclaimed_gold, etc
+                         'dust': 0,  # TODO: these values are all to be removed in favor of unclaimed_gold, etc
                          # 'exp': exp
                          'unclaimed_gold': afk_rewards.unclaimed_gold,
                          'unclaimed_dust': afk_rewards.unclaimed_dust,
