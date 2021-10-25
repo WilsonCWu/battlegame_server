@@ -157,8 +157,6 @@ class GetAFKRewardView(APIView):
                          'dust_per_min': dust_per_min,
                          # 'exp_per_min': exp_per_min,
                          'last_collected_time': last_collected_time,
-                         'coins': 0,  # TODO: these values are all to be removed in favor of unclaimed_gold, etc
-                         'dust': 0,  # TODO: these values are all to be removed in favor of unclaimed_gold, etc
                          # 'exp': exp
                          'unclaimed_gold': afk_rewards.unclaimed_gold,
                          'unclaimed_dust': afk_rewards.unclaimed_dust,
