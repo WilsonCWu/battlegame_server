@@ -77,7 +77,8 @@ class IPTrackerAdmin(admin.ModelAdmin):
 class UserInfoAdmin(admin.ModelAdmin):
     list_display = ('user_id', 'name', 'elo')
     actions = ('generate_bots_from_users', 'create_otp',
-               'inventory_transfer_forward', 'inventory_transfer_reverse')
+               'inventory_transfer_forward', 'inventory_transfer_reverse',
+               'generate_defense_placement_report',)
     search_fields = ('name',)
     raw_id_fields = ("user", "default_placement")
 
@@ -167,6 +168,46 @@ class UserInfoAdmin(admin.ModelAdmin):
 
         ordered = queryset.order_by('user_id')
         UserInfoAdmin.inventory_transfer(ordered[1], ordered[0])
+
+    def generate_defense_placement_report(self, request, queryset):
+        start = datetime.utcnow()
+
+        base_characters = BaseCharacter.objects.all()
+        char_names = [''] * base_characters.count()
+        char_usage_count = [0] * base_characters.count()
+        placements_analyzed = 0
+
+        # load the names into a list to easily access name by char_id.
+        for base_char in base_characters:
+            char_names[base_char.char_type] = base_char.name
+
+        # pull usage statistics from the selected users
+        for user_info in queryset:
+            placement = user_info.default_placement
+            if Placement is None:
+                continue
+            placements_analyzed += 1
+
+            user_defense_chars = [placement.char_1, placement.char_2, placement.char_3, placement.char_4, placement.char_5]
+            for char in user_defense_chars:
+                if char is None:
+                    continue
+                char_usage_count[char.char_type.char_type] += 1
+
+        end = datetime.utcnow()
+        elapsed = end - start
+
+        # Write report as HTTP page.
+        response = HttpResponse()
+        response.write(f"<h1>Defense Character Usage Report</h1>")
+        response.write(f'<p style="margin:0;"><b>Time:</b> {datetime.now()}</p>')
+        response.write(f'<p style="margin:0;"><b>Total Placements:</b> {placements_analyzed}</p>')
+        response.write(f'<p style="margin:0;"><b>Function runtime:</b> {elapsed}</p><p></p>')
+        for i in range(0, base_characters.count()):
+            usage_count = char_usage_count[i]
+            percent_usage_count = "{:.2f}".format(100 * usage_count / placements_analyzed)
+            response.write(f'<p style="margin:0;">{char_names[i]} ({i}): {percent_usage_count}% ({usage_count} / {placements_analyzed})</p>')
+        return response
 
 
 class PlacementAdmin(admin.ModelAdmin):
