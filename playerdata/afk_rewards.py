@@ -18,7 +18,7 @@ RUNES_FULL = -1
 def afk_secs_since_last_datetime(last_datetime, vip_level: int):
     now_time = datetime.now(timezone.utc)
     elapsed = now_time - last_datetime
-    elapsed_secs = elapsed.total_seconds()
+    elapsed_secs = math.floor(elapsed.total_seconds())
 
     max_hours = 12 + vip_afk_extra_hours(vip_level)
     return min(max_hours * 60.0 * 60.0, elapsed_secs)
