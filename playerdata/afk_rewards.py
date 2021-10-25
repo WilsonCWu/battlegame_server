@@ -102,7 +102,7 @@ def get_runes_per_interval():
     if server.is_server_version_higher('1.0.0'):
         # Doubling for standard afk time + rune ticks
         return 60 * 15 * 2
-    return 60 * 15 * 2
+    return 60 * 15
 
 
 class GetAFKRewardView(APIView):
