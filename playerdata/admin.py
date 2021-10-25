@@ -224,6 +224,7 @@ class ActiveDealAdmin(admin.ModelAdmin):
     def refresh_weekly_deals(self, request, queryset):
         refresh_weekly_deals_cronjob()
 
+
 class DailyDungeonStageAdmin(admin.ModelAdmin):
     actions = ['refresh_stages']
 
@@ -238,7 +239,13 @@ class BaseDealAdmin(admin.ModelAdmin):
 
 class PurchasedTrackerAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'purchase_id', 'transaction_id', 'purchase_time')
+    list_filter = ('purchase_id', 'purchase_time')
     search_fields = ('=user__id',)
+
+
+class CreatorCodeAdmin(admin.ModelAdmin):
+    search_fields = ('=user__id',)
+    raw_id_fields = ('user',)
 
 
 class TournamentRegAdmin(admin.ModelAdmin):
@@ -661,7 +668,7 @@ admin.site.register(ClaimedCode)
 admin.site.register(UserReferral)
 admin.site.register(ReferralTracker)
 
-admin.site.register(CreatorCode)
+admin.site.register(CreatorCode, CreatorCodeAdmin)
 admin.site.register(CreatorCodeTracker)
 
 admin.site.register(Tournament, TournamentAdmin)
