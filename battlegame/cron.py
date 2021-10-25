@@ -12,7 +12,7 @@ from playerdata.models import *
 from playerdata.purchases import refresh_daily_deals_cronjob, refresh_weekly_deals_cronjob, \
     refresh_monthly_deals_cronjob
 from playerdata.quest import refresh_daily_quests, refresh_weekly_quests
-from playerdata.statusupdate import calculate_tourney_elo, get_redis_usage_key
+from playerdata.statusupdate import calculate_tourney_elo, get_redis_quickplay_usage_key
 from playerdata.tournament import get_next_round_time, TOURNAMENT_BOTS, get_random_char_set
 from . import settings
 
@@ -357,7 +357,7 @@ def push_quickplay_usage_to_db():
     # Increment every base character usage object by what we have stored
     all_usage = BaseCharacterUsage.objects.all()
     for single_usage in all_usage:
-        redis_key = get_redis_usage_key(single_usage.char_type.char_type)
+        redis_key = get_redis_quickplay_usage_key(single_usage.char_type.char_type)
 
         games = r.get(f"{redis_key}_games")
         wins = r.get(f"{redis_key}_wins")

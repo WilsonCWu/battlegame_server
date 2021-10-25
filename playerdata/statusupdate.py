@@ -202,7 +202,7 @@ def update_match_history(attacker, defender_id, win, elo_updates, seed, attackin
 
 
 # Character type is an int
-def get_redis_usage_key(char_type):
+def get_redis_quickplay_usage_key(char_type):
     return f"quickplay_usage_{char_type}"
 
 
@@ -214,7 +214,7 @@ def update_usage(win, attacking_team):
     for char_num in chars:
         if(attacking_team[char_num] is not None and attacking_team[char_num]['char_type'] != 0):
             char_type = attacking_team[char_num]['char_type']
-            key = get_redis_usage_key(char_type)
+            key = get_redis_quickplay_usage_key(char_type)
             r.incr(f"{key}_games")
             if(win):
                 r.incr(f"{key}_wins")
