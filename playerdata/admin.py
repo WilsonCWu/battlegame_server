@@ -172,14 +172,27 @@ class UserInfoAdmin(admin.ModelAdmin):
     def generate_defense_placement_report(self, request, queryset):
         start = datetime.utcnow()
 
+        queryset = queryset.select_related('default_placement').select_related('default_placement__char_1') \
+            .select_related('default_placement__char_1__char_type') \
+            .select_related('default_placement__char_2') \
+            .select_related('default_placement__char_2__char_type') \
+            .select_related('default_placement__char_3') \
+            .select_related('default_placement__char_3__char_type') \
+            .select_related('default_placement__char_4') \
+            .select_related('default_placement__char_4__char_type') \
+            .select_related('default_placement__char_5') \
+            .select_related('default_placement__char_5__char_type')
+
         base_characters = BaseCharacter.objects.all()
         char_names = [''] * base_characters.count()
+        char_rarities = [0] * base_characters.count()
         char_usage_count = [0] * base_characters.count()
         placements_analyzed = 0
 
         # load the names into a list to easily access name by char_id.
         for base_char in base_characters:
             char_names[base_char.char_type] = base_char.name
+            char_rarities[base_char.char_type] = base_char.rarity
 
         # pull usage statistics from the selected users
         for user_info in queryset:
@@ -195,6 +208,7 @@ class UserInfoAdmin(admin.ModelAdmin):
                 char_usage_count[char.char_type.char_type] += 1
 
         end = datetime.utcnow()
+
         elapsed = end - start
 
         # Write report as HTTP page.
@@ -203,10 +217,15 @@ class UserInfoAdmin(admin.ModelAdmin):
         response.write(f'<p style="margin:0;"><b>Time:</b> {datetime.now()}</p>')
         response.write(f'<p style="margin:0;"><b>Total Placements:</b> {placements_analyzed}</p>')
         response.write(f'<p style="margin:0;"><b>Function runtime:</b> {elapsed}</p><p></p>')
-        for i in range(0, base_characters.count()):
-            usage_count = char_usage_count[i]
-            percent_usage_count = "{:.2f}".format(100 * usage_count / placements_analyzed)
-            response.write(f'<p style="margin:0;">{char_names[i]} ({i}): {percent_usage_count}% ({usage_count} / {placements_analyzed})</p>')
+
+        for i in range(4, 0, -1):  # To filter by rarity, just go through the data once for each rarity, outputting info only if rarity matches.
+            response.write(f'<h3>Rarity {i}:</h3>')
+            for j in range(0, base_characters.count()):
+                if char_rarities[j] != i or char_usage_count[j] == 0:
+                    continue
+                usage_count = char_usage_count[j]
+                percent_usage_count = "{:.2f}".format(100 * usage_count / placements_analyzed)
+                response.write(f'<p style="margin:0;">{char_names[j]} ({j}): {percent_usage_count}% ({usage_count} / {placements_analyzed})</p>')
         return response
 
 
