@@ -31,7 +31,7 @@ class AFKRewardsAPITestCase(APITestCase):
         self.assertTrue(response.data['status'])
 
         self.u.afkreward.refresh_from_db()
-        self.assertEqual(self.u.afkreward.rune_ticks, 0)
+        self.assertEqual(self.u.afkreward.reward_ticks, 0)
         self.assertEqual(self.u.afkreward.runes_left, 0)
 
     def test_collect_afk(self):

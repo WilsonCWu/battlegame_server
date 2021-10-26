@@ -37,7 +37,7 @@ def deprecate_evaluate_afk(afk_rewards: AFKReward, vip_level: int, added_runes=0
     runes_conversion_cap = max_runes - afk_rewards.unclaimed_converted_runes
 
     # stop consuming runes if capped out on both converted runes or to-be-converted runes
-    if afk_rewards.unclaimed_converted_runes >= max_runes or afk_rewards.rune_ticks >= runes_conversion_cap:
+    if afk_rewards.unclaimed_converted_runes >= max_runes or afk_rewards.reward_ticks >= runes_conversion_cap:
         afk_rewards.runes_left = min(max_runes, afk_rewards.runes_left + added_runes)
         return afk_rewards
 
@@ -52,7 +52,7 @@ def deprecate_evaluate_afk(afk_rewards: AFKReward, vip_level: int, added_runes=0
 
     # capped at the max runes available to be converted
     # adding runes_complete is guaranteed to be <= runes_conversion_cap
-    afk_rewards.rune_ticks += runes_complete
+    afk_rewards.reward_ticks += runes_complete
 
     afk_rewards.save()
     return afk_rewards
@@ -67,12 +67,12 @@ def afk_secs_elapsed_between(datetime1, datetime2, vip_level: int):
 
 
 # Calculate the number of runes consumed given the time it had to run
-def evaluate_afk(afk_rewards: AFKReward, last_collected_time, vip_level: int, added_runes=0):
+def evaluate_afk(afk_rewards: AFKReward, vip_level: int, added_runes=0):
     max_hours = 12 + vip_afk_extra_hours(vip_level)
     max_runes_in_bank = (24 + vip_afk_extra_hours(vip_level)) * 60 * 60
 
     # No runes ticked if past the afk deadline
-    afk_deadline = last_collected_time + timedelta(hours=max_hours)
+    afk_deadline = afk_rewards.last_collected_time + timedelta(hours=max_hours)
     cur_time = datetime.now(timezone.utc)
     cur_eval_time = min(cur_time, afk_deadline)
 
@@ -86,19 +86,15 @@ def evaluate_afk(afk_rewards: AFKReward, last_collected_time, vip_level: int, ad
     afk_rewards.last_eval_time = datetime.now(timezone.utc)
     afk_rewards.runes_left = min(max_runes_in_bank, afk_rewards.runes_left + added_runes - runes_completed)
     # counting elapsed_afk_secs + any runes that ticked during that time
-    afk_rewards.rune_ticks += runes_completed + elapsed_afk_secs
+    afk_rewards.reward_ticks += runes_completed + elapsed_afk_secs
 
     afk_rewards.save()
     return afk_rewards
 
 
-def calculate_resource_and_leftover(rune_ticks, rate_per_second):
-    amount = math.floor(rune_ticks * rate_per_second)
-    leftover_ticks = max(0, rune_ticks - math.floor(amount / rate_per_second))
-    return amount, leftover_ticks
-
-
-def get_runes_per_interval():
+# Number of ticks/secs defined for a shard drop interval
+# Example: 60 secs x 15 minutes per shard drop
+def PER_SHARD_INTERVAL():
     if server.is_server_version_higher('1.0.0'):
         # Doubling for standard afk time + rune ticks
         return 60 * 15 * 2
@@ -110,7 +106,6 @@ class GetAFKRewardView(APIView):
 
     def get(self, request):
         dungeon_progress = DungeonProgress.objects.get(user=request.user)
-        last_collected_time = request.user.inventory.last_collected_rewards
 
         vip_level = vip_exp_to_level(request.user.userinfo.vip_exp)
 
@@ -122,41 +117,33 @@ class GetAFKRewardView(APIView):
         dust_per_second = dust_per_min / 60
 
         if server.is_server_version_higher('1.0.0'):
-            afk_rewards = evaluate_afk(request.user.afkreward, last_collected_time, vip_level)
-            generated_gold, leftover_gold = calculate_resource_and_leftover(afk_rewards.rune_ticks + afk_rewards.leftover_gold_ticks, coins_per_second * afk_rewards_multiplier_vip(vip_level))
-            generated_dust, leftover_dust = calculate_resource_and_leftover(afk_rewards.rune_ticks + afk_rewards.leftover_dust_ticks, dust_per_second * afk_rewards_multiplier_vip(vip_level))
-
-            afk_rewards.unclaimed_gold += generated_gold
-            afk_rewards.unclaimed_dust += generated_dust
-            afk_rewards.leftover_gold_ticks = leftover_gold
-            afk_rewards.leftover_dust_ticks = leftover_dust
+            afk_rewards = evaluate_afk(request.user.afkreward, vip_level)
         else:
             afk_rewards = deprecate_evaluate_afk(request.user.afkreward, vip_level)
 
-            afk_rewards.unclaimed_gold += math.floor(afk_rewards.rune_ticks * coins_per_second * afk_rewards_multiplier_vip(vip_level))
-            afk_rewards.unclaimed_dust += math.floor(afk_rewards.rune_ticks * dust_per_second * afk_rewards_multiplier_vip(vip_level))
+        afk_rewards.unclaimed_gold += afk_rewards.reward_ticks * coins_per_second * afk_rewards_multiplier_vip(vip_level)
+        afk_rewards.unclaimed_dust += afk_rewards.reward_ticks * dust_per_second * afk_rewards_multiplier_vip(vip_level)
 
-        # roll shards once every 15 minutes
-        RUNES_PER_INTERVAL = get_runes_per_interval()
-        shard_runes_consumed = afk_rewards.rune_ticks + afk_rewards.leftover_shards
-        shard_rolls = math.floor(shard_runes_consumed / RUNES_PER_INTERVAL)
+        # roll shards every PER_SHARD_INTERVAL()
+        shard_intervals = (afk_rewards.reward_ticks / PER_SHARD_INTERVAL()) + afk_rewards.leftover_shard_intervals
+        shard_intervals_floored = math.floor(shard_intervals)
+        afk_rewards.leftover_shard_intervals = shard_intervals - shard_intervals_floored
 
-        afk_rewards.leftover_shards = max(0, shard_runes_consumed - (shard_rolls * RUNES_PER_INTERVAL))
-        shards_dropped = shards.get_afk_shards(shard_rolls)
+        shards_dropped = shards.get_afk_shards(shard_intervals_floored)
 
         for i, shard_amount in enumerate(shards_dropped):
             afk_rewards.unclaimed_shards[i] += shard_amount
 
         # Keep track of the amount of rewards (in terms of runes) that are unclaimed so we can cap it
-        afk_rewards.unclaimed_converted_runes += afk_rewards.rune_ticks
-        afk_rewards.rune_ticks = 0
+        afk_rewards.unclaimed_converted_runes += afk_rewards.reward_ticks
+        afk_rewards.reward_ticks = 0
         afk_rewards.save()
 
         return Response({'status': True,
                          'coins_per_min': coins_per_min,
                          'dust_per_min': dust_per_min,
                          # 'exp_per_min': exp_per_min,
-                         'last_collected_time': last_collected_time,
+                         'last_collected_time': afk_rewards.last_collected_time,
                          # 'exp': exp
                          'unclaimed_gold': afk_rewards.unclaimed_gold,
                          'unclaimed_dust': afk_rewards.unclaimed_dust,
@@ -170,30 +157,19 @@ class CollectAFKRewardView(APIView):
 
     @transaction.atomic
     def post(self, request):
+        coins_floored = math.floor(request.user.afkreward.unclaimed_gold)
+        dust_floored = math.floor(request.user.afkreward.unclaimed_dust)
+
         inventory = request.user.inventory
-        last_collected_time = inventory.last_collected_rewards
-        dungeon_progress = DungeonProgress.objects.get(user=request.user)
-
-        vip_level = vip_exp_to_level(request.user.userinfo.vip_exp)
-        time = afk_secs_since_last_datetime(last_collected_time, vip_level)
-        coins_per_second = afk_coins_per_min(dungeon_progress.campaign_stage) / 60
-        dust_per_second = afk_dust_per_min(dungeon_progress.campaign_stage) / 60
-
-        coins = math.floor(time * coins_per_second * afk_rewards_multiplier_vip(vip_level))
-        dust = math.floor(time * dust_per_second * afk_rewards_multiplier_vip(vip_level))
-        # exp = time * afk_exp_per_min(dungeon_progress.stage_id)
-
-        inventory.coins += request.user.afkreward.unclaimed_gold
-        inventory.dust += request.user.afkreward.unclaimed_dust
+        inventory.coins += coins_floored
+        inventory.dust += dust_floored
         inventory.rare_shards += request.user.afkreward.unclaimed_shards[0]
         inventory.epic_shards += request.user.afkreward.unclaimed_shards[1]
         inventory.legendary_shards += request.user.afkreward.unclaimed_shards[2]
 
-        if server.is_server_version_higher('1.0.0'):
-            inventory.last_collected_rewards = datetime.now(timezone.utc)
-
-        request.user.afkreward.unclaimed_gold = 0
-        request.user.afkreward.unclaimed_dust = 0
+        request.user.afkreward.last_collected_time = datetime.now(timezone.utc)
+        request.user.afkreward.unclaimed_gold -= coins_floored
+        request.user.afkreward.unclaimed_dust -= dust_floored
         request.user.afkreward.unclaimed_shards = default_afk_shard_list()
         request.user.afkreward.unclaimed_converted_runes = 0
         request.user.afkreward.save()
@@ -203,7 +179,7 @@ class CollectAFKRewardView(APIView):
 
         inventory.save()
 
-        return Response({'status': True, 'coins': coins, 'dust': dust})
+        return Response({'status': True})
 
 
 def afk_rewards_multiplier_vip(level: int):
