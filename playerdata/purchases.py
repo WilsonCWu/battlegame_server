@@ -321,6 +321,12 @@ class DealSchema(Schema):
     is_available = fields.Bool()
 
 
+def get_purchase_deal_ids(user, prev_expiration_date, deal_type):
+    return set(PurchasedTracker.objects.filter(user=user,
+                                               purchase_time__gt=prev_expiration_date,
+                                               deal__base_deal__deal_type=deal_type).values_list('purchase_id', flat=True))
+
+
 class GetDeals(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -329,13 +335,13 @@ class GetDeals(APIView):
         deal_schema.context = request.user
         curr_time = datetime.now(timezone.utc)
 
-        daily_expiration_date = get_expiration_date(1) - timedelta(days=1)
-        weekly_expiration_date = get_expiration_date(7) - timedelta(days=7)
-        monthly_expiration_date = get_season_expiration_date()
+        prev_daily_expiration_date = get_expiration_date(1) - timedelta(days=1)
+        prev_weekly_expiration_date = get_expiration_date(7) - timedelta(days=7)
+        prev_monthly_expiration_date = datetime(curr_time.year, curr_time.month, 1, 0)
 
-        daily_purchased_deals_ids = set(PurchasedTracker.objects.filter(user=request.user, purchase_time__gt=daily_expiration_date).values_list('purchase_id', flat=True))
-        weekly_purchased_deals_ids = set(PurchasedTracker.objects.filter(user=request.user, purchase_time__gt=weekly_expiration_date).values_list('purchase_id', flat=True))
-        monthly_purchased_deals_ids = set(PurchasedTracker.objects.filter(user=request.user, purchase_time__gt=monthly_expiration_date).values_list('purchase_id', flat=True))
+        daily_purchased_deals_ids = get_purchase_deal_ids(request.user, prev_daily_expiration_date, DealType.DAILY.value)
+        weekly_purchased_deals_ids = get_purchase_deal_ids(request.user, prev_weekly_expiration_date, DealType.WEEKLY.value)
+        monthly_purchased_deals_ids = get_purchase_deal_ids(request.user, prev_monthly_expiration_date, DealType.MONTHLY.value)
 
         daily_deals = deal_schema.dump(
             ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
