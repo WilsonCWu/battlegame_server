@@ -27,7 +27,7 @@ def award_supported_creator(user, amountSpent):
     entered_code = CreatorCodeTracker.objects.filter(user=user).first()
     if entered_code is None or entered_code.is_expired or entered_code.code is None:
         return
-    earned = amountSpent * constants.CREATOR_CODE_SHARED_PERCENT
+    earned = int(amountSpent * constants.CREATOR_CODE_SHARED_PERCENT)
     entered_code.code.user.inventory.gems += earned
     entered_code.code.gems_earned += earned
     entered_code.code.save()
@@ -41,15 +41,11 @@ class CreatorCodeGetView(APIView):
         user_tracker = request.user.creatorcodetracker
         tracker_schema = CreatorCodeTrackerSchema(user_tracker)
         own_creator_code = CreatorCode.objects.filter(user=request.user).first()
-
-        if own_creator_code is None:
-            return Response({'status': True,
-                             'creator_code_tracker': tracker_schema.data})
+        code_schema = CreatorCodeSchema(own_creator_code)
 
         return Response({'status': True,
                          'creator_code_tracker': tracker_schema.data,
-                         'own_code': own_creator_code.creator_code,
-                         'gems_earned': own_creator_code.gems_earned})
+                         'own_code': code_schema.data})
 
 
 class CreatorCodeChangeView(APIView):
