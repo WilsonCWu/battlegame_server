@@ -1168,6 +1168,7 @@ class ReferralTracker(models.Model):
 class CreatorCode(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     creator_code = models.TextField(unique=True)
+    gems_earned = models.IntegerField(default=0)
 
     def __str__(self):
         return str(self.user) + ": " + str(self.creator_code)
