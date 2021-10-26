@@ -207,11 +207,13 @@ def dd_tiered_item_rewards(dd_status: DailyDungeonStatus, user):
     if server.is_server_version_higher('1.0.0'):
         if dd_status.is_golden:
             num_drops = math.floor(depth / 6.6)  # Max 3 item drops
-            items = rolls.get_n_unique_weighted_odds_item(user, num_drops, constants.DD_GOLDEN_ITEM_DROP_RATE_PER_TIER[dd_status.cur_tier])
+            rarity_odds = constants.DD_GOLDEN_ITEM_DROP_RATE_PER_TIER[dd_status.cur_tier]
             rewards.extend(shards.dd_rewards(depth))
         else:
             num_drops = math.floor(depth / 3.3)  # Max 6 item drops
-            items = rolls.get_n_unique_weighted_odds_item(user, num_drops, constants.DD_SILVER_ITEM_DROP_RATE_PER_TIER[dd_status.cur_tier])
+            rarity_odds = constants.DD_SILVER_ITEM_DROP_RATE_PER_TIER[dd_status.cur_tier]
+
+        items = rolls.get_n_unique_weighted_odds_item(user, num_drops, rarity_odds)
     else:
         num_drops = math.floor(depth / 6.6)  # Max 3 item drops tuned a bit lower than maybe needed
         items = rolls.get_n_unique_weighted_odds_item(user, num_drops, constants.DD_ITEM_DROP_RATE_PER_TIER[dd_status.cur_tier])
