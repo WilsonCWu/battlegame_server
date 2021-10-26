@@ -496,12 +496,6 @@ def exp_to_stars(exp, rarity):
         return 10
 
 
-def get_upgrade_cost(scraps):
-    total_exp = sum(calculate_item_exp(item) for item in scraps)
-
-    return total_exp * 5
-
-
 def scrap_items(scraps, target_item):
     total_exp = sum(calculate_item_exp(item) for item in scraps)
 
@@ -537,14 +531,6 @@ class ScrapItemsView(APIView):
 
         if exp_to_stars(target_item.exp, target_item.item_type.rarity) == MAX_ITEM_STAR:
             return Response({'status': False, 'reason': 'max star level reached'})
-
-        if server.is_server_version_higher('1.0.0'):
-            cost = get_upgrade_cost(scraps)
-            if request.user.inventory.coins < cost:
-                return Response({'status': False, 'reason': 'not enough coins to upgrade'})
-
-            request.user.inventory.coins -= cost
-            request.user.inventory.save()
 
         target_item = scrap_items(scraps, target_item)
 
