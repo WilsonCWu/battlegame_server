@@ -67,7 +67,7 @@ def afk_secs_elapsed_between(datetime1, datetime2, vip_level: int):
 
 
 # Calculate the number of runes consumed given the time it had to run
-def evaluate_afk(afk_rewards: AFKReward, vip_level: int, added_runes=0):
+def evaluate_afk_reward_ticks(afk_rewards: AFKReward, vip_level: int, added_runes=0):
     max_hours = 12 + vip_afk_extra_hours(vip_level)
     max_runes_in_bank = (24 + vip_afk_extra_hours(vip_level)) * 60 * 60
 
@@ -83,7 +83,7 @@ def evaluate_afk(afk_rewards: AFKReward, vip_level: int, added_runes=0):
     runes_completed = min(elapsed_afk_secs, afk_rewards.runes_left)
 
     # update values
-    afk_rewards.last_eval_time = datetime.now(timezone.utc)
+    afk_rewards.last_eval_time = cur_time
     afk_rewards.runes_left = min(max_runes_in_bank, afk_rewards.runes_left + added_runes - runes_completed)
     # counting elapsed_afk_secs + any runes that ticked during that time
     afk_rewards.reward_ticks += runes_completed + elapsed_afk_secs
@@ -117,7 +117,7 @@ class GetAFKRewardView(APIView):
         dust_per_second = dust_per_min / 60
 
         if server.is_server_version_higher('1.0.0'):
-            afk_rewards = evaluate_afk(request.user.afkreward, vip_level)
+            afk_rewards = evaluate_afk_reward_ticks(request.user.afkreward, vip_level)
         else:
             afk_rewards = deprecate_evaluate_afk(request.user.afkreward, vip_level)
 
@@ -125,9 +125,9 @@ class GetAFKRewardView(APIView):
         afk_rewards.unclaimed_dust += afk_rewards.reward_ticks * dust_per_second * afk_rewards_multiplier_vip(vip_level)
 
         # roll shards every PER_SHARD_INTERVAL()
-        shard_intervals = (afk_rewards.reward_ticks / PER_SHARD_INTERVAL()) + afk_rewards.leftover_shard_intervals
+        shard_intervals = (afk_rewards.reward_ticks / PER_SHARD_INTERVAL()) + afk_rewards.leftover_shard_interval
         shard_intervals_floored = math.floor(shard_intervals)
-        afk_rewards.leftover_shard_intervals = shard_intervals - shard_intervals_floored
+        afk_rewards.leftover_shard_interval = shard_intervals - shard_intervals_floored
 
         shards_dropped = shards.get_afk_shards(shard_intervals_floored)
 

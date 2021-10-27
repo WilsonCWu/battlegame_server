@@ -762,7 +762,7 @@ class AFKReward(models.Model):
     unclaimed_converted_runes = models.IntegerField(default=0)  # TODO(1.0.0): to be removed
 
     # remainder of the 15 min shard cycles
-    leftover_shard_intervals = models.FloatField(default=0)
+    leftover_shard_interval = models.FloatField(default=0)
 
     last_eval_time = models.DateTimeField(default=timezone.now)
     reward_ticks = models.IntegerField(default=0)  # represents afk seconds passed + runes that were also ticked
