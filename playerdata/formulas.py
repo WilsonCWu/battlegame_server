@@ -101,13 +101,15 @@ def level_up_check(userinfo, exp):
 def product_to_dollar_cost(product_id: str):
     if product_id in [constants.DEAL_DAILY_0]:
         return 0
-    elif product_id in [constants.DEAL_DAILY_1]:
+    elif product_id in [constants.DEAL_DAILY_1, constants.DEAL_WEEKLY_1]:
         return 1
-    elif product_id in [constants.DEAL_DAILY_2, constants.GEMS_499, constants.MONTHLY_PASS]:
+    elif product_id in [constants.DEAL_MONTHLY_1]:
+        return 2
+    elif product_id in [constants.DEAL_DAILY_2, constants.DEAL_WEEKLY_2, constants.DEAL_MONTHLY_2, constants.GEMS_499, constants.MONTHLY_PASS]:
         return 5
-    elif product_id in [constants.GEMS_999, constants.WORLD_PACK_999]:
+    elif product_id in [constants.GEMS_999, constants.WORLD_PACK_999, constants.DEAL_MONTHLY_3]:
         return 10
-    elif product_id in [constants.GEMS_1999, constants.WORLD_PACK_1999, constants.CHAPTER_REWARDS_PACK1]:
+    elif product_id in [constants.GEMS_1999, constants.WORLD_PACK_1999, constants.CHAPTER_REWARDS_PACK1, constants.DEAL_MONTHLY_4]:
         return 20
     elif product_id in [constants.GEMS_2999]:
         return 30

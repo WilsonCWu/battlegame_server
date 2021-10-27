@@ -85,6 +85,12 @@ class FillSlotView(APIView):
         if request.user.levelbooster.cooldown_slots[slot_id] is not None and request.user.levelbooster.cooldown_slots[slot_id] > curr_time:
             return Response({'status': False, 'reason': 'slot is still in cooldown'})
 
+        replaced_char_id = request.user.levelbooster.slots[slot_id]
+        if replaced_char_id != -1:
+            replaced_char = Character.objects.get(user=request.user, char_id=replaced_char_id)
+            replaced_char.is_boosted = False
+            replaced_char.save()
+
         request.user.levelbooster.slots[slot_id] = char_id
         request.user.levelbooster.save()
 

@@ -93,6 +93,8 @@ DEAL_WEEKLY_2 = 'com.salutationstudio.tinytitans.deal.weekly2'
 DEAL_MONTHLY_0 = 'com.salutationstudio.tinytitans.deal.monthly0'
 DEAL_MONTHLY_1 = 'com.salutationstudio.tinytitans.deal.monthly1'
 DEAL_MONTHLY_2 = 'com.salutationstudio.tinytitans.deal.monthly2'
+DEAL_MONTHLY_3 = 'com.salutationstudio.tinytitans.deal.monthly3'
+DEAL_MONTHLY_4 = 'com.salutationstudio.tinytitans.deal.monthly4'
 
 GEMS_499 = 'com.salutationstudio.tinytitans.gems.499'
 GEMS_999 = 'com.salutationstudio.tinytitans.gems.999'
@@ -129,8 +131,8 @@ POSATTRS = ["pos_1", "pos_2", "pos_3", "pos_4", "pos_5"]
 CHAR_RARITY_INDEX = [1, 2, 3, 4]
 ITEM_RARITY_INDEX = [0, 1, 2, 3]
 
-FRONTLINE_CHARS = [0, 4, 5, 6, 8, 11, 13, 19, 24, 30]
-BACKLINE_CHARS = [7, 9, 10, 12, 16, 17, 18, 21, 22, 23, 26, 31, 32]
+FRONTLINE_CHARS = [0, 4, 5, 6, 8, 11, 13, 19, 24, 30, 37]
+BACKLINE_CHARS = [7, 9, 10, 12, 16, 17, 18, 21, 22, 23, 26, 31, 32, 33, 34, 35, 38]
 
 FRONTLINE_POS = range(1, 16)
 BACKLINE_POS = range(16, 26)

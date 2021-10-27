@@ -2,16 +2,17 @@ import statistics
 
 import requests
 from sentry_sdk import capture_exception
-
+from django_redis import get_redis_connection
 from datetime import timedelta
 from playerdata import tier_system, relic_shop, refunds
 from playerdata.antihacking import MatchValidator
 from playerdata.constants import TOURNEY_SIZE
 from playerdata.daily_dungeon import daily_dungeon_team_gen_cron
 from playerdata.models import *
-from playerdata.purchases import refresh_daily_deals_cronjob, refresh_weekly_deals_cronjob
+from playerdata.purchases import refresh_daily_deals_cronjob, refresh_weekly_deals_cronjob, \
+    refresh_monthly_deals_cronjob
 from playerdata.quest import refresh_daily_quests, refresh_weekly_quests
-from playerdata.statusupdate import calculate_tourney_elo
+from playerdata.statusupdate import calculate_tourney_elo, get_redis_quickplay_usage_key
 from playerdata.tournament import get_next_round_time, TOURNAMENT_BOTS, get_random_char_set
 from . import settings
 
@@ -71,8 +72,14 @@ def daily_deals_cron():
     refresh_daily_deals_cronjob()
 
 
+@cron(uuid="e89b6f19-473b-42d1-9093-25aac7e57ad3")
 def weekly_deals_cron():
     refresh_weekly_deals_cronjob()
+
+
+@cron(uuid="e84bbafc-c0f2-4c69-9f7d-f59b5d9d3b8d")
+def monthly_deals_cron():
+    refresh_monthly_deals_cronjob()
 
 
 @cron(uuid="222e1a79-98e1-4d9f-8d74-6dcf31cb00bd")
@@ -342,3 +349,25 @@ def end_tourney():
 def expire_creator_codes():
     expiretime = datetime.utcnow() - timedelta(days=7)
     CreatorCodeTracker.objects.filter(created_time__lt=expiretime).update(is_expired=True)
+
+
+# Regularly save quickplay usage numbers from redis to the db.
+def push_quickplay_usage_to_db():
+    r = get_redis_connection("default")
+    # Increment every base character usage object by what we have stored
+    all_usage = BaseCharacterUsage.objects.all()
+    for single_usage in all_usage:
+        redis_key = get_redis_quickplay_usage_key(single_usage.char_type.char_type)
+
+        games = r.get(f"{redis_key}_games")
+        wins = r.get(f"{redis_key}_wins")
+        if(games is not None):
+            single_usage.num_games += int(games)
+        if(wins is not None):
+            single_usage.num_wins += int(wins)
+
+        # Also clear redis after recording.
+        r.set(f"{redis_key}_games", 0)
+        r.set(f"{redis_key}_wins", 0)
+
+    BaseCharacterUsage.objects.bulk_update(all_usage, ['num_games', 'num_wins'])

@@ -6,6 +6,7 @@ from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 from django_json_widget.widgets import JSONEditorWidget
 
 from battlegame.cron import next_round, setup_tournament, end_tourney
+from . import purchases
 from .constants import MAX_PRESTIGE_LEVEL, PRESTIGE_CAP_BY_RARITY
 from .daily_dungeon import daily_dungeon_team_gen_cron
 from .dungeon import generate_dungeon_stages
@@ -13,7 +14,6 @@ from .dungeon_gen import convert_placement_to_json
 from .login import UserRecoveryTokenGenerator
 from .matcher import generate_bots_from_users
 from .models import *
-from .purchases import refresh_daily_deals_cronjob, refresh_weekly_deals_cronjob
 from .quest import queue_active_weekly_quests, queue_active_daily_quests, refresh_weekly_quests, refresh_daily_quests
 
 
@@ -77,7 +77,8 @@ class IPTrackerAdmin(admin.ModelAdmin):
 class UserInfoAdmin(admin.ModelAdmin):
     list_display = ('user_id', 'name', 'elo')
     actions = ('generate_bots_from_users', 'create_otp',
-               'inventory_transfer_forward', 'inventory_transfer_reverse')
+               'inventory_transfer_forward', 'inventory_transfer_reverse',
+               'generate_defense_placement_report',)
     search_fields = ('name',)
     raw_id_fields = ("user", "default_placement")
 
@@ -168,6 +169,65 @@ class UserInfoAdmin(admin.ModelAdmin):
         ordered = queryset.order_by('user_id')
         UserInfoAdmin.inventory_transfer(ordered[1], ordered[0])
 
+    def generate_defense_placement_report(self, request, queryset):
+        start = datetime.utcnow()
+
+        queryset = queryset.select_related('default_placement').select_related('default_placement__char_1') \
+            .select_related('default_placement__char_1__char_type') \
+            .select_related('default_placement__char_2') \
+            .select_related('default_placement__char_2__char_type') \
+            .select_related('default_placement__char_3') \
+            .select_related('default_placement__char_3__char_type') \
+            .select_related('default_placement__char_4') \
+            .select_related('default_placement__char_4__char_type') \
+            .select_related('default_placement__char_5') \
+            .select_related('default_placement__char_5__char_type')
+
+        base_characters = BaseCharacter.objects.all()
+        char_names = [''] * base_characters.count()
+        char_rarities = [0] * base_characters.count()
+        char_usage_count = [0] * base_characters.count()
+        placements_analyzed = 0
+
+        # load the names into a list to easily access name by char_id.
+        for base_char in base_characters:
+            char_names[base_char.char_type] = base_char.name
+            char_rarities[base_char.char_type] = base_char.rarity
+
+        # pull usage statistics from the selected users
+        for user_info in queryset:
+            placement = user_info.default_placement
+            if Placement is None:
+                continue
+            placements_analyzed += 1
+
+            user_defense_chars = [placement.char_1, placement.char_2, placement.char_3, placement.char_4, placement.char_5]
+            for char in user_defense_chars:
+                if char is None:
+                    continue
+                char_usage_count[char.char_type.char_type] += 1
+
+        end = datetime.utcnow()
+
+        elapsed = end - start
+
+        # Write report as HTTP page.
+        response = HttpResponse()
+        response.write(f"<h1>Defense Character Usage Report</h1>")
+        response.write(f'<p style="margin:0;"><b>Time:</b> {datetime.now()}</p>')
+        response.write(f'<p style="margin:0;"><b>Total Placements:</b> {placements_analyzed}</p>')
+        response.write(f'<p style="margin:0;"><b>Function runtime:</b> {elapsed}</p><p></p>')
+
+        for i in range(4, 0, -1):  # To filter by rarity, just go through the data once for each rarity, outputting info only if rarity matches.
+            response.write(f'<h3>Rarity {i}:</h3>')
+            for j in range(0, base_characters.count()):
+                if char_rarities[j] != i or char_usage_count[j] == 0:
+                    continue
+                usage_count = char_usage_count[j]
+                percent_usage_count = "{:.2f}".format(100 * usage_count / placements_analyzed)
+                response.write(f'<p style="margin:0;">{char_names[j]} ({j}): {percent_usage_count}% ({usage_count} / {placements_analyzed})</p>')
+        return response
+
 
 class PlacementAdmin(admin.ModelAdmin):
     list_display = ('placement_id', 'user', 'pos_1', 'char_1', 'pos_2', 'char_2', 'pos_3', 'char_3', 'pos_4', 'char_4', 'pos_5', 'char_5')
@@ -216,13 +276,17 @@ class PlayerQuestCumulative2Admin(admin.ModelAdmin, DynamicArrayMixin):
 
 class ActiveDealAdmin(admin.ModelAdmin):
     list_display = ('base_deal', 'expiration_date')
-    actions = ['refresh_daily_deals', 'refresh_weekly_deals']
+    actions = ['refresh_daily_deals', 'refresh_weekly_deals', 'refresh_monthly_deals']
 
     def refresh_daily_deals(self, request, queryset):
-        refresh_daily_deals_cronjob()
+        purchases.refresh_daily_deals_cronjob()
 
     def refresh_weekly_deals(self, request, queryset):
-        refresh_weekly_deals_cronjob()
+        purchases.refresh_weekly_deals_cronjob()
+
+    def refresh_monthly_deals(self, request, queryset):
+        purchases.refresh_monthly_deals_cronjob()
+
 
 class DailyDungeonStageAdmin(admin.ModelAdmin):
     actions = ['refresh_stages']
@@ -238,7 +302,13 @@ class BaseDealAdmin(admin.ModelAdmin):
 
 class PurchasedTrackerAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'purchase_id', 'transaction_id', 'purchase_time')
+    list_filter = ('purchase_id', 'purchase_time')
     search_fields = ('=user__id',)
+
+
+class CreatorCodeAdmin(admin.ModelAdmin):
+    search_fields = ('=user__id',)
+    raw_id_fields = ('user',)
 
 
 class TournamentRegAdmin(admin.ModelAdmin):
@@ -599,6 +669,15 @@ class BaseCharacterAdmin(admin.ModelAdmin):
                 Character.objects.create(user_id=21, char_type=base_char, copies=1)
 
 
+@admin.register(BaseCharacterUsage)
+class BaseCharacterUsageAdmin(admin.ModelAdmin):
+    actions = ('reset_to_zero',)
+
+    def reset_to_zero(self, request, queryset):
+        now = datetime.utcnow()
+        queryset.update(num_games=0, num_wins=0, last_reset_time=now)
+
+
 @admin.register(RogueAllowedAbilities)
 class RogueAllowedAbilitiesAdmin(admin.ModelAdmin):
     list_filter = ('char_type', 'allowed')
@@ -619,7 +698,6 @@ admin.site.register(DungeonStage, DungeonStageAdmin)
 admin.site.register(DungeonProgress)
 admin.site.register(DungeonBoss, DungeonBossAdmin)
 
-admin.site.register(BaseCharacterUsage)
 admin.site.register(BaseItem, BaseItemAdmin)
 admin.site.register(BasePrestige)
 admin.site.register(Character, CharacterAdmin)
@@ -653,7 +731,7 @@ admin.site.register(ClaimedCode)
 admin.site.register(UserReferral)
 admin.site.register(ReferralTracker)
 
-admin.site.register(CreatorCode)
+admin.site.register(CreatorCode, CreatorCodeAdmin)
 admin.site.register(CreatorCodeTracker)
 
 admin.site.register(Tournament, TournamentAdmin)

@@ -11,10 +11,10 @@ from playerdata.serializers import SummonShardSerializer
 SHARD_SUMMON_COST = 80
 
 
-def roll_n_chars_of_rarity(num_chars: int, rarity: int):
+def roll_n_chars_of_rarity(wishlist, num_chars: int, rarity: int):
     rewards = []
     for n in range(0, num_chars):
-        char_id = rolls.get_rand_base_char_from_rarity(rarity).char_type
+        char_id = rolls.get_wishlist_base_char_from_rarity(wishlist, rarity)
         char_reward = chests.ChestReward(reward_type='char_id', value=char_id)
         rewards.append(char_reward)
 
@@ -80,7 +80,7 @@ class SummonShardsView(APIView):
         num_shards -= total_required_shards
         setattr(request.user.inventory, shard_type, num_shards)
 
-        rewards = roll_n_chars_of_rarity(num_chars, rarity)
+        rewards = roll_n_chars_of_rarity(request.user.wishlist, num_chars, rarity)
         chests.award_chest_rewards(request.user, rewards)
 
         return Response({'status': True, 'rewards': chests.ChestRewardSchema(rewards, many=True).data})

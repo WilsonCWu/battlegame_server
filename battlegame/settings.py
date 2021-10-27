@@ -190,6 +190,8 @@ CRONJOBS = [
     ('0 0 * * MON', 'battlegame.cron.weekly_quests_cron', '>> /tmp/weekly_quest_job.log'),
 
     ('0 0 * * *', 'battlegame.cron.daily_deals_cron', '>> /tmp/daily_deals_job.log'),
+    ('0 0 * * MON', 'battlegame.cron.weekly_deals_cron', '>> /tmp/weekly_deals_job.log'),
+    ('0 0 1 * *', 'battlegame.cron.monthly_deals_cron', '>> /tmp/monthly_deals_job.log'),
 
     ('0 5 * * *', 'battlegame.cron.daily_clean_matches_cron', '>> /tmp/daily_clean_matches.log'),
     ('0 0 * * *', 'battlegame.cron.reset_daily_wins_cron', '>> /tmp/reset_daily_wins_cron.log'),
@@ -212,7 +214,10 @@ CRONJOBS = [
     # ('5 16 * * TUE', 'battlegame.cron.end_tourney', '>> /tmp/end_tourney_scheduled_job.log')
 
     # At 12:30AM UTC daily
-    ('30 0 * * *', 'battlegame.cron.expire_creator_codes', '>> /tmp/expire_creator_codes.log')
+    ('30 0 * * *', 'battlegame.cron.expire_creator_codes', '>> /tmp/expire_creator_codes.log'),
+
+    # At 12:15AM UTC daily
+    ('15 * * * *', 'battlegame.cron.push_quickplay_usage_to_db', '>> /tmp/push_quickplay_usage_to_db.log'),
 ]
 
 # Monitoring

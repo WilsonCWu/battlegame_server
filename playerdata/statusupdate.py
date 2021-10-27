@@ -4,6 +4,7 @@ import math
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.transaction import atomic
+from django_redis import get_redis_connection
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -200,12 +201,33 @@ def update_match_history(attacker, defender_id, win, elo_updates, seed, attackin
     return match.id
 
 
+# Character type is an int
+def get_redis_quickplay_usage_key(char_type):
+    return f"quickplay_usage_{char_type}"
+
+
+# Called every game
+def update_usage(win, attacking_team):
+    r = get_redis_connection("default")
+    # For each member of attacking_team, increment the redis keys as appropriate
+    chars = ['char_1', 'char_2', 'char_3', 'char_4', 'char_5']
+    for char_num in chars:
+        if(attacking_team[char_num] is not None and attacking_team[char_num]['char_type'] != 0):
+            char_type = attacking_team[char_num]['char_type']
+            key = get_redis_quickplay_usage_key(char_type)
+            r.incr(f"{key}_games")
+            if(win):
+                r.incr(f"{key}_wins")
+
+
 def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defending_team):
     update_stats(request.user, win, stats)
+    update_usage(win, attacking_team)
 
     chest_rarity = 0
     coins = 0
     player_exp = 0
+    runes = 0
 
     original_elo = request.user.userinfo.elo
     elo_updates = update_rating(original_elo, opponent, win)
@@ -216,9 +238,16 @@ def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defend
         if tier_system.elo_to_tier(elo_updates.attacker_new).value > request.user.userinfo.tier_rank:
             request.user.userinfo.tier_rank = tier_system.elo_to_tier(elo_updates.attacker_new).value
 
-        if server.is_server_version_higher('0.5.0'):
-            vip_level = vip_exp_to_level(request.user.userinfo.vip_exp)
-            afk_rewards.evaluate_afk(request.user.afkreward, vip_level, afk_rewards.PVP_RUNE_REWARD)
+        vip_level = vip_exp_to_level(request.user.userinfo.vip_exp)
+        runes = afk_rewards.PVP_RUNE_REWARD
+
+        if server.is_server_version_higher('1.0.0'):
+            afkrewards = afk_rewards.evaluate_afk_reward_ticks(request.user.afkreward,
+                                                               vip_level, afk_rewards.PVP_RUNE_REWARD)
+            if afkrewards.runes_left == afk_rewards.get_accumulated_runes_limit(vip_level):
+                runes = afk_rewards.RUNES_FULL
+        else:
+            afk_rewards.deprecate_evaluate_afk(request.user.afkreward, vip_level, afk_rewards.PVP_RUNE_REWARD)
 
         chest_rarity = award_chest(request.user)
         QuestUpdater.add_progress_by_type(request.user, constants.WIN_QUICKPLAY_GAMES, 1)
@@ -250,7 +279,7 @@ def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defend
                      'coins': coins, 'player_exp': player_exp,
                      'chest_rarity': chest_rarity, 'match_id': match_id,
                      'daily_wins': request.user.userstats.daily_wins,
-                     'runes': afk_rewards.PVP_RUNE_REWARD})
+                     'runes': runes})
 
 
 def handle_tourney(request, win, opponent):

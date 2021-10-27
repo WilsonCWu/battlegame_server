@@ -228,12 +228,6 @@ def handle_purchase_gems(user, purchase_id, transaction_id):
         user.inventory.gems += constants.IAP_GEMS_AMOUNT[purchase_id]
         user.userinfo.vip_exp += constants.IAP_GEMS_AMOUNT[purchase_id]
 
-        # TODO: to be removed when we bring back the gems deal for a week
-        curr_time = datetime.now(timezone.utc)
-        expiration_time = datetime(2021, 10, 19, tzinfo=timezone.utc)
-        if curr_time < expiration_time or server.is_server_version_higher('1.0.0'):
-            user.inventory.gems_bought += constants.IAP_GEMS_AMOUNT[purchase_id]
-
     else:
         return Response({'status': False, 'reason': 'invalid purchase_id ' + purchase_id})
 
@@ -253,12 +247,9 @@ def reward_deal(user, inventory, base_deal):
     inventory.coins += base_deal.coins
     inventory.gems += base_deal.gems
     inventory.dust += base_deal.dust
-
-    # TODO: to be removed when we bring back the gems deal for a week
-    curr_time = datetime.now(timezone.utc)
-    expiration_time = datetime(2021, 10, 19, tzinfo=timezone.utc)
-    if curr_time < expiration_time or server.is_server_version_higher('1.0.0'):
-        inventory.gems_bought += base_deal.gems
+    inventory.rare_shards += base_deal.rare_shards
+    inventory.epic_shards += base_deal.epic_shards
+    inventory.legendary_shards += base_deal.legendary_shards
 
     inventory.save()
 
@@ -316,6 +307,9 @@ class DealSchema(Schema):
     gems = fields.Int(attribute='base_deal.gems')
     coins = fields.Int(attribute='base_deal.coins')
     dust = fields.Int(attribute='base_deal.dust')
+    rare_shards = fields.Int(attribute='base_deal.rare_shards')
+    epic_shards = fields.Int(attribute='base_deal.epic_shards')
+    legendary_shards = fields.Int(attribute='base_deal.legendary_shards')
     item = fields.Nested(BaseItemSchema, attribute='base_deal.item')
     item_quantity = fields.Int(attribute='base_deal.item_quantity')
     char_type = fields.Nested(BaseCharacterSchema, attribute='base_deal.char_type')
@@ -327,22 +321,40 @@ class DealSchema(Schema):
     is_available = fields.Bool()
 
 
+def get_purchase_deal_ids(user, prev_expiration_date, deal_type: int):
+    return set(PurchasedTracker.objects.filter(user=user,
+                                               purchase_time__gt=prev_expiration_date,
+                                               deal__base_deal__deal_type=deal_type).values_list('purchase_id', flat=True))
+
+
+def get_last_deal_expiration_date(deal_type: DealType):
+    if deal_type == DealType.DAILY:
+        return get_expiration_date(1) - timedelta(days=1)
+    elif deal_type == DealType.WEEKLY:
+        return get_expiration_date(7) - timedelta(days=7)
+    elif deal_type == DealType.MONTHLY:
+        curr_time = datetime.now(timezone.utc)
+        return datetime(curr_time.year, curr_time.month, 1, 0)
+    else:
+        raise Exception("Invalid DealType: " + deal_type.value)
+
+
 class GetDeals(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
         deal_schema = DealSchema(many=True)
         deal_schema.context = request.user
+
+        prev_daily_expiration_date = get_last_deal_expiration_date(DealType.DAILY)
+        prev_weekly_expiration_date = get_last_deal_expiration_date(DealType.WEEKLY)
+        prev_monthly_expiration_date = get_last_deal_expiration_date(DealType.MONTHLY)
+
+        daily_purchased_deals_ids = get_purchase_deal_ids(request.user, prev_daily_expiration_date, DealType.DAILY.value)
+        weekly_purchased_deals_ids = get_purchase_deal_ids(request.user, prev_weekly_expiration_date, DealType.WEEKLY.value)
+        monthly_purchased_deals_ids = get_purchase_deal_ids(request.user, prev_monthly_expiration_date, DealType.MONTHLY.value)
+
         curr_time = datetime.now(timezone.utc)
-
-        daily_expiration_date = get_expiration_date(1) - timedelta(days=1)
-        weekly_expiration_date = get_expiration_date(7) - timedelta(days=7)
-        monthly_expiration_date = get_season_expiration_date()
-
-        daily_purchased_deals_ids = set(PurchasedTracker.objects.filter(user=request.user, purchase_time__gt=daily_expiration_date).values_list('purchase_id', flat=True))
-        weekly_purchased_deals_ids = set(PurchasedTracker.objects.filter(user=request.user, purchase_time__gt=weekly_expiration_date).values_list('purchase_id', flat=True))
-        monthly_purchased_deals_ids = set(PurchasedTracker.objects.filter(user=request.user, purchase_time__gt=monthly_expiration_date).values_list('purchase_id', flat=True))
-
         daily_deals = deal_schema.dump(
             ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
                 base_deal__deal_type=DealType.DAILY.value,
