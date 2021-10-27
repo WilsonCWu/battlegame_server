@@ -748,24 +748,26 @@ def default_afk_shard_list():
     return [0]*3
 
 
+def get_default_afk_datetime():
+    return timezone.now() - timedelta(hours=3)
+
+
 class AFKReward(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    unclaimed_gold = models.IntegerField(default=0)
-    unclaimed_dust = models.IntegerField(default=0)
+    unclaimed_gold = models.FloatField(default=0)
+    unclaimed_dust = models.FloatField(default=0)
     unclaimed_shards = ArrayField(models.IntegerField(), default=default_afk_shard_list)
 
     # the amount of rewards that have accumulated in terms of runes
-    unclaimed_converted_runes = models.IntegerField(default=0)
+    unclaimed_converted_runes = models.IntegerField(default=0)  # TODO(1.0.0): to be removed
 
-    # shards that were consumed, but remainder of the 15 min shard cycle
-    leftover_shards = models.IntegerField(default=0)
-    last_eval_time = models.DateTimeField(auto_now_add=True)
-    runes_to_be_converted = models.IntegerField(default=0)
+    # remainder of the 15 min shard cycles
+    leftover_shard_interval = models.FloatField(default=0)
+
+    last_eval_time = models.DateTimeField(default=timezone.now)
+    reward_ticks = models.IntegerField(default=0)  # represents afk seconds passed + runes that were also ticked
     runes_left = models.IntegerField(default=0)
-
-
-def get_default_afk_datetime():
-    return timezone.now() - timedelta(hours=3)
+    last_collected_time = models.DateTimeField(default=get_default_afk_datetime)
 
 
 def default_pets_unlocked():
@@ -791,7 +793,6 @@ class Inventory(models.Model):
     daily_dungeon_golden_ticket = models.IntegerField(default=1)
     hero_exp = models.IntegerField(default=0)
     is_auto_retire = models.BooleanField(default=False)
-    last_collected_rewards = models.DateTimeField(default=get_default_afk_datetime)
     profile_pics = ArrayField(models.IntegerField(), blank=True, null=True)
     pets_unlocked = ArrayField(models.IntegerField(), default=default_pets_unlocked)
 
