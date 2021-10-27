@@ -6,6 +6,7 @@ from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 from django_json_widget.widgets import JSONEditorWidget
 
 from battlegame.cron import next_round, setup_tournament, end_tourney
+from . import purchases
 from .constants import MAX_PRESTIGE_LEVEL, PRESTIGE_CAP_BY_RARITY
 from .daily_dungeon import daily_dungeon_team_gen_cron
 from .dungeon import generate_dungeon_stages
@@ -13,7 +14,6 @@ from .dungeon_gen import convert_placement_to_json
 from .login import UserRecoveryTokenGenerator
 from .matcher import generate_bots_from_users
 from .models import *
-from .purchases import refresh_daily_deals_cronjob, refresh_weekly_deals_cronjob
 from .quest import queue_active_weekly_quests, queue_active_daily_quests, refresh_weekly_quests, refresh_daily_quests
 
 
@@ -276,13 +276,16 @@ class PlayerQuestCumulative2Admin(admin.ModelAdmin, DynamicArrayMixin):
 
 class ActiveDealAdmin(admin.ModelAdmin):
     list_display = ('base_deal', 'expiration_date')
-    actions = ['refresh_daily_deals', 'refresh_weekly_deals']
+    actions = ['refresh_daily_deals', 'refresh_weekly_deals', 'refresh_monthly_deals']
 
     def refresh_daily_deals(self, request, queryset):
-        refresh_daily_deals_cronjob()
+        purchases.refresh_daily_deals_cronjob()
 
     def refresh_weekly_deals(self, request, queryset):
-        refresh_weekly_deals_cronjob()
+        purchases.refresh_weekly_deals_cronjob()
+
+    def refresh_monthly_deals(self, request, queryset):
+        purchases.refresh_monthly_deals_cronjob()
 
 
 class DailyDungeonStageAdmin(admin.ModelAdmin):
