@@ -13,6 +13,7 @@ from playerdata.models import CreatorCodeTracker
 
 class CreatorCodeSchema(Schema):
     creator_code = fields.Str()
+    gems_earned = fields.Int()
 
 
 class CreatorCodeTrackerSchema(Schema):
@@ -26,7 +27,10 @@ def award_supported_creator(user, amountSpent):
     entered_code = CreatorCodeTracker.objects.filter(user=user).first()
     if entered_code is None or entered_code.is_expired or entered_code.code is None:
         return
-    entered_code.code.user.inventory.gems += amountSpent * constants.CREATOR_CODE_SHARED_PERCENT
+    earned = int(amountSpent * constants.CREATOR_CODE_SHARED_PERCENT)
+    entered_code.code.user.inventory.gems += earned
+    entered_code.code.gems_earned += earned
+    entered_code.code.save()
     entered_code.code.user.inventory.save()
 
 
@@ -36,8 +40,12 @@ class CreatorCodeGetView(APIView):
     def get(self, request):
         user_tracker = request.user.creatorcodetracker
         tracker_schema = CreatorCodeTrackerSchema(user_tracker)
+        own_creator_code = CreatorCode.objects.filter(user=request.user).first()
+        code_schema = CreatorCodeSchema(own_creator_code)
 
-        return Response({'status': True, 'creator_code_tracker': tracker_schema.data})
+        return Response({'status': True,
+                         'creator_code_tracker': tracker_schema.data,
+                         'own_code': code_schema.data})
 
 
 class CreatorCodeChangeView(APIView):
