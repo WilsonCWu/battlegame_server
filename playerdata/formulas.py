@@ -291,7 +291,7 @@ def dust_chest_reward(user, rarity, chest_tier=None):
     elif rarity == constants.ChestType.GOLD.value:
         base_mult = 0.25
     elif rarity == constants.ChestType.MYTHICAL.value:
-        base_mult = 0.4
+        base_mult = 0.3
 
     return math.floor(elo * base_mult + 10)
 
