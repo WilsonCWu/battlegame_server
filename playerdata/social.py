@@ -178,11 +178,10 @@ class DeleteFriendView(APIView):
         query2 = Friend.objects.filter(user_2=request.user, user_1=target_user)
         query = query1 | query2
 
-        if query.count() != 0:
-            for friend in query:
-                chat = friend.chat
-                if chat:
-                    chat.delete()
+        for friend in query:
+            chat = friend.chat
+            if chat:
+                chat.delete()
 
         query.delete()
         return Response({'status': True})
