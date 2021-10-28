@@ -179,9 +179,10 @@ class DeleteFriendView(APIView):
         query = query1 | query2
 
         if query.count() != 0:
-            chat = query[0].chat
-            if chat:
-                chat.delete()
+            for friend in query:
+                chat = friend.chat
+                if chat:
+                    chat.delete()
 
         query.delete()
         return Response({'status': True})
