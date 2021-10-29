@@ -203,10 +203,11 @@ def handle_purchase_world_pack(user, purchase_id, transaction_id):
 
 
 def handle_purchase_chapterpack(user, purchase_id, transaction_id):
-    curr_time = datetime.now(timezone.utc)
-
-    if curr_time > user.chapterrewardpack.expiration_date:
-        return Response({'status': False, 'reason': 'this purchase offer has now expired'})
+    # We're not checking expiration time anymore
+    # curr_time = datetime.now(timezone.utc)
+    #
+    # if curr_time > user.chapterrewardpack.expiration_date:
+    #     return Response({'status': False, 'reason': 'this purchase offer has now expired'})
 
     if purchase_id == constants.CHAPTER_REWARDS_PACK0:
         world_completed = user.dungeonprogress.campaign_stage // 40
