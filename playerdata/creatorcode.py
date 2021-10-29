@@ -30,7 +30,7 @@ def award_supported_creator(user, amountSpent):
         return
     earned = int(amountSpent * constants.CREATOR_CODE_SHARED_PERCENT)
 
-    if server.is_server_version_higher('1.0.0'):
+    if server.is_server_version_higher('1.0.2'):
         entered_code.code.gems_claimable += earned
         entered_code.code.save()
     else:
