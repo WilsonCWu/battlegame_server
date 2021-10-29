@@ -29,6 +29,9 @@ def coins_reward_dungeon(dungeon_level, dungeon_type: int):
 
 
 def afk_coins_per_min(dungeon_level):
+    if server.is_server_version_higher('1.0.0'):
+        coins_per_min = ((dungeon_level - 1) ** 1.47) / 31 + 5
+        return coins_per_min / 2   # Halved for afk rewards
     return (dungeon_level * 20 + (dungeon_level - 1) ** 1.4) / 45 + 60
 
 
@@ -269,6 +272,10 @@ def char_level_to_dust(level):
 
 
 def afk_dust_per_min(dungeon_level):
+    if server.is_server_version_higher('1.0.0'):
+        # Dust is capped around world 28, similar to https://afk-arena.fandom.com/wiki/Hero%27s_Essence_AFK_Rewards
+        dust_per_min = min(dungeon_level * 0.0008 + 0.01, 0.9)
+        return dust_per_min / 2  # Halved for afk rewards
     return dungeon_level * 0.0025 + 0.025
 
 
@@ -284,7 +291,7 @@ def dust_chest_reward(user, rarity, chest_tier=None):
     elif rarity == constants.ChestType.GOLD.value:
         base_mult = 0.25
     elif rarity == constants.ChestType.MYTHICAL.value:
-        base_mult = 0.4
+        base_mult = 0.3
 
     return math.floor(elo * base_mult + 10)
 
