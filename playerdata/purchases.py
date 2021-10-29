@@ -208,7 +208,7 @@ def handle_purchase_chapterpack(user, purchase_id, transaction_id):
     if curr_time > user.chapterrewardpack.expiration_date:
         return Response({'status': False, 'reason': 'this purchase offer has now expired'})
 
-    if purchase_id == constants.CHAPTER_REWARDS_PACK1:
+    if purchase_id == constants.CHAPTER_REWARDS_PACK0:
         world_completed = user.dungeonprogress.campaign_stage // 40
         chapter_rewards_pack.complete_chapter_rewards(world_completed, user.chapterrewardpack)
         user.chapterrewardpack.is_active = True

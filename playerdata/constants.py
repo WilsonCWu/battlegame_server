@@ -78,7 +78,8 @@ LEGENDARY_PITY_CAP_GOLD = 160
 REFUND_GEMS_COST_PER_LVL = 5
 ESSENCE_PER_COMMON_CHAR_RETIRE = 100
 
-CHAPTER_REWARDS_PACK1 = 'com.salutationstudio.tinytitans.chapterrewards.pack1'
+CHAPTER_REWARDS_PACK0 = 'com.salutationstudio.tinytitans.chapterrewards.pack0'
+# DEPRECATED DONT USE  CHAPTER_REWARDS_PACK1 = 'com.salutationstudio.tinytitans.chapterrewards.pack1'
 CHAPTER_REWARDS_PACK2 = 'com.salutationstudio.tinytitans.chapterrewards.pack2'
 CHAPTER_REWARDS_PACK3 = 'com.salutationstudio.tinytitans.chapterrewards.pack3'
 
