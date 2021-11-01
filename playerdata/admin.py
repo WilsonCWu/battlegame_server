@@ -311,13 +311,14 @@ class BlackListPurchasesFilter(SimpleListFilter):
                   'com.salutationstudio.tinytitans.deal.monthly0']
 
     def lookups(self, request, model_admin):
-        return [(self.FREE_DEALS_ID, self.FREE_DEALS_ID)]
+        products = [(p.purchase_id, p.purchase_id) for p in PurchasedTracker.objects.distinct('purchase_id')]
+        return products + [(self.FREE_DEALS_ID, self.FREE_DEALS_ID)]
 
     def queryset(self, request, queryset):
         if self.value() == self.FREE_DEALS_ID:
             return queryset.exclude(purchase_id__in=self.FREE_DEALS)
         if self.value():
-            return queryset.exclude(purchase_id__in=self.value())
+            return queryset.exclude(purchase_id=self.value())
 
 
 class PurchasedTrackerAdmin(admin.ModelAdmin):
