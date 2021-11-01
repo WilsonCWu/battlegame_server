@@ -60,6 +60,7 @@ class UserInfoSchema(Schema):
     time_started = fields.Str(attribute='user.userstats.time_started')
     longest_win_streak = fields.Int(attribute='user.userstats.longest_win_streak')
     daily_wins = fields.Int(attribute='user.userstats.daily_wins')
+    daily_games = fields.Int(attribute='user.userstats.daily_games')
     campaign_stage = fields.Int(attribute='user.dungeonprogress.campaign_stage')
     total_damage = fields.Function(lambda userinfo: defaultdict(int, userinfo.user.userstats.cumulative_stats)[str(constants.DAMAGE_DEALT)])
 
