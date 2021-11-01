@@ -306,9 +306,9 @@ class BlackListPurchasesFilter(SimpleListFilter):
     parameter_name = 'purchase_id'
 
     FREE_DEALS_ID = 'BLACKLIST_FREE_DEALS'
-    FREE_DEALS = ['com.salutationstudio.tinytitans.deal.daily0',
-                  'com.salutationstudio.tinytitans.deal.weekly0',
-                  'com.salutationstudio.tinytitans.deal.monthly0']
+    FREE_DEALS = [constants.DEAL_DAILY_0,
+                  constants.DEAL_WEEKLY_0,
+                  constants.DEAL_MONTHLY_0]
 
     def lookups(self, request, model_admin):
         products = [(p.purchase_id, p.purchase_id) for p in PurchasedTracker.objects.distinct('purchase_id')]
