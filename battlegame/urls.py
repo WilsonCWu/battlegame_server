@@ -119,6 +119,7 @@ urlpatterns = [
     path('referral', referral.ReferralView.as_view()),
     path('creatorcode/get/', creatorcode.CreatorCodeGetView.as_view()),
     path('creatorcode/set/', creatorcode.CreatorCodeChangeView.as_view()),
+    path('creatorcode/claim/', creatorcode.CreatorCodeClaimView.as_view()),
     path('redeemcode', redemptioncodes.RedeemCodeView.as_view()),
     path('afkrewards/get', afk_rewards.GetAFKRewardView.as_view()),
     path('afkrewards/collect', afk_rewards.CollectAFKRewardView.as_view()),
