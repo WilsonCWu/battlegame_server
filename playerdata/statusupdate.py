@@ -223,8 +223,9 @@ def update_usage(win, attacking_team):
 
 def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defending_team):
     # Should be handled by client, so this will only be triggered by spoofed API calls or a glitch.
-    if request.user.userstats.daily_games > constants.MAX_DAILY_QUICKPLAY_GAMES:
-        return Response({'status': False, 'reason': 'Max daily quickplay games exceeded'})
+    if server.is_server_version_higher('1.0.2'):
+        if request.user.userstats.daily_games > constants.MAX_DAILY_QUICKPLAY_GAMES:
+            return Response({'status': False, 'reason': 'Max daily quickplay games exceeded'})
 
     update_stats(request.user, win, stats)
     update_usage(win, attacking_team)
