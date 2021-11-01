@@ -127,6 +127,7 @@ def update_stats(user, win, stats):
     user_stats.pvp_skips += min(3, skip_cap(user) - user_stats.pvp_skips)
     user_stats.num_wins += 1 if win else 0
     user_stats.daily_wins += 1 if win else 0
+    user_stats.daily_games += 1
     user_stats.win_streak = 0 if not win else user_stats.win_streak + 1
     user_stats.longest_win_streak = max(user_stats.win_streak, user_stats.longest_win_streak)
     user_stats.save()
@@ -221,6 +222,10 @@ def update_usage(win, attacking_team):
 
 
 def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defending_team):
+    # Should be handled by client, so this will only be triggered by spoofed API calls or a glitch.
+    if request.user.userstats.daily_games > constants.MAX_DAILY_QUICKPLAY_GAMES:
+        return Response({'status': False, 'reason': 'Max daily quickplay games exceeded'})
+
     update_stats(request.user, win, stats)
     update_usage(win, attacking_team)
 
