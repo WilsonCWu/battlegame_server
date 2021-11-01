@@ -312,6 +312,7 @@ class BlackListPurchasesFilter(SimpleListFilter):
 
     def lookups(self, request, model_admin):
         products = [(p.purchase_id, p.purchase_id) for p in PurchasedTracker.objects.distinct('purchase_id')]
+        # Add a special black list all free deals case
         return products + [(self.FREE_DEALS_ID, self.FREE_DEALS_ID)]
 
     def queryset(self, request, queryset):
