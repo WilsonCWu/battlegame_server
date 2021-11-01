@@ -1,5 +1,6 @@
 import bulk_admin
 from django.contrib import admin
+from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.models import LogEntry
 from django.http import HttpResponse
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
@@ -300,9 +301,28 @@ class BaseDealAdmin(admin.ModelAdmin):
     list_filter = ('order', 'deal_type')
 
 
+class BlackListPurchasesFilter(SimpleListFilter):
+    title = 'blacklist_purchase_id' # or use _('country') for translated title
+    parameter_name = 'purchase_id'
+
+    FREE_DEALS_ID = 'BLACKLIST_FREE_DEALS'
+    FREE_DEALS = ['com.salutationstudio.tinytitans.deal.daily0',
+                  'com.salutationstudio.tinytitans.deal.weekly0',
+                  'com.salutationstudio.tinytitans.deal.monthly0']
+
+    def lookups(self, request, model_admin):
+        return [(self.FREE_DEALS_ID, self.FREE_DEALS_ID)]
+
+    def queryset(self, request, queryset):
+        if self.value() == self.FREE_DEALS_ID:
+            return queryset.exclude(purchase_id__in=self.FREE_DEALS)
+        if self.value():
+            return queryset.exclude(purchase_id__in=self.value())
+
+
 class PurchasedTrackerAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'purchase_id', 'transaction_id', 'purchase_time')
-    list_filter = ('purchase_id', 'purchase_time')
+    list_filter = (BlackListPurchasesFilter, 'purchase_id', 'purchase_time')
     search_fields = ('=user__id',)
 
 
