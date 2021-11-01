@@ -221,7 +221,7 @@ def restart_season():
 
     # Reset all players in Grandmaster to 3k
     grandmaster_elo = constants.TIER_ELO_INCREMENT * (constants.Tiers.GRANDMASTER.value - 1)
-    elo_reset_users = UserInfo.objects.filter(elo__gte=grandmaster_elo).select_related('user__elorewardtracker')
+    elo_reset_users = UserInfo.objects.filter(highest_season_elo__gte=grandmaster_elo).select_related('user__elorewardtracker')
     elo_trackers = []
     for userinfo in elo_reset_users:
         userinfo.elo = grandmaster_elo
@@ -229,7 +229,7 @@ def restart_season():
 
         # Reset their EloRewardTrackers so they can reclaim the new season rewards
         tracker = userinfo.user.elorewardtracker
-        tracker.last_claimed = min(userinfo.user.elorewardtracker.last_claimed, 59)
+        tracker.last_claimed = min(tracker.last_claimed, 59)
         tracker.last_completed = 59
         elo_trackers.append(tracker)
 
