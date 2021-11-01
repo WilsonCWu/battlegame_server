@@ -273,8 +273,8 @@ def char_level_to_dust(level):
 
 def afk_dust_per_min(dungeon_level):
     if server.is_server_version_higher('1.0.0'):
-        # Dust is capped around world 28, similar to https://afk-arena.fandom.com/wiki/Hero%27s_Essence_AFK_Rewards
-        dust_per_min = min(dungeon_level * 0.0008 + 0.01, 0.9)
+        # Dust is capped at world 30, similar to https://afk-arena.fandom.com/wiki/Hero%27s_Essence_AFK_Rewards
+        dust_per_min = min(dungeon_level * 0.0016 + 0.01, 1.93)
         return dust_per_min / 2  # Halved for afk rewards
     return dungeon_level * 0.0025 + 0.025
 
