@@ -400,27 +400,11 @@ class GetDeals(APIView):
                          })
 
 
-def make_deals(deal_type: int):
-    if deal_type == constants.DealType.DAILY.value:
-        expiration_date = get_expiration_date(1)
-    elif deal_type == constants.DealType.WEEKLY.value:
-        expiration_date = get_expiration_date(7)
-    elif deal_type == constants.DealType.MONTHLY.value:
-        expiration_date = get_season_expiration_date()
-    else:
-        raise Exception("invalid deal_type, sorry friendo")
-
-    # pick random
-    deals0 = BaseDeal.objects.filter(order=0, deal_type=deal_type)
-    deals1 = BaseDeal.objects.filter(order=1, deal_type=deal_type)
-    deals2 = BaseDeal.objects.filter(order=2, deal_type=deal_type)
-
-    pick0 = deals0[random.randrange(len(deals0))]
-    pick1 = deals1[random.randrange(len(deals1))]
-    pick2 = deals2[random.randrange(len(deals2))]
+def make_deals(deal_type: int, expiration_date):
+    deals = BaseDeal.objects.filter(deal_type=deal_type)
 
     bulk_deals = []
-    for pick in [pick0, pick1, pick2]:
+    for pick in deals:
         active_deal = ActiveDeal(base_deal=pick, expiration_date=expiration_date)
         bulk_deals.append(active_deal)
 
@@ -432,7 +416,8 @@ def make_deals(deal_type: int):
 def refresh_daily_deals_cronjob():
     ActiveDeal.objects.filter(base_deal__deal_type=constants.DealType.DAILY.value).delete()
     PurchasedTracker.objects.filter(purchase_id=constants.DEAL_DAILY_0).delete()
-    make_deals(constants.DealType.DAILY.value)
+    expiration_date = get_expiration_date(1)
+    make_deals(constants.DealType.DAILY.value, expiration_date)
 
 
 # Runs every week and randomly picks from the pool of BaseDeals for each of the orders and updates it
@@ -440,14 +425,16 @@ def refresh_daily_deals_cronjob():
 def refresh_weekly_deals_cronjob():
     ActiveDeal.objects.filter(base_deal__deal_type=constants.DealType.WEEKLY.value).delete()
     PurchasedTracker.objects.filter(purchase_id=constants.DEAL_WEEKLY_0).delete()
-    make_deals(constants.DealType.WEEKLY.value)
+    expiration_date = get_expiration_date(7)
+    make_deals(constants.DealType.WEEKLY.value, expiration_date)
 
 
 @transaction.atomic()
 def refresh_monthly_deals_cronjob():
     ActiveDeal.objects.filter(base_deal__deal_type=constants.DealType.MONTHLY.value).delete()
     PurchasedTracker.objects.filter(purchase_id=constants.DEAL_MONTHLY_0).delete()
-    make_deals(constants.DealType.MONTHLY.value)
+    expiration_date = get_season_expiration_date()
+    make_deals(constants.DealType.MONTHLY.value, expiration_date)
 
 
 CharacterCount = namedtuple("CharacterCount", "character count")
