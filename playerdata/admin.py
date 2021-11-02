@@ -797,3 +797,5 @@ admin.site.register(RegalRewards, RegalRewardsAdmin)
 admin.site.register(ActivityPoints, ActivityPointsAdmin)
 
 admin.site.register(AFKReward, AFKRewardAdmin)
+
+admin.site.register(EventTimeTracker)

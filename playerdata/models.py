@@ -1395,6 +1395,15 @@ class RegalRewards(models.Model):
     last_claimed_premium = models.IntegerField(default=-1)
 
 
+class EventTimeTracker(models.Model):
+    name = models.TextField()
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+
+    def __str__(self):
+        return "Event: " + str(self.name)
+
+
 class EventRewards(models.Model):  # login rewards for launch event
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     last_claimed_reward = models.IntegerField(default=-1)
