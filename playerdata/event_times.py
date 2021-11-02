@@ -20,9 +20,9 @@ class GetEventTimesView(APIView):
 
     @transaction.atomic
     def get(self, request):
-        two_days_ago = datetime.now() - timedelta(days=2)
-        # don't send trackers for events that ended at least two days ago
-        all_trackers = EventTimeTracker.objects.all().filter(end_time__gt=two_days_ago)
+        three_months_ago = datetime.now() - timedelta(days=90)
+        # don't send trackers for events that ended at least three months ago
+        all_trackers = EventTimeTracker.objects.all().filter(end_time__gt=three_months_ago)
         tracker_schema = EventTimeTrackerSchema(all_trackers, many=True)
 
         return Response({'status': True, 'events': tracker_schema.data})
