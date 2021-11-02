@@ -59,6 +59,7 @@ class MatchValidator:
     def _validate_user(match_id, user, payload):
         battle_chars = MatchValidator._chars_from_payload(payload)
         inv_chars = {c.char_id: c for c in Character.objects.filter(user=user)}
+        boosted_level = user.levelbooster.booster_level
 
         reason = None
         for c in battle_chars:
@@ -69,7 +70,10 @@ class MatchValidator:
             if inv_char.char_type.char_type != c.char_type:
                 reason = "char_id's type mismatched from %d to %d" % (inv_char.char_type.char_type, c.char_type)
                 break
-            if inv_char.level < c.level:
+
+            # Check against boosted level if is_boosted
+            level = boosted_level if inv_char.is_boosted else inv_char.level
+            if level < c.level:
                 reason = "inventory char level is lower than match's"
                 break
             if inv_char.prestige < c.prestige:
