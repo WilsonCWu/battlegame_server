@@ -9,9 +9,9 @@ from playerdata.models import EventTimeTracker
 
 
 class EventTimeTrackerSchema(Schema):
-    event_name = fields.Str()
-    start_date = fields.DateTime()
-    end_date = fields.DateTime()
+    name = fields.Str()
+    start_time = fields.DateTime()
+    end_time = fields.DateTime()
 
 
 class GetEventTimesView(APIView):
@@ -19,5 +19,7 @@ class GetEventTimesView(APIView):
 
     @transaction.atomic
     def get(self, request):
-        allEventTimes = EventTimeTracker.objects.all()
-        return Response({'status': True, 'events': [EventTimeTrackerSchema(p).data for p in allEventTimes]})
+        all_trackers = EventTimeTracker.objects.all()
+        tracker_schema = EventTimeTrackerSchema(all_trackers, many=True)
+
+        return Response({'status': True, 'events': tracker_schema.data})

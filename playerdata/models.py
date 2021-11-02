@@ -1396,9 +1396,9 @@ class RegalRewards(models.Model):
 
 
 class EventTimeTracker(models.Model):
-    event_name = models.TextField()
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
+    name = models.TextField()
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
 
     def __str__(self):
         return "Event: " + str(self.event_name)
