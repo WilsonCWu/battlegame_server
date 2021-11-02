@@ -506,19 +506,24 @@ class Character(models.Model):
         return str(self.user) + ": " + str(self.char_type) + " " + str(self.char_id)
 
 
+def validate_position(pos):
+    if pos < 1 or pos > 25:
+        raise ValidationError(f'Invalid placement position: {pos}')
+
+
 class Placement(models.Model):
     placement_id = models.AutoField(primary_key=True)
     # TODO(yanke): delete null on user.
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
-    pos_1 = models.IntegerField(default=-1)
+    pos_1 = models.IntegerField(default=-1, validators=[validate_position])
     char_1 = models.ForeignKey(Character, blank=True, null=True, on_delete=models.SET_NULL, related_name='char_1')
-    pos_2 = models.IntegerField(default=-1)
+    pos_2 = models.IntegerField(default=-1, validators=[validate_position])
     char_2 = models.ForeignKey(Character, blank=True, null=True, on_delete=models.SET_NULL, related_name='char_2')
-    pos_3 = models.IntegerField(default=-1)
+    pos_3 = models.IntegerField(default=-1, validators=[validate_position])
     char_3 = models.ForeignKey(Character, blank=True, null=True, on_delete=models.SET_NULL, related_name='char_3')
-    pos_4 = models.IntegerField(default=-1)
+    pos_4 = models.IntegerField(default=-1, validators=[validate_position])
     char_4 = models.ForeignKey(Character, blank=True, null=True, on_delete=models.SET_NULL, related_name='char_4')
-    pos_5 = models.IntegerField(default=-1)
+    pos_5 = models.IntegerField(default=-1, validators=[validate_position])
     char_5 = models.ForeignKey(Character, blank=True, null=True, on_delete=models.SET_NULL, related_name='char_5')
 
     is_tourney = models.BooleanField(default=False)
@@ -1012,6 +1017,19 @@ class DungeonProgress(models.Model):
         return "user " + str(self.user.id) + ": campaign " + str(self.campaign_stage) + ", tower " + str(self.tower_stage)
 
 
+def validate_placement_json(placement_json):
+    seen_positions = set()
+    for placement in placement_json:
+        pos = placement['position']
+
+        validate_position(pos)
+
+        if pos in seen_positions:
+            raise ValidationError(f'Duplicate position: {pos}')
+
+        seen_positions.add(pos)
+
+
 class DungeonBoss(models.Model):
     stage = models.IntegerField()
     placement = models.ForeignKey(Placement, on_delete=models.CASCADE, blank=True, null=True)
@@ -1019,7 +1037,7 @@ class DungeonBoss(models.Model):
 
     # We expect team_comp to be in format of
     # [ {'char_id': <char_id>, 'position': <position>}, {...}, ... ]
-    team_comp = JSONField(blank=True, null=True)
+    team_comp = JSONField(blank=True, null=True, validators=[validate_placement_json])
 
     # The character id of the carry in that level
     carry_id = models.IntegerField(default=-1)
