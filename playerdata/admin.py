@@ -716,6 +716,13 @@ class ChatMessageAdmin(admin.ModelAdmin):
     raw_id_fields = ('chat',)
 
 
+class HackerAlertAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'verified_hacker', 'timestamp')
+    list_filter = ('timestamp',)
+    raw_id_fields = ('user', 'reporter')
+    search_fields = ('=user__id',)
+
+
 admin.site.register(DungeonStage, DungeonStageAdmin)
 admin.site.register(DungeonProgress)
 admin.site.register(DungeonBoss, DungeonBossAdmin)
@@ -780,7 +787,7 @@ admin.site.register(MoevasionStatus)
 
 admin.site.register(Flag)
 admin.site.register(UserFlag)
-admin.site.register(HackerAlert)
+admin.site.register(HackerAlert, HackerAlertAdmin)
 
 admin.site.register(ClanPVEEvent)
 admin.site.register(ClanPVEResult)
