@@ -1401,7 +1401,7 @@ class EventTimeTracker(models.Model):
     end_time = models.DateTimeField()
 
     def __str__(self):
-        return "Event: " + str(self.event_name)
+        return "Event: " + str(self.name)
 
 
 class EventRewards(models.Model):  # login rewards for launch event
