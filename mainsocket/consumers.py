@@ -1,4 +1,4 @@
-# notification/consumers.py
+# mainsocket/consumers.py
 import json
 
 from asgiref.sync import async_to_sync
@@ -49,7 +49,7 @@ def notif_channel_group_name(user_id):
 # Channel group is the user_id
 # Only 1 channel per group, but this is still the convention since group names
 # are user defined, channel id's are auto generated and un-gettable
-class NotificationConsumer(WebsocketConsumer):
+class MainSocketConsumer(WebsocketConsumer):
     def connect(self):
         self.user = self.scope["user"]
         self.room_name = self.scope['url_route']['kwargs']['room_name']
@@ -66,10 +66,10 @@ class NotificationConsumer(WebsocketConsumer):
         # Send current notification badge counts
 
         # Test send
-        # self.send(text_data=json.dumps({
-        #     'notif_type': 12,
-        #     'amount': 32
-        # }))
+        self.send(text_data=json.dumps({
+            'notif_type': 12,
+            'amount': 32
+        }))
 
     def disconnect(self, close_code):
         # Leave room group
