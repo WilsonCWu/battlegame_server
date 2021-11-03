@@ -4,24 +4,44 @@ import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from channels.layers import get_channel_layer
+from rest_marshmallow import Schema, fields
+
+
+class BadgeNotif:
+    def __init__(self, notif_type, amount):
+        self.notif_type = notif_type
+        self.amount = amount
+
+
+class BadgeNotifSchema(Schema):
+    notif_type = fields.Int()
+    amount = fields.Int()
+
+
+class BadgeNotifier:
+    def __init__(self, user_id):
+        self.user_id = user_id
+        self.notif_list = []
+
+    def add_notif(self, notif_type, amount):
+        self.notif_list.append(BadgeNotif(notif_type, amount))
+        return self
+
+    def send_notification(self):
+        room_group_name = notif_channel_group_name(self.user_id)
+        channel_layer = get_channel_layer()
+
+        async_to_sync(channel_layer.group_send)(
+            room_group_name,
+            {
+                'type': 'push_notif',
+                'data': BadgeNotifSchema(self.notif_list, many=True).data
+            }
+        )
 
 
 def notif_channel_group_name(user_id):
     return 'notif_%s' % user_id
-
-
-def send_notification(user_id, notif_type, amount):
-    room_group_name = notif_channel_group_name(user_id)
-    channel_layer = get_channel_layer()
-
-    async_to_sync(channel_layer.group_send)(
-        room_group_name,
-        {
-            'type': 'push_notif',
-            'notif_type': notif_type,
-            'amount': amount
-        }
-    )
 
 
 # Channel group is the user_id
@@ -64,10 +84,6 @@ class NotificationConsumer(WebsocketConsumer):
 
     # sends notification amounts to the client socket
     def push_notif(self, event):
-        notif_type = event['notif_type']
-        amount = event['amount']
+        print(f"push {event['data']}")
 
-        self.send(text_data=json.dumps({
-            'notif_type': notif_type,
-            'amount': amount
-        }))
+        self.send(text_data=json.dumps(event['data']))
