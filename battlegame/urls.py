@@ -16,7 +16,7 @@ Including another URLconf
 from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
-from playerdata import creatorcode, login, tier_system, level_booster, relic_shop, wishlist, chapter_rewards_pack, inbox, \
+from playerdata import creatorcode, event_times, login, tier_system, level_booster, relic_shop, wishlist, chapter_rewards_pack, inbox, \
     rotating_mode, conquest_event, regal_rewards, activity_points, shards
 from playerdata import base
 from playerdata import daily_dungeon
@@ -95,6 +95,7 @@ urlpatterns = [
     path('eloreward/claim/', tier_system.ClaimEloRewardView.as_view()),
     path('eventreward/get/', event_rewards.GetEventRewardListView.as_view()),
     path('eventreward/claim/', event_rewards.ClaimEventRewardView.as_view()),
+    path('event/times/get/', event_times.GetEventTimesView.as_view()),
     path('dailydungeon/start/', daily_dungeon.DailyDungeonStartView.as_view()),
     path('dailydungeon/status/', daily_dungeon.DailyDungeonStatusView.as_view()),
     path('dailydungeon/stage/', daily_dungeon.DailyDungeonStageView.as_view()),
@@ -119,6 +120,7 @@ urlpatterns = [
     path('referral', referral.ReferralView.as_view()),
     path('creatorcode/get/', creatorcode.CreatorCodeGetView.as_view()),
     path('creatorcode/set/', creatorcode.CreatorCodeChangeView.as_view()),
+    path('creatorcode/claim/', creatorcode.CreatorCodeClaimView.as_view()),
     path('redeemcode', redemptioncodes.RedeemCodeView.as_view()),
     path('afkrewards/get', afk_rewards.GetAFKRewardView.as_view()),
     path('afkrewards/collect', afk_rewards.CollectAFKRewardView.as_view()),

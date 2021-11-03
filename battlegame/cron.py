@@ -98,7 +98,8 @@ def reset_daily_wins_cron():
     userstats = UserStats.objects.all()
     for stat in userstats:
         stat.daily_wins = 0
-    UserStats.objects.bulk_update(userstats, ['daily_wins'])
+        stat.daily_games = 0
+    UserStats.objects.bulk_update(userstats, ['daily_wins', 'daily_games'])
 
 
 MAX_DAILY_DUNGEON_TICKET = 5

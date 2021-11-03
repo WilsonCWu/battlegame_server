@@ -339,3 +339,13 @@ def backfill_login_chest():
 def backfill_creatorcode():
     for user in User.objects.all():
         _, _ = CreatorCodeTracker.objects.get_or_create(user=user, created_time=None, code=None)
+
+
+def check_placement_correctness():
+    dungeons = DungeonBoss.objects.all()
+    for dungeon in dungeons:
+        if dungeon.team_comp:
+            try:
+                validate_placement_json(dungeon.team_comp)
+            except ValidationError as e:
+                print(f'Dungeon Type: {dungeon.dungeon_type}, Stage: {dungeon.stage}. Error: {e.message}')
