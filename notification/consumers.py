@@ -18,6 +18,8 @@ class BadgeNotifSchema(Schema):
     amount = fields.Int()
 
 
+# Usage: BadgeNotifier(user.id).add_notif(1, 2).add_notif(2, 4).send_notification()
+# Can send multiple badge notifications at once, and delivers it to the client in a json list of BadgeNotifSchema
 class BadgeNotifier:
     def __init__(self, user_id):
         self.user_id = user_id
@@ -62,7 +64,7 @@ class NotificationConsumer(WebsocketConsumer):
         self.accept()
 
         # Send current notification badge counts
-        
+
         # Test send
         # self.send(text_data=json.dumps({
         #     'notif_type': 12,
@@ -76,7 +78,6 @@ class NotificationConsumer(WebsocketConsumer):
             self.channel_name
         )
 
-    # Don't receive anything from other side only use this websocket to push new notification badge numbers
     def receive(self, text_data):
         pass
 
