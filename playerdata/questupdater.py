@@ -106,6 +106,7 @@ class QuestUpdater:
         daily_count = add_progress_to_quest_list(amount, daily_quests)
         weekly_count = add_progress_to_quest_list(amount, weekly_quests)
 
+        # Note: These updates are newly completed counts, not total existing
         notifications.BadgeNotifier(user.id) \
             .add_notif(notifications.BadgeNotif(constants.NotificationType.DAILY_QUEST.value, daily_count)) \
             .add_notif(notifications.BadgeNotif(constants.NotificationType.WEEKLY_QUEST.value, weekly_count)) \
@@ -138,6 +139,7 @@ class QuestUpdater:
         daily_count = set_progress_to_quest_list(amount, daily_quests)
         weekly_count = set_progress_to_quest_list(amount, weekly_quests)
 
+        # Note: These updates are newly completed counts, not total existing
         notifications.BadgeNotifier(user.id)\
             .add_notif(notifications.BadgeNotif(constants.NotificationType.DAILY_QUEST.value, daily_count)) \
             .add_notif(notifications.BadgeNotif(constants.NotificationType.WEEKLY_QUEST.value, weekly_count)) \
