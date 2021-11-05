@@ -53,19 +53,19 @@ def update_cumulative_progress2(quests, progress, player_cumulative):
     return completed_count
 
 
-def cumulative_notifs(user):
+def cumulative_badgenotifs(user):
     player_cumulative = PlayerQuestCumulative2.objects.filter(user=user).first()
-    completed = set(player_cumulative.completed_quests)
-    count = len(completed.difference(player_cumulative.claimed_quests))
+    completed_set = set(player_cumulative.completed_quests)
+    count = len(completed_set.difference(player_cumulative.claimed_quests))
     return consumers.BadgeNotif(constants.NotificationType.CUMULATIVE_QUEST.value, count)
 
 
-def daily_notifs(user):
+def daily_badgenotifs(user):
     count = PlayerQuestDaily.objects.filter(user=user, completed=True, claimed=False).count()
     return consumers.BadgeNotif(constants.NotificationType.DAILY_QUEST.value, count)
 
 
-def weekly_notifs(user):
+def weekly_badgenotifs(user):
     count = PlayerQuestWeekly.objects.filter(user=user, completed=True, claimed=False).count()
     return consumers.BadgeNotif(constants.NotificationType.WEEKLY_QUEST.value, count)
 

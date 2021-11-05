@@ -67,9 +67,9 @@ class MainSocketConsumer(WebsocketConsumer):
 
         # Send current notification badge counts
         BadgeNotifier(self.user.id) \
-            .add_notif(questupdater.daily_notifs(self.user)) \
-            .add_notif(questupdater.weekly_notifs(self.user)) \
-            .add_notif(questupdater.cumulative_notifs(self.user)) \
+            .add_notif(questupdater.daily_badgenotifs(self.user)) \
+            .add_notif(questupdater.weekly_badgenotifs(self.user)) \
+            .add_notif(questupdater.cumulative_badgenotifs(self.user)) \
             .send_notifs()
 
     def disconnect(self, close_code):
