@@ -6,6 +6,8 @@ from channels.generic.websocket import WebsocketConsumer
 from channels.layers import get_channel_layer
 from rest_marshmallow import Schema, fields
 
+from playerdata import questupdater
+
 
 class BadgeNotif:
     def __init__(self, notif_type, amount):
@@ -25,8 +27,8 @@ class BadgeNotifier:
         self.user_id = user_id
         self.notif_list = []
 
-    def add_notif(self, notif_type, amount):
-        self.notif_list.append(BadgeNotif(notif_type, amount))
+    def add_notif(self, badge_notif: BadgeNotif):
+        self.notif_list.append(badge_notif)
         return self
 
     def send_notifs(self):
@@ -64,12 +66,11 @@ class MainSocketConsumer(WebsocketConsumer):
         self.accept()
 
         # Send current notification badge counts
-
-        # Test send
-        self.send(text_data=json.dumps({
-            'notif_type': 12,
-            'amount': 32
-        }))
+        BadgeNotifier(self.user.id) \
+            .add_notif(questupdater.daily_notifs(self.user)) \
+            .add_notif(questupdater.weekly_notifs(self.user)) \
+            .add_notif(questupdater.cumulative_notifs(self.user)) \
+            .send_notifs()
 
     def disconnect(self, close_code):
         # Leave room group
@@ -84,4 +85,7 @@ class MainSocketConsumer(WebsocketConsumer):
     # sends notification amounts to the client socket
     def push_notif(self, event):
         # print(f"push {event['data']}")
-        self.send(text_data=json.dumps(event['data']))
+        self.send(text_data=json.dumps({
+            'message_type': event['type'],
+            'data': event['data']
+        }))

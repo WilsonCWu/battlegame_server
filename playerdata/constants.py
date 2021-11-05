@@ -56,6 +56,13 @@ FIGHT_MONSTER_HUNT = 24
 # so for Archer (id: 1), quest_type would be 101
 WIN_X_GAMES_WITH_CHAR_NAMESPACE = 100
 
+
+class NotificationType(Enum):
+    DAILY_QUEST = 0
+    WEEKLY_QUEST = 1
+    CUMULATIVE_QUEST = 2
+
+
 # Tournament constants
 TOURNEY_SIZE = 8
 
