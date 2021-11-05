@@ -25,7 +25,7 @@ class BadgeNotifSchema(Schema):
     amount = fields.Int()
 
 
-# Usage: BadgeNotifier(user.id).add_notif(1, 2).add_notif(2, 4).send_notifs()
+# Usage: BadgeNotifier(user.id).add_notif(BadgeNotif(1, 2)).add_notif(BadgeNotif(2, 4)).send_notifs()
 # Can send multiple badge notifications at once, and delivers it to the client in a json list of BadgeNotifSchema
 class BadgeNotifier:
     def __init__(self, user_id):
