@@ -6,6 +6,7 @@ from channels.generic.websocket import WebsocketConsumer
 from channels.layers import get_channel_layer
 from rest_marshmallow import Schema, fields
 
+from battlegame.settings import CHANNEL_LAYER
 from playerdata import questupdater
 
 
@@ -33,7 +34,7 @@ class BadgeNotifier:
 
     def send_notifs(self):
         room_group_name = notif_channel_group_name(self.user_id)
-        channel_layer = get_channel_layer()
+        channel_layer = get_my_channel_layer()
 
         async_to_sync(channel_layer.group_send)(
             room_group_name,
@@ -42,6 +43,10 @@ class BadgeNotifier:
                 'data': BadgeNotifSchema(self.notif_list, many=True).data
             }
         )
+
+
+def get_my_channel_layer():
+    return get_channel_layer(CHANNEL_LAYER)
 
 
 def notif_channel_group_name(user_id):

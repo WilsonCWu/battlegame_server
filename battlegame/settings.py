@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+
+import channels
 from decouple import config
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -95,14 +97,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'battlegame.wsgi.application'
 ASGI_APPLICATION = "battlegame.routing.application"
+
+TESTING_CHANNEL_LAYER = 'testing'
 CHANNEL_LAYERS = {
-    'default': {
+    channels.DEFAULT_CHANNEL_LAYER: {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
             "hosts": [('127.0.0.1', 6379)],
         },
     },
+    TESTING_CHANNEL_LAYER: {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
 }
+CHANNEL_LAYER = channels.DEFAULT_CHANNEL_LAYER if not DEVELOPMENT else TESTING_CHANNEL_LAYER
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
