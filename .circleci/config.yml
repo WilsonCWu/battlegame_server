@@ -21,10 +21,10 @@ jobs:
             sudo chown -R circleci:circleci /usr/local/bin
       - restore_cache:
           key: deps9-{{ .Branch }}-{{ checksum "requirements.txt" }}
-       - run:
-       name: "Ping Redis"
-       command: |
-         redis-cli ping
+      - run:
+          name: "Ping Redis"
+          command: |
+            redis-cli ping
       - run:
           name: "Pip install dependencies"
           command: |
