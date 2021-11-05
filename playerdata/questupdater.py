@@ -3,7 +3,7 @@ from collections import defaultdict
 
 from django.db.transaction import atomic
 
-from mainsocket import consumers
+from mainsocket import notifications
 from playerdata import constants
 from playerdata.models import PlayerQuestCumulative2, BaseQuest
 from playerdata.models import PlayerQuestDaily
@@ -53,21 +53,24 @@ def update_cumulative_progress2(quests, progress, player_cumulative):
     return completed_count
 
 
-def cumulative_badgenotifs(user):
-    player_cumulative = PlayerQuestCumulative2.objects.filter(user=user).first()
-    completed_set = set(player_cumulative.completed_quests)
-    count = len(completed_set.difference(player_cumulative.claimed_quests))
-    return consumers.BadgeNotif(constants.NotificationType.CUMULATIVE_QUEST.value, count)
+class CumulativeBadgeNotif(notifications.BadgeNotificationCount):
+    def get_count(self, user):
+        player_cumulative = PlayerQuestCumulative2.objects.filter(user=user).first()
+        completed_set = set(player_cumulative.completed_quests)
+        count = len(completed_set.difference(player_cumulative.claimed_quests))
+        return notifications.BadgeNotif(constants.NotificationType.CUMULATIVE_QUEST.value, count)
 
 
-def daily_badgenotifs(user):
-    count = PlayerQuestDaily.objects.filter(user=user, completed=True, claimed=False).count()
-    return consumers.BadgeNotif(constants.NotificationType.DAILY_QUEST.value, count)
+class DailyBadgeNotif(notifications.BadgeNotificationCount):
+    def get_count(self, user):
+        count = PlayerQuestDaily.objects.filter(user=user, completed=True, claimed=False).count()
+        return notifications.BadgeNotif(constants.NotificationType.DAILY_QUEST.value, count)
 
 
-def weekly_badgenotifs(user):
-    count = PlayerQuestWeekly.objects.filter(user=user, completed=True, claimed=False).count()
-    return consumers.BadgeNotif(constants.NotificationType.WEEKLY_QUEST.value, count)
+class WeeklyBadgeNotif(notifications.BadgeNotificationCount):
+    def get_count(self, user):
+        count = PlayerQuestWeekly.objects.filter(user=user, completed=True, claimed=False).count()
+        return notifications.BadgeNotif(constants.NotificationType.WEEKLY_QUEST.value, count)
 
 
 class QuestUpdater:
@@ -103,10 +106,10 @@ class QuestUpdater:
         daily_count = add_progress_to_quest_list(amount, daily_quests)
         weekly_count = add_progress_to_quest_list(amount, weekly_quests)
 
-        consumers.BadgeNotifier(user.id) \
-            .add_notif(consumers.BadgeNotif(constants.NotificationType.DAILY_QUEST.value, daily_count)) \
-            .add_notif(consumers.BadgeNotif(constants.NotificationType.WEEKLY_QUEST.value, weekly_count)) \
-            .add_notif(consumers.BadgeNotif(constants.NotificationType.CUMULATIVE_QUEST.value, cumulative_count)) \
+        notifications.BadgeNotifier(user.id) \
+            .add_notif(notifications.BadgeNotif(constants.NotificationType.DAILY_QUEST.value, daily_count)) \
+            .add_notif(notifications.BadgeNotif(constants.NotificationType.WEEKLY_QUEST.value, weekly_count)) \
+            .add_notif(notifications.BadgeNotif(constants.NotificationType.CUMULATIVE_QUEST.value, cumulative_count)) \
             .send_notifs()
 
 
@@ -135,10 +138,10 @@ class QuestUpdater:
         daily_count = set_progress_to_quest_list(amount, daily_quests)
         weekly_count = set_progress_to_quest_list(amount, weekly_quests)
 
-        consumers.BadgeNotifier(user.id)\
-            .add_notif(consumers.BadgeNotif(constants.NotificationType.DAILY_QUEST.value, daily_count)) \
-            .add_notif(consumers.BadgeNotif(constants.NotificationType.WEEKLY_QUEST.value, weekly_count)) \
-            .add_notif(consumers.BadgeNotif(constants.NotificationType.CUMULATIVE_QUEST.value, cumulative_count)) \
+        notifications.BadgeNotifier(user.id)\
+            .add_notif(notifications.BadgeNotif(constants.NotificationType.DAILY_QUEST.value, daily_count)) \
+            .add_notif(notifications.BadgeNotif(constants.NotificationType.WEEKLY_QUEST.value, weekly_count)) \
+            .add_notif(notifications.BadgeNotif(constants.NotificationType.CUMULATIVE_QUEST.value, cumulative_count)) \
             .send_notifs()
 
     @staticmethod

@@ -12,6 +12,7 @@ jobs:
         environment:
           POSTGRES_USER: u_battlegame
           POSTGRES_DB: battlegame
+      - image: circleci/redis:6.0
     steps:
       - checkout
       - run:
@@ -20,6 +21,10 @@ jobs:
             sudo chown -R circleci:circleci /usr/local/bin
       - restore_cache:
           key: deps9-{{ .Branch }}-{{ checksum "requirements.txt" }}
+       - run:
+       name: "Ping Redis"
+       command: |
+         redis-cli ping
       - run:
           name: "Pip install dependencies"
           command: |
