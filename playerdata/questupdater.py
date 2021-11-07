@@ -106,12 +106,11 @@ class QuestUpdater:
         daily_count = add_progress_to_quest_list(amount, daily_quests)
         weekly_count = add_progress_to_quest_list(amount, weekly_quests)
 
-        # TODO: These updates are newly completed counts, send using incremental instead of replace
-        notifications.send_badge_notifs(user.id,
-                                        notifications.BadgeNotif(constants.NotificationType.DAILY_QUEST.value, daily_count),
-                                        notifications.BadgeNotif(constants.NotificationType.WEEKLY_QUEST.value, weekly_count),
-                                        notifications.BadgeNotif(constants.NotificationType.CUMULATIVE_QUEST.value, cumulative_count)
-                                        )
+        notifications.send_badge_notifs_increment(user.id,
+                                                  notifications.BadgeNotif(constants.NotificationType.DAILY_QUEST.value, daily_count),
+                                                  notifications.BadgeNotif(constants.NotificationType.WEEKLY_QUEST.value, weekly_count),
+                                                  notifications.BadgeNotif(constants.NotificationType.CUMULATIVE_QUEST.value, cumulative_count)
+                                                  )
 
 
     @staticmethod
@@ -139,12 +138,11 @@ class QuestUpdater:
         daily_count = set_progress_to_quest_list(amount, daily_quests)
         weekly_count = set_progress_to_quest_list(amount, weekly_quests)
 
-        # TODO: These updates are newly completed counts, send using incremental instead of replace
-        notifications.send_badge_notifs(user.id,
-                                        notifications.BadgeNotif(constants.NotificationType.DAILY_QUEST.value, daily_count),
-                                        notifications.BadgeNotif(constants.NotificationType.WEEKLY_QUEST.value, weekly_count),
-                                        notifications.BadgeNotif(constants.NotificationType.CUMULATIVE_QUEST.value, cumulative_count)
-                                        )
+        notifications.send_badge_notifs_increment(user.id,
+                                                  notifications.BadgeNotif(constants.NotificationType.DAILY_QUEST.value, daily_count),
+                                                  notifications.BadgeNotif(constants.NotificationType.WEEKLY_QUEST.value, weekly_count),
+                                                  notifications.BadgeNotif(constants.NotificationType.CUMULATIVE_QUEST.value, cumulative_count)
+                                                  )
 
     @staticmethod
     def game_won_by_char_id(user, char_id):
