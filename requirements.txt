@@ -8,7 +8,7 @@ Automat==20.2.0
 better-profanity==0.7.0
 cachetools==4.1.0
 certifi==2020.4.5.2
-cffi==1.14.0
+cffi==1.15.0
 channels==2.4.0
 channels-redis==2.4.2
 chardet==3.0.4
@@ -56,6 +56,7 @@ pycparser==2.20
 PyHamcrest==2.0.2
 pyOpenSSL==19.1.0
 pyparsing==2.4.7
+python-dateutil==2.8.2
 python-decouple==3.3
 pytz==2019.3
 random-username==1.0.2
