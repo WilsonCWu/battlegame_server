@@ -1478,9 +1478,9 @@ def create_user_info(sender, instance, created, **kwargs):
         peasant_swordsman = Character.objects.create(user=instance, char_type_id=3)
 
         default_placement = Placement.objects.create(user=instance,
-                                                     char_1=peasant_swordsman, pos_1=3,
-                                                     char_2=peasant_archer, pos_2=10,
-                                                     char_3=peasant_mage, pos_3=11)
+                                                     char_1=peasant_swordsman, pos_1=4,
+                                                     char_2=peasant_archer, pos_2=3,
+                                                     char_3=peasant_mage, pos_3=8)
 
         userinfo = UserInfo.objects.create(user=instance, default_placement=default_placement)
         UserStats.objects.create(user=instance)
