@@ -29,11 +29,11 @@ class MainSocketConsumer(WebsocketConsumer):
         self.accept()
 
         # Send current notification badge counts
-        notifications.send_badge_notifs(self.user.id,
-                                        questupdater.DailyBadgeNotifCount().get_badge_notif(self.user),
-                                        questupdater.WeeklyBadgeNotifCount().get_badge_notif(self.user),
-                                        questupdater.CumulativeBadgeNotifCount().get_badge_notif(self.user)
-                                        )
+        notifications.send_badge_notifs_replace(self.user.id,
+                                                questupdater.DailyBadgeNotifCount().get_badge_notif(self.user),
+                                                questupdater.WeeklyBadgeNotifCount().get_badge_notif(self.user),
+                                                questupdater.CumulativeBadgeNotifCount().get_badge_notif(self.user)
+                                                )
 
     def disconnect(self, close_code):
         # Leave room group
@@ -49,6 +49,6 @@ class MainSocketConsumer(WebsocketConsumer):
     def push_notif(self, event):
         # print(f"push {event['data']}")
         self.send(text_data=json.dumps({
-            'message_type': event['type'],
+            'message_type': event['message_type'],
             'data': event['data']
         }))
