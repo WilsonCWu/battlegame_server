@@ -28,36 +28,6 @@ def get_accumulated_runes_limit(vip_level: int):
     return (24 + vip_afk_extra_hours(vip_level)) * 60 * 60
 
 
-# Calculate the number of runes consumed given the time it had to run
-def deprecate_evaluate_afk(afk_rewards: AFKReward, vip_level: int, added_runes=0):
-    max_hours = 12 + vip_afk_extra_hours(vip_level)
-    max_runes = max_hours * 60 * 60
-
-    # the max number of runes that can still be converted to rewards on top of what's already converted
-    runes_conversion_cap = max_runes - afk_rewards.unclaimed_converted_runes
-
-    # stop consuming runes if capped out on both converted runes or to-be-converted runes
-    if afk_rewards.unclaimed_converted_runes >= max_runes or afk_rewards.reward_ticks >= runes_conversion_cap:
-        afk_rewards.runes_left = min(max_runes, afk_rewards.runes_left + added_runes)
-        return afk_rewards
-
-    # runes_complete needs to be capped by 3 things:
-    # elapsed secs, amount of runes that can still be converted, and the runes available
-    elapsed_secs = int(afk_secs_since_last_datetime(afk_rewards.last_eval_time, vip_level))
-    runes_complete = min(elapsed_secs, runes_conversion_cap, afk_rewards.runes_left)
-
-    # update values
-    afk_rewards.last_eval_time = datetime.now(timezone.utc)
-    afk_rewards.runes_left = min(max_runes, afk_rewards.runes_left + added_runes - runes_complete)
-
-    # capped at the max runes available to be converted
-    # adding runes_complete is guaranteed to be <= runes_conversion_cap
-    afk_rewards.reward_ticks += runes_complete
-
-    afk_rewards.save()
-    return afk_rewards
-
-
 def afk_secs_elapsed_between(datetime1, datetime2, vip_level: int):
     elapsed = datetime1 - datetime2
     elapsed_secs = elapsed.total_seconds()
@@ -95,10 +65,8 @@ def evaluate_afk_reward_ticks(afk_rewards: AFKReward, vip_level: int, added_rune
 # Number of ticks/secs defined for a shard drop interval
 # Example: 60 secs x 15 minutes per shard drop
 def PER_SHARD_INTERVAL():
-    if server.is_server_version_higher('1.0.0'):
-        # Doubling for standard afk time + rune ticks
-        return 60 * 15 * 2
-    return 60 * 15
+    # Doubling for standard afk time + rune ticks
+    return 60 * 15 * 2
 
 
 class GetAFKRewardView(APIView):
@@ -116,10 +84,7 @@ class GetAFKRewardView(APIView):
         coins_per_second = coins_per_min / 60
         dust_per_second = dust_per_min / 60
 
-        if server.is_server_version_higher('1.0.0'):
-            afk_rewards = evaluate_afk_reward_ticks(request.user.afkreward, vip_level)
-        else:
-            afk_rewards = deprecate_evaluate_afk(request.user.afkreward, vip_level)
+        afk_rewards = evaluate_afk_reward_ticks(request.user.afkreward, vip_level)
 
         afk_rewards.unclaimed_gold += afk_rewards.reward_ticks * coins_per_second * afk_rewards_multiplier_vip(vip_level)
         afk_rewards.unclaimed_dust += afk_rewards.reward_ticks * dust_per_second * afk_rewards_multiplier_vip(vip_level)
