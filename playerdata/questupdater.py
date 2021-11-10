@@ -53,6 +53,12 @@ def update_cumulative_progress2(quests, progress, player_cumulative):
     return completed_count
 
 
+def get_active_cumulative_quests(UPDATE_TYPE, player_cumulative):
+    active_cumulative_quests = ActiveCumulativeQuest.objects.filter(base_quest__type=UPDATE_TYPE) \
+        .exclude(base_quest_id__in=(player_cumulative.completed_quests + player_cumulative.claimed_quests)).select_related('base_quest')
+    return [active_cumulative.base_quest for active_cumulative in active_cumulative_quests]
+
+
 class CumulativeBadgeNotifCount(notifications.BadgeNotifCount):
     def get_badge_notif(self, user):
         player_cumulative = PlayerQuestCumulative2.objects.filter(user=user).first()
@@ -83,9 +89,7 @@ class QuestUpdater:
             return
 
         player_cumulative = PlayerQuestCumulative2.objects.filter(user=user).first()
-        cumulative_basequests = ActiveCumulativeQuest.objects.filter(base_quest__type=UPDATE_TYPE).exclude(
-            base_quest_id__in=(player_cumulative.completed_quests + player_cumulative.claimed_quests))
-
+        cumulative_basequests = get_active_cumulative_quests(UPDATE_TYPE, player_cumulative)
 
         weekly_quests = PlayerQuestWeekly.objects.select_related('base_quest').filter(user=user,
                                                                                       base_quest__type=UPDATE_TYPE,
@@ -121,7 +125,7 @@ class QuestUpdater:
             return
 
         player_cumulative = PlayerQuestCumulative2.objects.filter(user=user).first()
-        cumulative_basequests = ActiveCumulativeQuest.objects.filter(base_quest__type=UPDATE_TYPE).exclude(base_quest_id__in=(player_cumulative.completed_quests + player_cumulative.claimed_quests))
+        cumulative_basequests = get_active_cumulative_quests(UPDATE_TYPE, player_cumulative)
 
         weekly_quests = PlayerQuestWeekly.objects.select_related('base_quest').filter(user=user,
                                                                                       base_quest__type=UPDATE_TYPE,
