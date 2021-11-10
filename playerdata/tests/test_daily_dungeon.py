@@ -115,7 +115,7 @@ class DailyDungeonResultAPITestCase(APITestCase):
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['rewards']), 3)  # num rewards for a depth of 20
+        self.assertEqual(len(response.data['rewards']), 6)  # num rewards for a depth of 20
         dd_status.refresh_from_db()
         self.assertEqual(dd_status.stage, 0)
 
