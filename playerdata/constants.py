@@ -316,14 +316,6 @@ AFK_BASE_SHARD_REWARD = [0, 0, 8, 10, 4]
 DD_SHARD_DROP_RATE = [0, 0, 745, 240, 15]
 DD_BASE_SHARD_REWARD = [0, 0, 328, 106, 7]
 
-# TODO(1.0.0): Remove after update
-DD_ITEM_DROP_RATE_PER_TIER = [
-    [1000, 0, 0, 0],  # tier 0
-    [700, 300, 0, 0],  # tier 1
-    [420, 460, 120, 0],  # tier 2
-    [420, 350, 200, 30],  # tier 3
-]
-
 DD_SILVER_ITEM_DROP_RATE_PER_TIER = [
     [1000, 0, 0, 0],  # tier 0
     [700, 300, 0, 0],  # tier 1
