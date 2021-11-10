@@ -53,6 +53,7 @@ def update_cumulative_progress2(quests, progress, player_cumulative):
     return completed_count
 
 
+# Returns the base_quests for the set of ActiveCumulativeQuests
 def get_active_cumulative_quests(UPDATE_TYPE, player_cumulative):
     active_cumulative_quests = ActiveCumulativeQuest.objects.filter(base_quest__type=UPDATE_TYPE) \
         .exclude(base_quest_id__in=(player_cumulative.completed_quests + player_cumulative.claimed_quests)).select_related('base_quest')
