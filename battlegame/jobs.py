@@ -349,3 +349,15 @@ def check_placement_correctness():
                 validate_placement_json(dungeon.team_comp)
             except ValidationError as e:
                 print(f'Dungeon Type: {dungeon.dungeon_type}, Stage: {dungeon.stage}. Error: {e.message}')
+
+
+@transaction.atomic
+def remove_nonactive_cumulative_quests():
+    player_quests = PlayerQuestCumulative2.objects.all()
+    active_quests_ids = ActiveCumulativeQuest.objects.values_list('base_quest_id', flat=True)
+
+    for player_quest in player_quests:
+        # Filter out all the non-active quests
+        player_quest.completed_quests = [quest for quest in player_quest.completed_quests if quest in active_quests_ids]
+
+    PlayerQuestCumulative2.objects.bulk_update(player_quests, ['completed_quests'])
