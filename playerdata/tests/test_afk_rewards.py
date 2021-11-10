@@ -23,6 +23,7 @@ class AFKRewardsAPITestCase(APITestCase):
 
         self.u.afkreward.runes_left = 3000
         self.u.afkreward.last_eval_time = d1
+        self.u.afkreward.last_collected_time = d1
         self.u.afkreward.save()
 
         response = self.client.get('/afkrewards/get')
@@ -39,6 +40,7 @@ class AFKRewardsAPITestCase(APITestCase):
 
         self.u.afkreward.runes_left = 3000
         self.u.afkreward.last_eval_time = d1
+        self.u.afkreward.last_collected_time = d1
         self.u.afkreward.save()
 
         orginal_coins = self.u.inventory.coins
