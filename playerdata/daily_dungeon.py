@@ -166,39 +166,6 @@ class DailyDungeonStageView(APIView):
         return Response({'status': True, 'stage_id': dd_status.stage, 'mob': daily_dungeon_stage_generator(dd_status.stage)})
 
 
-def daily_dungeon_reward(is_golden, stage, user):
-    rewards = []
-    if stage == 30:
-        rewards.append(chests.ChestReward('gems', 100))
-    elif stage % 10 == 0:
-        rewards = chests.generate_chest_rewards(constants.ChestType.DAILY_DUNGEON.value, user)
-    elif stage % 5 == 0:
-        rewards.append(chests.pick_resource_reward(user, 'coins', constants.ChestType.DAILY_DUNGEON.value))
-
-    # 2x rewards for golden ticket
-    if is_golden and stage % 5 == 0:
-        # 2x resource rewards
-        for reward in rewards:
-            if reward.reward_type in ['coins', 'gems', 'essence']:
-                reward.value = reward.value * 2
-
-    if is_golden and stage % 10 == 0:
-        num_extra_summons = 0
-
-        if stage >= 60:
-            num_extra_summons += 2
-        elif stage >= 40:
-            num_extra_summons += 1
-
-        for i in range(0, num_extra_summons):
-            reward = chests.pick_reward_char(user, constants.ChestType.DAILY_DUNGEON.value)
-            rewards.append(reward)
-
-    chests.award_chest_rewards(user, rewards)
-    reward_schema = chests.ChestRewardSchema(rewards, many=True)
-    return reward_schema.data
-
-
 def dd_tiered_item_rewards(dd_status: DailyDungeonStatus, user):
     rewards = []
     depth = dd_status.stage - (dd_status.cur_tier * 20)
