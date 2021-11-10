@@ -5,7 +5,7 @@ from django.db.transaction import atomic
 
 from mainsocket import notifications
 from playerdata import constants
-from playerdata.models import PlayerQuestCumulative2, BaseQuest
+from playerdata.models import PlayerQuestCumulative2, BaseQuest, ActiveCumulativeQuest
 from playerdata.models import PlayerQuestDaily
 from playerdata.models import PlayerQuestWeekly
 
@@ -83,8 +83,8 @@ class QuestUpdater:
             return
 
         player_cumulative = PlayerQuestCumulative2.objects.filter(user=user).first()
-        cumulative_basequests = BaseQuest.objects.filter(type=UPDATE_TYPE).exclude(
-            id__in=(player_cumulative.completed_quests + player_cumulative.claimed_quests))
+        cumulative_basequests = ActiveCumulativeQuest.objects.filter(base_quest__type=UPDATE_TYPE).exclude(
+            base_quest_id__in=(player_cumulative.completed_quests + player_cumulative.claimed_quests))
 
 
         weekly_quests = PlayerQuestWeekly.objects.select_related('base_quest').filter(user=user,
@@ -121,7 +121,7 @@ class QuestUpdater:
             return
 
         player_cumulative = PlayerQuestCumulative2.objects.filter(user=user).first()
-        cumulative_basequests = BaseQuest.objects.filter(type=UPDATE_TYPE).exclude(id__in=(player_cumulative.completed_quests + player_cumulative.claimed_quests))
+        cumulative_basequests = ActiveCumulativeQuest.objects.filter(base_quest__type=UPDATE_TYPE).exclude(base_quest_id__in=(player_cumulative.completed_quests + player_cumulative.claimed_quests))
 
         weekly_quests = PlayerQuestWeekly.objects.select_related('base_quest').filter(user=user,
                                                                                       base_quest__type=UPDATE_TYPE,
