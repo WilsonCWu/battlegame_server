@@ -242,8 +242,7 @@ def handle_purchase_gems(user, purchase_id, transaction_id):
 def reward_deal(user, inventory, base_deal):
     if base_deal.deal_type == constants.DealType.GEMS_COST.value:
         inventory.gems -= base_deal.gems_cost
-        if server.is_server_version_higher("1.0.0"):
-            award_supported_creator(user, base_deal.gems_cost)
+        award_supported_creator(user, base_deal.gems_cost)
 
     inventory.coins += base_deal.coins
     inventory.gems += base_deal.gems
@@ -511,8 +510,7 @@ class PurchaseItemView(APIView):
 
         # deduct gems, update quests
         inventory.gems -= constants.SUMMON_GEM_COST[purchase_item_id]
-        if server.is_server_version_higher("1.0.0"):
-            award_supported_creator(user, constants.SUMMON_GEM_COST[purchase_item_id])
+        award_supported_creator(user, constants.SUMMON_GEM_COST[purchase_item_id])
         inventory.save()
 
         QuestUpdater.add_progress_by_type(request.user, constants.PURCHASE_ITEM, 1)

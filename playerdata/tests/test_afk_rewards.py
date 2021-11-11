@@ -56,5 +56,4 @@ class AFKRewardsAPITestCase(APITestCase):
 
         self.u.afkreward.refresh_from_db()
         self.u.inventory.refresh_from_db()
-        self.assertEqual(self.u.afkreward.unclaimed_converted_runes, 0)
         self.assertTrue(self.u.inventory.coins > orginal_coins)
