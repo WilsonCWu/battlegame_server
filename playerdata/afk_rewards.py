@@ -100,7 +100,6 @@ class GetAFKRewardView(APIView):
             afk_rewards.unclaimed_shards[i] += shard_amount
 
         # Keep track of the amount of rewards (in terms of runes) that are unclaimed so we can cap it
-        afk_rewards.unclaimed_converted_runes += afk_rewards.reward_ticks
         afk_rewards.reward_ticks = 0
         afk_rewards.save()
 
@@ -136,7 +135,6 @@ class CollectAFKRewardView(APIView):
         request.user.afkreward.unclaimed_gold -= coins_floored
         request.user.afkreward.unclaimed_dust -= dust_floored
         request.user.afkreward.unclaimed_shards = default_afk_shard_list()
-        request.user.afkreward.unclaimed_converted_runes = 0
         request.user.afkreward.save()
 
         # request.user.userinfo.player_exp += exp
