@@ -12,7 +12,7 @@ class GrassEventSchema(Schema):
     cur_floor = fields.Int()
     ladder_index = fields.Int()
     tickets_left = fields.Int()
-    tokens_left = fields.Int()
+    grass_cuts_left = fields.Int()
     tokens_bought = fields.Int()
 
 

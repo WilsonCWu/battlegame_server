@@ -19,6 +19,8 @@ class GrassEventAPITestCase(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
         self.assertEqual(resp.data['grass_event']['cur_floor'], 0)
+        self.assertEqual(resp.data['grass_event']['tickets_left'], 0)
+        self.assertEqual(resp.data['grass_event']['grass_cuts_left'], 0)
 
     def test_start_run_no_ticket(self):
         response = self.client.post('/event/grass/startrun/', {})
