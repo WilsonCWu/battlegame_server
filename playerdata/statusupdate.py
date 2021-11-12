@@ -122,7 +122,7 @@ class UploadTourneyResultView(APIView):
 
 
 def update_stats(user, win, stats):
-    user_stats = UserStats.objects.get(user=user)
+    user_stats = user.userstats
     user_stats.num_games += 1
     user_stats.pvp_skips += min(3, skip_cap(user) - user_stats.pvp_skips)
     user_stats.num_wins += 1 if win else 0
