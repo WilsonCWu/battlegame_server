@@ -1458,6 +1458,18 @@ class RotatingModeStatus(models.Model):
     rewards_claimed = models.IntegerField(default=0)
 
 
+# Black Friday 2021 Event model
+class GrassEvent(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    cur_floor = models.IntegerField(default=0)
+    ladder_index = models.IntegerField(default=-1)  # -1 if not found, index of the tile if found
+
+    # tickets are for playing the mode
+    tickets_left = models.IntegerField(default=0)
+    grass_cuts_left = models.IntegerField(default=0)
+    tokens_bought = models.IntegerField(default=0)
+
+
 def create_user_referral(user):
     try:
         UserReferral.objects.create(user=user, referral_code=generate_referral_code())
