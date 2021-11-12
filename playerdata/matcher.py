@@ -2,7 +2,6 @@ import random
 import secrets
 from collections import defaultdict
 
-import packaging
 from random_username.generate import generate_username
 
 from django.contrib.auth import get_user_model

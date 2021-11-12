@@ -16,8 +16,9 @@ Including another URLconf
 from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
-from playerdata import creatorcode, event_times, login, tier_system, level_booster, relic_shop, wishlist, chapter_rewards_pack, inbox, \
-    rotating_mode, conquest_event, regal_rewards, activity_points, shards
+from playerdata import creatorcode, event_times, login, tier_system, level_booster, relic_shop, wishlist, \
+    chapter_rewards_pack, inbox, \
+    rotating_mode, conquest_event, regal_rewards, activity_points, shards, grass_event
 from playerdata import base
 from playerdata import daily_dungeon
 from playerdata import moevasion
@@ -47,6 +48,9 @@ from playerdata import event_rewards
 urlpatterns = [
     path('shards/summons/', shards.SummonShardsView.as_view()),
     path('activitypoints/claim/', activity_points.ClaimActivityPointsView.as_view()),
+    path('event/grass/get/', grass_event.GetGrassEventView.as_view()),
+    path('event/grass/startrun/', grass_event.StartGrassRunView.as_view()),
+    path('event/grass/finishrun/', grass_event.FinishGrassRunView.as_view()),
     path('event/conquest/claim/', conquest_event.ClaimConquestEventRewardView.as_view()),
     path('rotating/claim/', rotating_mode.ClaimRotatingModeRewardView.as_view()),
     path('rotating/result/', rotating_mode.RotatingModeResultView.as_view()),
