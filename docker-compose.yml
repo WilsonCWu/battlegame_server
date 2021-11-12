@@ -1,0 +1,36 @@
+version: "3.9"
+   
+services:
+  db:
+    image: postgres
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=battlegame
+      - POSTGRES_USER=u_battlegame
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+  web:
+    build: .
+    command:
+      - /bin/bash
+      - -c
+      - |
+        python manage.py wait_for_db
+        python manage.py migrate
+        python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+  redis-6379:
+    image: redis
+    ports:
+      - "6379:6379"
+  redis-6380:
+    image: redis
+    ports:
+      - "6380:6379"

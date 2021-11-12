@@ -99,7 +99,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
+            "hosts": [('redis-6379', 6379)],
         },
     },
 }
@@ -113,7 +113,7 @@ DATABASES = {
         'NAME': 'battlegame',
         'USER': 'u_battlegame',
         'PASSWORD': config('POSTGRES_PASSWORD'),
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': '',
     }
 }
@@ -121,7 +121,7 @@ DATABASES = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6380/1",
+        "LOCATION": "redis://redis-6380:6380/1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "PASSWORD": config('REDIS_PVP_PASSWORD')

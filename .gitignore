@@ -156,3 +156,5 @@ media
 
 # Ignore repos installed by pip.
 src/*
+
+data/db/*
