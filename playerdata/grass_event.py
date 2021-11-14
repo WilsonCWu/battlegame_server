@@ -1,6 +1,7 @@
 import random
 from enum import Enum
 
+from django.db.transaction import atomic
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -16,14 +17,18 @@ class GrassRewardType(Enum):
     NONE = -1
     DECENT = 0
     GOOD = 1
-    JACKPOT = 2
+    GREAT = 2
+    LADDER = 3
+    JACKPOT = 4
 
 
 # TODO: tune numbers
 NUM_REWARDS_PER_TIER = {
-    GrassRewardType.DECENT.value: 4,
-    GrassRewardType.GOOD.value: 2,
-    GrassRewardType.JACKPOT.value: 1
+    GrassRewardType.DECENT.value: 15,
+    GrassRewardType.GOOD.value: 5,
+    GrassRewardType.GREAT.value: 3,
+    GrassRewardType.JACKPOT.value: 1,
+    GrassRewardType.LADDER.value: 1,
 }
 MAP_SIZE = 25
 
@@ -45,14 +50,14 @@ def grass_reward(reward_type, floor):
 # returns a randomly generated map of {<int>: <grass_reward_type>}
 # if an index isn't in the map, there is no reward there
 def gen_reward_map():
-    total_positions = set(range(0, MAP_SIZE))
+    all_tiles = set(range(0, MAP_SIZE))
     reward_map = {}
 
     for tier, num_rewards in enumerate(NUM_REWARDS_PER_TIER.values()):
-        indices = random.sample(total_positions, num_rewards)
-        total_positions -= set(indices)
+        picked_tiles = random.sample(all_tiles, num_rewards)
+        all_tiles -= set(picked_tiles)
 
-        for index in indices:
+        for index in picked_tiles:
             reward_map[index] = tier
 
     return reward_map
@@ -61,11 +66,12 @@ def gen_reward_map():
 class GetGrassEventView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @atomic
     def get(self, request):
-        event, _ = GrassEvent.objects.get_or_create(user=request.user)
+        event, is_event_created = GrassEvent.objects.get_or_create(user=request.user)
         event_time_tracker = EventTimeTracker.objects.filter(name='grass_event').first()
 
-        if event.floor_reward_map is None:
+        if is_event_created:
             event.floor_reward_map = gen_reward_map()
             event.save()
 
@@ -78,6 +84,7 @@ class GetGrassEventView(APIView):
 class StartGrassRunView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @atomic
     def post(self, request):
         event = GrassEvent.objects.get(user=request.user)
 
@@ -93,6 +100,7 @@ class StartGrassRunView(APIView):
 class FinishGrassRunView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @atomic
     def post(self, request):
         serializer = BooleanSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -110,6 +118,7 @@ class FinishGrassRunView(APIView):
 class CutGrassView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @atomic
     def post(self, request):
         serializer = IntSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -117,11 +126,21 @@ class CutGrassView(APIView):
 
         event = GrassEvent.objects.get(user=request.user)
 
-        if event.grass_cuts_left < 1:
-            return Response({'status': False, 'reason': 'not enough tokens to cut grass'})
-
         if cut_index in event.claimed_tiles:
             return Response({'status': False, 'reason': 'already revealed this tile'})
+
+        # use gems to cut grass if no more grass_cuts_left
+        if event.grass_cuts_left < 1:
+            gem_cost = grass_cut_cost(event.tokens_bought, event.cur_floor)
+            if request.user.inventory.gems < gem_cost:
+                return Response({'status': False, 'reason': 'not enough gems to buy token'})
+
+            event.tokens_bought += 1
+
+            request.user.inventory.gems -= gem_cost
+            request.user.inventory.save()
+        else:
+            event.grass_cuts_left -= 1
 
         rewards = []
         reward_type = GrassRewardType.NONE.value
@@ -131,11 +150,10 @@ class CutGrassView(APIView):
             reward_type = event.floor_reward_map[cut_index_key]
             rewards = grass_reward(reward_type, event.cur_floor)
 
-            if reward_type == GrassRewardType.JACKPOT.value:
+            if reward_type == GrassRewardType.LADDER.value:
                 event.ladder_index = cut_index
 
         event.claimed_tiles.append(cut_index)
-        event.grass_cuts_left -= 1
         event.save()
 
         return Response({'status': True,
@@ -150,15 +168,12 @@ class CutGrassView(APIView):
 class NextGrassFloorView(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @atomic
     def post(self, request):
-        serializer = IntSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        ladder_index = serializer.validated_data['value']
-
         event = GrassEvent.objects.get(user=request.user)
 
-        # Double checking client knows the ladder_index
-        if event.ladder_index != ladder_index:
+        # Check that the ladder was found
+        if event.ladder_index == -1:
             return Response({'status': False, 'reason': 'invalid ladder_index'})
 
         # reset any state from the previous floor
@@ -173,25 +188,5 @@ class NextGrassFloorView(APIView):
 
 
 # TODO: increase with the number of tokens bought
-def grass_cut_cost(tokens_bought):
+def grass_cut_cost(tokens_bought, cur_floor):
     return 100
-
-
-class BuyGrassTokenView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def post(self, request):
-        event = GrassEvent.objects.get(user=request.user)
-
-        gem_cost = grass_cut_cost(event.tokens_bought)
-        if request.user.inventory.gems < gem_cost:
-            return Response({'status': False, 'reason': 'not enough gems to buy token'})
-
-        event.tokens_bought += 1
-        event.grass_cuts_left += 1
-        event.save()
-
-        request.user.inventory.gems -= gem_cost
-        request.user.inventory.save()
-
-        return Response({'status': True})
