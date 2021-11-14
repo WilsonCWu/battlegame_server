@@ -144,6 +144,9 @@ class CutGrassView(APIView):
                          })
 
 
+# this is called when player decides to go through the ladder
+# we don't immediately go to next floor to let the player
+# collect more rewards if they want to stay
 class NextGrassFloorView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -158,6 +161,7 @@ class NextGrassFloorView(APIView):
         if event.ladder_index != ladder_index:
             return Response({'status': False, 'reason': 'invalid ladder_index'})
 
+        # reset any state from the previous floor
         event.cur_floor += 1
         event.tokens_bought = 0  # for resetting token costs on the next floor
         event.claimed_tiles = []
