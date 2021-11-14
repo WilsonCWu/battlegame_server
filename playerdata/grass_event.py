@@ -13,12 +13,19 @@ from playerdata.serializers import BooleanSerializer, IntSerializer
 
 
 class GrassRewardType(Enum):
+    NONE = -1
     DECENT = 0
     GOOD = 1
     JACKPOT = 2
 
 
-NUM_REWARDS_PER_TIER = [5, 3, 1]
+# TODO: tune numbers
+NUM_REWARDS_PER_TIER = {
+    GrassRewardType.DECENT.value: 4,
+    GrassRewardType.GOOD.value: 2,
+    GrassRewardType.JACKPOT.value: 1
+}
+MAP_SIZE = 25
 
 
 class GrassEventSchema(Schema):
@@ -27,19 +34,21 @@ class GrassEventSchema(Schema):
     tickets_left = fields.Int()
     grass_cuts_left = fields.Int()
     tokens_bought = fields.Int()
+    claimed_tiles = fields.List(fields.Int())
 
 
-def grass_reward(reward_type):
+# TODO: some increase based on the floor?
+def grass_reward(reward_type, floor):
     return []
 
 
 # returns a randomly generated map of {<int>: <grass_reward_type>}
 # if an index isn't in the map, there is no reward there
 def gen_reward_map():
-    total_positions = set(range(0, 25))
+    total_positions = set(range(0, MAP_SIZE))
     reward_map = {}
 
-    for tier, num_rewards in enumerate(NUM_REWARDS_PER_TIER):
+    for tier, num_rewards in enumerate(NUM_REWARDS_PER_TIER.values()):
         indices = random.sample(total_positions, num_rewards)
         total_positions -= set(indices)
 
@@ -115,17 +124,48 @@ class CutGrassView(APIView):
         if cut_index in event.claimed_tiles:
             return Response({'status': False, 'reason': 'already revealed this tile'})
 
-        reward_type = event.floor_reward_map[cut_index]
-        rewards = grass_reward(reward_type)
+        rewards = []
+        reward_type = GrassRewardType.NONE.value
+        grass_map_key = str(cut_index)  # JSONs have string keys
 
-        if reward_type == GrassRewardType.JACKPOT.value:
-            event.ladder_index = cut_index
+        if grass_map_key in event.floor_reward_map:
+            reward_type = event.floor_reward_map[grass_map_key]
+            rewards = grass_reward(reward_type, event.cur_floor)
+
+            if reward_type == GrassRewardType.JACKPOT.value:
+                event.ladder_index = cut_index
 
         event.claimed_tiles.append(cut_index)
         event.grass_cuts_left -= 1
         event.save()
 
-        return Response({'status': True, 'rewards': chests.ChestRewardSchema(rewards, many=True).data})
+        return Response({'status': True,
+                         'rewards': chests.ChestRewardSchema(rewards, many=True).data,
+                         'reward_type': reward_type
+                         })
+
+
+class NextGrassFloorView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = IntSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        ladder_index = serializer.validated_data['value']
+
+        event = GrassEvent.objects.get(user=request.user)
+
+        # Checking
+        if event.ladder_index != ladder_index:
+            return Response({'status': False, 'reason': 'invalid ladder_index'})
+
+        event.cur_floor += 1
+        event.claimed_tiles = []
+        event.ladder_index = -1
+        event.floor_reward_map = gen_reward_map()
+        event.save()
+
+        return Response({'status': True, 'grass_event': GrassEventSchema(event).data})
 
 
 # TODO: increase with the number of tokens bought

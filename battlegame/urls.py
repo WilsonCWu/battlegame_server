@@ -53,6 +53,7 @@ urlpatterns = [
     path('event/grass/finishrun/', grass_event.FinishGrassRunView.as_view()),
     path('event/grass/cutgrass/', grass_event.CutGrassView.as_view()),
     path('event/grass/buytoken/', grass_event.BuyGrassTokenView.as_view()),
+    path('event/grass/nextfloor/', grass_event.NextGrassFloorView.as_view()),
     path('event/conquest/claim/', conquest_event.ClaimConquestEventRewardView.as_view()),
     path('rotating/claim/', rotating_mode.ClaimRotatingModeRewardView.as_view()),
     path('rotating/result/', rotating_mode.RotatingModeResultView.as_view()),
