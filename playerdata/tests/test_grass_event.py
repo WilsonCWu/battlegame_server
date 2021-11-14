@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from playerdata import grass_event
 from playerdata.models import User, GrassEvent
 
 
@@ -11,7 +12,7 @@ class GrassEventAPITestCase(APITestCase):
         self.u = User.objects.get(username='battlegame')
         self.client.force_authenticate(user=self.u)
 
-        GrassEvent.objects.create(user=self.u)
+        self.grass_event = GrassEvent.objects.create(user=self.u)
 
     def test_get(self):
         resp = self.client.get('/event/grass/get/')
@@ -28,9 +29,8 @@ class GrassEventAPITestCase(APITestCase):
         self.assertFalse(response.data['status'])
 
     def test_start_run_with_ticket(self):
-        event = GrassEvent.objects.get(user=self.u)
-        event.tickets_left = 1
-        event.save()
+        self.grass_event.tickets_left = 1
+        self.grass_event.save()
 
         response = self.client.post('/event/grass/startrun/', {})
 
@@ -43,3 +43,63 @@ class GrassEventAPITestCase(APITestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
+
+    def test_cut_grass(self):
+        self.grass_event.grass_cuts_left = 1
+        self.grass_event.floor_reward_map = {'5': grass_event.GrassRewardType.LADDER.value}
+        self.grass_event.save()
+
+        cut_index = 5
+        response = self.client.post('/event/grass/cutgrass/', {
+            'value': cut_index
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        # Cut same place again, invalid tile
+        response = self.client.post('/event/grass/cutgrass/', {
+            'value': cut_index
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['status'])
+
+    def test_cut_grass_gems(self):
+        self.grass_event.grass_cuts_left = 0
+        self.grass_event.floor_reward_map = {'5': grass_event.GrassRewardType.LADDER.value}
+        self.grass_event.save()
+
+        self.u.inventory.gems = 500
+        self.u.inventory.save()
+
+        cut_index = 5
+        response = self.client.post('/event/grass/cutgrass/', {
+            'value': cut_index
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+
+    def test_go_to_next_grass_floor(self):
+        # set up a hardcoded reward mapgi
+        ladder_tile = 5
+        self.grass_event.floor_reward_map = {'5': grass_event.GrassRewardType.LADDER.value}
+        self.grass_event.grass_cuts_left = 1
+        self.grass_event.save()
+
+        # cut/reveal the jackpot tile
+        response = self.client.post('/event/grass/cutgrass/', {
+            'value': ladder_tile
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        # next floor
+        response = self.client.post('/event/grass/nextfloor/', {})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        # check that the floor is next one and other things are reset properly
+        self.grass_event.refresh_from_db()
+        self.assertEqual(self.grass_event.cur_floor, 1)
+        self.assertEqual(self.grass_event.claimed_tiles, [])
+        self.assertEqual(self.grass_event.ladder_index, -1)
