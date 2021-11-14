@@ -1470,8 +1470,8 @@ class GrassEvent(models.Model):
     tokens_bought = models.IntegerField(default=0)
 
     claimed_tiles = ArrayField(models.IntegerField(), default=list)
-    # We expect character state to be in the format of
-    # {'index': <grass_reward_type>}
+    # We expect floor_reward_map to be in the format of
+    # {'<index>': <grass_reward_type>}
     floor_reward_map = JSONField(blank=True, null=True)
 
 

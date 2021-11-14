@@ -82,20 +82,20 @@ class GrassEventAPITestCase(APITestCase):
         self.assertEqual(self.grass_event.grass_cuts_left, original_tokens_left + 1)
 
     def test_go_to_next_grass_floor(self):
-        # get the reward tile
+        # set up a hardcoded reward mapgi
         jackpot_tile = 5
         self.grass_event.floor_reward_map = {5: grass_event.GrassRewardType.JACKPOT.value}
         self.grass_event.grass_cuts_left = 1
         self.grass_event.save()
 
-        # cut the reward tile
+        # cut/reveal the jackpot tile
         response = self.client.post('/event/grass/cutgrass/', {
             'value': jackpot_tile
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
 
-        # call the go to floor url
+        # next floor
         response = self.client.post('/event/grass/nextfloor/', {
             'value': jackpot_tile
         })

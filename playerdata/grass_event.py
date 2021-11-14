@@ -102,8 +102,7 @@ class FinishGrassRunView(APIView):
 
         if is_win:
             event.grass_cuts_left += 1  # TODO: figure out if we want more than 1 per run?
-
-        event.save()
+            event.save()
 
         return Response({'status': True})
 
@@ -126,10 +125,10 @@ class CutGrassView(APIView):
 
         rewards = []
         reward_type = GrassRewardType.NONE.value
-        grass_map_key = str(cut_index)  # JSONs have string keys
+        cut_index_key = str(cut_index)  # JSONs have string keys
 
-        if grass_map_key in event.floor_reward_map:
-            reward_type = event.floor_reward_map[grass_map_key]
+        if cut_index_key in event.floor_reward_map:
+            reward_type = event.floor_reward_map[cut_index_key]
             rewards = grass_reward(reward_type, event.cur_floor)
 
             if reward_type == GrassRewardType.JACKPOT.value:
@@ -155,11 +154,12 @@ class NextGrassFloorView(APIView):
 
         event = GrassEvent.objects.get(user=request.user)
 
-        # Checking
+        # Double checking client knows the ladder_index
         if event.ladder_index != ladder_index:
             return Response({'status': False, 'reason': 'invalid ladder_index'})
 
         event.cur_floor += 1
+        event.tokens_bought = 0  # for resetting token costs on the next floor
         event.claimed_tiles = []
         event.ladder_index = -1
         event.floor_reward_map = gen_reward_map()
