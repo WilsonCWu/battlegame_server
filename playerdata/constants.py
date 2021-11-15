@@ -336,3 +336,22 @@ MAX_DAILY_QUICKPLAY_GAMES = 300
 MAX_ELO = 3500
 
 CREATOR_CODE_SHARED_PERCENT = 0.05
+
+
+class GrassRewardType(Enum):
+    NONE = -1
+    DECENT = 0
+    GOOD = 1
+    GREAT = 2
+    LADDER = 3
+    JACKPOT = 4
+
+
+# TODO: tune numbers
+GRASS_REWARDS_PER_TIER = {
+    GrassRewardType.DECENT.value: 15,
+    GrassRewardType.GOOD.value: 5,
+    GrassRewardType.GREAT.value: 3,
+    GrassRewardType.LADDER.value: 1,
+    GrassRewardType.JACKPOT.value: 1,
+}

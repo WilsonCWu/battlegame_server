@@ -1,5 +1,5 @@
 import random
-from enum import Enum
+from typing import List
 
 from django.db.transaction import atomic
 from rest_framework.permissions import IsAuthenticated
@@ -7,29 +7,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from . import chests
+from . import chests, constants
 from playerdata import event_times
-from playerdata.models import GrassEvent, EventTimeTracker
+from playerdata.models import GrassEvent, EventTimeTracker, default_grass_rewards_left
 from playerdata.serializers import BooleanSerializer, IntSerializer
 
 
-class GrassRewardType(Enum):
-    NONE = -1
-    DECENT = 0
-    GOOD = 1
-    GREAT = 2
-    LADDER = 3
-    JACKPOT = 4
-
-
-# TODO: tune numbers
-NUM_REWARDS_PER_TIER = {
-    GrassRewardType.DECENT.value: 15,
-    GrassRewardType.GOOD.value: 5,
-    GrassRewardType.GREAT.value: 3,
-    GrassRewardType.JACKPOT.value: 1,
-    GrassRewardType.LADDER.value: 1,
-}
 MAP_SIZE = 25
 
 
@@ -40,6 +23,7 @@ class GrassEventSchema(Schema):
     grass_cuts_left = fields.Int()
     tokens_bought = fields.Int()
     claimed_tiles = fields.List(fields.Int())
+    rewards_left = fields.List(fields.Int())
 
 
 # TODO: some increase based on the floor?
@@ -47,20 +31,14 @@ def grass_reward(reward_type, floor):
     return []
 
 
-# returns a randomly generated map of {<int>: <grass_reward_type>}
-# if an index isn't in the map, there is no reward there
-def gen_reward_map():
-    all_tiles = set(range(0, MAP_SIZE))
-    reward_map = {}
+# picks a random reward_type out of the rewards left
+def pick_rand_reward_left(rewards_left: List[int]):
+    pick_pool = []
 
-    for tier, num_rewards in enumerate(NUM_REWARDS_PER_TIER.values()):
-        picked_tiles = random.sample(all_tiles, num_rewards)
-        all_tiles -= set(picked_tiles)
+    for reward_type in constants.GRASS_REWARDS_PER_TIER:
+        pick_pool += rewards_left[reward_type] * [reward_type]
 
-        for index in picked_tiles:
-            reward_map[index] = tier
-
-    return reward_map
+    return random.choice(pick_pool)
 
 
 class GetGrassEventView(APIView):
@@ -70,10 +48,6 @@ class GetGrassEventView(APIView):
     def get(self, request):
         event, is_event_created = GrassEvent.objects.get_or_create(user=request.user)
         event_time_tracker = EventTimeTracker.objects.filter(name='grass_event').first()
-
-        if is_event_created:
-            event.floor_reward_map = gen_reward_map()
-            event.save()
 
         return Response({'status': True,
                          'grass_event': GrassEventSchema(event).data,
@@ -142,17 +116,13 @@ class CutGrassView(APIView):
         else:
             event.grass_cuts_left -= 1
 
-        rewards = []
-        reward_type = GrassRewardType.NONE.value
-        cut_index_key = str(cut_index)  # JSONs have string keys
+        reward_type = pick_rand_reward_left(event.rewards_left)
+        rewards = grass_reward(reward_type, event.cur_floor)
 
-        if cut_index_key in event.floor_reward_map:
-            reward_type = event.floor_reward_map[cut_index_key]
-            rewards = grass_reward(reward_type, event.cur_floor)
+        if reward_type == constants.GrassRewardType.LADDER.value:
+            event.ladder_index = cut_index
 
-            if reward_type == GrassRewardType.LADDER.value:
-                event.ladder_index = cut_index
-
+        event.rewards_left[reward_type] -= 1
         event.claimed_tiles.append(cut_index)
         event.save()
 
@@ -181,7 +151,7 @@ class NextGrassFloorView(APIView):
         event.tokens_bought = 0  # for resetting token costs on the next floor
         event.claimed_tiles = []
         event.ladder_index = -1
-        event.floor_reward_map = gen_reward_map()
+        event.rewards_left = default_grass_rewards_left()
         event.save()
 
         return Response({'status': True, 'grass_event': GrassEventSchema(event).data})

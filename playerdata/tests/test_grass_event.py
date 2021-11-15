@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from playerdata import grass_event
+from playerdata import grass_event, constants
 from playerdata.models import User, GrassEvent
 
 
@@ -46,7 +46,6 @@ class GrassEventAPITestCase(APITestCase):
 
     def test_cut_grass(self):
         self.grass_event.grass_cuts_left = 1
-        self.grass_event.floor_reward_map = {'5': grass_event.GrassRewardType.LADDER.value}
         self.grass_event.save()
 
         cut_index = 5
@@ -65,7 +64,6 @@ class GrassEventAPITestCase(APITestCase):
 
     def test_cut_grass_gems(self):
         self.grass_event.grass_cuts_left = 0
-        self.grass_event.floor_reward_map = {'5': grass_event.GrassRewardType.LADDER.value}
         self.grass_event.save()
 
         self.u.inventory.gems = 500
@@ -78,11 +76,13 @@ class GrassEventAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
 
+        self.grass_event.refresh_from_db()
+        reward_type = response.data['reward_type']
+        self.assertEqual(self.grass_event.rewards_left[reward_type], constants.GRASS_REWARDS_PER_TIER[reward_type] - 1)
 
     def test_go_to_next_grass_floor(self):
-        # set up a hardcoded reward mapgi
         ladder_tile = 5
-        self.grass_event.floor_reward_map = {'5': grass_event.GrassRewardType.LADDER.value}
+        self.grass_event.rewards_left = [0, 0, 0, 1, 0]  # hardcode only the ladder is left
         self.grass_event.grass_cuts_left = 1
         self.grass_event.save()
 
