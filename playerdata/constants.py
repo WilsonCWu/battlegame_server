@@ -343,8 +343,8 @@ class GrassRewardType(Enum):
     DECENT = 0
     GOOD = 1
     GREAT = 2
-    LADDER = 3
-    JACKPOT = 4
+    JACKPOT = 3
+    LADDER = 4
 
 
 # TODO: tune numbers
@@ -352,6 +352,6 @@ GRASS_REWARDS_PER_TIER = {
     GrassRewardType.DECENT.value: 15,
     GrassRewardType.GOOD.value: 5,
     GrassRewardType.GREAT.value: 3,
-    GrassRewardType.LADDER.value: 1,
     GrassRewardType.JACKPOT.value: 1,
+    GrassRewardType.LADDER.value: 1,
 }

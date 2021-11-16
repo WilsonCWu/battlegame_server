@@ -723,6 +723,10 @@ class HackerAlertAdmin(admin.ModelAdmin):
     search_fields = ('=user__id',)
 
 
+class GrassEventAdmin(admin.ModelAdmin, DynamicArrayMixin):
+    raw_id_fields = ('user',)
+
+
 admin.site.register(DungeonStage, DungeonStageAdmin)
 admin.site.register(DungeonProgress)
 admin.site.register(DungeonBoss, DungeonBossAdmin)
@@ -806,3 +810,4 @@ admin.site.register(ActivityPoints, ActivityPointsAdmin)
 admin.site.register(AFKReward, AFKRewardAdmin)
 
 admin.site.register(EventTimeTracker)
+admin.site.register(GrassEvent, GrassEventAdmin)

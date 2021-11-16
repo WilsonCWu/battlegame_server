@@ -157,6 +157,16 @@ class NextGrassFloorView(APIView):
         return Response({'status': True, 'grass_event': GrassEventSchema(event).data})
 
 
-# TODO: increase with the number of tokens bought
 def grass_cut_cost(tokens_bought, cur_floor):
-    return 100
+    base_amount = (cur_floor + 1) * 50
+
+    if tokens_bought <= 5:
+        extra_amount = tokens_bought * 50
+    elif tokens_bought <= 10:
+        extra_amount = tokens_bought * 100
+    elif tokens_bought <= 15:
+        extra_amount = tokens_bought * 150
+    else:
+        extra_amount = tokens_bought * 250
+
+    return base_amount + extra_amount
