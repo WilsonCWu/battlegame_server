@@ -347,7 +347,6 @@ class GrassRewardType(Enum):
     LADDER = 4
 
 
-# TODO: tune numbers
 GRASS_REWARDS_PER_TIER = {
     GrassRewardType.DECENT.value: 15,
     GrassRewardType.GOOD.value: 5,
