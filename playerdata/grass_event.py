@@ -28,8 +28,8 @@ class GrassEventSchema(Schema):
 
 """ Reward amounts visualized
         Floor 1	Floor 2	Floor 3	Floor 4	Floor 5	Floor 6	Floor 7	Floor 8
-DECENT	25	    50	    75	    100	    125	    150	    175	    200
-GOOD	300	    350	    400	    450	    500	    550	    600	    650
+DECENT	25      50      75      100     125     150     175     200
+GOOD	300     350     400     450     500     550     600     650
 GREAT	1,500	1,800	2,100	2,400	2,700	3,000	3,300	3,600
 JACKPOT	5,000	6,000	7,000	8,000	9,000	10,000	12,000	25,000
 """
