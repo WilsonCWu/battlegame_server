@@ -12,7 +12,6 @@ from playerdata import event_times
 from playerdata.models import GrassEvent, EventTimeTracker, default_grass_rewards_left
 from playerdata.serializers import BooleanSerializer, IntSerializer
 
-
 MAP_SIZE = 25
 
 
@@ -75,10 +74,12 @@ def grass_reward(reward_type, floor):
 
 # picks a random reward_type out of the rewards left
 def pick_rand_reward_left(rewards_left: List[int]):
-    return random.choices(population=list(constants.GRASS_REWARDS_PER_TIER.keys()),
-                          weights=rewards_left,
-                          k=1
-                          )
+    pick_list = random.choices(population=list(constants.GRASS_REWARDS_PER_TIER.keys()),
+                               weights=rewards_left,
+                               k=1
+                               )
+
+    return pick_list[0]  # random.choices returns a list
 
 
 class GetGrassEventView(APIView):
