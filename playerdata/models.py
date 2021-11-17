@@ -1465,7 +1465,7 @@ def default_grass_rewards_left():
 # Black Friday 2021 Event model
 class GrassEvent(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    cur_floor = models.IntegerField(default=0)
+    cur_floor = models.IntegerField(default=1)
     ladder_index = models.IntegerField(default=-1)  # -1 if not found, index of the tile if found
 
     # tickets are for playing the mode

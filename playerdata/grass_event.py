@@ -26,9 +26,51 @@ class GrassEventSchema(Schema):
     rewards_left = fields.List(fields.Int())
 
 
-# TODO: some increase based on the floor?
+""" Reward amounts visualized
+        Floor 1	Floor 2	Floor 3	Floor 4	Floor 5	Floor 6	Floor 7	Floor 8
+DECENT	25	    50	    75	    100	    125	    150	    175	    200
+GOOD	300	    350	    400	    450	    500	    550	    600	    650
+GREAT	1,500	1,800	2,100	2,400	2,700	3,000	3,300	3,600
+JACKPOT	5,000	6,000	7,000	8,000	9,000	10,000	12,000	25,000
+"""
+
+
 def grass_reward(reward_type, floor):
-    return []
+    rewards = []
+    gems = 0
+    dust = 0
+    leg_shards = 0
+
+    if reward_type == constants.GrassRewardType.DECENT.value:
+        gems = 25 + (floor - 1) * 25
+    elif reward_type == constants.GrassRewardType.GOOD.value:
+        gems = 300 + (floor - 1) * 50
+    elif reward_type == constants.GrassRewardType.GREAT.value:
+        gems = 1500 + (floor - 1) * 300
+    elif reward_type == constants.GrassRewardType.JACKPOT.value:
+        if floor == 8:
+            gems = 25000
+            dust = 10000
+            leg_shards = 80 * 5
+        else:
+            gems = 5000 + (floor - 1) * 1000
+            dust = 1000 + (floor - 1) * 500
+            leg_shards = 80
+
+            # Award the Turkey on Floor 1 jackpot
+            if floor == 1:
+                rewards.append(chests.ChestReward('pet_id', 4))
+    else:
+        pass
+
+    if gems > 0:
+        rewards.append(chests.ChestReward('gems', gems))
+    if dust > 0:
+        rewards.append(chests.ChestReward('dust', dust))
+    if leg_shards > 0:
+        rewards.append(chests.ChestReward('legendary_shards', leg_shards))
+
+    return rewards
 
 
 # picks a random reward_type out of the rewards left
@@ -158,15 +200,32 @@ class NextGrassFloorView(APIView):
 
 
 def grass_cut_cost(tokens_bought, cur_floor):
-    base_amount = (cur_floor + 1) * 50
+    base_amount = 25 + (cur_floor - 1) * 25
 
-    if tokens_bought <= 5:
+    if tokens_bought <= 1:
+        extra_amount = tokens_bought * 25
+    elif tokens_bought <= 3:
         extra_amount = tokens_bought * 50
-    elif tokens_bought <= 10:
-        extra_amount = tokens_bought * 100
-    elif tokens_bought <= 15:
-        extra_amount = tokens_bought * 150
+    elif tokens_bought <= 7:
+        extra_amount = tokens_bought * 75
+    elif tokens_bought <= 11:
+        extra_amount = tokens_bought * 85
     else:
-        extra_amount = tokens_bought * 250
+        extra_amount = tokens_bought * 90
 
     return base_amount + extra_amount
+
+
+# Test functions to print out cost / reward values
+
+def print_floor_cost(floor):
+    for n in range(0, 25):
+        print(grass_cut_cost(n, floor))
+
+
+def print_all_rewards():
+    for floor in range(1, 9):
+        print(f"Floor {floor}")
+        for reward_type in constants.GRASS_REWARDS_PER_TIER:
+            print(grass_reward(reward_type, floor))
+        print("")

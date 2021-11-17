@@ -30,6 +30,12 @@ class ChestReward:
         self.reward_type = reward_type
         self.value = value
 
+    def __str__(self):
+        return f"<reward_type {self.reward_type}: {self.value}>"
+
+    def __repr__(self):
+        return f"<reward_type {self.reward_type}: {self.value}>"
+
 
 def chest_unlock_timedelta(rarity: int):
     if rarity == ChestType.SILVER.value:
@@ -203,6 +209,8 @@ def award_chest_rewards(user, rewards):
                 user.inventory.profile_pics = [reward.value]
             elif reward.value not in user.inventory.profile_pics:
                 user.inventory.profile_pics.append(reward.value)
+        elif reward.reward_type == 'pet_id':
+            user.inventory.pets_unlocked.append(reward.value)
         else:
             raise Exception("invalid reward_type, sorry friendo")
     user.inventory.save()
