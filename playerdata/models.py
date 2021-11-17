@@ -22,6 +22,7 @@ from decouple import config
 
 from bulk_update_or_create import BulkUpdateOrCreateQuerySet
 from playerdata import constants
+from playerdata.server import is_server_version_higher
 
 # Developer account IDs for in-game accounts
 from playerdata.constants import DealType, DungeonType
@@ -774,7 +775,10 @@ class AFKReward(models.Model):
 
 
 def default_pets_unlocked():
-    return []
+    if is_server_version_higher('2.0.0'):
+        return []
+    else:
+        return [0]
 
 
 class Inventory(models.Model):

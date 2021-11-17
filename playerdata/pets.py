@@ -4,9 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import IntSerializer, StarterPetSerializer
 
-
-def get_starter_pet_ids():
-    return [0, 1, 2]  # Pigeon Cat Dog
+STARTER_PET_IDS = [0, 1, 2]  # Pigeon, Cat, Dog
 
 
 class UpdatePetView(APIView):
@@ -56,14 +54,12 @@ class UnlockStarterPetView(APIView):
         pet_id = serializer.validated_data['pet_id']
         legacy_unlock = serializer.validated_data['legacy_unlock']
 
-        starter_pet_ids = get_starter_pet_ids()  # Pigeon Cat Dog
-
-        if pet_id not in starter_pet_ids:
+        if pet_id not in STARTER_PET_IDS:
             return Response({'status': False, 'reason': 'Invalid starter pet selection'})
         if legacy_unlock and 0 in request.user.inventory.pets_unlocked:
             request.user.inventory.pets_unlocked.remove(0)  # Clean up previous default pigeon unlock
-        for id in starter_pet_ids:
-            if id in request.user.inventory.pets_unlocked:
+        for pet_id in STARTER_PET_IDS:
+            if pet_id in request.user.inventory.pets_unlocked:
                 return Response({'status': False, 'reason': 'Starter pet already claimed'})
 
         request.user.inventory.pets_unlocked.append(pet_id)
