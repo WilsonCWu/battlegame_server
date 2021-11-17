@@ -339,7 +339,6 @@ CREATOR_CODE_SHARED_PERCENT = 0.05
 
 
 class GrassRewardType(Enum):
-    NONE = -1
     DECENT = 0
     GOOD = 1
     GREAT = 2
