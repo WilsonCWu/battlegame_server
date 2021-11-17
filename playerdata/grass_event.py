@@ -75,12 +75,10 @@ def grass_reward(reward_type, floor):
 
 # picks a random reward_type out of the rewards left
 def pick_rand_reward_left(rewards_left: List[int]):
-    pick_pool = []
-
-    for reward_type in constants.GRASS_REWARDS_PER_TIER:
-        pick_pool += rewards_left[reward_type] * [reward_type]
-
-    return random.choice(pick_pool)
+    return random.choices(population=list(constants.GRASS_REWARDS_PER_TIER.keys()),
+                          weights=rewards_left,
+                          k=1
+                          )
 
 
 class GetGrassEventView(APIView):
