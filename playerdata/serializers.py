@@ -217,3 +217,8 @@ class SendMailSerializer(serializers.Serializer):
 class SummonShardSerializer(serializers.Serializer):
     num_chars = serializers.IntegerField(required=True)
     rarity = serializers.IntegerField(required=True)
+
+
+class StarterPetSerializer(serializers.Serializer):
+    pet_id = serializers.IntegerField(required=True)
+    legacy_unlock = serializers.BooleanField(required=True)
