@@ -774,11 +774,7 @@ class AFKReward(models.Model):
 
 
 def default_pets_unlocked():
-    from playerdata.server import is_server_version_higher  # avoid circular import by putting this here.
-    if is_server_version_higher('1.0.6'):
-        return []
-    else:
-        return [0]
+    return [0]
 
 
 class Inventory(models.Model):

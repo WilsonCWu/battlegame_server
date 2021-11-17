@@ -72,7 +72,7 @@ class UnlockStarterPetsTestCase(APITestCase):
         response = self.client.post('/pet/update/', {
             'value': '1'
         })
-        self.assertTrue(response.data['status'])
+        self.assertFalse(response.data['status'])
 
     def test_bad_pet_unlock(self):
         self.u.inventory.active_pet_id = 0
