@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from playerdata import grass_event
+from playerdata import grass_event, constants
 from playerdata.models import User, GrassEvent
 
 
@@ -19,7 +19,7 @@ class GrassEventAPITestCase(APITestCase):
 
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
-        self.assertEqual(resp.data['grass_event']['cur_floor'], 0)
+        self.assertEqual(resp.data['grass_event']['cur_floor'], 1)
         self.assertEqual(resp.data['grass_event']['tickets_left'], 0)
         self.assertEqual(resp.data['grass_event']['grass_cuts_left'], 0)
 
@@ -46,7 +46,6 @@ class GrassEventAPITestCase(APITestCase):
 
     def test_cut_grass(self):
         self.grass_event.grass_cuts_left = 1
-        self.grass_event.floor_reward_map = {'5': grass_event.GrassRewardType.LADDER.value}
         self.grass_event.save()
 
         cut_index = 5
@@ -65,7 +64,6 @@ class GrassEventAPITestCase(APITestCase):
 
     def test_cut_grass_gems(self):
         self.grass_event.grass_cuts_left = 0
-        self.grass_event.floor_reward_map = {'5': grass_event.GrassRewardType.LADDER.value}
         self.grass_event.save()
 
         self.u.inventory.gems = 500
@@ -78,11 +76,13 @@ class GrassEventAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
 
+        self.grass_event.refresh_from_db()
+        reward_type = response.data['reward_type']
+        self.assertEqual(self.grass_event.rewards_left[reward_type], constants.GRASS_REWARDS_PER_TIER[reward_type] - 1)
 
     def test_go_to_next_grass_floor(self):
-        # set up a hardcoded reward mapgi
         ladder_tile = 5
-        self.grass_event.floor_reward_map = {'5': grass_event.GrassRewardType.LADDER.value}
+        self.grass_event.rewards_left = [0, 0, 0, 0, 1]  # hardcode only the ladder is left
         self.grass_event.grass_cuts_left = 1
         self.grass_event.save()
 
@@ -100,6 +100,6 @@ class GrassEventAPITestCase(APITestCase):
 
         # check that the floor is next one and other things are reset properly
         self.grass_event.refresh_from_db()
-        self.assertEqual(self.grass_event.cur_floor, 1)
+        self.assertEqual(self.grass_event.cur_floor, 2)
         self.assertEqual(self.grass_event.claimed_tiles, [])
         self.assertEqual(self.grass_event.ladder_index, -1)

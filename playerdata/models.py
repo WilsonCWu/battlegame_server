@@ -1458,10 +1458,14 @@ class RotatingModeStatus(models.Model):
     rewards_claimed = models.IntegerField(default=0)
 
 
+def default_grass_rewards_left():
+    return [count for count in constants.GRASS_REWARDS_PER_TIER.values()]
+
+
 # Black Friday 2021 Event model
 class GrassEvent(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    cur_floor = models.IntegerField(default=0)
+    cur_floor = models.IntegerField(default=1)
     ladder_index = models.IntegerField(default=-1)  # -1 if not found, index of the tile if found
 
     # tickets are for playing the mode
@@ -1470,9 +1474,7 @@ class GrassEvent(models.Model):
     tokens_bought = models.IntegerField(default=0)
 
     claimed_tiles = ArrayField(models.IntegerField(), default=list)
-    # We expect floor_reward_map to be in the format of
-    # {'<index>': <grass_reward_type>}
-    floor_reward_map = JSONField(blank=True, null=True)
+    rewards_left = ArrayField(models.IntegerField(), default=default_grass_rewards_left)
 
 
 def create_user_referral(user):
