@@ -60,7 +60,7 @@ def grass_reward(reward_type, floor):
             if floor == 1:
                 rewards.append(chests.ChestReward('pet_id', 9))
     else:
-        pass
+        raise Exception("invalid grass_event reward_type")
 
     if gems > 0:
         rewards.append(chests.ChestReward('gems', gems))

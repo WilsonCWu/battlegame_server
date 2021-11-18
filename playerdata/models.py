@@ -1459,7 +1459,7 @@ class RotatingModeStatus(models.Model):
 
 
 def default_grass_rewards_left():
-    return [x for x in constants.GRASS_REWARDS_PER_TIER.values()]
+    return [count for count in constants.GRASS_REWARDS_PER_TIER.values()]
 
 
 # Black Friday 2021 Event model
