@@ -1,6 +1,7 @@
 import statistics
 
 import requests
+from django.db.transaction import atomic
 from sentry_sdk import capture_exception
 from django_redis import get_redis_connection
 from datetime import timedelta
@@ -62,6 +63,7 @@ def daily_quests_cron():
     refresh_daily_quests()
 
 
+@cron(uuid="40561eec-8a6c-4485-b9ae-838f1b229c39")
 def weekly_quests_cron():
     # remove top 5 from weekly
     refresh_weekly_quests()
@@ -83,6 +85,7 @@ def monthly_deals_cron():
 
 
 @cron(uuid="222e1a79-98e1-4d9f-8d74-6dcf31cb00bd")
+@atomic
 def daily_clean_matches_cron():
     # Validate matches in the last day.
     validator = MatchValidator(sample_rate=1)
@@ -94,6 +97,7 @@ def daily_clean_matches_cron():
 
 
 @cron(uuid="cb651e8b-e227-4be1-a786-acd6fcac037c")
+@atomic
 def reset_daily_wins_cron():
     userstats = UserStats.objects.all()
     for stat in userstats:
@@ -107,6 +111,7 @@ MAX_DAILY_DUNGEON_GOLDEN_TICKET = 3
 
 
 @cron(uuid="8c7cdffd-d2bb-4fff-8a12-57666965db8c")
+@atomic
 def daily_dungeon_golden_ticket_drop():
     to_inc = Inventory.objects.filter(daily_dungeon_golden_ticket__lt=MAX_DAILY_DUNGEON_GOLDEN_TICKET)
     for inv in to_inc:
@@ -115,11 +120,29 @@ def daily_dungeon_golden_ticket_drop():
 
 
 @cron(uuid="f7ca56fc-0970-4ba7-9b18-80fa81833e3e")
+@atomic
 def daily_dungeon_ticket_drop():
     to_inc = Inventory.objects.filter(daily_dungeon_ticket__lt=MAX_DAILY_DUNGEON_TICKET)
     for inv in to_inc:
         inv.daily_dungeon_ticket += 1
     Inventory.objects.bulk_update(to_inc, ['daily_dungeon_ticket'])
+
+
+# TODO (1.0.4): remove me after event ends
+@cron(uuid="408a0aeb-28ee-4adc-b064-24b70afbdd95")
+@atomic
+def grass_event_ticket_drop():
+    # get grass event times
+    event_time_tracker = EventTimeTracker.objects.filter(name=constants.EventType.GRASS.value).first()
+    cur_time = datetime.now(timezone.utc)
+
+    if cur_time < event_time_tracker.start_time or cur_time > event_time_tracker.end_time:
+        return
+
+    grass_events = GrassEvent.objects.all()
+    for event in grass_events:
+        event.tickets_left += 1
+    GrassEvent.objects.bulk_update(grass_events, ['tickets_left'])
 
 
 @cron(uuid="b843e92a-fb04-4332-831f-e086cc4ffe5e")
@@ -347,6 +370,7 @@ def end_tourney():
 
 
 @cron(uuid='788e2963-6794-4011-a4b2-baf7c0c1b1dd')
+@atomic
 def expire_creator_codes():
     expiretime = datetime.utcnow() - timedelta(days=7)
     CreatorCodeTracker.objects.filter(created_time__lt=expiretime).update(is_expired=True)

@@ -89,6 +89,7 @@ def get_relic_reset_date():
 
 
 # Cron job on 1st and 16th day of the month
+@transaction.atomic
 def refresh_shop():
     relics_shops = RelicShop.objects.all()
     for relic in relics_shops:
