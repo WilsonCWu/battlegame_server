@@ -797,7 +797,7 @@ class Inventory(models.Model):
     hero_exp = models.IntegerField(default=0)
     is_auto_retire = models.BooleanField(default=False)
     profile_pics = ArrayField(models.IntegerField(), blank=True, null=True)
-    pets_unlocked = ArrayField(models.IntegerField(), default=default_pets_unlocked)
+    pets_unlocked = ArrayField(models.IntegerField(), blank=True, null=True, default=default_pets_unlocked)
 
     gems_bought = models.IntegerField(default=0)
 
