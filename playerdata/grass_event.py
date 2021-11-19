@@ -90,7 +90,7 @@ class GetGrassEventView(APIView):
     @atomic
     def get(self, request):
         event, is_event_created = GrassEvent.objects.get_or_create(user=request.user)
-        event_time_tracker = EventTimeTracker.objects.filter(name='grass_event').first()
+        event_time_tracker = EventTimeTracker.objects.filter(name=constants.EventType.GRASS.value).first()
 
         return Response({'status': True,
                          'grass_event': GrassEventSchema(event).data,

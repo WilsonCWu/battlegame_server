@@ -218,6 +218,10 @@ CRONJOBS = [
 
     # At 12:15AM UTC daily
     ('15 * * * *', 'battlegame.cron.push_quickplay_usage_to_db', '>> /tmp/push_quickplay_usage_to_db.log'),
+
+    # TODO (1.0.4): remove me after event ends
+    # Will only run on odd days (Thanksgiving starts on 25th this year)
+    ('0 0 1-31/2 * *', 'battlegame.cron.grass_event_ticket_drop', '>> /tmp/grass_event_ticket_drop.log'),
 ]
 
 # Monitoring

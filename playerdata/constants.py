@@ -353,3 +353,7 @@ GRASS_REWARDS_PER_TIER = {
     GrassRewardType.JACKPOT.value: 1,
     GrassRewardType.LADDER.value: 1,
 }
+
+
+class EventType(Enum):
+    GRASS = 'grass_event'
