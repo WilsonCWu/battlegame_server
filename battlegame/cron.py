@@ -141,8 +141,8 @@ def grass_event_ticket_drop():
 
     grass_events = GrassEvent.objects.all()
     for event in grass_events:
-        event.tickets_left += 1
-    GrassEvent.objects.bulk_update(grass_events, ['tickets_left'])
+        event.unclaimed_tokens = 3
+    GrassEvent.objects.bulk_update(grass_events, ['unclaimed_tokens'])
 
 
 @cron(uuid="b843e92a-fb04-4332-831f-e086cc4ffe5e")

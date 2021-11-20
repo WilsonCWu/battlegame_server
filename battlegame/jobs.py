@@ -361,3 +361,14 @@ def remove_nonactive_cumulative_quests():
         player_quest.completed_quests = [quest for quest in player_quest.completed_quests if quest in active_quests_ids]
 
     PlayerQuestCumulative2.objects.bulk_update(player_quests, ['completed_quests'])
+
+
+def backfill_clanquest():
+    cum_stats = UserStats.objects.exclude(user__userinfo__clanmember__clan2=None).select_related('user__playerquestcumulative2')
+
+    for stat in cum_stats:
+        stat.cumulative_stats['8'] = 1
+        stat.user.playerquestcumulative2.completed_quests.append(410)
+        stat.user.playerquestcumulative2.save()
+
+    UserStats.objects.bulk_update(cum_stats, ['cumulative_stats'])
