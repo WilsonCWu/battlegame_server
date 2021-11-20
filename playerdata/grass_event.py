@@ -1,5 +1,6 @@
 import random
 from typing import List
+from datetime import datetime, timedelta
 
 from django.db.transaction import atomic
 from rest_framework.permissions import IsAuthenticated
@@ -84,6 +85,15 @@ def pick_rand_reward_left(rewards_left: List[int]):
     return pick_list[0]  # random.choices returns a list
 
 
+# Returns the next odd day datetime
+def next_token_reset_time():
+    today = datetime.today()
+    if today.day % 2 == 1:
+        return datetime(today.year, today.month, today.day, 0) + timedelta(days=2)
+    else:
+        return datetime(today.year, today.month, today.day, 0) + timedelta(days=1)
+
+
 class GetGrassEventView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -94,7 +104,8 @@ class GetGrassEventView(APIView):
 
         return Response({'status': True,
                          'grass_event': GrassEventSchema(event).data,
-                         'event_time_tracker': event_times.EventTimeTrackerSchema(event_time_tracker).data
+                         'event_time_tracker': event_times.EventTimeTrackerSchema(event_time_tracker).data,
+                         'next_token_reset': next_token_reset_time()
                          })
 
 
@@ -146,6 +157,7 @@ class CutGrassView(APIView):
 
         reward_type = pick_rand_reward_left(event.rewards_left)
         rewards = grass_reward(reward_type, event.cur_floor)
+        chests.award_chest_rewards(request.user, rewards)
 
         if reward_type == constants.GrassRewardType.LADDER.value:
             event.ladder_index = cut_index
