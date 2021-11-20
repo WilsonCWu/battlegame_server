@@ -1468,13 +1468,12 @@ class GrassEvent(models.Model):
     cur_floor = models.IntegerField(default=1)
     ladder_index = models.IntegerField(default=-1)  # -1 if not found, index of the tile if found
 
-    # tickets are for playing the mode
-    tickets_left = models.IntegerField(default=0)
+    unclaimed_tokens = models.IntegerField(default=0)
     grass_cuts_left = models.IntegerField(default=0)
     tokens_bought = models.IntegerField(default=0)
 
-    claimed_tiles = ArrayField(models.IntegerField(), default=list)
-    rewards_left = ArrayField(models.IntegerField(), default=default_grass_rewards_left)
+    claimed_tiles = ArrayField(models.IntegerField(), default=list, blank=True, null=True)
+    rewards_left = ArrayField(models.IntegerField(), default=default_grass_rewards_left, blank=True, null=True)
 
 
 def create_user_referral(user):

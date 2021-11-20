@@ -18,7 +18,7 @@ MAP_SIZE = 25
 class GrassEventSchema(Schema):
     cur_floor = fields.Int()
     ladder_index = fields.Int()
-    tickets_left = fields.Int()
+    unclaimed_tokens = fields.Int()
     grass_cuts_left = fields.Int()
     tokens_bought = fields.Int()
     claimed_tiles = fields.List(fields.Int())
@@ -98,38 +98,23 @@ class GetGrassEventView(APIView):
                          })
 
 
-class StartGrassRunView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    @atomic
-    def post(self, request):
-        event = GrassEvent.objects.get(user=request.user)
-
-        if event.tickets_left < 1:
-            return Response({'status': False, 'reason': 'not enough tickets for a run'})
-
-        event.tickets_left -= 1
-        event.save()
-
-        return Response({'status': True})
-
-
 class FinishGrassRunView(APIView):
     permission_classes = (IsAuthenticated,)
 
     @atomic
     def post(self, request):
-        serializer = BooleanSerializer(data=request.data)
+        serializer = IntSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        is_win = serializer.validated_data['value']
+        won_tokens = serializer.validated_data['value']
 
         event = GrassEvent.objects.get(user=request.user)
 
-        if is_win:
-            event.grass_cuts_left += 1  # TODO: figure out if we want more than 1 per run?
-            event.save()
+        claimed_tokens = min(won_tokens, event.unclaimed_tokens)
+        event.grass_cuts_left += claimed_tokens
+        event.unclaimed_tokens -= claimed_tokens
+        event.save()
 
-        return Response({'status': True})
+        return Response({'status': True, 'tokens_left': event.grass_cuts_left})
 
 
 class CutGrassView(APIView):
