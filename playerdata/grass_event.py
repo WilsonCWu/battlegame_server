@@ -103,16 +103,16 @@ class FinishGrassRunView(APIView):
 
     @atomic
     def post(self, request):
-        serializer = BooleanSerializer(data=request.data)
+        serializer = IntSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        is_win = serializer.validated_data['value']
+        won_tokens = serializer.validated_data['value']
 
         event = GrassEvent.objects.get(user=request.user)
 
-        if is_win and event.unclaimed_tokens > 0:
-            event.grass_cuts_left += 1
-            event.unclaimed_tokens -= 1
-            event.save()
+        claimed_tokens = min(won_tokens, event.unclaimed_tokens)
+        event.grass_cuts_left += claimed_tokens
+        event.unclaimed_tokens -= claimed_tokens
+        event.save()
 
         return Response({'status': True, 'tokens_left': event.grass_cuts_left})
 

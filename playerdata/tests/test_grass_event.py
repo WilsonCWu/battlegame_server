@@ -24,7 +24,7 @@ class GrassEventAPITestCase(APITestCase):
 
     def test_finish_run(self):
         response = self.client.post('/event/grass/finishrun/', {
-            'value': True
+            'value': 1
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
