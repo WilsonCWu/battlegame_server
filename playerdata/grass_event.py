@@ -157,6 +157,7 @@ class CutGrassView(APIView):
 
         reward_type = pick_rand_reward_left(event.rewards_left)
         rewards = grass_reward(reward_type, event.cur_floor)
+        chests.award_chest_rewards(request.user, rewards)
 
         if reward_type == constants.GrassRewardType.LADDER.value:
             event.ladder_index = cut_index

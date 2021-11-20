@@ -33,6 +33,9 @@ class GrassEventAPITestCase(APITestCase):
         self.grass_event.grass_cuts_left = 1
         self.grass_event.save()
 
+        self.u.inventory.gems = 500
+        self.u.inventory.save()
+
         cut_index = 5
         response = self.client.post('/event/grass/cutgrass/', {
             'value': cut_index
@@ -46,6 +49,9 @@ class GrassEventAPITestCase(APITestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data['status'])
+
+        self.u.inventory.refresh_from_db()
+        self.assertGreater(self.u.inventory.gems, 500)
 
     def test_cut_grass_gems(self):
         self.grass_event.grass_cuts_left = 0
