@@ -68,7 +68,7 @@ def grass_reward(reward_type, floor):
     if gems > 0:
         rewards.append(chests.ChestReward('gems', gems))
     if dust > 0:
-        rewards.append(chests.ChestReward('dust', dust))
+        rewards.append(chests.ChestReward('essence', dust))
     if leg_shards > 0:
         rewards.append(chests.ChestReward('legendary_shards', leg_shards))
 
