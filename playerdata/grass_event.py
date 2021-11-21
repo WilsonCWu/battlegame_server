@@ -68,7 +68,7 @@ def grass_reward(reward_type, floor):
     if gems > 0:
         rewards.append(chests.ChestReward('gems', gems))
     if dust > 0:
-        rewards.append(chests.ChestReward('dust', dust))
+        rewards.append(chests.ChestReward('essence', dust))
     if leg_shards > 0:
         rewards.append(chests.ChestReward('legendary_shards', leg_shards))
 
@@ -192,6 +192,11 @@ class NextGrassFloorView(APIView):
         event.claimed_tiles = []
         event.ladder_index = -1
         event.rewards_left = default_grass_rewards_left()
+        # a little hacky but specific floor 8 case without ladder
+        if event.cur_floor == 8:
+            event.rewards_left[constants.GrassRewardType.LADDER.value] = 0
+            event.rewards_left[constants.GrassRewardType.GREAT.value] += 1
+
         event.save()
 
         return Response({'status': True, 'grass_event': GrassEventSchema(event).data})
