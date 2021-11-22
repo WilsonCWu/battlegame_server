@@ -12,7 +12,7 @@ from playerdata.models import DungeonProgress, Character, Placement
 from playerdata.models import DungeonStage
 from playerdata.models import UserMatchState
 from playerdata.models import ReferralTracker
-from . import constants, formulas, dungeon_gen, wishlist, chapter_rewards_pack, world_pack, chests
+from . import constants, formulas, dungeon_gen, wishlist, chapter_rewards_pack, world_pack, chests, server
 from .constants import DungeonType
 from .matcher import PlacementSchema
 from .questupdater import QuestUpdater
@@ -294,6 +294,10 @@ class DungeonSetProgressCommitView(APIView):
 
 
 def campaign_tutorial_rewards(stage):
+    # TODO: remove me after 1.0.4
+    if server.is_server_version_higher('1.0.4'):
+        return []
+
     if stage == 1:
         return [chests.ChestReward('char_id', 5)]
     elif stage == 2:
