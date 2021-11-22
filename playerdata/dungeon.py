@@ -295,7 +295,7 @@ class DungeonSetProgressCommitView(APIView):
 
 def campaign_tutorial_rewards(stage):
     # TODO: remove me after 1.0.4
-    if server.is_server_version_higher('1.0.4'):
+    if not server.is_server_version_higher('1.0.4'):
         return []
 
     if stage == 1:
