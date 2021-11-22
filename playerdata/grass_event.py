@@ -156,6 +156,10 @@ class CutGrassView(APIView):
             event.grass_cuts_left -= 1
 
         reward_type = pick_rand_reward_left(event.rewards_left)
+        # hardcode first pick on floor 1 to be a GOOD reward type
+        if event.cur_floor == 1 and len(event.claimed_tiles) == 0:
+            reward_type = constants.GrassRewardType.GOOD.value
+
         rewards = grass_reward(reward_type, event.cur_floor)
         chests.award_chest_rewards(request.user, rewards)
 
