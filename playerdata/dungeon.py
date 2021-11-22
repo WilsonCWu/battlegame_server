@@ -266,6 +266,9 @@ class DungeonSetProgressCommitView(APIView):
             if stage % 40 == 0:
                 world_pack.active_new_pack(request.user, stage // 40)
 
+            rewards = campaign_tutorial_rewards(stage)
+            chests.award_chest_rewards(request.user, rewards)
+
             QuestUpdater.set_progress_by_type(request.user, constants.COMPLETE_DUNGEON_LEVEL, progress.campaign_stage)
             QuestUpdater.add_progress_by_type(request.user, constants.WIN_DUNGEON_GAMES, 1)
             progress.campaign_stage += 1
@@ -335,8 +338,6 @@ class DungeonStageView(APIView):
             rewards = campaign_tutorial_rewards(stage)
         else:
             rewards = []
-
-        chests.award_chest_rewards(request.user, rewards)
 
         return Response({'status': True,
                          'stage_id': stage,
