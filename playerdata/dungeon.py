@@ -12,7 +12,7 @@ from playerdata.models import DungeonProgress, Character, Placement
 from playerdata.models import DungeonStage
 from playerdata.models import UserMatchState
 from playerdata.models import ReferralTracker
-from . import constants, formulas, dungeon_gen, wishlist, chapter_rewards_pack, world_pack
+from . import constants, formulas, dungeon_gen, wishlist, chapter_rewards_pack, world_pack, chests
 from .constants import DungeonType
 from .matcher import PlacementSchema
 from .questupdater import QuestUpdater
@@ -293,6 +293,15 @@ class DungeonSetProgressCommitView(APIView):
         return Response({'status': True})
 
 
+def campaign_tutorial_rewards(stage):
+    if stage == 1:
+        return [chests.ChestReward('char_id', 5)]
+    elif stage == 2:
+        return [chests.ChestReward('char_id', 17)]
+    else:
+        return []
+
+
 class DungeonStageView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -318,10 +327,19 @@ class DungeonStageView(APIView):
         if dungeon_stage is not None:
             story_text = dungeon_stage.story_text
 
+        if dungeon_type == DungeonType.CAMPAIGN.value:
+            rewards = campaign_tutorial_rewards(stage)
+        else:
+            rewards = []
+
+        chests.award_chest_rewards(request.user, rewards)
+
         return Response({'status': True,
                          'stage_id': stage,
                          'player_exp': formulas.player_exp_reward_dungeon(stage),
                          'coins': formulas.coins_reward_dungeon(stage, dungeon_type),
                          'gems': formulas.gems_reward_dungeon(stage, dungeon_type),
                          'mob': dungeon_gen.stage_generator(stage, dungeon_type),
-                         'story_text': story_text})
+                         'story_text': story_text,
+                         'rewards': chests.ChestRewardSchema(rewards, many=True).data
+                         })
