@@ -20,7 +20,7 @@ class GrassEventAPITestCase(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
         self.assertEqual(resp.data['grass_event']['cur_floor'], 1)
-        self.assertEqual(resp.data['grass_event']['grass_cuts_left'], 0)
+        self.assertEqual(resp.data['grass_event']['grass_cuts_left'], 1)
 
     def test_finish_run(self):
         response = self.client.post('/event/grass/finishrun/', {
@@ -72,8 +72,9 @@ class GrassEventAPITestCase(APITestCase):
         self.assertEqual(self.grass_event.rewards_left[reward_type], constants.GRASS_REWARDS_PER_TIER[reward_type] - 1)
 
     def test_go_to_next_grass_floor(self):
-        ladder_tile = 5
+        ladder_tile = 24
         self.grass_event.rewards_left = [0, 0, 0, 0, 1]  # hardcode only the ladder is left
+        self.grass_event.claimed_tiles = list(range(0, 24))
         self.grass_event.grass_cuts_left = 1
         self.grass_event.save()
 
