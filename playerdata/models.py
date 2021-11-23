@@ -1492,10 +1492,14 @@ def create_user_info(sender, instance, created, **kwargs):
         peasant_mage = Character.objects.create(user=instance, char_type_id=2)
         peasant_swordsman = Character.objects.create(user=instance, char_type_id=3)
 
+        # start with haldor and layla hardcoded
+        Character.objects.create(user=instance, char_type_id=0)
+        Character.objects.create(user=instance, char_type_id=11)
+
         default_placement = Placement.objects.create(user=instance,
                                                      char_1=peasant_swordsman, pos_1=4,
-                                                     char_2=peasant_archer, pos_2=3,
-                                                     char_3=peasant_mage, pos_3=8)
+                                                     char_2=peasant_archer, pos_2=8,
+                                                     char_3=peasant_mage, pos_3=3)
 
         userinfo = UserInfo.objects.create(user=instance, default_placement=default_placement)
         UserStats.objects.create(user=instance)
