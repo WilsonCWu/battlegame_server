@@ -13,7 +13,7 @@ from playerdata.models import *
 from playerdata.purchases import refresh_daily_deals_cronjob, refresh_weekly_deals_cronjob, \
     refresh_monthly_deals_cronjob
 from playerdata.quest import refresh_daily_quests, refresh_weekly_quests
-from playerdata.statusupdate import calculate_tourney_elo, get_redis_quickplay_usage_key
+from playerdata.statusupdate import calculate_tourney_elo, get_redis_quickplay_usage_key, skip_cap
 from playerdata.tournament import get_next_round_time, TOURNAMENT_BOTS, get_random_char_set
 from . import settings
 
@@ -99,11 +99,12 @@ def daily_clean_matches_cron():
 @cron(uuid="cb651e8b-e227-4be1-a786-acd6fcac037c")
 @atomic
 def reset_daily_wins_cron():
-    userstats = UserStats.objects.all()
+    userstats = UserStats.objects.all().select_related('user__userinfo')
     for stat in userstats:
         stat.daily_wins = 0
         stat.daily_games = 0
-    UserStats.objects.bulk_update(userstats, ['daily_wins', 'daily_games'])
+        stat.pvp_skips = skip_cap(stat.user.userinfo)
+    UserStats.objects.bulk_update(userstats, ['daily_wins', 'daily_games', 'pvp_skips'])
 
 
 MAX_DAILY_DUNGEON_TICKET = 5

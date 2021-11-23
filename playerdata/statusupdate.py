@@ -124,7 +124,7 @@ class UploadTourneyResultView(APIView):
 def update_stats(user, win, stats):
     user_stats = user.userstats
     user_stats.num_games += 1
-    user_stats.pvp_skips += min(3, skip_cap(user) - user_stats.pvp_skips)
+    user_stats.pvp_skips += min(3, skip_cap(user.userinfo) - user_stats.pvp_skips)
     user_stats.num_wins += 1 if win else 0
     user_stats.daily_wins += 1 if win else 0
     user_stats.daily_games += 1
@@ -312,33 +312,23 @@ def handle_tourney(request, win, opponent):
     return Response({'status': True})
 
 
-def skip_cap(user):
-    player_level = formulas.exp_to_level(user.userinfo.player_exp)
+def skip_cap(userinfo):
+    player_level = formulas.exp_to_level(userinfo.player_exp)
     base = 5
     additional = player_level // 5
     return base + additional
 
 
 def is_skip_capped(user):
-    return user.userstats.pvp_skips >= skip_cap(user)
+    return user.userstats.pvp_skips >= skip_cap(user.userinfo)
 
 
 class SkipsLeftView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        if server.is_server_version_higher("0.2.5"):
-            is_skips_capped = is_skip_capped(request.user)
-            return Response({'status': True, 'skips_left': request.user.userstats.pvp_skips, 'is_capped': is_skips_capped})
-
-        coins_cost = formulas.coins_chest_reward(request.user, constants.ChestType.SILVER.value) / 30
-        gems_cost = 0
-
-        if request.user.inventory.coins < coins_cost:
-            coins_cost = 0
-            gems_cost = 2
-
-        return Response({'coins_cost': coins_cost, 'gems_cost': gems_cost})
+        is_skips_capped = is_skip_capped(request.user.userinfo)
+        return Response({'status': True, 'skips_left': request.user.userstats.pvp_skips, 'is_capped': is_skips_capped})
 
 
 class SkipView(APIView):
