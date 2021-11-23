@@ -56,12 +56,10 @@ def grass_reward(reward_type, floor):
             gems = 5000 + (floor - 1) * 1000
             dust = 1000 + (floor - 1) * 500
             leg_shards = 80
-
-            # Award the Turkey on Floor 1 jackpot
-            if floor == 1:
-                rewards.append(chests.ChestReward('pet_id', 9))
     elif reward_type == constants.GrassRewardType.LADDER.value:
-        pass
+        # Award the Turkey on Floor 1
+        if floor == 1:
+            rewards.append(chests.ChestReward('pet_id', 9))
     else:
         raise Exception("invalid grass_event reward_type")
 
