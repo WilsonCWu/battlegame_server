@@ -18,12 +18,22 @@ def get_usage_stats_graph():
 
 
 TEMPLATE_NAME = 'graphs.html'
-GRAPHS = {'sample': get_sample_graph,
-          'usage': get_usage_stats_graph}
+GRAPHS = {'sample': [get_sample_graph], # Single graph example
+          'samples': [get_sample_graph, get_sample_graph, get_sample_graph],  # Multiple graphs example
+          'usage': [get_usage_stats_graph]} # Doesn't exist
+
+
+# Import this to get graphs from admin panel
+def get_graph_http_response(request, name):
+    graph_list = []
+    if name in GRAPHS:
+        for graph_function in GRAPHS[name]:
+            graph_list.append(graph_function())
+
+    context = {'graph_title': 'Defense Placement Statistics', 'graph_contents': graph_list}
+    return render(request, TEMPLATE_NAME, context)
 
 
 class GetGraphView(View):
     def get(self, request, name=None):
-        graph = GRAPHS[name]() if name in GRAPHS else None
-        context = {'graph_title': 'Defense Placement Statistics', 'graph_contents': graph}
-        return render(request, TEMPLATE_NAME, context)
+        return get_graph_http_response(request, name)
