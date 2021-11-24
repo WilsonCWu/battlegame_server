@@ -1,5 +1,7 @@
 import math
 
+from django.contrib.auth.decorators import login_required
+from playerdata.admin import UserInfoAdmin
 from playerdata.models import *
 
 
@@ -31,3 +33,8 @@ def print_player_prog(perc=50):
         dd_percentile = percentile(best_dd, perc)
 
         print("Day " + str(day_delta) + " (" + str(len(active_players)) + " users)" + ": " + str(elo_percentile) + ", " + str(dungeon_percentile) + ", " + str(dd_percentile))
+
+
+@login_required
+def get_defense_placement_report_view(request):
+    return UserInfoAdmin.generate_defense_placement_report(UserInfoAdmin, request, UserInfo.objects.all())
