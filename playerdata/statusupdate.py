@@ -327,7 +327,7 @@ class SkipsLeftView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        is_skips_capped = is_skip_capped(request.user.userinfo)
+        is_skips_capped = is_skip_capped(request.user)
         return Response({'status': True, 'skips_left': request.user.userstats.pvp_skips, 'is_capped': is_skips_capped})
 
 
