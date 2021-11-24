@@ -68,6 +68,7 @@ class UserInfoSchema(Schema):
     player_level = fields.Function(lambda userinfo: formulas.exp_to_level(userinfo.player_exp))
     vip_exp = fields.Function(lambda userinfo: formulas.vip_exp_to_level(userinfo.vip_exp))
     is_monthly_sub = fields.Bool()
+    last_login = fields.DateTime()
 
 
 # This is a light-weight Userinfo Schema for showing users in a list
