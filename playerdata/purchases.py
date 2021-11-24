@@ -519,6 +519,7 @@ class PurchaseItemView(APIView):
         # can support more types of purchases as we add more
         if purchase_item_id.endswith("CHEST"):
             rewards = handle_purchase_chest(request.user, purchase_item_id)
+            QuestUpdater.add_progress_by_type(user, constants.CHESTS_OPENED, 1)
 
         reward_schema = chests.ChestRewardSchema(rewards, many=True)
         return Response({'status': True, 'rewards': reward_schema.data})

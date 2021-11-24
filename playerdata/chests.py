@@ -214,7 +214,6 @@ def award_chest_rewards(user, rewards):
         else:
             raise Exception("invalid reward_type, sorry friendo")
     user.inventory.save()
-    QuestUpdater.add_progress_by_type(user, constants.CHESTS_OPENED, 1)
 
 
 # guarantee a coin and dust drop in chests
