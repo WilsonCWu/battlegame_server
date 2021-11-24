@@ -13,9 +13,8 @@ def get_sample_graph():
     return data.to_html()
 
 
-def get_usage_stats():
-    # TODO: put a graph here
-    return get_sample_graph
+def get_usage_stats_graph():
+    return None
 
 
 TEMPLATE_NAME = 'graphs.html'
