@@ -28,8 +28,9 @@ def get_graph_http_response(request, name):
     if name in GRAPHS:
         for graph_function in GRAPHS[name]:
             graph_list.append(graph_function())
-
-    context = {'graph_title': 'Defense Placement Statistics', 'graph_contents': graph_list}
+    context = {'graph_title': 'Graph',
+               'graph_contents': graph_list,
+               'other_graph_links': GRAPHS.keys()}
     return render(request, TEMPLATE_NAME, context)
 
 
