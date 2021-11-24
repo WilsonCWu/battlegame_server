@@ -19,7 +19,7 @@ def get_usage_stats_graph():
 
 TEMPLATE_NAME = 'graphs.html'
 GRAPHS = {'sample': get_sample_graph,
-          'usage': get_usage_stats}
+          'usage': get_usage_stats_graph}
 
 
 class GetGraphView(View):
