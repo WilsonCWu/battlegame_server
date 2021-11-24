@@ -210,6 +210,7 @@ urlpatterns = [
     path('terms/', web_pages.terms),
     path('beta/', web_pages.beta),
     path('chat/', include('chat.urls')),
+    path('graph/<str:name>', graphs.get_graph_view),
     path('admin/', admin.site.urls),
     path('public/stats/', public.PublicStatsView.as_view()),
     path('public/stats/<str:version>', public.PublicStatsView.as_view()),

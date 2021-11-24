@@ -1,7 +1,6 @@
-from re import TEMPLATE
-from rest_framework.views import View
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 from plotly import graph_objects
 
 
@@ -34,6 +33,6 @@ def get_graph_http_response(request, name):
     return render(request, TEMPLATE_NAME, context)
 
 
-class GetGraphView(View):
-    def get(self, request, name=None):
-        return get_graph_http_response(request, name)
+@login_required(login_url='/admin/')
+def get_graph_view(request, name=None):
+    return get_graph_http_response(request, name)
