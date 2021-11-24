@@ -18,9 +18,9 @@ def get_usage_stats_graph():
 
 
 TEMPLATE_NAME = 'graphs.html'
-GRAPHS = {'sample': [get_sample_graph], # Single graph example
+GRAPHS = {'sample': [get_sample_graph],  # Single graph example
           'samples': [get_sample_graph, get_sample_graph, get_sample_graph],  # Multiple graphs example
-          'usage': [get_usage_stats_graph]} # Doesn't exist
+          'usage': [get_usage_stats_graph]}  # Doesn't exist
 
 
 # Import this to get graphs from admin panel
