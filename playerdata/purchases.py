@@ -470,20 +470,7 @@ def count_char_copies(chars):
 def handle_purchase_chest(user, purchase_id):
     rewards = []
     if purchase_id == constants.PurchaseID.MYTHIC_CHEST.value:
-        char_copies = count_char_copies(Character.objects.filter(user=user))
-
-        # This is to rig the first roll for tutorial
-        if char_copies == 3:
-            char_id_1 = rolls.get_rand_base_char_from_rarity(2).char_type
-            char_id_2 = rolls.get_rand_base_char_from_rarity(3).char_type
-
-            rewards.append(chests.ChestReward(reward_type='char_id', value=char_id_1))
-            rewards.append(chests.ChestReward(reward_type='char_id', value=char_id_2))
-            rewards.append(chests.pick_resource_reward(user, 'coins', constants.ChestType.MYTHICAL.value))
-            rewards.append(chests.pick_resource_reward(user, 'gems', constants.ChestType.MYTHICAL.value))
-            rewards.append(chests.pick_resource_reward(user, 'essence', constants.ChestType.MYTHICAL.value))
-        else:
-            rewards = chests.generate_chest_rewards(constants.ChestType.MYTHICAL.value, user)
+        rewards = chests.generate_chest_rewards(constants.ChestType.MYTHICAL.value, user)
 
     chests.award_chest_rewards(user, rewards)
     return rewards
