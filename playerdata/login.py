@@ -1,5 +1,5 @@
 import secrets
-
+from datetime import datetime, timezone
 from decouple import config
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
@@ -127,6 +127,11 @@ class ObtainAuthToken(APIView):
             if len(tracker.user_list) > 5:
                 tracker.suspicious = True
         tracker.save()
+
+        cur_time = datetime.now(timezone.utc)
+        userinfo = UserInfo.objects.get(user_id=user.id)
+        userinfo.last_login = cur_time
+        userinfo.save()
 
         return Response({'status': True, 'token': token.key, 'user_id': user.id})
 
