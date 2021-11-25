@@ -1312,7 +1312,7 @@ class BaseDeal(models.Model):
     order = models.IntegerField(default=0)
     gems_cost = models.IntegerField(default=0)
     purchase_id = models.TextField(default='')
-    is_p2w = models.BooleanField(default=False)
+    is_premium = models.BooleanField(default=False)
 
     def __str__(self):
         return "ID: " + str(self.id) + " Type: " + str(self.deal_type) + " Order: " + str(self.order)

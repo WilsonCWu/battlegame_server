@@ -349,7 +349,7 @@ def get_active_deals(user, cur_time, deal_type):
             expiration_date__gt=cur_time)
 
     if not user.userinfo.is_purchaser:
-        active_deals = active_deals.exclude(base_deal__is_p2w=True)
+        active_deals = active_deals.exclude(base_deal__is_premium=True)
 
     active_deals = active_deals.order_by('base_deal__order')
 
