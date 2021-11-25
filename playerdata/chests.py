@@ -330,6 +330,8 @@ class CollectChest(APIView):
             award_chest_rewards(request.user, rewards)
             chest.delete()
 
+        QuestUpdater.add_progress_by_type(request.user, constants.CHESTS_OPENED, 1)
+
         reward_schema = ChestRewardSchema(rewards, many=True)
         return Response({'status': True, 'rewards': reward_schema.data})
 

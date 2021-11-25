@@ -140,6 +140,10 @@ def reward_purchase(user, transaction_id, purchase_id):
         # Already fulfilled purchase
         return Response({'status': True})
 
+    if not user.userinfo.is_purchaser:
+        user.userinfo.is_purchaser = True
+        user.userinfo.save()
+
     if purchase_id.startswith('com.salutationstudio.tinytitans.gems.'):
         return handle_purchase_gems(user, purchase_id, transaction_id)
     elif purchase_id.startswith('com.salutationstudio.tinytitans.deal.'):
@@ -339,6 +343,19 @@ def get_last_deal_expiration_date(deal_type: DealType):
         raise Exception("Invalid DealType: " + deal_type.value)
 
 
+def get_deals_json(user, cur_time, deal_schema, deal_type):
+    active_deals = ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
+            base_deal__deal_type=deal_type,
+            expiration_date__gt=cur_time)
+
+    if not user.userinfo.is_purchaser:
+        active_deals = active_deals.exclude(base_deal__is_p2w=True)
+
+    active_deals = active_deals.order_by('base_deal__order')
+
+    return deal_schema.dump(active_deals)
+
+
 class GetDeals(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -354,26 +371,15 @@ class GetDeals(APIView):
         weekly_purchased_deals_ids = get_purchase_deal_ids(request.user, prev_weekly_expiration_date, DealType.WEEKLY.value)
         monthly_purchased_deals_ids = get_purchase_deal_ids(request.user, prev_monthly_expiration_date, DealType.MONTHLY.value)
 
-        curr_time = datetime.now(timezone.utc)
-        daily_deals = deal_schema.dump(
-            ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
-                base_deal__deal_type=DealType.DAILY.value,
-                expiration_date__gt=curr_time).order_by('base_deal__order'))
-
-        weekly_deals = deal_schema.dump(
-            ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
-                base_deal__deal_type=DealType.WEEKLY.value,
-                expiration_date__gt=curr_time).order_by('base_deal__order'))
-
-        monthly_deals = deal_schema.dump(
-            ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
-                base_deal__deal_type=DealType.MONTHLY.value,
-                expiration_date__gt=curr_time).order_by('base_deal__order'))
+        cur_time = datetime.now(timezone.utc)
+        daily_deals = get_deals_json(request.user, cur_time, deal_schema, DealType.DAILY.value)
+        weekly_deals = get_deals_json(request.user, cur_time, deal_schema, DealType.WEEKLY.value)
+        monthly_deals = get_deals_json(request.user, cur_time, deal_schema, DealType.MONTHLY.value)
 
         # gemscost_deals = deal_schema.dump(
         #     ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
         #         base_deal__deal_type=DealType.GEMS_COST.value,
-        #         expiration_date__gt=curr_time).order_by('base_deal__order'))
+        #         expiration_date__gt=cur_time).order_by('base_deal__order'))
 
         for deal in daily_deals:
             deal["is_available"] = deal["purchase_id"] not in daily_purchased_deals_ids
