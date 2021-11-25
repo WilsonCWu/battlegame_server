@@ -559,6 +559,8 @@ class UserInfo(models.Model):
     best_daily_dungeon_stage = models.IntegerField(default=0)
     best_moevasion_stage = models.BigIntegerField(default=0)
     highest_moevasion_reward_collected = models.IntegerField(default=0)
+
+    last_login = models.DateTimeField(default=timezone.now)
     
     class Meta:
         indexes = [
