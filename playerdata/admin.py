@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 from django_json_widget.widgets import JSONEditorWidget
 from dataclasses import dataclass
+from pandas import DataFrame
 
 from battlegame.cron import next_round, setup_tournament, end_tourney
 from . import purchases
@@ -709,8 +710,12 @@ class BaseCharacterUsageAdmin(admin.ModelAdmin):
             wins: int
             games: int
 
-            def winrate(self):
-                return self.wins / self.games if self.games != 0 else 0
+            def to_dict(self):
+                return {'name': self.name,
+                        'rarity': self.rarity,
+                        'wins': self.wins,
+                        'games': self.games}
+
         start = datetime.utcnow()
 
         queryset = queryset.select_related('char_type')
@@ -718,24 +723,23 @@ class BaseCharacterUsageAdmin(admin.ModelAdmin):
 
         # pull usage statistics from the selected characters
         for base_char_usage in queryset:
-            name = base_char_usage.char_type.name
-            rarity = base_char_usage.char_type.rarity
-            games = base_char_usage.num_games
-            wins = base_char_usage.num_wins
-            if games == 0:
+            if base_char_usage.num_games == 0:
                 continue
-            c = CharacterUsageRow(name, rarity, wins, games)
+            c = CharacterUsageRow(
+                name=base_char_usage.char_type.name,
+                rarity=base_char_usage.char_type.rarity,
+                games=base_char_usage.num_games,
+                wins=base_char_usage.num_wins)
             char_data.append(c)
-
-        win_rate_average = sum(c.winrate() for c in char_data) / len(char_data)
 
         end = datetime.utcnow()
         elapsed = end - start
 
-        # Sort based on win rate
-        characters_sorted = sorted(char_data,
-                                   key=lambda character: character.winrate())
-        characters_sorted.reverse()
+        d = DataFrame([character.to_dict() for character in char_data])
+        d['win rate'] = d['wins'] / d['games']
+        win_rate_average = d['win rate'].mean()
+        d = d.sort_values(by=['win rate'], ascending=False)
+        output = d.to_html(formatters={'win rate': '{:.2%}'.format})
 
         # Write report as HTTP page.
         response = HttpResponse()
@@ -743,33 +747,7 @@ class BaseCharacterUsageAdmin(admin.ModelAdmin):
         response.write(f'<p style="margin:0;"><b>Time:</b> {datetime.now()}</p>')
         response.write(f'<p style="margin:0;"><b>Function runtime:</b> {elapsed}</p>')
         response.write(f'<p style="margin:0;"><b>Average Winrate: {"{:.2f}".format(100 * win_rate_average)}</b></p><p></p>')
-
-        # Group by rarity
-        for rarity in range(4, 0, -1):  # To filter by rarity, just go through the data once for each rarity, outputting info only if rarity matches.
-            response.write(f'<h3>Rarity {rarity}:</h3>')
-            response.write(f'<table>')
-            response.write(f'<tr> <th>Character</th> <th>Win Rate (%)</th> <th>Wins</th> <th>Games</th> </tr>')
-            for character in characters_sorted:  # J is the index in characters_sorted, assume all arrays are same length
-                if character.rarity != rarity or character.games == 0:
-                    continue
-                name = character.name
-                wins = character.wins
-                games = character.games
-                win_rate_num = character.winrate()
-                win_rate = "{:.2f}".format(100 * win_rate_num)
-
-                # Highlight big winners and big losers
-                WIN_RATE_DIFFERENCE_TO_HIGHLIGHT = 0.05  # Any character not within 5% is irregular
-                color_tag = ''
-                if win_rate_num > (win_rate_average + WIN_RATE_DIFFERENCE_TO_HIGHLIGHT):
-                    color_tag = 'style="color:green"'
-                elif win_rate_num < (win_rate_average - WIN_RATE_DIFFERENCE_TO_HIGHLIGHT):
-                    color_tag = 'style="color:red"'
-
-                response.write(f'<tr>')
-                response.write(f'<td {color_tag}>{name}</td> <td {color_tag}>{win_rate}%</td> <td>{wins}</td> <td>{games}</td>')
-                response.write(f'</tr>')
-            response.write(f'</table>')
+        response.write(f'{output}')
         return response
 
 
