@@ -17,6 +17,7 @@ from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
 from battlegame import graphs
+from battlegame import gameanalytics
 from playerdata import creatorcode, event_times, login, tier_system, level_booster, relic_shop, wishlist, \
     chapter_rewards_pack, inbox, \
     rotating_mode, conquest_event, regal_rewards, activity_points, shards, grass_event
@@ -210,7 +211,8 @@ urlpatterns = [
     path('terms/', web_pages.terms),
     path('beta/', web_pages.beta),
     path('chat/', include('chat.urls')),
-    path('graph/<str:name>', graphs.get_graph_view),
+    path('stats/graph/<str:name>', graphs.get_graph_view),
+    path('stats/defensereport/', gameanalytics.get_defense_placement_report_view),
     path('admin/', admin.site.urls),
     path('public/stats/', public.PublicStatsView.as_view()),
     path('public/stats/<str:version>', public.PublicStatsView.as_view()),
