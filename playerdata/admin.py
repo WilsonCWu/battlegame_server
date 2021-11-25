@@ -738,8 +738,9 @@ class BaseCharacterUsageAdmin(admin.ModelAdmin):
         d = DataFrame([character.to_dict() for character in char_data])
         d['win rate'] = d['wins'] / d['games']
         win_rate_average = d['win rate'].mean()
+        d['delta win rate'] = d['win rate'] - win_rate_average
         d = d.sort_values(by=['win rate'], ascending=False)
-        output = d.to_html(formatters={'win rate': '{:.2%}'.format})
+        output = d.to_html(formatters={'win rate': '{:.2%}'.format, 'delta win rate': '{:.2%}'.format})
 
         # Write report as HTTP page.
         response = HttpResponse()
