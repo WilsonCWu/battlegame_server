@@ -5,6 +5,7 @@ from django.contrib.admin.models import LogEntry
 from django.http import HttpResponse
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 from django_json_widget.widgets import JSONEditorWidget
+from dataclasses import dataclass
 
 from battlegame.cron import next_round, setup_tournament, end_tourney
 from . import purchases
@@ -701,35 +702,40 @@ class BaseCharacterUsageAdmin(admin.ModelAdmin):
         queryset.update(num_games=0, num_wins=0, last_reset_time=now)
 
     def generate_base_character_usage_report(self, request, queryset):
+        @dataclass
+        class CharacterUsageRow:
+            name: str
+            rarity: int
+            wins: int
+            games: int
+
+            def winrate(self):
+                return self.wins / self.games if self.games != 0 else 0
         start = datetime.utcnow()
 
         queryset = queryset.select_related('char_type')
-
-        base_characters = BaseCharacter.objects.all()
-        char_names = [''] * base_characters.count()
-        char_rarities = [0] * base_characters.count()
-        num_games = [0] * base_characters.count()
-        num_wins = [0] * base_characters.count()
-        win_rate_sum = 0  # Used to calculate the average
-        win_rate_tally = 0
-
-        # load the names into a list to easily access name by char_id.
-        for base_char in base_characters:
-            char_names[base_char.char_type] = base_char.name
-            char_rarities[base_char.char_type] = base_char.rarity
+        char_data = []
 
         # pull usage statistics from the selected characters
         for base_char_usage in queryset:
-            char_type = base_char_usage.char_type.char_type
-            num_games[char_type] = base_char_usage.num_games
-            num_wins[char_type] = base_char_usage.num_wins
-            if num_games[char_type] != 0:
-                win_rate_tally += 1
-                win_rate_sum += num_wins[char_type] / num_games[char_type]
-        win_rate_average = win_rate_sum / win_rate_tally
+            name = base_char_usage.char_type.name
+            rarity = base_char_usage.char_type.rarity
+            games = base_char_usage.num_games
+            wins = base_char_usage.num_wins
+            if games == 0:
+                continue
+            c = CharacterUsageRow(name, rarity, wins, games)
+            char_data.append(c)
+
+        win_rate_average = sum(c.winrate() for c in char_data) / len(char_data)
 
         end = datetime.utcnow()
         elapsed = end - start
+
+        # Sort based on win rate
+        characters_sorted = sorted(char_data,
+                                   key=lambda character: character.winrate())
+        characters_sorted.reverse()
 
         # Write report as HTTP page.
         response = HttpResponse()
@@ -737,14 +743,19 @@ class BaseCharacterUsageAdmin(admin.ModelAdmin):
         response.write(f'<p style="margin:0;"><b>Time:</b> {datetime.now()}</p>')
         response.write(f'<p style="margin:0;"><b>Function runtime:</b> {elapsed}</p>')
         response.write(f'<p style="margin:0;"><b>Average Winrate: {"{:.2f}".format(100 * win_rate_average)}</b></p><p></p>')
-        for i in range(4, 0, -1):  # To filter by rarity, just go through the data once for each rarity, outputting info only if rarity matches.
-            response.write(f'<h3>Rarity {i}:</h3>')
+
+        # Group by rarity
+        for rarity in range(4, 0, -1):  # To filter by rarity, just go through the data once for each rarity, outputting info only if rarity matches.
+            response.write(f'<h3>Rarity {rarity}:</h3>')
             response.write(f'<table>')
             response.write(f'<tr> <th>Character</th> <th>Win Rate (%)</th> <th>Wins</th> <th>Games</th> </tr>')
-            for j in range(0, base_characters.count()):
-                if char_rarities[j] != i or num_games[j] == 0:
+            for character in characters_sorted:  # J is the index in characters_sorted, assume all arrays are same length
+                if character.rarity != rarity or character.games == 0:
                     continue
-                win_rate_num = num_wins[j] / num_games[j]
+                name = character.name
+                wins = character.wins
+                games = character.games
+                win_rate_num = character.winrate()
                 win_rate = "{:.2f}".format(100 * win_rate_num)
 
                 # Highlight big winners and big losers
@@ -754,8 +765,9 @@ class BaseCharacterUsageAdmin(admin.ModelAdmin):
                     color_tag = 'style="color:green"'
                 elif win_rate_num < (win_rate_average - WIN_RATE_DIFFERENCE_TO_HIGHLIGHT):
                     color_tag = 'style="color:red"'
+
                 response.write(f'<tr>')
-                response.write(f'<td {color_tag}>{char_names[j]}({j})</td> <td {color_tag}>{win_rate}%</td> <td>{num_wins[j]}</td> <td>{num_games[j]}</td>')
+                response.write(f'<td {color_tag}>{name}</td> <td {color_tag}>{win_rate}%</td> <td>{wins}</td> <td>{games}</td>')
                 response.write(f'</tr>')
             response.write(f'</table>')
         return response
