@@ -547,6 +547,7 @@ class UserInfo(models.Model):
     vip_exp = models.IntegerField(default=0)
     is_bot = models.BooleanField(default=False)
     is_monthly_sub = models.BooleanField(default=False)
+    is_purchaser = models.BooleanField(default=False)
 
     # Player skills ranking.
     elo = models.IntegerField(default=0)
@@ -1311,6 +1312,7 @@ class BaseDeal(models.Model):
     order = models.IntegerField(default=0)
     gems_cost = models.IntegerField(default=0)
     purchase_id = models.TextField(default='')
+    is_premium = models.BooleanField(default=False)
 
     def __str__(self):
         return "ID: " + str(self.id) + " Type: " + str(self.deal_type) + " Order: " + str(self.order)
