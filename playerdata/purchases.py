@@ -343,7 +343,7 @@ def get_last_deal_expiration_date(deal_type: DealType):
         raise Exception("Invalid DealType: " + deal_type.value)
 
 
-def get_deals_json(user, cur_time, deal_schema, deal_type):
+def get_active_deals(user, cur_time, deal_type):
     active_deals = ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
             base_deal__deal_type=deal_type,
             expiration_date__gt=cur_time)
@@ -353,7 +353,7 @@ def get_deals_json(user, cur_time, deal_schema, deal_type):
 
     active_deals = active_deals.order_by('base_deal__order')
 
-    return deal_schema.dump(active_deals)
+    return active_deals
 
 
 class GetDeals(APIView):
@@ -372,9 +372,9 @@ class GetDeals(APIView):
         monthly_purchased_deals_ids = get_purchase_deal_ids(request.user, prev_monthly_expiration_date, DealType.MONTHLY.value)
 
         cur_time = datetime.now(timezone.utc)
-        daily_deals = get_deals_json(request.user, cur_time, deal_schema, DealType.DAILY.value)
-        weekly_deals = get_deals_json(request.user, cur_time, deal_schema, DealType.WEEKLY.value)
-        monthly_deals = get_deals_json(request.user, cur_time, deal_schema, DealType.MONTHLY.value)
+        daily_deals = deal_schema.dump(get_active_deals(request.user, cur_time, DealType.DAILY.value))
+        weekly_deals = deal_schema.dump(get_active_deals(request.user, cur_time, DealType.WEEKLY.value))
+        monthly_deals = deal_schema.dump(get_active_deals(request.user, cur_time, DealType.MONTHLY.value))
 
         # gemscost_deals = deal_schema.dump(
         #     ActiveDeal.objects.select_related('base_deal__item').select_related('base_deal__char_type').filter(
