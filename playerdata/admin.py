@@ -617,6 +617,7 @@ class BaseCharacterStatsAdmin(admin.ModelAdmin):
 
         return HttpResponse('\n\n\n'.join(resp), content_type="text/plain")
 
+
 @admin.register(BaseCharacter)
 class BaseCharacterAdmin(admin.ModelAdmin):
     actions = ('generate_deps',)
@@ -693,11 +694,71 @@ class BaseCharacterAdmin(admin.ModelAdmin):
 
 @admin.register(BaseCharacterUsage)
 class BaseCharacterUsageAdmin(admin.ModelAdmin):
-    actions = ('reset_to_zero',)
+    actions = ('reset_to_zero', 'generate_base_character_usage_report',)
 
     def reset_to_zero(self, request, queryset):
         now = datetime.utcnow()
         queryset.update(num_games=0, num_wins=0, last_reset_time=now)
+
+    def generate_base_character_usage_report(self, request, queryset):
+        start = datetime.utcnow()
+
+        queryset = queryset.select_related('char_type')
+
+        base_characters = BaseCharacter.objects.all()
+        char_names = [''] * base_characters.count()
+        char_rarities = [0] * base_characters.count()
+        num_games = [0] * base_characters.count()
+        num_wins = [0] * base_characters.count()
+        win_rate_sum = 0  # Used to calculate the average
+        win_rate_tally = 0
+
+        # load the names into a list to easily access name by char_id.
+        for base_char in base_characters:
+            char_names[base_char.char_type] = base_char.name
+            char_rarities[base_char.char_type] = base_char.rarity
+
+        # pull usage statistics from the selected characters
+        for base_char_usage in queryset:
+            char_type = base_char_usage.char_type.char_type
+            num_games[char_type] = base_char_usage.num_games
+            num_wins[char_type] = base_char_usage.num_wins
+            if num_games[char_type] != 0:
+                win_rate_tally += 1
+                win_rate_sum += num_wins[char_type] / num_games[char_type]
+        win_rate_average = win_rate_sum / win_rate_tally
+
+        end = datetime.utcnow()
+        elapsed = end - start
+
+        # Write report as HTTP page.
+        response = HttpResponse()
+        response.write(f"<h1>Base Character Usage Report</h1>")
+        response.write(f'<p style="margin:0;"><b>Time:</b> {datetime.now()}</p>')
+        response.write(f'<p style="margin:0;"><b>Function runtime:</b> {elapsed}</p>')
+        response.write(f'<p style="margin:0;"><b>Average Winrate: {"{:.2f}".format(100 * win_rate_average)}</b></p><p></p>')
+        for i in range(4, 0, -1):  # To filter by rarity, just go through the data once for each rarity, outputting info only if rarity matches.
+            response.write(f'<h3>Rarity {i}:</h3>')
+            response.write(f'<table>')
+            response.write(f'<tr> <th>Character</th> <th>Win Rate (%)</th> <th>Wins</th> <th>Games</th> </tr>')
+            for j in range(0, base_characters.count()):
+                if char_rarities[j] != i or num_games[j] == 0:
+                    continue
+                win_rate_num = num_wins[j] / num_games[j]
+                win_rate = "{:.2f}".format(100 * win_rate_num)
+
+                # Highlight big winners and big losers
+                WIN_RATE_DIFFERENCE_TO_HIGHLIGHT = 0.05  # Any character not within 5% is irregular
+                color_tag = ''
+                if win_rate_num > (win_rate_average + WIN_RATE_DIFFERENCE_TO_HIGHLIGHT):
+                    color_tag = 'style="color:green"'
+                elif win_rate_num < (win_rate_average - WIN_RATE_DIFFERENCE_TO_HIGHLIGHT):
+                    color_tag = 'style="color:red"'
+                response.write(f'<tr>')
+                response.write(f'<td {color_tag}>{char_names[j]}({j})</td> <td {color_tag}>{win_rate}%</td> <td>{num_wins[j]}</td> <td>{num_games[j]}</td>')
+                response.write(f'</tr>')
+            response.write(f'</table>')
+        return response
 
 
 @admin.register(RogueAllowedAbilities)
