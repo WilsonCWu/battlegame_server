@@ -732,9 +732,6 @@ class BaseCharacterUsageAdmin(admin.ModelAdmin):
                 wins=base_char_usage.num_wins)
             char_data.append(c)
 
-        end = datetime.utcnow()
-        elapsed = end - start
-
         # Process data as dataframe
         df = DataFrame([character.to_dict() for character in char_data])
         df = df[df['games'] != 0]
@@ -742,6 +739,9 @@ class BaseCharacterUsageAdmin(admin.ModelAdmin):
         win_rate_average = df['win rate'].mean()
         df['delta win rate'] = df['win rate'] - win_rate_average  # Difference from average win rate
         df = df.sort_values(by=['win rate'], ascending=False)  # Default sort, can be changed when viewing as a table
+
+        end = datetime.utcnow()
+        elapsed = end - start
 
         # Set context variables that'll be used by table template
         context = get_table_context(df)
