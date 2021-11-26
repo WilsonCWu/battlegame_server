@@ -765,8 +765,8 @@ class BaseCharacterUsageAdmin(admin.ModelAdmin):
         df.insert(3, 'defense win rate', df['defense wins'] / df['defense games'])  # Defense win rate
         win_rate_average = df['win rate'].mean()
         defense_win_rate_average = df['defense win rate'].mean()
-        df['delta win rate'] = df['win rate'] - win_rate_average  # Difference from average win rate
-        df['delta defense win rate'] = df['defense win rate'] - defense_win_rate_average  # Difference from average win rate
+        df.insert(3, 'ΔWR', df['win rate'] - win_rate_average)
+        df.insert(5, 'ΔDef WR', df['defense win rate'] - defense_win_rate_average)
 
         df = df.sort_values(by=['win rate'], ascending=False)  # Default sorting is by win rate, can be changed when viewing as a table
 
