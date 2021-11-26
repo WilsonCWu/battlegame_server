@@ -734,7 +734,7 @@ class BaseCharacterUsageAdmin(admin.ModelAdmin):
 
         # Process data as dataframe
         df = DataFrame([character.to_dict() for character in char_data])
-        df = df[df['games'] != 0]
+        df = df[df['games'] != 0] # Remove all rows where games column is 0
         df['win rate'] = df['wins'] / df['games']  # Add win rate column
         win_rate_average = df['win rate'].mean()
         df['delta win rate'] = df['win rate'] - win_rate_average  # Difference from average win rate

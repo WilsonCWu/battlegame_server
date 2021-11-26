@@ -2,9 +2,11 @@
 
 {% comment %} 
 Template for displaying a bootstrap table:
-Send "page_title", a string,
-     "data", a json export of the dataframe,
-     and "columns", a list of the table headers.
+Context variables:
+    "page_title": string,
+    "data": a json export of the dataframe (df.to_json(orient='records') gives the right format),
+    "columns": a list of the table headers,
+    "other_data" (optional): a list of strings which will be shown at the top of the page
 {% endcomment %}
 
 <!DOCTYPE html>
@@ -39,8 +41,3 @@ Send "page_title", a string,
     <table id='datatable'></table>
 </body>
 </html>
-
-
-
-
-
