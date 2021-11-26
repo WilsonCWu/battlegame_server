@@ -57,3 +57,52 @@ class AFKRewardsAPITestCase(APITestCase):
         self.u.afkreward.refresh_from_db()
         self.u.inventory.refresh_from_db()
         self.assertTrue(self.u.inventory.coins > orginal_coins)
+
+
+class FastRewardsAPITestCase(APITestCase):
+    fixtures = ['playerdata/tests/fixtures.json']
+
+    def setUp(self):
+        self.u = User.objects.get(username='battlegame')
+        self.client.force_authenticate(user=self.u)
+
+    def test_collect_dust(self):
+        original_dust = self.u.inventory.dust
+        self.u.inventory.dust_fast_reward_hours = 12
+        self.u.inventory.save()
+
+        response = self.client.post('/fastrewards/collect/', {
+            'dust_hours': 12,
+            'coin_hours': 0
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        self.u.inventory.refresh_from_db()
+        self.assertGreater(self.u.inventory.dust, original_dust)
+
+    def test_collect_not_enough(self):
+        response = self.client.post('/fastrewards/collect/', {
+            'dust_hours': 12,
+            'coin_hours': 12
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['status'])
+
+    def test_collect_dust_and_coins(self):
+        original_dust = self.u.inventory.dust
+        original_coins = self.u.inventory.coins
+        self.u.inventory.dust_fast_reward_hours = 12
+        self.u.inventory.coins_fast_reward_hours = 12
+        self.u.inventory.save()
+
+        response = self.client.post('/fastrewards/collect/', {
+            'dust_hours': 8,
+            'coin_hours': 8
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        self.u.inventory.refresh_from_db()
+        self.assertGreater(self.u.inventory.dust, original_dust)
+        self.assertGreater(self.u.inventory.coins, original_coins)

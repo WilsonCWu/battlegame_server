@@ -9,6 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from playerdata import server, shards
 from playerdata.formulas import afk_coins_per_min, afk_exp_per_min, afk_dust_per_min, vip_exp_to_level
 from playerdata.models import DungeonProgress, AFKReward, default_afk_shard_list
+from playerdata.serializers import FastRewardsSerializer
 
 PVP_RUNE_REWARD = 3600  # 1 hr worth of afk
 RUNES_FULL = -1
@@ -143,6 +144,33 @@ class CollectAFKRewardView(APIView):
         inventory.save()
 
         return Response({'status': True})
+
+
+# Design to be used for either redeeming either both dust or coin fast rewards
+class CollectFastRewardsView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic
+    def post(self, request):
+        serializer = FastRewardsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        dust_hours = serializer.validated_data['dust_hours']
+        coin_hours = serializer.validated_data['coin_hours']
+
+        if dust_hours > request.user.inventory.dust_fast_reward_hours or coin_hours > request.user.inventory.coins_fast_reward_hours:
+            return Response({'status': False, 'reason': 'not enough hours available to redeem'})
+
+        dungeon_progress = DungeonProgress.objects.get(user=request.user)
+
+        # Just like in AFK Arena, VIP bonus doesn't apply here
+        dust = dust_hours * 60 * afk_dust_per_min(dungeon_progress.campaign_stage)
+        coins = coin_hours * 60 * afk_coins_per_min(dungeon_progress.campaign_stage)
+
+        request.user.inventory.dust += dust
+        request.user.inventory.coins += coins
+        request.user.inventory.save()
+
+        return Response({'status': True, 'coins': coins, 'dust': dust})
 
 
 def afk_rewards_multiplier_vip(level: int):
