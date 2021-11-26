@@ -388,10 +388,11 @@ class DeleteClanView(APIView):
         clanmembers = clan.clan_members
 
         for member in clanmembers:
+            member.is_elder = False
             member.is_admin = False
             member.is_owner = False
 
-        ClanMember.objects.bulk_update(clanmembers, ['is_admin', 'is_owner'])
+        ClanMember.objects.bulk_update(clanmembers, ['is_elder', 'is_admin', 'is_owner'])
         clan.delete()
 
         return Response({'status': True})
