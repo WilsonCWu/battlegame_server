@@ -207,18 +207,34 @@ def get_redis_quickplay_usage_key(char_type):
     return f"quickplay_usage_{char_type}"
 
 
+# When changing the bucket size, clear the existing data, or it'll be nonsense
+def get_quickplay_usage_bucket(elo):
+    BUCKET_ELO_SIZE = 500
+    return str(int(elo / BUCKET_ELO_SIZE))
+
+
 # Called every game
-def update_usage(win, attacking_team):
+def update_usage(win, attacking_team, defending_team, elo):
     r = get_redis_connection("default")
     # For each member of attacking_team, increment the redis keys as appropriate
     chars = ['char_1', 'char_2', 'char_3', 'char_4', 'char_5']
     for char_num in chars:
         if(attacking_team[char_num] is not None and attacking_team[char_num]['char_type'] != 0):
             char_type = attacking_team[char_num]['char_type']
-            key = get_redis_quickplay_usage_key(char_type)
+            base_key = get_redis_quickplay_usage_key(char_type)
+            bucket_num = get_quickplay_usage_bucket(elo)
+            key = f"{base_key}_{bucket_num}"
             r.incr(f"{key}_games")
             if(win):
                 r.incr(f"{key}_wins")
+        if(defending_team[char_num] is not None and defending_team[char_num]['char_type'] != 0):
+            char_type = attacking_team[char_num]['char_type']
+            base_key = get_redis_quickplay_usage_key(char_type)
+            bucket_num = get_quickplay_usage_bucket(elo)
+            key = f"{base_key}_{bucket_num}"
+            r.incr(f"{key}_defense_games")
+            if not win:
+                r.incr(f"{key}_defense_wins")
 
 
 def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defending_team):
@@ -228,7 +244,7 @@ def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defend
             return Response({'status': False, 'reason': 'Max daily quickplay games exceeded'})
 
     update_stats(request.user, win, stats)
-    update_usage(win, attacking_team)
+    update_usage(win, attacking_team, defending_team, request.user.userinfo.elo)
 
     chest_rarity = 0
     coins = 0
