@@ -381,19 +381,18 @@ class DeleteClanView(APIView):
         if not clan_member.is_owner:
             return Response({'status': False, 'reason': 'invalid clan permissions'})
 
-        clan_query = Clan2.objects.filter(name=clan_name).prefetch_related(Prefetch(
+        clan = Clan2.objects.filter(name=clan_name).prefetch_related(Prefetch(
             'clanmember_set', to_attr='clan_members',
-            queryset=ClanMember.objects.select_related('userinfo')))
+            queryset=ClanMember.objects.select_related('userinfo'))).first()
 
-        clanmembers = clan_query[0].clan_members
+        clanmembers = clan.clan_members
 
         for member in clanmembers:
-            member.clan2 = None
             member.is_admin = False
             member.is_owner = False
 
-        ClanMember.objects.bulk_update(clanmembers, ['clan2', 'is_admin', 'is_owner'])
-        Clan2.objects.filter(name=clan_name).first().delete()
+        ClanMember.objects.bulk_update(clanmembers, ['is_admin', 'is_owner'])
+        clan.delete()
 
         return Response({'status': True})
 
