@@ -330,7 +330,7 @@ class BaseCharacterAbility:
 
 # Generic 200 element array
 def default_base_character_usage_array():
-    return [0] * 50
+    return [0] * constants.NUMBER_OF_USAGE_BUCKETS
 
 
 class BaseCharacterUsage(models.Model):

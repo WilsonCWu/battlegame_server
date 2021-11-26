@@ -209,8 +209,7 @@ def get_redis_quickplay_usage_key(char_type):
 
 # When changing the bucket size, clear the existing data, or it'll be nonsense
 def get_quickplay_usage_bucket(elo):
-    BUCKET_ELO_SIZE = 500
-    return str(int(elo / BUCKET_ELO_SIZE))
+    return str(int(elo / constants.USAGE_BUCKET_ELO_SIZE))
 
 
 # Called every game

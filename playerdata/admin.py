@@ -744,21 +744,22 @@ class BaseCharacterUsageAdmin(admin.ModelAdmin):
 
         # Process data as dataframe
         df = DataFrame([character.to_dict() for character in char_data])
-        # Get totals
-        BUCKET_COUNT = 50
 
+        # Get totals
         # Insert sums columns instead of declaring directly so they can be placed on the left side
         # Write as lists first for readability
-        games_sums = df[[f'games bucket {f}' for f in range(0, BUCKET_COUNT)]].sum(axis=1)
-        wins_sums = df[[f'wins bucket {f}' for f in range(0, BUCKET_COUNT)]].sum(axis=1)
-        defense_games_sums = df[[f'defense games bucket {f}' for f in range(0, BUCKET_COUNT)]].sum(axis=1)
-        defense_wins_sums = df[[f'defense wins bucket {f}' for f in range(0, BUCKET_COUNT)]].sum(axis=1)
+        bucket_count = constants.NUMBER_OF_USAGE_BUCKETS
+        games_sums = df[[f'games bucket {f}' for f in range(0, bucket_count)]].sum(axis=1)
+        wins_sums = df[[f'wins bucket {f}' for f in range(0, bucket_count)]].sum(axis=1)
+        defense_games_sums = df[[f'defense games bucket {f}' for f in range(0, bucket_count)]].sum(axis=1)
+        defense_wins_sums = df[[f'defense wins bucket {f}' for f in range(0, bucket_count)]].sum(axis=1)
         df = df.loc[:, (df != 0).any(axis=0)]  # Remove all columns where all values are 0 (Do this here in case any of the above columns are all 0, they shouldn't be removed)
         df.insert(2, 'defense wins', defense_wins_sums)
         df.insert(2, 'defense games', defense_games_sums)
         df.insert(2, 'wins', wins_sums)
         df.insert(2, 'games', games_sums)
 
+        # Create other useful columns
         df = df[(df['defense games']+df['games']) != 0]  # Remove all rows with no games or defenses
         df.insert(2, 'win rate', df['wins'] / df['games'])  # Add win rate column
         df.insert(3, 'defense win rate', df['defense wins'] / df['defense games'])  # Defense win rate
@@ -767,7 +768,7 @@ class BaseCharacterUsageAdmin(admin.ModelAdmin):
         df['delta win rate'] = df['win rate'] - win_rate_average  # Difference from average win rate
         df['delta defense win rate'] = df['defense win rate'] - defense_win_rate_average  # Difference from average win rate
 
-        df = df.sort_values(by=['win rate'], ascending=False)  # Default sort, can be changed when viewing as a table
+        df = df.sort_values(by=['win rate'], ascending=False)  # Default sorting is by win rate, can be changed when viewing as a table
 
         end = datetime.utcnow()
         elapsed = end - start
