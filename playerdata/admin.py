@@ -702,21 +702,29 @@ class BaseCharacterUsageAdmin(admin.ModelAdmin):
 
     def reset_to_zero(self, request, queryset):
         now = datetime.utcnow()
-        queryset.update(num_games=0, num_wins=0, last_reset_time=now)
+        queryset.update(num_games_buckets=default_base_character_usage_array(),
+                        num_wins_buckets=default_base_character_usage_array(),
+                        num_defense_games_buckets=default_base_character_usage_array(),
+                        num_defense_wins_buckets=default_base_character_usage_array(),
+                        last_reset_time=now)
 
     def generate_base_character_usage_report(self, request, queryset):
         @dataclass
         class CharacterUsageRow:
             name: str
             rarity: int
-            wins: int
-            games: int
+            wins: list
+            games: list
+            defense_wins: list
+            defense_games: list
 
             def to_dict(self):
-                return {'name': self.name,
-                        'rarity': self.rarity,
-                        'wins': self.wins,
-                        'games': self.games}
+                dict = {'name': self.name, 'rarity': self.rarity}
+                dict.update({f'wins bucket {f}': self.wins[f] for f in range(0, len(self.wins))})
+                dict.update({f'games bucket {f}': self.games[f] for f in range(0, len(self.games))})
+                dict.update({f'defense wins bucket {f}': self.defense_wins[f] for f in range(0, len(self.defense_wins))})
+                dict.update({f'defense games bucket {f}': self.defense_games[f] for f in range(0, len(self.defense_games))})
+                return dict
 
         start = datetime.utcnow()
 
@@ -728,16 +736,37 @@ class BaseCharacterUsageAdmin(admin.ModelAdmin):
             c = CharacterUsageRow(
                 name=base_char_usage.char_type.name,
                 rarity=base_char_usage.char_type.rarity,
-                games=base_char_usage.num_games,
-                wins=base_char_usage.num_wins)
+                games=base_char_usage.num_games_buckets,
+                wins=base_char_usage.num_wins_buckets,
+                defense_games=base_char_usage.num_defense_games_buckets,
+                defense_wins=base_char_usage.num_defense_wins_buckets)
             char_data.append(c)
 
         # Process data as dataframe
         df = DataFrame([character.to_dict() for character in char_data])
-        df = df[df['games'] != 0] # Remove all rows where games column is 0
-        df['win rate'] = df['wins'] / df['games']  # Add win rate column
+        # Get totals
+        BUCKET_COUNT = 50
+
+        # Insert sums columns instead of declaring directly so they can be placed on the left side
+        # Write as lists first for readability
+        games_sums = df[[f'games bucket {f}' for f in range(0, BUCKET_COUNT)]].sum(axis=1)
+        wins_sums = df[[f'wins bucket {f}' for f in range(0, BUCKET_COUNT)]].sum(axis=1)
+        defense_games_sums = df[[f'defense games bucket {f}' for f in range(0, BUCKET_COUNT)]].sum(axis=1)
+        defense_wins_sums = df[[f'defense wins bucket {f}' for f in range(0, BUCKET_COUNT)]].sum(axis=1)
+        df = df.loc[:, (df != 0).any(axis=0)]  # Remove all columns where all values are 0 (Do this here in case any of the above columns are all 0, they shouldn't be removed)
+        df.insert(2, 'defense wins', defense_wins_sums)
+        df.insert(2, 'defense games', defense_games_sums)
+        df.insert(2, 'wins', wins_sums)
+        df.insert(2, 'games', games_sums)
+
+        df = df[(df['defense games']+df['games']) != 0]  # Remove all rows with no games or defenses
+        df.insert(2, 'win rate', df['wins'] / df['games'])  # Add win rate column
+        df.insert(3, 'defense win rate', df['defense wins'] / df['defense games'])  # Defense win rate
         win_rate_average = df['win rate'].mean()
+        defense_win_rate_average = df['defense win rate'].mean()
         df['delta win rate'] = df['win rate'] - win_rate_average  # Difference from average win rate
+        df['delta defense win rate'] = df['defense win rate'] - defense_win_rate_average  # Difference from average win rate
+
         df = df.sort_values(by=['win rate'], ascending=False)  # Default sort, can be changed when viewing as a table
 
         end = datetime.utcnow()
@@ -749,6 +778,7 @@ class BaseCharacterUsageAdmin(admin.ModelAdmin):
         context['other_data'] = [f'Time: {datetime.now()}']
         context['other_data'].append(f'Function runtime: {elapsed}')
         context['other_data'].append(f'Average Winrate: {"{:.2f}".format(100 * win_rate_average)}')
+        context['other_data'].append(f'Average Defense Winrate: {"{:.2f}".format(100 * defense_win_rate_average)}')
 
         return render(request, 'table.html', context)
 
