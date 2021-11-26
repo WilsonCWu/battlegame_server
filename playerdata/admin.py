@@ -5,8 +5,10 @@ from django.contrib.admin.models import LogEntry
 from django.http import HttpResponse
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 from django_json_widget.widgets import JSONEditorWidget
+from django.shortcuts import render
 from dataclasses import dataclass
 from pandas import DataFrame
+from battlegame.graphs import get_table_context
 
 from battlegame.cron import next_round, setup_tournament, end_tourney
 from . import purchases
@@ -723,8 +725,6 @@ class BaseCharacterUsageAdmin(admin.ModelAdmin):
 
         # pull usage statistics from the selected characters
         for base_char_usage in queryset:
-            if base_char_usage.num_games == 0:
-                continue
             c = CharacterUsageRow(
                 name=base_char_usage.char_type.name,
                 rarity=base_char_usage.char_type.rarity,
@@ -735,21 +735,19 @@ class BaseCharacterUsageAdmin(admin.ModelAdmin):
         end = datetime.utcnow()
         elapsed = end - start
 
-        d = DataFrame([character.to_dict() for character in char_data])
-        d['win rate'] = d['wins'] / d['games']
-        win_rate_average = d['win rate'].mean()
-        d['delta win rate'] = d['win rate'] - win_rate_average
-        d = d.sort_values(by=['win rate'], ascending=False)
-        output = d.to_html(formatters={'win rate': '{:.2%}'.format, 'delta win rate': '{:.2%}'.format})
+        df = DataFrame([character.to_dict() for character in char_data])
+        df = df[df['games'] != 0]
+        df['win rate'] = df['wins'] / df['games']
+        win_rate_average = df['win rate'].mean()
+        df['delta win rate'] = df['win rate'] - win_rate_average
+        df = df.sort_values(by=['win rate'], ascending=False)
+        context = get_table_context(df)
+        context['page_title'] = "Base Character Usage Report"
+        context['other_data'] = [f'Time: {datetime.now()}']
+        context['other_data'].append(f'Function runtime: {elapsed}')
+        context['other_data'].append(f'Average Winrate: {"{:.2f}".format(100 * win_rate_average)}')
 
-        # Write report as HTTP page.
-        response = HttpResponse()
-        response.write(f"<h1>Base Character Usage Report</h1>")
-        response.write(f'<p style="margin:0;"><b>Time:</b> {datetime.now()}</p>')
-        response.write(f'<p style="margin:0;"><b>Function runtime:</b> {elapsed}</p>')
-        response.write(f'<p style="margin:0;"><b>Average Winrate: {"{:.2f}".format(100 * win_rate_average)}</b></p><p></p>')
-        response.write(f'{output}')
-        return response
+        return render(request, 'table.html', context)
 
 
 @admin.register(RogueAllowedAbilities)

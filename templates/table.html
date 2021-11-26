@@ -1,0 +1,46 @@
+{% load static %}
+
+{% comment %} 
+Template for displaying a bootstrap table:
+Send "page_title", a string,
+     "data", a json export of the dataframe,
+     and "columns", a list of the table headers.
+{% endcomment %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="shortcut icon" href="{% static 'favicon.ico' %}"/>
+    <title>{{page_title}}</title>
+    <style> body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding:1em; } </style>
+</head>
+
+<body>
+    {% if other_data %}
+        {% for line in other_data %}
+            {% if line %}
+                <p> {{ line }} </p>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+    <!-- Bootstrap table -->
+    <link href="https://unpkg.com/bootstrap-table@1.19.1/dist/bootstrap-table.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/bootstrap-table@1.19.1/dist/bootstrap-table.min.js"></script>
+    <!-- Pandas bootstrap table -->
+    {{ columns|json_script:'columns_imported' }}
+    <script id="data_imported" type="application/json">{{data|safe}}</script>
+    <script src= "{% static 'js/pandas_bootstrap_table.js' %}"></script>
+    <table id='datatable'></table>
+</body>
+</html>
+
+
+
+
+
