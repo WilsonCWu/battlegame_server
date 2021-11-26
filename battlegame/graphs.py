@@ -34,6 +34,14 @@ def get_graph_http_response(request, name):
     return render(request, TEMPLATE_NAME, context)
 
 
+# Gives context to render a dataframe with the table.html template.
+def get_table_context(df):
+    columns = [{'field': f, 'title': str(f).capitalize(), 'sortable': 'true'} for f in list(df.columns)]  # All the header options go here
+    json_df = df.to_json(orient='records')  # Format as list of tuples
+    context = {'data': json_df, 'columns': columns}
+    return context
+
+
 @login_required(login_url='/admin/')
 def get_graph_view(request, name=None):
     return get_graph_http_response(request, name)

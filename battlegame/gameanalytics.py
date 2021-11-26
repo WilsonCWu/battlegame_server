@@ -1,7 +1,7 @@
 import math
 
 from django.contrib.auth.decorators import login_required
-from playerdata.admin import UserInfoAdmin
+from playerdata.admin import UserInfoAdmin, BaseCharacterUsageAdmin
 from playerdata.models import *
 
 
@@ -38,3 +38,8 @@ def print_player_prog(perc=50):
 @login_required
 def get_defense_placement_report_view(request):
     return UserInfoAdmin.generate_defense_placement_report(UserInfoAdmin, request, UserInfo.objects.all())
+
+
+@login_required
+def get_base_character_usage_view(request):
+    return BaseCharacterUsageAdmin.generate_base_character_usage_report(BaseCharacterUsageAdmin, request, BaseCharacterUsage.objects.all())

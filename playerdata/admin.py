@@ -5,6 +5,10 @@ from django.contrib.admin.models import LogEntry
 from django.http import HttpResponse
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 from django_json_widget.widgets import JSONEditorWidget
+from django.shortcuts import render
+from dataclasses import dataclass
+from pandas import DataFrame
+from battlegame.graphs import get_table_context
 
 from battlegame.cron import next_round, setup_tournament, end_tourney
 from . import purchases
@@ -617,6 +621,7 @@ class BaseCharacterStatsAdmin(admin.ModelAdmin):
 
         return HttpResponse('\n\n\n'.join(resp), content_type="text/plain")
 
+
 @admin.register(BaseCharacter)
 class BaseCharacterAdmin(admin.ModelAdmin):
     actions = ('generate_deps',)
@@ -693,11 +698,59 @@ class BaseCharacterAdmin(admin.ModelAdmin):
 
 @admin.register(BaseCharacterUsage)
 class BaseCharacterUsageAdmin(admin.ModelAdmin):
-    actions = ('reset_to_zero',)
+    actions = ('reset_to_zero', 'generate_base_character_usage_report',)
 
     def reset_to_zero(self, request, queryset):
         now = datetime.utcnow()
         queryset.update(num_games=0, num_wins=0, last_reset_time=now)
+
+    def generate_base_character_usage_report(self, request, queryset):
+        @dataclass
+        class CharacterUsageRow:
+            name: str
+            rarity: int
+            wins: int
+            games: int
+
+            def to_dict(self):
+                return {'name': self.name,
+                        'rarity': self.rarity,
+                        'wins': self.wins,
+                        'games': self.games}
+
+        start = datetime.utcnow()
+
+        queryset = queryset.select_related('char_type')
+        char_data = []
+
+        # pull usage statistics from the selected characters
+        for base_char_usage in queryset:
+            c = CharacterUsageRow(
+                name=base_char_usage.char_type.name,
+                rarity=base_char_usage.char_type.rarity,
+                games=base_char_usage.num_games,
+                wins=base_char_usage.num_wins)
+            char_data.append(c)
+
+        # Process data as dataframe
+        df = DataFrame([character.to_dict() for character in char_data])
+        df = df[df['games'] != 0] # Remove all rows where games column is 0
+        df['win rate'] = df['wins'] / df['games']  # Add win rate column
+        win_rate_average = df['win rate'].mean()
+        df['delta win rate'] = df['win rate'] - win_rate_average  # Difference from average win rate
+        df = df.sort_values(by=['win rate'], ascending=False)  # Default sort, can be changed when viewing as a table
+
+        end = datetime.utcnow()
+        elapsed = end - start
+
+        # Set context variables that'll be used by table template
+        context = get_table_context(df)
+        context['page_title'] = "Base Character Usage Report"
+        context['other_data'] = [f'Time: {datetime.now()}']
+        context['other_data'].append(f'Function runtime: {elapsed}')
+        context['other_data'].append(f'Average Winrate: {"{:.2f}".format(100 * win_rate_average)}')
+
+        return render(request, 'table.html', context)
 
 
 @admin.register(RogueAllowedAbilities)
