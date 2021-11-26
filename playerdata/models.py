@@ -794,6 +794,8 @@ class Inventory(models.Model):
     epic_shards = models.IntegerField(default=0)
     legendary_shards = models.IntegerField(default=0)
     active_pet_id = models.IntegerField(default=0)
+    dust_fast_reward_hours = models.IntegerField(default=0)
+    coins_fast_reward_hours = models.IntegerField(default=0)
 
     daily_dungeon_ticket = models.IntegerField(default=3)
     daily_dungeon_golden_ticket = models.IntegerField(default=1)
