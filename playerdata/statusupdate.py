@@ -223,7 +223,7 @@ def save_usage_into_redis(team, win, elo, key_append):
         bucket_num = get_quickplay_usage_bucket(elo)
         key = f"{base_key}_{bucket_num}{key_append}"
         r.incr(f"{key}_games")
-        if win:  # win & win_is_win for attacking team, !win & !win_is_win for defending team
+        if win:
             r.incr(f"{key}_wins")
 
 
