@@ -5,8 +5,6 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from rest_marshmallow import Schema, fields
 
-from mainsocket import consumers
-
 
 # Abstract Base Class for getting a Badge Notification count
 class BadgeNotifCount(ABC):
@@ -26,10 +24,14 @@ class BadgeNotifSchema(Schema):
     amount = fields.Int()
 
 
+def notif_channel_group_name(user_id):
+    return 'notif_%s' % user_id
+
+
 # Sends a list of badge notifs to the websocket
 # Replaces the badge count
 def send_badge_notifs_replace(user_id, *badge_notifs):
-    room_group_name = consumers.notif_channel_group_name(user_id)
+    room_group_name = notif_channel_group_name(user_id)
     channel_layer = get_channel_layer()
 
     async_to_sync(channel_layer.group_send)(
@@ -49,7 +51,7 @@ def send_badge_notifs_increment(user_id, *badge_notifs):
     if len(badge_notifs) == 0:
         return
 
-    room_group_name = consumers.notif_channel_group_name(user_id)
+    room_group_name = notif_channel_group_name(user_id)
     channel_layer = get_channel_layer()
 
     async_to_sync(channel_layer.group_send)(

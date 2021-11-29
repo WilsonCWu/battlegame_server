@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from django.db import transaction
 
 from rest_framework.permissions import IsAuthenticated
@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
+from mainsocket import notifications
+from playerdata import constants
 from playerdata.models import EventTimeTracker
 
 
@@ -26,3 +28,10 @@ class GetEventTimesView(APIView):
         tracker_schema = EventTimeTrackerSchema(all_trackers, many=True)
 
         return Response({'status': True, 'events': tracker_schema.data})
+
+
+class EventBadgeNotifCount(notifications.BadgeNotifCount):
+    def get_badge_notif(self, user):
+        cur_time = datetime.now(timezone.utc)
+        count = EventTimeTracker.objects.filter(start_time__lte=cur_time, end_time__gt=cur_time).count()
+        return notifications.BadgeNotif(constants.NotificationType.EVENT.value, count)
