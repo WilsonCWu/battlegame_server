@@ -218,22 +218,15 @@ def update_usage(win, attacking_team, defending_team, elo):
     # For each member of attacking_team, increment the redis keys as appropriate
     chars = ['char_1', 'char_2', 'char_3', 'char_4', 'char_5']
     for char_num in chars:
-        if(attacking_team[char_num] is not None and attacking_team[char_num]['char_type'] != 0):
-            char_type = attacking_team[char_num]['char_type']
-            base_key = get_redis_quickplay_usage_key(char_type)
-            bucket_num = get_quickplay_usage_bucket(elo)
-            key = f"{base_key}_{bucket_num}"
-            r.incr(f"{key}_games")
-            if(win):
-                r.incr(f"{key}_wins")
-        if(defending_team[char_num] is not None and defending_team[char_num]['char_type'] != 0):
-            char_type = attacking_team[char_num]['char_type']
-            base_key = get_redis_quickplay_usage_key(char_type)
-            bucket_num = get_quickplay_usage_bucket(elo)
-            key = f"{base_key}_{bucket_num}"
-            r.incr(f"{key}_defense_games")
-            if not win:
-                r.incr(f"{key}_defense_wins")
+        for team, key_append, win_is_win in [(attacking_team, "", True), (defending_team, "_defense", False)]:
+            if(team[char_num] is not None and team[char_num]['char_type'] != 0):
+                char_type = team[char_num]['char_type']
+                base_key = get_redis_quickplay_usage_key(char_type)
+                bucket_num = get_quickplay_usage_bucket(elo)
+                key = f"{base_key}_{bucket_num}{key_append}"
+                r.incr(f"{key}_games")
+                if win_is_win == win:  # win & win_is_win for attacking team, !win & !win_is_win for defending team
+                    r.incr(f"{key}_wins")
 
 
 def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defending_team):

@@ -713,17 +713,17 @@ class BaseCharacterUsageAdmin(admin.ModelAdmin):
         class CharacterUsageRow:
             name: str
             rarity: int
-            wins: list
-            games: list
-            defense_wins: list
-            defense_games: list
+            wins_buckets: list
+            games_buckets: list
+            defense_wins_buckets: list
+            defense_games_buckets: list
 
             def to_dict(self):
                 dict = {'name': self.name, 'rarity': self.rarity}
-                dict.update({f'wins bucket {f}': self.wins[f] for f in range(0, len(self.wins))})
-                dict.update({f'games bucket {f}': self.games[f] for f in range(0, len(self.games))})
-                dict.update({f'defense wins bucket {f}': self.defense_wins[f] for f in range(0, len(self.defense_wins))})
-                dict.update({f'defense games bucket {f}': self.defense_games[f] for f in range(0, len(self.defense_games))})
+                dict.update({f'wins bucket {f}': self.wins_buckets[f] for f in range(len(self.wins_buckets))})
+                dict.update({f'games bucket {f}': self.games_buckets[f] for f in range(len(self.games_buckets))})
+                dict.update({f'defense wins bucket {f}': self.defense_wins_buckets[f] for f in range(len(self.defense_wins_buckets))})
+                dict.update({f'defense games bucket {f}': self.defense_games_buckets[f] for f in range(len(self.defense_games_buckets))})
                 return dict
 
         start = datetime.utcnow()
@@ -736,10 +736,10 @@ class BaseCharacterUsageAdmin(admin.ModelAdmin):
             c = CharacterUsageRow(
                 name=base_char_usage.char_type.name,
                 rarity=base_char_usage.char_type.rarity,
-                games=base_char_usage.num_games_buckets,
-                wins=base_char_usage.num_wins_buckets,
-                defense_games=base_char_usage.num_defense_games_buckets,
-                defense_wins=base_char_usage.num_defense_wins_buckets)
+                games_buckets=base_char_usage.num_games_buckets,
+                wins_buckets=base_char_usage.num_wins_buckets,
+                defense_games_buckets=base_char_usage.num_defense_games_buckets,
+                defense_wins_buckets=base_char_usage.num_defense_wins_buckets)
             char_data.append(c)
 
         # Process data as dataframe
@@ -749,16 +749,12 @@ class BaseCharacterUsageAdmin(admin.ModelAdmin):
         # Insert sums columns instead of declaring directly so they can be placed on the left side
         # Write as lists first for readability
         bucket_count = constants.NUMBER_OF_USAGE_BUCKETS
-        games_sums = df[[f'games bucket {f}' for f in range(0, bucket_count)]].sum(axis=1)
-        wins_sums = df[[f'wins bucket {f}' for f in range(0, bucket_count)]].sum(axis=1)
-        defense_games_sums = df[[f'defense games bucket {f}' for f in range(0, bucket_count)]].sum(axis=1)
-        defense_wins_sums = df[[f'defense wins bucket {f}' for f in range(0, bucket_count)]].sum(axis=1)
-        df = df.loc[:, (df != 0).any(axis=0)]  # Remove all columns where all values are 0 (Do this here in case any of the above columns are all 0, they shouldn't be removed)
-        df.insert(2, 'defense wins', defense_wins_sums)
-        df.insert(2, 'defense games', defense_games_sums)
-        df.insert(2, 'wins', wins_sums)
-        df.insert(2, 'games', games_sums)
-
+        df['games'] = df[[f'games bucket {f}' for f in range(0, bucket_count)]].sum(axis=1)
+        df['wins'] = df[[f'wins bucket {f}' for f in range(0, bucket_count)]].sum(axis=1)
+        df['defense games'] = df[[f'defense games bucket {f}' for f in range(0, bucket_count)]].sum(axis=1)
+        df['defense wins'] = df[[f'defense wins bucket {f}' for f in range(0, bucket_count)]].sum(axis=1)
+        df.drop(df.columns[df.columns.str.contains('bucket')], axis=1, inplace=True)  # Remove all buckets
+        
         # Create other useful columns
         df = df[(df['defense games']+df['games']) != 0]  # Remove all rows with no games or defenses
         df.insert(2, 'win rate', df['wins'] / df['games'])  # Add win rate column

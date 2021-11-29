@@ -386,7 +386,7 @@ def push_quickplay_usage_to_db():
         redis_key = get_redis_quickplay_usage_key(single_usage.char_type.char_type)
 
         for index in range(0, len(single_usage.num_games_buckets)):
-            redis_bucket_key = f"{redis_key}_{str(index)}"
+            redis_bucket_key = f"{redis_key}_{index}"
             games = r.get(f"{redis_bucket_key}_games")
             if games == 0:
                 continue
