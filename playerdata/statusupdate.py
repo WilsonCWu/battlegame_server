@@ -212,21 +212,19 @@ def get_quickplay_usage_bucket(elo):
     return str(int(elo / constants.USAGE_BUCKET_ELO_SIZE))
 
 
-# Called every game
-def update_usage(win, attacking_team, defending_team, elo):
+def save_usage_into_redis(team, win, elo, key_append):
     r = get_redis_connection("default")
-    # For each member of attacking_team, increment the redis keys as appropriate
     chars = ['char_1', 'char_2', 'char_3', 'char_4', 'char_5']
     for char_num in chars:
-        for team, key_append, win_is_win in [(attacking_team, "", True), (defending_team, "_defense", False)]:
-            if(team[char_num] is not None and team[char_num]['char_type'] != 0):
-                char_type = team[char_num]['char_type']
-                base_key = get_redis_quickplay_usage_key(char_type)
-                bucket_num = get_quickplay_usage_bucket(elo)
-                key = f"{base_key}_{bucket_num}{key_append}"
-                r.incr(f"{key}_games")
-                if win_is_win == win:  # win & win_is_win for attacking team, !win & !win_is_win for defending team
-                    r.incr(f"{key}_wins")
+        if(team[char_num] is None or team[char_num]['char_type'] == 0):
+            continue
+        char_type = team[char_num]['char_type']
+        base_key = get_redis_quickplay_usage_key(char_type)
+        bucket_num = get_quickplay_usage_bucket(elo)
+        key = f"{base_key}_{bucket_num}{key_append}"
+        r.incr(f"{key}_games")
+        if win:  # win & win_is_win for attacking team, !win & !win_is_win for defending team
+            r.incr(f"{key}_wins")
 
 
 def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defending_team):
@@ -236,7 +234,8 @@ def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defend
             return Response({'status': False, 'reason': 'Max daily quickplay games exceeded'})
 
     update_stats(request.user, win, stats)
-    update_usage(win, attacking_team, defending_team, request.user.userinfo.elo)
+    save_usage_into_redis(attacking_team, win, request.user.userinfo.elo, "")
+    save_usage_into_redis(defending_team, not win, request.user.userinfo.elo, "_defense")
 
     chest_rarity = 0
     coins = 0

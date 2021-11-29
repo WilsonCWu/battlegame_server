@@ -3,7 +3,6 @@ import random
 import string
 from collections import defaultdict
 from datetime import datetime, date, time, timedelta
-from django.db.models.fields import IntegerField
 from packaging import version
 import time as ptime
 import functools
@@ -336,8 +335,8 @@ def default_base_character_usage_array():
 
 class BaseCharacterUsage(models.Model):
     char_type = models.OneToOneField(BaseCharacter, on_delete=models.CASCADE, primary_key=True)
-    num_games = IntegerField(default=0)  # No longer used, but removing will break test fixtures/old dumps
-    num_wins = IntegerField(default=0)  # No longer used, but removing will break fixtures/old dumps
+    num_games = models.IntegerField(default=0)  # No longer used, but removing will break test fixtures/old dumps
+    num_wins = models.IntegerField(default=0)  # No longer used, but removing will break fixtures/old dumps
     num_games_buckets = ArrayField(models.IntegerField(), default=default_base_character_usage_array)
     num_wins_buckets = ArrayField(models.IntegerField(), default=default_base_character_usage_array)
     num_defense_games_buckets = ArrayField(models.IntegerField(), default=default_base_character_usage_array)
