@@ -78,7 +78,9 @@ class ChatConsumer(WebsocketConsumer):
             message = censor_referral(message)
 
             pfp_id = self.user.userinfo.profile_picture
-            replay_id = text_data_json['replay_id']
+            replay_id = -1
+            if hasattr(text_data_json, 'replay_id'):
+                replay_id = text_data_json['replay_id']
 
             # Send message to room group
             async_to_sync(self.channel_layer.group_send)(
