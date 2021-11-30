@@ -78,6 +78,7 @@ class ChatConsumer(WebsocketConsumer):
             message = censor_referral(message)
 
             pfp_id = self.user.userinfo.profile_picture
+            replay_id = text_data_json['replay_id']
 
             # Send message to room group
             async_to_sync(self.channel_layer.group_send)(
@@ -87,13 +88,14 @@ class ChatConsumer(WebsocketConsumer):
                     'message': message,
                     'sender_id': self.user.id,
                     'sender': self.user.userinfo.name,
-                    'sender_profile_picture_id': pfp_id
+                    'sender_profile_picture_id': pfp_id,
+                    'replay_id': replay_id
                 }
             )
 
             # save to db
             chat_message = ChatMessage.objects.create(chat=self.chat, message=message, sender=self.user,
-                                                      sender_profile_picture_id=pfp_id)
+                                                      sender_profile_picture_id=pfp_id, replay_id=replay_id)
             ChatLastReadMessage.objects.update_or_create(chat=self.chat,
                                                          user=self.user,
                                                          defaults={"time_send": chat_message.time_send}
@@ -139,10 +141,12 @@ class ChatConsumer(WebsocketConsumer):
         sender_id = event['sender_id']
         sender = event['sender']
         sender_profile_picture_id = event['sender_profile_picture_id']
+        replay_id = event['replay_id']
         # Send message to WebSocket
         self.send(text_data=json.dumps({
             'message': message,
             'sender_id': sender_id,
             'sender': sender,
-            'sender_profile_picture_id': sender_profile_picture_id
+            'sender_profile_picture_id': sender_profile_picture_id,
+            'replay_id': replay_id
         }))

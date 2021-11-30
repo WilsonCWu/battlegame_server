@@ -835,6 +835,7 @@ class ChatMessage(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
     sender_profile_picture_id = models.IntegerField(default=0)
     time_send = models.DateTimeField(auto_now_add=True)
+    replay_id = models.IntegerField(default=-1)
 
     class Meta:
         indexes = [
