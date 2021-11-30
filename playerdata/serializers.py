@@ -222,3 +222,8 @@ class SummonShardSerializer(serializers.Serializer):
 class StarterPetSerializer(serializers.Serializer):
     pet_id = serializers.IntegerField(required=True)
     legacy_unlock = serializers.BooleanField(required=True)
+
+
+class FastRewardsSerializer(serializers.Serializer):
+    dust_hours = serializers.IntegerField(required=True)
+    coin_hours = serializers.IntegerField(required=True)
