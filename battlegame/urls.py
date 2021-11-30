@@ -16,7 +16,6 @@ Including another URLconf
 from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
-from battlegame import graphs
 from battlegame import gameanalytics
 from playerdata import creatorcode, event_times, login, tier_system, level_booster, relic_shop, wishlist, \
     chapter_rewards_pack, inbox, \
@@ -212,7 +211,7 @@ urlpatterns = [
     path('terms/', web_pages.terms),
     path('beta/', web_pages.beta),
     path('chat/', include('chat.urls')),
-    path('stats/graph/<str:name>', graphs.get_graph_view),
+    path('stats/graph/<str:name>', gameanalytics.get_graph_view),
     path('stats/defensereport/', gameanalytics.get_defense_placement_report_view),
     path('stats/baseusagereport/', gameanalytics.get_base_character_usage_view),
     path('admin/', admin.site.urls),
