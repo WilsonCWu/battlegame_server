@@ -55,7 +55,7 @@ def get_usage_stats_graph():
         return f'{bucket_num*constants.USAGE_BUCKET_ELO_SIZE} - {(bucket_num+1)*constants.USAGE_BUCKET_ELO_SIZE-1}'
 
     # Split dataframe into defense and offense
-    # We want to get 2 lists of the buckets with win rates (1 for def, 1 for off)
+    # We want to get 2 lists of the buckets with usage rates (1 for def, 1 for off)
     df_offense = df.loc[:, df.columns.str.contains('off')]
     df_offense = df_offense.rename(columns=get_graph_column_name)  # Remove "off usage " so it groups with the defense data in the graph
     df_defense = df.loc[:, df.columns.str.contains('def')]
