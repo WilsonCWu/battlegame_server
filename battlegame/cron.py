@@ -385,15 +385,27 @@ def push_quickplay_usage_to_db():
     for single_usage in all_usage:
         redis_key = get_redis_quickplay_usage_key(single_usage.char_type.char_type)
 
-        games = r.get(f"{redis_key}_games")
-        wins = r.get(f"{redis_key}_wins")
-        if(games is not None):
-            single_usage.num_games += int(games)
-        if(wins is not None):
-            single_usage.num_wins += int(wins)
+        for index in range(0, len(single_usage.num_games_buckets)):
+            redis_bucket_key = f"{redis_key}_{index}"
+            games = r.get(f"{redis_bucket_key}_games")
+            if games == 0:
+                continue
+            wins = r.get(f"{redis_bucket_key}_wins")
+            def_games = r.get(f"{redis_bucket_key}_defense_games")
+            def_wins = r.get(f"{redis_bucket_key}_defense_wins")
+            if games is not None:
+                single_usage.num_games_buckets[index] += int(games)
+            if wins is not None:
+                single_usage.num_wins_buckets[index] += int(wins)
+            if def_games is not None:
+                single_usage.num_defense_games_buckets[index] += int(def_games)
+            if def_wins is not None:
+                single_usage.num_defense_wins_buckets[index] += int(def_wins)
+            # Also clear redis after recording.
+            r.set(f"{redis_bucket_key}_games", 0)
+            r.set(f"{redis_bucket_key}_wins", 0)
+            r.set(f"{redis_bucket_key}_defense_games", 0)
+            r.set(f"{redis_bucket_key}_defense_wins", 0)
 
-        # Also clear redis after recording.
-        r.set(f"{redis_key}_games", 0)
-        r.set(f"{redis_key}_wins", 0)
-
-    BaseCharacterUsage.objects.bulk_update(all_usage, ['num_games', 'num_wins'])
+    BaseCharacterUsage.objects.bulk_update(all_usage, ['num_games_buckets', 'num_wins_buckets',
+                                                       'num_defense_games_buckets', 'num_defense_wins_buckets'])

@@ -320,7 +320,7 @@ class BaseCharacterAbility2(models.Model):
     def __str__(self):
         return self.char_type.name + ': ' + self.version
 
-    
+
 class BaseCharacterAbility:
     def validate_ability_specs():
         # NOTE: we should not put validators inside of model classes, because
@@ -328,10 +328,19 @@ class BaseCharacterAbility:
         pass
 
 
+# Generic 200 element array
+def default_base_character_usage_array():
+    return [0] * constants.NUMBER_OF_USAGE_BUCKETS
+
+
 class BaseCharacterUsage(models.Model):
     char_type = models.OneToOneField(BaseCharacter, on_delete=models.CASCADE, primary_key=True)
-    num_games = models.IntegerField(default=0)
-    num_wins = models.IntegerField(default=0)
+    num_games = models.IntegerField(default=0)  # No longer used, but removing will break test fixtures/old dumps
+    num_wins = models.IntegerField(default=0)  # No longer used, but removing will break fixtures/old dumps
+    num_games_buckets = ArrayField(models.IntegerField(), default=default_base_character_usage_array)
+    num_wins_buckets = ArrayField(models.IntegerField(), default=default_base_character_usage_array)
+    num_defense_games_buckets = ArrayField(models.IntegerField(), default=default_base_character_usage_array)
+    num_defense_wins_buckets = ArrayField(models.IntegerField(), default=default_base_character_usage_array)
     last_reset_time = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
