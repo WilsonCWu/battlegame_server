@@ -11,13 +11,13 @@ def get_sample_graph():
         [graph_objects.Bar(y=[1, 2, 3])],
         layout_title_text="Sample Graph using plotly"
     )
-    context = {'graph_contents': data.to_html()}
+    context = {'graph_contents': [data.to_html()]}
     return context
 
 
 def get_sample_graphs():
     context_list = [get_sample_graph(), get_sample_graph(), get_sample_graph()]
-    graph_contents = [context['graph_contents'] for context in context_list]
+    graph_contents = [context['graph_contents'][0] for context in context_list]
     return {'graph_contents': graph_contents}
 
 
