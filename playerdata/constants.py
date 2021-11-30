@@ -61,7 +61,7 @@ class NotificationType(Enum):
     DAILY_QUEST = 0
     WEEKLY_QUEST = 1
     CUMULATIVE_QUEST = 2
-    EVENT = 3
+    GRASS_EVENT = 3
 
 
 # Tournament constants
