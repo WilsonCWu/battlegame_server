@@ -15,8 +15,8 @@ def get_sample_graph():
     return data.to_html()
 
 
-def get_usage_stats_graph(queryset=BaseCharacterUsage.objects.all()):
-    df = get_base_character_usage_dataframe(queryset)
+def get_usage_stats_graph():
+    df = get_base_character_usage_dataframe(BaseCharacterUsage.objects.all())
     names = df['name']
     df = df.loc[:, df.columns.str.contains('bucket')]  # We only need bucket data
     pandas.options.plotting.backend = "plotly"
@@ -112,13 +112,12 @@ def get_base_character_usage_dataframe(queryset):
 
     # pull usage statistics from the selected characters
     for base_char_usage in queryset:
-        c = CharacterUsageRow(
-            name=base_char_usage.char_type.name,
-            rarity=base_char_usage.char_type.rarity,
-            games_buckets=base_char_usage.num_games_buckets,
-            wins_buckets=base_char_usage.num_wins_buckets,
-            defense_games_buckets=base_char_usage.num_defense_games_buckets,
-            defense_wins_buckets=base_char_usage.num_defense_wins_buckets)
-        char_data.append(c)
+        char_data.append(CharacterUsageRow(
+                         name=base_char_usage.char_type.name,
+                         rarity=base_char_usage.char_type.rarity,
+                         games_buckets=base_char_usage.num_games_buckets,
+                         wins_buckets=base_char_usage.num_wins_buckets,
+                         defense_games_buckets=base_char_usage.num_defense_games_buckets,
+                         defense_wins_buckets=base_char_usage.num_defense_wins_buckets))
     df = DataFrame([character.to_dict() for character in char_data])
     return df
