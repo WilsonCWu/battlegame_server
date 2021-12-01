@@ -777,6 +777,7 @@ class GrassEventAdmin(admin.ModelAdmin, DynamicArrayMixin):
 admin.site.register(DungeonStage, DungeonStageAdmin)
 admin.site.register(DungeonProgress)
 admin.site.register(DungeonBoss, DungeonBossAdmin)
+admin.site.register(DungeonStats)
 
 admin.site.register(BaseItem, BaseItemAdmin)
 admin.site.register(BasePrestige)

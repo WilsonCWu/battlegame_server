@@ -209,7 +209,7 @@ class DungeonSetProgressStageView(APIView):
 
 
 def track_dungeon_stats(dungeon_type, is_win, stage):
-    dungeon_stat = DungeonStats.objects.get(dungeon_type=dungeon_type)
+    dungeon_stat, _ = DungeonStats.objects.get_or_create(dungeon_type=dungeon_type, stage=stage)
     dungeon_stat.games_by_stage[stage] += 1
     if is_win:
         dungeon_stat.wins_by_stage[stage] += 1

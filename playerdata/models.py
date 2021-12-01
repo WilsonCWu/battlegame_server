@@ -1025,9 +1025,18 @@ def default_dungeonstats_array():
 
 
 class DungeonStats(models.Model):
-    dungeon_type = models.IntegerField(unique=True)  # constants.DungeonType
+    stage = models.IntegerField()
+    dungeon_type = models.IntegerField(choices=[(dungeon.value, dungeon.name) for dungeon in DungeonType])
     wins_by_stage = ArrayField(models.IntegerField(), default=default_dungeonstats_array)
     games_by_stage = ArrayField(models.IntegerField(), default=default_dungeonstats_array)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['stage', 'dungeon_type'], name='unique_stage_stat')
+        ]
+
+    def __str__(self):
+        return f"Type {self.dungeon_type}: {constants.DungeonType(self.dungeon_type)}"
 
 
 class DungeonProgress(models.Model):
