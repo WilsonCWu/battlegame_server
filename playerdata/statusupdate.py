@@ -14,10 +14,10 @@ from playerdata.models import ServerStatus
 from playerdata.models import TournamentMatch
 from playerdata.models import TournamentMember
 from playerdata.models import UserStats
-from . import constants, formulas, rolls, tier_system, server, pvp_queue, matcher, afk_rewards
+from . import constants, formulas, rolls, tier_system, server, pvp_queue, matcher, afk_rewards, leaderboards
 from .formulas import vip_exp_to_level
 from .questupdater import QuestUpdater
-from .serializers import UploadResultSerializer
+from .serializers import UploadResultSerializer, BotResultsSerializer
 
 
 # r1, r2 ratings of player 1,2. s1 = 1 if win, 0 if loss, 0.5 for tie
@@ -170,11 +170,13 @@ def update_rating(original_elo, opponent, win):
 
     original_opponent_elo = other_user.userinfo.elo
     updated_opponent_elo = other_user.userinfo.elo
+
     # update enemy elo if not a bot
     if not other_user.userinfo.is_bot:
         updated_opponent_elo = calculate_elo(other_user.userinfo.elo, original_elo, not win)
         other_user.userinfo.elo = reduce_low_elo_loss(original_opponent_elo, updated_opponent_elo)
         other_user.userinfo.save()
+        leaderboards.update_pvp_ranking(opponent, other_user.userinfo.elo)
 
     EloUpdates = collections.namedtuple('EloUpdated',
                                         ['attacker_original', 'attacker_new',
@@ -283,6 +285,7 @@ def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defend
     request.user.userinfo.save()
 
     pvp_queue.pop_pvp_queue(request.user)
+    leaderboards.update_pvp_ranking(request.user.id, request.user.userinfo.elo)
 
     return Response({'status': True,
                      'elo': elo_updates.attacker_new, 'prev_elo': original_elo,
@@ -353,3 +356,32 @@ class SkipView(APIView):
         query = matcher.userinfo_preloaded().filter(user_id=next_opponent_id).first()
         enemy = matcher.UserInfoSchema(query)
         return Response({'status': True, 'next_enemy': enemy.data})
+
+
+# TODO: add tests for this
+class PostBotResultsView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic
+    def post(self, request):
+        serializer = BotResultsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        id1s = serializer.validated_data['id1s']
+        id2s = serializer.validated_data['id2s']
+        wons = serializer.validated_data['wons']
+
+        for id1, id2, won in zip(id1s, id2s, wons):
+            # get old elos
+            user1 = get_user_model().objects.select_related('userinfo').get(id=id1)
+            user2 = get_user_model().objects.select_related('userinfo').get(id=id2)
+            prev_elo_1 = user1.userinfo.elo
+            prev_elo_2 = user2.userinfo.elo
+
+            # calculate and save new elos
+            user1.userinfo.elo = calculate_elo(prev_elo_1, prev_elo_2, won)
+            user2.userinfo.elo = calculate_elo(prev_elo_2, prev_elo_1, not won)
+
+            user1.userinfo.save()
+            user2.userinfo.save()
+
+        return Response({'status': True})
