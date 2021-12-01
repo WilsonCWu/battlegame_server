@@ -1020,15 +1020,11 @@ class DungeonStage(models.Model):
         return "Stage " + str(self.stage)
 
 
-def default_dungeonstats_array():
-    return [0] * 10000  # 10k is the default size, at time of writing dungeon is at 1440.
-
-
 class DungeonStats(models.Model):
     stage = models.IntegerField()
     dungeon_type = models.IntegerField(choices=[(dungeon.value, dungeon.name) for dungeon in DungeonType])
-    wins_by_stage = ArrayField(models.IntegerField(), default=default_dungeonstats_array)
-    games_by_stage = ArrayField(models.IntegerField(), default=default_dungeonstats_array)
+    wins = models.IntegerField(default=0)
+    games = models.IntegerField(default=0)
 
     class Meta:
         constraints = [
@@ -1036,7 +1032,7 @@ class DungeonStats(models.Model):
         ]
 
     def __str__(self):
-        return f"Type {self.dungeon_type}: {constants.DungeonType(self.dungeon_type)}"
+        return f"{constants.DungeonType(self.dungeon_type)}: Stage {self.stage}"
 
 
 class DungeonProgress(models.Model):
