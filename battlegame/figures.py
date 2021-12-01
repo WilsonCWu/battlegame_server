@@ -29,37 +29,26 @@ def get_usage_stats_graph():
     names = df['name']
     df = df.loc[:, df.columns.str.contains('bucket')]  # We only need bucket data
 
+    df_offense = pd.DataFrame()
+    df_defense = pd.DataFrame()
+
     # Make another column for each bucket.
     bucket_count = constants.NUMBER_OF_USAGE_BUCKETS
     for index in range(bucket_count):
         games_bucket_sum = df[f'games bucket {index}'].sum()
         def_games_bucket_sum = df[f'defense games bucket {index}'].sum()
         # Divide total games by 5 (even though not all teams have 5 heroes, almost all of them should)
-        df[f'off usage bucket {index}'] = 100 * df[f'games bucket {index}'] / (games_bucket_sum/5)
-        df[f'def usage bucket {index}'] = 100 * df[f'defense games bucket {index}'] / (def_games_bucket_sum/5)
+        bucket_name = f'{index*500} - {(index+1)*500-1}'
+        df_offense[bucket_name] = 100 * df[f'games bucket {index}'] / (games_bucket_sum/5)
+        df_defense[bucket_name] = 100 * df[f'defense games bucket {index}'] / (def_games_bucket_sum/5)
         if games_bucket_sum + def_games_bucket_sum != 0:
             context['other_data'].append(f'Bucket {index} games: {games_bucket_sum}, defense games: {games_bucket_sum}')
 
-    # Remove old columns
-    df.drop(df.columns[df.columns.str.contains('games bucket')], axis=1, inplace=True)
-    df.drop(df.columns[df.columns.str.contains('wins bucket')], axis=1, inplace=True)
     # Drop all buckets that have no data (nan or zeros):
-    df = df.loc[:, (df**2).sum() != 0]
+    df_offense = df_offense.loc[:, (df_offense**2).sum() != 0]
+    df_defense = df_defense.loc[:, (df_defense**2).sum() != 0]
 
-    graphs = []  # This needs to be a list of functions
-
-    # remove 'off/def bucket ' by removing first 17 characters, then take that as int and multiply by bucket size to get elo
-    # format as 'elo - (next elo - 1)'
-    def get_graph_column_name(s):  # eg. s = 'off bucket 17' -> '8500 - 8999'
-        bucket_num = int(s[17:])
-        return f'{bucket_num*constants.USAGE_BUCKET_ELO_SIZE} - {(bucket_num+1)*constants.USAGE_BUCKET_ELO_SIZE-1}'
-
-    # Split dataframe into defense and offense
-    # We want to get 2 lists of the buckets with usage rates (1 for def, 1 for off)
-    df_offense = df.loc[:, df.columns.str.contains('off')]
-    df_offense = df_offense.rename(columns=get_graph_column_name)  # Remove "off usage " so it groups with the defense data in the graph
-    df_defense = df.loc[:, df.columns.str.contains('def')]
-    df_defense = df_defense.rename(columns=get_graph_column_name)  # Remove "def usage " so it groups with the offense data in the graph
+    graphs = []  # This needs to be a list of graph.to_html
 
     # Take each row of the dataframe and plot it (facet_row = "variable" makes it 2 bar graphs together)
     for index in range(len(names)):
@@ -67,7 +56,7 @@ def get_usage_stats_graph():
         defense_data = df_defense.loc[index, :]
         graph_df = pd.DataFrame(dict(offense=offense_data, defense=defense_data))
         fig = graph_df.plot.bar(facet_row="variable", title=names[index], width=800,
-                                color_discrete_sequence=['red', 'blue'],
+                                color_discrete_sequence=['#EF553B', '#636EFA'],  # plotly default color orange, blue
                                 labels=dict(index="bucket", value="usage rate", variable="game type"))
         fig.update_yaxes(range=[0, 100])
         graphs.append(fig.to_html)
