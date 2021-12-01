@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 from django_json_widget.widgets import JSONEditorWidget
 from django.shortcuts import render
-from battlegame.figures import get_table_context, get_base_character_usage_dataframe
+from battlegame.figures import get_table_context, get_base_character_usage_dataframe, get_dungeon_stats_dataframe
 
 from battlegame.cron import next_round, setup_tournament, end_tourney
 from . import purchases
@@ -70,6 +70,17 @@ class DungeonBossAdmin(bulk_admin.BulkModelAdmin):
 
     def convert_json(self, request, queryset):
         convert_placement_to_json(queryset)
+
+
+class DungeonStatsAdmin(admin.ModelAdmin):
+    actions = ('generate_dungeon_stats_report',)
+
+    def generate_dungeon_stats_report(self, request, queryset):
+        df = get_dungeon_stats_dataframe(queryset)
+        context = get_table_context(df)
+        context['page_title'] = "Dungeon Stats Report"
+        context['other_data'] = [f'Time: {datetime.now()}']
+        return render(request, 'table.html', context)
 
 
 class IPTrackerAdmin(admin.ModelAdmin):
@@ -777,7 +788,7 @@ class GrassEventAdmin(admin.ModelAdmin, DynamicArrayMixin):
 admin.site.register(DungeonStage, DungeonStageAdmin)
 admin.site.register(DungeonProgress)
 admin.site.register(DungeonBoss, DungeonBossAdmin)
-admin.site.register(DungeonStats)
+admin.site.register(DungeonStats, DungeonStatsAdmin)
 
 admin.site.register(BaseItem, BaseItemAdmin)
 admin.site.register(BasePrestige)

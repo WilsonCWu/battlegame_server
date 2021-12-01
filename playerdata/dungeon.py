@@ -189,7 +189,7 @@ class DungeonSetProgressStageView(APIView):
     def post(self, request):
         serializer = SetDungeonProgressSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         match_states, _ = UserMatchState.objects.get_or_create(user=request.user)
         dungeon_type = serializer.validated_data['dungeon_type']
         token = secrets.token_hex(16)

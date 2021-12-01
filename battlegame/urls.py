@@ -214,6 +214,7 @@ urlpatterns = [
     path('stats/graph/<str:name>', gameanalytics.get_graph_view),
     path('stats/defensereport/', gameanalytics.get_defense_placement_report_view),
     path('stats/baseusagereport/', gameanalytics.get_base_character_usage_view),
+    path('stats/dungeonreport/', gameanalytics.get_dungeon_table_view),
     path('admin/', admin.site.urls),
     path('public/stats/', public.PublicStatsView.as_view()),
     path('public/stats/<str:version>', public.PublicStatsView.as_view()),
