@@ -38,11 +38,11 @@ def get_usage_stats_graph():
         games_bucket_sum = df[f'games bucket {index}'].sum()
         def_games_bucket_sum = df[f'defense games bucket {index}'].sum()
         # Divide total games by 5 (even though not all teams have 5 heroes, almost all of them should)
-        bucket_name = f'{index*500} - {(index+1)*500-1}'
+        bucket_name = f'{index*constants.USAGE_BUCKET_ELO_SIZE} - {(index+1)*constants.USAGE_BUCKET_ELO_SIZE-1}'
         df_offense[bucket_name] = 100 * df[f'games bucket {index}'] / (games_bucket_sum/5)
         df_defense[bucket_name] = 100 * df[f'defense games bucket {index}'] / (def_games_bucket_sum/5)
         if games_bucket_sum + def_games_bucket_sum != 0:
-            context['other_data'].append(f'Bucket {index} games: {games_bucket_sum}, defense games: {games_bucket_sum}')
+            context['other_data'].append(f'Bucket {index} ({bucket_name}) offense games: {games_bucket_sum}, defense games: {def_games_bucket_sum}')
 
     # Drop all buckets that have no data (nan or zeros):
     df_offense = df_offense.loc[:, (df_offense**2).sum() != 0]
