@@ -4,11 +4,7 @@ import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from mainsocket import notifications
-from playerdata import questupdater
-
-
-def notif_channel_group_name(user_id):
-    return 'notif_%s' % user_id
+from playerdata import questupdater, event_times
 
 
 # Channel group is the user_id
@@ -18,7 +14,7 @@ class MainSocketConsumer(WebsocketConsumer):
     def connect(self):
         self.user = self.scope["user"]
         self.room_name = self.scope['url_route']['kwargs']['room_name']
-        self.room_group_name = notif_channel_group_name(self.room_name)
+        self.room_group_name = notifications.notif_channel_group_name(self.room_name)
 
         # Join room group
         async_to_sync(self.channel_layer.group_add)(
@@ -32,7 +28,8 @@ class MainSocketConsumer(WebsocketConsumer):
         notifications.send_badge_notifs_replace(self.user.id,
                                                 questupdater.DailyBadgeNotifCount().get_badge_notif(self.user),
                                                 questupdater.WeeklyBadgeNotifCount().get_badge_notif(self.user),
-                                                questupdater.CumulativeBadgeNotifCount().get_badge_notif(self.user)
+                                                questupdater.CumulativeBadgeNotifCount().get_badge_notif(self.user),
+                                                event_times.GrassEventBadgeNotifCount().get_badge_notif(self.user),
                                                 )
 
     def disconnect(self, close_code):
