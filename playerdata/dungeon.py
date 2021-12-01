@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from playerdata.models import DungeonProgress, Character, Placement
+from playerdata.models import DungeonProgress, Character, DungeonStats, Placement
 from playerdata.models import DungeonStage
 from playerdata.models import UserMatchState
 from playerdata.models import ReferralTracker
@@ -206,7 +206,15 @@ class DungeonSetProgressStageView(APIView):
 
         match_states.save()
         return Response({'status': True, 'token': token})
-        
+
+
+def track_dungeon_stats(dungeon_type, is_win, stage):
+    dungeon_stat = DungeonStats.objects.get(dungeon_type=dungeon_type)
+    dungeon_stat.games_by_stage[stage] += 1
+    if is_win:
+        dungeon_stat.wins_by_stage[stage] += 1
+    dungeon_stat.save()
+
 
 class DungeonSetProgressCommitView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -248,10 +256,14 @@ class DungeonSetProgressCommitView(APIView):
         else:
             QuestUpdater.add_progress_by_type(request.user, constants.ATTEMPT_TOWER_GAMES, 1)
 
+        progress = DungeonProgress.objects.get(user=request.user)
+        if dungeon_type == constants.DungeonType.CAMPAIGN.value:
+            track_dungeon_stats(dungeon_type, is_win, progress.campaign_stage)
+        else:
+            track_dungeon_stats(dungeon_type, is_win, progress.tower_stage)
+
         if not is_win:
             return Response({'status': True})
-
-        progress = DungeonProgress.objects.get(user=request.user)
 
         if dungeon_type == constants.DungeonType.CAMPAIGN.value:
             stage = progress.campaign_stage

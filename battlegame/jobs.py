@@ -341,6 +341,12 @@ def backfill_creatorcode():
         _, _ = CreatorCodeTracker.objects.get_or_create(user=user, created_time=None, code=None)
 
 
+@transaction.atomic
+def backfill_dungeonstats():
+    for enum_type in constants.DungeonType:
+        _, _ = DungeonStats.objects.get_or_create(dungeon_type=enum_type.value)
+
+
 def check_placement_correctness():
     dungeons = DungeonBoss.objects.all()
     for dungeon in dungeons:

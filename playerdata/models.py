@@ -1020,6 +1020,16 @@ class DungeonStage(models.Model):
         return "Stage " + str(self.stage)
 
 
+def default_dungeonstats_array():
+    return [0] * 10000  # 10k is the default size, at time of writing dungeon is at 1440.
+
+
+class DungeonStats(models.Model):
+    dungeon_type = models.IntegerField(unique=True)  # constants.DungeonType
+    wins_by_stage = ArrayField(models.IntegerField(), default=default_dungeonstats_array)
+    games_by_stage = ArrayField(models.IntegerField(), default=default_dungeonstats_array)
+
+
 class DungeonProgress(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     campaign_stage = models.IntegerField()
