@@ -1,6 +1,8 @@
 import math
 
+from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from battlegame.figures import get_graph_context
 from playerdata.admin import UserInfoAdmin, BaseCharacterUsageAdmin
 from playerdata.models import *
 
@@ -35,11 +37,19 @@ def print_player_prog(perc=50):
         print("Day " + str(day_delta) + " (" + str(len(active_players)) + " users)" + ": " + str(elo_percentile) + ", " + str(dungeon_percentile) + ", " + str(dd_percentile))
 
 
-@login_required
+@login_required(login_url='/admin/')
 def get_defense_placement_report_view(request):
     return UserInfoAdmin.generate_defense_placement_report(UserInfoAdmin, request, UserInfo.objects.all())
 
 
-@login_required
+@login_required(login_url='/admin/')
 def get_base_character_usage_view(request):
     return BaseCharacterUsageAdmin.generate_base_character_usage_report(BaseCharacterUsageAdmin, request, BaseCharacterUsage.objects.all())
+
+
+GRAPH_TEMPLATE_NAME = "graphs.html"
+
+
+@login_required(login_url='/admin/')
+def get_graph_view(request, name=None):
+    return render(request, GRAPH_TEMPLATE_NAME, get_graph_context(name))
