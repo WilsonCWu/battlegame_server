@@ -200,7 +200,7 @@ class DailyDungeonResultView(APIView):
 
         dd_status = DailyDungeonStatus.objects.get(user=request.user)
 
-        dungeon.track_dungeon_stats(constants.DungeonType.TUNNELS, not is_loss, dd_status.stage)
+        dungeon.track_dungeon_stats(constants.DungeonType.TUNNELS.value, not is_loss, dd_status.stage)
 
         rewards = []
         depth = dd_status.stage - (dd_status.cur_tier * 20)
