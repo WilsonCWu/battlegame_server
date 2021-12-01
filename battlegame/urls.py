@@ -19,7 +19,7 @@ from django.urls import path
 from battlegame import gameanalytics
 from playerdata import creatorcode, event_times, login, tier_system, level_booster, relic_shop, wishlist, \
     chapter_rewards_pack, inbox, \
-    rotating_mode, conquest_event, regal_rewards, activity_points, shards, grass_event
+    rotating_mode, conquest_event, regal_rewards, activity_points, shards, grass_event, leaderboards
 from playerdata import base
 from playerdata import daily_dungeon
 from playerdata import moevasion
@@ -160,7 +160,7 @@ urlpatterns = [
     path('profile/editdescription/', social.EditProfileDescriptionView.as_view()),
     path('friends/delete/', social.DeleteFriendView.as_view()),
     path('friends/get/', social.FriendsView.as_view()),
-    path('leaderboards/', social.GetLeaderboardView.as_view()),
+    path('leaderboards/', leaderboards.GetLeaderboardView.as_view()),
     path('getchatid/', social.GetChatIdView.as_view()),
     path('getallchats/', social.GetAllChatsView.as_view()),
     path('purchase/collectbonus/', purchases.CollectBonusGems.as_view()),
@@ -182,7 +182,7 @@ urlpatterns = [
     path('opponents/', matcher.GetOpponentsView.as_view()),
     path('user/', matcher.GetUserView.as_view()),
     path('bots/', matcher.BotsView.as_view()),
-    path('bots/uploadresults/', matcher.PostBotResultsView.as_view()),
+    path('bots/uploadresults/', statusupdate.PostBotResultsView.as_view()),
     path('matcher/', matcher.MatcherView.as_view()),
     path('matchhistory/', matcher.GetMatchHistoryView.as_view()),
     path('matchreplay/', matcher.GetReplayView.as_view()),

@@ -16,6 +16,7 @@ from playerdata.quest import refresh_daily_quests, refresh_weekly_quests
 from playerdata.statusupdate import calculate_tourney_elo, get_redis_quickplay_usage_key, skip_cap
 from playerdata.tournament import get_next_round_time, TOURNAMENT_BOTS, get_random_char_set
 from . import settings
+from .jobs import update_redis_player_elos
 
 """
 For reference:
@@ -105,6 +106,7 @@ def reset_daily_wins_cron():
         stat.daily_games = 0
         stat.pvp_skips = skip_cap(stat.user.userinfo)
     UserStats.objects.bulk_update(userstats, ['daily_wins', 'daily_games', 'pvp_skips'])
+    update_redis_player_elos()
 
 
 MAX_DAILY_DUNGEON_TICKET = 5

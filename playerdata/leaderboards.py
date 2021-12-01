@@ -17,9 +17,9 @@ def pvp_ranking_key():
     return "pvp_ranking"
 
 
-def is_over_queue_limit(r, key, limit):
-    return r.llen(key) > limit
-
+# REDIS Sorted Sets
+# https://redis.io/topics/data-types-intro#redis-sorted-sets
+# Functions: ZADD, ZREVRANK (reverse rank)
 
 def update_pvp_ranking(user_id, elo):
     r = get_redis_connection("default")
