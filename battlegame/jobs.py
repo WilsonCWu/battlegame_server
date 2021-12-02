@@ -4,7 +4,7 @@ import secrets
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
-from playerdata import formulas, matcher, rolls
+from playerdata import formulas, matcher, rolls, leaderboards
 from playerdata.models import *
 
 
@@ -361,3 +361,13 @@ def remove_nonactive_cumulative_quests():
         player_quest.completed_quests = [quest for quest in player_quest.completed_quests if quest in active_quests_ids]
 
     PlayerQuestCumulative2.objects.bulk_update(player_quests, ['completed_quests'])
+
+
+@transaction.atomic
+def update_redis_player_elos():
+    userinfos = UserInfo.objects.all()
+    users_dict = {}
+    for userinfo in userinfos:
+        users_dict[userinfo.user_id] = userinfo.elo
+
+    leaderboards.bulk_update_pvp_ranking(users_dict)
