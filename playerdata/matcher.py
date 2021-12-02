@@ -2,10 +2,9 @@ import random
 import secrets
 from collections import defaultdict
 
-from random_username.generate import generate_username
-
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from random_username.generate import generate_username
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -14,17 +13,15 @@ from rest_marshmallow import Schema, fields
 from playerdata import constants, formulas, server
 from playerdata.models import BaseCharacter
 from playerdata.models import Character
+from playerdata.models import Match, MatchReplay, ServerStatus
 from playerdata.models import Placement
 from playerdata.models import UserInfo
-from playerdata.models import Match, MatchReplay, ServerStatus
 from .inventory import CharacterSchema
+from .serializers import GetMatchHistorySerializer
 from .serializers import GetOpponentsSerializer
 from .serializers import GetUserSerializer
-from .serializers import UpdatePlacementSerializer
-from .serializers import BotResultsSerializer
-from .serializers import GetMatchHistorySerializer
 from .serializers import IntSerializer
-from .statusupdate import calculate_elo
+from .serializers import UpdatePlacementSerializer
 
 
 class PlacementSchema(Schema):
@@ -275,35 +272,6 @@ class PlacementsView(APIView):
             pos_4=positions[3],
             pos_5=positions[4],
         )
-
-
-# TODO: add tests for this
-class PostBotResultsView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    @transaction.atomic
-    def post(self, request):
-        serializer = BotResultsSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        id1s = serializer.validated_data['id1s']
-        id2s = serializer.validated_data['id2s']
-        wons = serializer.validated_data['wons']
-
-        for id1, id2, won in zip(id1s, id2s, wons):
-            # get old elos
-            user1 = get_user_model().objects.select_related('userinfo').get(id=id1)
-            user2 = get_user_model().objects.select_related('userinfo').get(id=id2)
-            prev_elo_1 = user1.userinfo.elo
-            prev_elo_2 = user2.userinfo.elo
-
-            # calculate and save new elos
-            user1.userinfo.elo = calculate_elo(prev_elo_1, prev_elo_2, won)
-            user2.userinfo.elo = calculate_elo(prev_elo_2, prev_elo_1, not won)
-
-            user1.userinfo.save()
-            user2.userinfo.save()
-
-        return Response({'status': True})
 
 
 class GetMatchHistoryView(APIView):

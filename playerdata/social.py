@@ -20,8 +20,7 @@ from playerdata.models import ClanMember
 from playerdata.models import ClanRequest
 from playerdata.models import Friend
 from playerdata.models import FriendRequest
-from playerdata.models import UserInfo
-from . import constants, formulas, clan_pve
+from . import constants, clan_pve
 from .matcher import UserInfoSchema, LightUserInfoSchema
 from .questupdater import QuestUpdater
 from .serializers import AcceptFriendRequestSerializer
@@ -31,7 +30,6 @@ from .serializers import NullableValueSerializer
 from .serializers import UpdateClanMemberStatusSerializer
 from .serializers import UpdateClanRequestSerializer
 from .serializers import ValueSerializer
-
 
 MAX_DESCRIPTION_LENGTH = 96
 
@@ -271,32 +269,6 @@ class GetAllChatsView(APIView):
 
         chat_list_schema = ChatListSchema(many=True)
         return Response({'status': True, 'chats': chat_list_schema.dump(chat_list)})
-
-
-class GetLeaderboardView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def post(self, request):
-        serializer = ValueSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        leaderboard_type = serializer.validated_data['value']
-
-        if leaderboard_type == 'solo_top_100':
-            top_player_set = UserInfo.objects.all().order_by('-elo')[:100]
-            players = LightUserInfoSchema(top_player_set, many=True)
-            return Response({'status': True, 'players': players.data})
-        if leaderboard_type == 'clan_top_100':
-            top_clan_set = Clan2.objects.all().order_by('-elo')[:100]
-            clans = ClanSchema(top_clan_set, many=True)
-            return Response({'status': True, 'clans': clans.data})
-        if leaderboard_type == 'moevasion_top_100':
-            top_moevasion_set = UserInfo.objects.all().order_by('-best_moevasion_stage')[:100]
-            players = LightUserInfoSchema(top_moevasion_set, many=True)
-            return Response({'status': True, 'players': players.data})
-        else:
-            return Response({'status': True, 'reason': 'leaderboard ' + leaderboard_type + ' does not exist',
-                             'detail': 'leaderboard ' + leaderboard_type + ' does not exist'},
-                            status=HTTP_404_NOT_FOUND)
 
 
 class GetClanSearchResultsView(APIView):
