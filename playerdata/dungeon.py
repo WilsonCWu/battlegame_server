@@ -3,6 +3,7 @@ import secrets
 import random
 
 from django.db import transaction
+from django_redis import get_redis_connection
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -208,12 +209,18 @@ class DungeonSetProgressStageView(APIView):
         return Response({'status': True, 'token': token})
 
 
+def get_redis_dungeon_winrate_key(dungeon_type, stage):
+    return f'dungeon_winrate_{dungeon_type}_{stage}'
+
+
 def track_dungeon_stats(dungeon_type, is_win, stage):
-    dungeon_stat, _ = DungeonStats.objects.get_or_create(dungeon_type=dungeon_type, stage=stage)
-    dungeon_stat.games += 1
+    r = get_redis_connection('default')
+    if not DungeonStats.objects.filter(dungeon_type=dungeon_type, stage=stage).exists():
+        DungeonStats.objects.create(dungeon_type=dungeon_type, stage=stage)
+    key = get_redis_dungeon_winrate_key(dungeon_type, stage)
+    r.incr(f'{key}_games')
     if is_win:
-        dungeon_stat.wins += 1
-    dungeon_stat.save()
+        r.incr(f'{key}_wins')
 
 
 class DungeonSetProgressCommitView(APIView):
