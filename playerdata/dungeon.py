@@ -251,15 +251,12 @@ class DungeonSetProgressCommitView(APIView):
             return Response({'status': False,
                              'reason': 'Cannot transition from loss to win.'})
 
-        if dungeon_type == constants.DungeonType.CAMPAIGN.value:
-            QuestUpdater.add_progress_by_type(request.user, constants.ATTEMPT_DUNGEON_GAMES, 1)
-        else:
-            QuestUpdater.add_progress_by_type(request.user, constants.ATTEMPT_TOWER_GAMES, 1)
-
         progress = DungeonProgress.objects.get(user=request.user)
         if dungeon_type == constants.DungeonType.CAMPAIGN.value:
+            QuestUpdater.add_progress_by_type(request.user, constants.ATTEMPT_DUNGEON_GAMES, 1)
             track_dungeon_stats(dungeon_type, is_win, progress.campaign_stage)
         else:
+            QuestUpdater.add_progress_by_type(request.user, constants.ATTEMPT_TOWER_GAMES, 1)
             track_dungeon_stats(dungeon_type, is_win, progress.tower_stage)
 
         if not is_win:
