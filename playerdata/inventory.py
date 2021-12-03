@@ -77,6 +77,8 @@ class InventorySchema(Schema):
     legendary_shards = fields.Int()
     active_pet_id = fields.Int()
     gems_bought = fields.Int()
+    dust_fast_reward_hours = fields.Int()
+    coins_fast_reward_hours = fields.Int()
 
     chest_slot_1 = fields.Nested(ChestSchema)
     chest_slot_2 = fields.Nested(ChestSchema)

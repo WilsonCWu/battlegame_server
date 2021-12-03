@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from playerdata import server, shards
+from playerdata import server, shards, chests
 from playerdata.formulas import afk_coins_per_min, afk_exp_per_min, afk_dust_per_min, vip_exp_to_level
 from playerdata.models import DungeonProgress, AFKReward, default_afk_shard_list
 from playerdata.serializers import FastRewardsSerializer
@@ -166,11 +166,19 @@ class CollectFastRewardsView(APIView):
         dust = dust_hours * 60 * afk_dust_per_min(dungeon_progress.campaign_stage)
         coins = coin_hours * 60 * afk_coins_per_min(dungeon_progress.campaign_stage)
 
-        request.user.inventory.dust += dust
-        request.user.inventory.coins += coins
+        rewards = []
+        if coins > 0:
+            rewards.append(chests.ChestReward('coins', coins))
+        if dust > 0:
+            rewards.append(chests.ChestReward('essence', dust))
+
+        chests.award_chest_rewards(request.user, rewards)
+
+        request.user.inventory.coins_fast_reward_hours -= coin_hours
+        request.user.inventory.dust_fast_reward_hours -= dust_hours
         request.user.inventory.save()
 
-        return Response({'status': True, 'coins': coins, 'dust': dust})
+        return Response({'status': True, 'rewards': chests.ChestRewardSchema(rewards, many=True).data})
 
 
 def afk_rewards_multiplier_vip(level: int):
