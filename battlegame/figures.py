@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from playerdata import constants
 from playerdata.models import BaseCharacterUsage, DungeonStats, UserStats
 
+pd.options.plotting.backend = "plotly"
+
 
 def get_sample_graph():
     data = graph_objects.Figure(
@@ -23,7 +25,6 @@ def get_sample_graphs():
 
 def get_usage_stats_graph():
     df = get_base_character_usage_dataframe(BaseCharacterUsage.objects.all())
-    pd.options.plotting.backend = "plotly"
 
     context = {'other_data': []}  # What we'll be returning
     names = df['name']
@@ -67,7 +68,6 @@ def get_usage_stats_graph():
 
 def get_dungeon_winrate_graph():
     df = get_dungeon_stats_dataframe(DungeonStats.objects.all())
-    pd.options.plotting.backend = "plotly"
 
     context = {}
     context['graph_contents'] = []
@@ -80,13 +80,14 @@ def get_dungeon_winrate_graph():
         context['other_data'].append(f"Total games for {dungeon_type}: {df_dungeon['games'].sum()}")
         fig = df_dungeon.plot.bar(y='winrate', x='stage', title=f'{dungeon_type} Win Rates:')
         fig.update_yaxes(range=[0, 100])
+        fig.update_traces(width=1)
         context['graph_contents'].append(fig.to_html())
     return context
 
 
 def get_dungeon_progress_graph():
     # Setup
-    pd.options.plotting.backend = "plotly"
+
     context = {}
     context['graph_contents'] = []
     context['other_data'] = []
