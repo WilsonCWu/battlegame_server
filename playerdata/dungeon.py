@@ -3,12 +3,13 @@ import secrets
 import random
 
 from django.db import transaction
+from django_redis import get_redis_connection
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from playerdata.models import DungeonProgress, Character, Placement
+from playerdata.models import DungeonProgress, Character, DungeonStats, Placement
 from playerdata.models import DungeonStage
 from playerdata.models import UserMatchState
 from playerdata.models import ReferralTracker
@@ -189,7 +190,7 @@ class DungeonSetProgressStageView(APIView):
     def post(self, request):
         serializer = SetDungeonProgressSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         match_states, _ = UserMatchState.objects.get_or_create(user=request.user)
         dungeon_type = serializer.validated_data['dungeon_type']
         token = secrets.token_hex(16)
@@ -206,7 +207,21 @@ class DungeonSetProgressStageView(APIView):
 
         match_states.save()
         return Response({'status': True, 'token': token})
-        
+
+
+def get_redis_dungeon_winrate_key(dungeon_type, stage):
+    return f'dungeon_winrate_{dungeon_type}_{stage}'
+
+
+def track_dungeon_stats(dungeon_type, is_win, stage):
+    r = get_redis_connection('default')
+    if not DungeonStats.objects.filter(dungeon_type=dungeon_type, stage=stage).exists():
+        DungeonStats.objects.create(dungeon_type=dungeon_type, stage=stage)
+    key = get_redis_dungeon_winrate_key(dungeon_type, stage)
+    r.incr(f'{key}_games')
+    if is_win:
+        r.incr(f'{key}_wins')
+
 
 class DungeonSetProgressCommitView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -243,15 +258,16 @@ class DungeonSetProgressCommitView(APIView):
             return Response({'status': False,
                              'reason': 'Cannot transition from loss to win.'})
 
+        progress = DungeonProgress.objects.get(user=request.user)
         if dungeon_type == constants.DungeonType.CAMPAIGN.value:
             QuestUpdater.add_progress_by_type(request.user, constants.ATTEMPT_DUNGEON_GAMES, 1)
+            track_dungeon_stats(dungeon_type, is_win, progress.campaign_stage)
         else:
             QuestUpdater.add_progress_by_type(request.user, constants.ATTEMPT_TOWER_GAMES, 1)
+            track_dungeon_stats(dungeon_type, is_win, progress.tower_stage)
 
         if not is_win:
             return Response({'status': True})
-
-        progress = DungeonProgress.objects.get(user=request.user)
 
         if dungeon_type == constants.DungeonType.CAMPAIGN.value:
             stage = progress.campaign_stage

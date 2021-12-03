@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from playerdata import shards, server
+from playerdata import shards, dungeon
 from . import rolls, constants, chests, dungeon_gen
 from .models import DailyDungeonStatus, DailyDungeonStage
 from .serializers import DailyDungeonStartSerializer, CharStateResultSerializer
@@ -199,6 +199,8 @@ class DailyDungeonResultView(APIView):
         is_loss = serializer.validated_data['is_loss']
 
         dd_status = DailyDungeonStatus.objects.get(user=request.user)
+
+        dungeon.track_dungeon_stats(constants.DungeonType.TUNNELS.value, not is_loss, dd_status.stage)
 
         rewards = []
         depth = dd_status.stage - (dd_status.cur_tier * 20)

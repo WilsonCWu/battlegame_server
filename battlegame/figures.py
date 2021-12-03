@@ -3,7 +3,9 @@ from plotly import graph_objects
 from dataclasses import dataclass
 
 from playerdata import constants
-from playerdata.models import BaseCharacterUsage
+from playerdata.models import BaseCharacterUsage, DungeonStats, UserStats
+
+pd.options.plotting.backend = "plotly"
 
 
 def get_sample_graph():
@@ -23,7 +25,6 @@ def get_sample_graphs():
 
 def get_usage_stats_graph():
     df = get_base_character_usage_dataframe(BaseCharacterUsage.objects.all())
-    pd.options.plotting.backend = "plotly"
 
     context = {'other_data': []}  # What we'll be returning
     names = df['name']
@@ -65,12 +66,100 @@ def get_usage_stats_graph():
     return context
 
 
+def get_dungeon_winrate_graph():
+    df = get_dungeon_stats_dataframe(DungeonStats.objects.all())
+
+    context = {}
+    context['graph_contents'] = []
+    context['other_data'] = []
+
+    # Handle each dungeon type separately.
+    for dungeon_type in constants.DungeonType:
+        df_dungeon = df.loc[df['dungeon_type'] == dungeon_type.value]
+        df_dungeon['winrate'] = 100 * df_dungeon['wins'] / df_dungeon['games']
+        context['other_data'].append(f"Total games for {dungeon_type}: {df_dungeon['games'].sum()}")
+        fig = df_dungeon.plot.bar(y='winrate', x='stage', title=f'{dungeon_type} Win Rates:')
+        fig.update_yaxes(range=[0, 100])
+        fig.update_traces(width=1)
+        context['graph_contents'].append(fig.to_html())
+    return context
+
+
+def get_dungeon_progress_graph():
+    # Setup
+
+    context = {}
+    context['graph_contents'] = []
+    context['other_data'] = []
+
+    # Pull data from user stats
+    stats = UserStats.objects.all().select_related('user__userinfo').select_related('user__dungeonprogress')
+    active_players = [x for x in stats if x.user.userinfo.elo > 0]
+    dungeon_prog = [x.user.dungeonprogress.campaign_stage for x in active_players]
+    best_dd = [x.user.userinfo.best_daily_dungeon_stage for x in active_players]
+
+    # Hardcode number of stages to check
+    DUNGEON_STAGE_COUNT = constants.MAX_DUNGEON_STAGE[constants.DungeonType.CAMPAIGN.value]
+    DAILY_DUNGEON_STAGE_COUNT = 100
+
+    # Collect 'total players who peaked here' data for dungeon and dailydungeon
+    highest_dungeon_stage_is_index = [0] * DUNGEON_STAGE_COUNT
+    highest_dd_stage_is_index = [0] * DAILY_DUNGEON_STAGE_COUNT
+    for stage in dungeon_prog:
+        highest_dungeon_stage_is_index[stage] += 1
+    for stage in best_dd:
+        highest_dd_stage_is_index[stage] += 1
+
+    # Graph dungeon
+    df_dungeon = pd.DataFrame()
+    df_dungeon['stage'] = [index for index in range(DUNGEON_STAGE_COUNT)]
+    df_dungeon['players'] = highest_dungeon_stage_is_index
+    df_dungeon = df_dungeon[df_dungeon.players != 0]  # Drop rows with no columns
+    df_dungeon = df_dungeon[df_dungeon.stage != 1]  # Drop stage 1
+    fig_dungeon = df_dungeon.plot.bar(y='players', x='stage', title=f'Dungeon Max Stage Reached Count')
+    fig_dungeon.update_traces(width=1)
+    fig_dungeon.update_xaxes(range=[0, DUNGEON_STAGE_COUNT])
+
+    # Graph tunnels
+    df_daily = pd.DataFrame()
+    df_daily['stage'] = [index for index in range(DAILY_DUNGEON_STAGE_COUNT)]
+    df_daily['players'] = highest_dd_stage_is_index
+    df_daily = df_daily[df_daily.players != 0]  # Drop rows with no columns
+    df_daily = df_daily[df_daily.stage != 0]  # Drop stage 0
+    fig_daily = df_daily.plot.bar(y='players', x='stage', title=f'Daily Dungeon Max Stage Reached Count')
+    fig_daily.update_traces(width=1)
+    fig_daily.update_xaxes(range=[0, DAILY_DUNGEON_STAGE_COUNT])
+
+    # Prepare context
+    context['other_data'].append(f"Total players in Dungeon progress graph: {df_dungeon['players'].sum()}")
+    context['other_data'].append(f"Total players in Daily Dungeon progress graph: {df_daily['players'].sum()}")
+    context['graph_contents'].append(fig_dungeon.to_html())
+    context['graph_contents'].append(fig_daily.to_html())
+    return context
+
+
+# Combines graph_contents for the two dungeon graphs, drops everything else from the context
+def get_combined_dungeon_graphs():
+    context = {'graph_contents': [], 'other_data': []}
+    context_list = [get_dungeon_progress_graph(), get_dungeon_winrate_graph()]
+    for single_context in context_list:
+        if 'graph_contents' in single_context:
+            for graph in single_context['graph_contents']:
+                context['graph_contents'].append(graph)
+        if 'other_data' in single_context:
+            for line in single_context['other_data']:
+                context['other_data'].append(line)
+    context['graph_title'] = "Dungeon Stats"
+    return context
+
+
 # Each entry should be a list of functions
 # Each function should return a dictionary with graph_contents being the graph or a list of graphs.
 # dictionary can also have an 'other_data' field.
 GRAPHS = {'sample': get_sample_graph,  # Single graph example
           'samples': get_sample_graphs,  # Multiple graphs example
-          'usage': get_usage_stats_graph}
+          'usage': get_usage_stats_graph,
+          'dungeon': get_combined_dungeon_graphs}
 
 
 # Gives context for rendering a graph or list of graphs with the graphs.html template
@@ -125,3 +214,29 @@ def get_base_character_usage_dataframe(queryset):
                          defense_wins_buckets=base_char_usage.num_defense_wins_buckets))
     df = pd.DataFrame([character.to_dict() for character in char_data])
     return df
+
+
+# Queryset should be DungeonStats objects
+def get_dungeon_stats_dataframe(queryset):
+    @dataclass
+    class DungeonStatsRow:
+        stage: int
+        dungeon_type: int
+        wins: int
+        games: int
+
+        def to_dict(self):
+            return dict(stage=self.stage,
+                        dungeon_type=self.dungeon_type,
+                        wins=self.wins,
+                        games=self.games)
+
+    stage_stats_rows = []
+
+    for stage_stats in queryset:
+        stage_stats_rows.append(DungeonStatsRow(
+            stage=stage_stats.stage,
+            dungeon_type=stage_stats.dungeon_type,
+            wins=stage_stats.wins,
+            games=stage_stats.games))
+    return pd.DataFrame([stats_row.to_dict() for stats_row in stage_stats_rows])

@@ -9,6 +9,7 @@ from playerdata import tier_system, relic_shop, refunds
 from playerdata.antihacking import MatchValidator
 from playerdata.constants import TOURNEY_SIZE
 from playerdata.daily_dungeon import daily_dungeon_team_gen_cron
+from playerdata.dungeon import get_redis_dungeon_winrate_key
 from playerdata.models import *
 from playerdata.purchases import refresh_daily_deals_cronjob, refresh_weekly_deals_cronjob, \
     refresh_monthly_deals_cronjob
@@ -34,7 +35,7 @@ def cron(uuid=None, retries=0):
                 requests.get("https://hc-ping.com/%s" % uuid, timeout=10)
             except requests.RequestException as e:
                 cron_logger("Failed to ping hc: %s" % e)
-    
+
     def cron_logger(s):
         # TODO: we should definately just use the logging package.
         print("[%s] %s" % (datetime.now().strftime("%d/%m/%Y %H:%M:%S"), s))
@@ -411,3 +412,26 @@ def push_quickplay_usage_to_db():
 
     BaseCharacterUsage.objects.bulk_update(all_usage, ['num_games_buckets', 'num_wins_buckets',
                                                        'num_defense_games_buckets', 'num_defense_wins_buckets'])
+
+
+# Regularly save dungeon winrate numbers from redis to the db.
+def push_dungeon_games_to_db():
+    r = get_redis_connection("default")
+    # Increment every base character usage object by what we have stored
+    all_stats = DungeonStats.objects.all()
+    for stage_stats in all_stats:
+        redis_key = get_redis_dungeon_winrate_key(stage_stats.dungeon_type, stage_stats.stage)
+
+        games = r.get(f"{redis_key}_games")
+        if games == 0:
+            continue
+        wins = r.get(f"{redis_key}_wins")
+
+        if games is not None:
+            stage_stats.games += int(games)
+        if wins is not None:
+            stage_stats.wins += int(wins)
+        r.set(f"{redis_key}_games", 0)
+        r.set(f"{redis_key}_wins", 0)
+
+    DungeonStats.objects.bulk_update(all_stats, ['wins', 'games'])
