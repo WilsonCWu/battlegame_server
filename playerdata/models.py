@@ -1020,6 +1020,21 @@ class DungeonStage(models.Model):
         return "Stage " + str(self.stage)
 
 
+class DungeonStats(models.Model):
+    stage = models.IntegerField()
+    dungeon_type = models.IntegerField(choices=[(dungeon.value, dungeon.name) for dungeon in DungeonType])
+    wins = models.IntegerField(default=0)
+    games = models.IntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['stage', 'dungeon_type'], name='unique_stage_stat')
+        ]
+
+    def __str__(self):
+        return f"{constants.DungeonType(self.dungeon_type)}: Stage {self.stage}"
+
+
 class DungeonProgress(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     campaign_stage = models.IntegerField()

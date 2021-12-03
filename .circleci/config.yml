@@ -13,6 +13,8 @@ jobs:
           POSTGRES_USER: u_battlegame
           POSTGRES_DB: battlegame
       - image: circleci/redis:6.0
+      - image: circleci/redis:6.0 # Second redis instance
+        command: [ "redis-server", "--port", "6380", "--requirepass", "redispass", "--appendfsync", "no", "--save", "", "--appendonly", "no" ]
     steps:
       - checkout
       - run:
@@ -34,7 +36,7 @@ jobs:
       - run:
           name: "Set up .env"
           command: |
-            echo -e "SECRET_KEY=foo\nPOSTGRES_PASSWORD=postgres\nDEVELOPMENT=on" >> .env
+            echo -e "SECRET_KEY=foo\nPOSTGRES_PASSWORD=postgres\nREDIS_PVP_PASSWORD=redispass\nDEVELOPMENT=on" >> .env
       - run:
           name: "No deleted migrations"
           command: |
