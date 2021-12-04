@@ -35,6 +35,7 @@ class MessageSchema(Schema):
     sender_id = fields.Int(attribute='sender_id')
     sender_profile_picture_id = fields.Int(attribute='sender_profile_picture_id')
     time_send = fields.DateTime()
+    replay_id = fields.Int(attribute='replay_id')
 
 
 class ChatConsumer(WebsocketConsumer):
@@ -79,7 +80,7 @@ class ChatConsumer(WebsocketConsumer):
 
             pfp_id = self.user.userinfo.profile_picture
             replay_id = -1
-            if hasattr(text_data_json, 'replay_id'):
+            if 'replay_id' in text_data_json:
                 replay_id = text_data_json['replay_id']
 
             # Send message to room group
