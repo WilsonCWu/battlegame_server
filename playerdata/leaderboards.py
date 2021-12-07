@@ -44,8 +44,9 @@ def get_self_rank(user_id):
     rank = r.zrevrank(ranking_key, user_id)
     if rank is None:
         r.zadd(ranking_key, {user_id: 0})
+        rank = r.zrevrank(ranking_key, user_id)
 
-    return r.zrevrank(ranking_key, user_id) + 1  # zero indexed, add 1
+    return rank + 1  # zero indexed, add 1
 
 
 class GetLeaderboardView(APIView):
