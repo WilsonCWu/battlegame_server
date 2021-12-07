@@ -41,6 +41,10 @@ def get_self_rank(user_id):
     r = get_redis_connection("default")
     ranking_key = pvp_ranking_key()
 
+    rank = r.zrevrank(ranking_key, user_id)
+    if rank is None:
+        r.zadd(ranking_key, {user_id: 0})
+
     return r.zrevrank(ranking_key, user_id) + 1  # zero indexed, add 1
 
 
