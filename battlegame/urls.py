@@ -184,6 +184,7 @@ urlpatterns = [
     path('bots/', matcher.BotsView.as_view()),
     path('bots/uploadresults/', statusupdate.PostBotResultsView.as_view()),
     path('matcher/', matcher.MatcherView.as_view()),
+    path('match/', matcher.GetReplayMatchView.as_view()),
     path('matchhistory/', matcher.GetMatchHistoryView.as_view()),
     path('matchreplay/', matcher.GetReplayView.as_view()),
     path('placements/', matcher.PlacementsView.as_view()),
