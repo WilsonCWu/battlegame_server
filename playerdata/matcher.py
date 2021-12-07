@@ -318,6 +318,25 @@ class GetReplayView(APIView):
         return Response({'status': True, 'replay': replay.data})
 
 
+# Same as above, but returns the match object instead of a matchreplay
+class GetReplayMatchView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        serializer = IntSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        match_q = Match.objects.filter(id=serializer.validated_data['value'])
+        if not match_q:
+            return Response({'status': False, 'reason': 'match expired or does not exist'})
+
+        match = match_q[0]
+        if ServerStatus.latest_version() != match.version:
+            return Response({'status': False, 'reason': 'replay version out of date'})
+
+        match_export = MatchHistorySchema(match)
+        return Response({'status': True, 'match': match_export.data})
+
+
 class BotsView(APIView):
     permission_classes = (IsAuthenticated,)
 
