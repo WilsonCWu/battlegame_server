@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from functools import lru_cache
 from typing import List
 
@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from playerdata import chests, serializers, constants
+from playerdata import chests, constants
 from playerdata.models import EventTimeTracker
 
 
@@ -67,14 +67,14 @@ class ClaimEventRewardView(APIView):
             return Response({'status': False, 'reason': 'reward for today has been claimed'})
 
         event_rewards = get_active_event_rewards()
-        next_reward_id = request.user.eventrewards.last_claimed_reward + 1
+        request.user.eventrewards.last_claimed_reward += 1
+        next_reward = event_rewards[request.user.eventrewards.last_claimed_reward]
 
-        if event_rewards[next_reward_id].reward_type == "chest":
-            rewards = chests.generate_chest_rewards(event_rewards[next_reward_id].value, request.user)
+        if next_reward.reward_type == "chest":
+            rewards = chests.generate_chest_rewards(next_reward.value, request.user)
         else:
-            rewards = [event_rewards[next_reward_id]]
+            rewards = [next_reward]
 
-        request.user.eventrewards.last_claimed_reward = next_reward_id
         request.user.eventrewards.last_claimed_time = cur_time
         request.user.eventrewards.save()
 
