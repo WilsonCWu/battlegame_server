@@ -50,9 +50,12 @@ class GetEventRewardListView(APIView):
     def get(self, request):
         last_claimed_reward = request.user.eventrewards.last_claimed_reward
         rewards = get_active_event_rewards()
+        cur_time = datetime.now(timezone.utc)
+        is_next_claimable = cur_time.day > request.user.eventrewards.last_claimed_time.day and last_claimed_reward < len(rewards)
 
         return Response({'status': True,
                          'last_claimed': last_claimed_reward,
+                         'is_next_claimable': is_next_claimable,
                          'rewards': chests.ChestRewardSchema(rewards, many=True).data
                          })
 
@@ -63,18 +66,26 @@ class ClaimEventRewardView(APIView):
     @atomic
     def post(self, request):
         cur_time = datetime.now(timezone.utc)
-        if cur_time.day == request.user.eventrewards.last_claimed_time.day:
-            return Response({'status': False, 'reason': 'reward for today has been claimed'})
 
         event_rewards = get_active_event_rewards()
-        request.user.eventrewards.last_claimed_reward += 1
-        next_reward = event_rewards[request.user.eventrewards.last_claimed_reward]
+        next_reward_id = request.user.eventrewards.last_claimed_reward + 1
+
+        # Completing the 7th day also unlocks the jackpot, allow a double claim
+        is_not_jackpot = next_reward_id != len(event_rewards) - 1
+        if cur_time.day == request.user.eventrewards.last_claimed_time.day and is_not_jackpot:
+            return Response({'status': False, 'reason': 'reward for today has been claimed'})
+
+        if next_reward_id >= len(event_rewards):
+            return Response({'status': False, 'reason': 'rewards all claimed'})
+
+        next_reward = event_rewards[next_reward_id]
 
         if next_reward.reward_type == "chest":
             rewards = chests.generate_chest_rewards(next_reward.value, request.user)
         else:
             rewards = [next_reward]
 
+        request.user.eventrewards.last_claimed_reward = next_reward_id
         request.user.eventrewards.last_claimed_time = cur_time
         request.user.eventrewards.save()
 

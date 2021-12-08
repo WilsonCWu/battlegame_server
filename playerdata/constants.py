@@ -275,7 +275,7 @@ RESOURCE_TYPE_ODDS_PER_CHEST = [
 CHEST_GEMS_PER_HOUR = 120
 
 # Number of guaranteed summons per chest rarity
-GUARANTEED_SUMMONS = [1, 3, 6, 0, 1, 1]
+GUARANTEED_SUMMONS = [1, 3, 7, 0, 1, 1]
 
 
 # The number of chars of each char_rarity guaranteed for a chest_rarity

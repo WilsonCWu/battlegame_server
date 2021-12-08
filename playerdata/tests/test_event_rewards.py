@@ -39,3 +39,20 @@ class EventRewardsTestCase(APITestCase):
 
         response = self.client.post('/eventreward/claim/', {})
         self.assertFalse(response.data['status'])  # Double claim on same day
+
+    @freeze_time("2021-12-21")
+    def test_event_claim_jackpot(self):
+        self.u.eventrewards.last_claimed_reward = 5
+        self.u.eventrewards.save()
+
+        response = self.client.post('/eventreward/claim/', {})
+        self.assertTrue(response.data['status'])
+
+        self.u.eventrewards.refresh_from_db()
+        self.assertEqual(self.u.eventrewards.last_claimed_reward, 6)
+
+        response = self.client.post('/eventreward/claim/', {})
+        self.assertTrue(response.data['status'])
+
+        response = self.client.post('/eventreward/claim/', {})
+        self.assertFalse(response.data['status'])
