@@ -1450,9 +1450,11 @@ class EventTimeTracker(models.Model):
         return "Event: " + str(self.name)
 
 
-class EventRewards(models.Model):  # login rewards for launch event
+# Generic Login event rewards
+class EventRewards(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     last_claimed_reward = models.IntegerField(default=-1)
+    last_claimed_time = models.DateTimeField(default=timezone.now)
 
 
 class StoryMode(models.Model):

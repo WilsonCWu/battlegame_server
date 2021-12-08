@@ -1,63 +1,60 @@
+from datetime import date, datetime, timezone
 from functools import lru_cache
 from typing import List
-from datetime import date, datetime
 
 from django.db.transaction import atomic
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_marshmallow import Schema
-from marshmallow import fields
 
-from playerdata import chests, serializers
-from playerdata.models import EventRewards
+from playerdata import chests, serializers, constants
+from playerdata.models import EventTimeTracker
+
+
+def christmas_2021_rewards():
+    return [
+        chests.ChestReward('chest', constants.ChestType.SILVER.value),  # Day 1
+        chests.ChestReward('gems', 888),
+        chests.ChestReward('chest', constants.ChestType.GOLD.value),
+        chests.ChestReward('gems', 1000),
+        chests.ChestReward('chest', constants.ChestType.GOLD.value),
+        chests.ChestReward('gems', 1200),
+        chests.ChestReward('chest', constants.ChestType.GOLD.value),
+        chests.ChestReward('chest', constants.ChestType.MYTHICAL.value)  # Grand Prize (8th)
+    ]
 
 
 # Returns a list[list[ChestReward]]
 @lru_cache()
-def get_event_rewards_list() -> List[List[chests.ChestReward]]:
-    day_one = []
-    day_one.append(chests.ChestReward('char_id', 38))  # Technician
-    day_one.append(chests.ChestReward('gems', 300))
+def get_event_rewards_list(event_name: str) -> List[chests.ChestReward]:
+    rewards = []
 
-    day_two = []
-    day_two.append(chests.ChestReward('char_id', 37))  # Blob
-    day_two.append(chests.ChestReward('gems', 600))
+    if event_name == constants.EventType.CHRISTMAS_2021.value:
+        rewards = christmas_2021_rewards()
 
-    day_three = []
-    day_three.append(chests.ChestReward('char_id', 33))  # Demolitionist
-    day_three.append(chests.ChestReward('gems', 1200))
-
-    day_four = []
-    day_four.append(chests.ChestReward('char_id', 35))  # Hunter
-    day_four.append(chests.ChestReward('gems', 2400))
-
-    day_five = []
-    day_five.append(chests.ChestReward('char_id', 34))  # Spacemage
-    day_five.append(chests.ChestReward('gems', 4800))
-    day_five.append(chests.ChestReward('profile_pic', 16))  # Profile pic
-
-    return [day_one, day_two, day_three, day_four, day_five]
+    return rewards
 
 
-# Returns an int, number of days passed since event started. First day returns 0
-def get_event_rewards_unlocked():
-    day0 = date(2021, 10, 14)  # hardcoded to first day of launch event
-    delta = (datetime.utcnow().date() - day0).days
-    return delta
+def get_active_event_rewards() -> List[chests.ChestReward]:
+    cur_time = datetime.now(timezone.utc)
+    event_time = EventTimeTracker.objects.filter(start_time__lte=cur_time, end_time__gt=cur_time).first()
+    if event_time is None:
+        return []
+    else:
+        return get_event_rewards_list(event_time.name)
 
 
 class GetEventRewardListView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        event_rewards = get_event_rewards_list()
         last_claimed_reward = request.user.eventrewards.last_claimed_reward
-        last_unlocked_reward = get_event_rewards_unlocked()
+        rewards = get_active_event_rewards()
 
         return Response({'status': True,
-                         'highest_claimed': last_claimed_reward,
-                         'highest_unlocked': last_unlocked_reward})
+                         'last_claimed': last_claimed_reward,
+                         'rewards': chests.ChestRewardSchema(rewards, many=True).data
+                         })
 
 
 class ClaimEventRewardView(APIView):
@@ -65,23 +62,20 @@ class ClaimEventRewardView(APIView):
 
     @atomic
     def post(self, request):
-        serializer = serializers.IntSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        reward_id = serializer.validated_data['value']
+        cur_time = datetime.now(timezone.utc)
+        if cur_time.day == request.user.eventrewards.last_claimed_time.day:
+            return Response({'status': False, 'reason': 'reward for today has been claimed'})
 
-        # Unlock one at a time, in order
-        if reward_id <= request.user.eventrewards.last_claimed_reward:
-            return Response({'status': False, 'reason': 'reward has already been claimed'})
-        if reward_id > (request.user.eventrewards.last_claimed_reward+1):
-            return Response({'status': False, 'reason': 'reward is not unlocked'})
+        event_rewards = get_active_event_rewards()
+        next_reward_id = request.user.eventrewards.last_claimed_reward + 1
 
-        # One reward unlocked per day after Oct 13
-        if reward_id > get_event_rewards_unlocked():
-            return Response({'status': False, 'reason': 'reward is not released'})
+        if event_rewards[next_reward_id].reward_type == "chest":
+            rewards = chests.generate_chest_rewards(event_rewards[next_reward_id].value, request.user)
+        else:
+            rewards = [event_rewards[next_reward_id]]
 
-        event_rewards = get_event_rewards_list()
-        rewards = event_rewards[reward_id]
-        request.user.eventrewards.last_claimed_reward = reward_id
+        request.user.eventrewards.last_claimed_reward = next_reward_id
+        request.user.eventrewards.last_claimed_time = cur_time
         request.user.eventrewards.save()
 
         chests.award_chest_rewards(request.user, rewards)

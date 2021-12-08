@@ -361,3 +361,4 @@ GRASS_REWARDS_PER_TIER = {
 
 class EventType(Enum):
     GRASS = 'grass_event'
+    CHRISTMAS_2021 = 'christmas_2021'
