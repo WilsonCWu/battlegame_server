@@ -35,9 +35,9 @@ def get_event_rewards_list(event_name: str) -> List[chests.ChestReward]:
     return rewards
 
 
-def get_active_event_rewards() -> List[chests.ChestReward]:
+def get_active_login_event_rewards() -> List[chests.ChestReward]:
     cur_time = datetime.now(timezone.utc)
-    event_time = EventTimeTracker.objects.filter(start_time__lte=cur_time, end_time__gt=cur_time).first()
+    event_time = EventTimeTracker.objects.filter(start_time__lte=cur_time, end_time__gt=cur_time, is_login_event=True).first()
     if event_time is None:
         return []
     else:
@@ -49,7 +49,7 @@ class GetEventRewardListView(APIView):
 
     def get(self, request):
         last_claimed_reward = request.user.eventrewards.last_claimed_reward
-        rewards = get_active_event_rewards()
+        rewards = get_active_login_event_rewards()
         cur_time = datetime.now(timezone.utc)
         is_next_claimable = cur_time.day > request.user.eventrewards.last_claimed_time.day and last_claimed_reward < len(rewards)
 
@@ -67,7 +67,7 @@ class ClaimEventRewardView(APIView):
     def post(self, request):
         cur_time = datetime.now(timezone.utc)
 
-        event_rewards = get_active_event_rewards()
+        event_rewards = get_active_login_event_rewards()
         next_reward_id = request.user.eventrewards.last_claimed_reward + 1
 
         # Completing the 7th day also unlocks the jackpot, allow a double claim

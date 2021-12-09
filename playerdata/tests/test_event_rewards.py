@@ -17,7 +17,11 @@ class EventRewardsTestCase(APITestCase):
         start_time = datetime(2021, 12, 20, tzinfo=timezone.utc)
         end_time = datetime(2021, 12, 30, tzinfo=timezone.utc)
 
-        self.event_time_tracker = EventTimeTracker.objects.create(name=constants.EventType.CHRISTMAS_2021.value, start_time=start_time, end_time=end_time)
+        self.event_time_tracker = EventTimeTracker.objects.create(name=constants.EventType.CHRISTMAS_2021.value,
+                                                                  start_time=start_time,
+                                                                  end_time=end_time,
+                                                                  is_login_event=True
+                                                                  )
 
     @freeze_time("2021-12-21")
     def test_event_get(self):

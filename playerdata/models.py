@@ -1445,6 +1445,7 @@ class EventTimeTracker(models.Model):
     name = models.TextField()
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
+    is_login_event = models.BooleanField(default=False)
 
     def __str__(self):
         return "Event: " + str(self.name)
