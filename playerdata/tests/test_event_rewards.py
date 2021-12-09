@@ -1,7 +1,10 @@
+from datetime import datetime, timezone
+
 from freezegun import freeze_time
 from rest_framework.test import APITestCase
 
-from playerdata.models import User
+from playerdata import constants
+from playerdata.models import User, EventTimeTracker
 
 
 class EventRewardsTestCase(APITestCase):
@@ -11,35 +14,49 @@ class EventRewardsTestCase(APITestCase):
         self.u = User.objects.get(username='testWilson')
         self.client.force_authenticate(user=self.u)
 
-    @freeze_time("2022-01-01")
+        start_time = datetime(2021, 12, 20, tzinfo=timezone.utc)
+        end_time = datetime(2021, 12, 30, tzinfo=timezone.utc)
+
+        self.event_time_tracker = EventTimeTracker.objects.create(name=constants.EventType.CHRISTMAS_2021.value,
+                                                                  start_time=start_time,
+                                                                  end_time=end_time,
+                                                                  is_login_event=True
+                                                                  )
+
+    @freeze_time("2021-12-21")
     def test_event_get(self):
-        self.u.eventrewards.last_claimed_reward = -1
         response = self.client.get('/eventreward/get/')
-        self.assertTrue(response.data['highest_unlocked'] > 5)
+        self.assertEqual(response.data['last_claimed'], -1)
+        self.assertEqual(len(response.data['rewards']), 8)
 
-    @freeze_time("2020-01-01")
+    @freeze_time("2021-12-19")
     def test_early_event_get(self):
-        self.u.eventrewards.last_claimed_reward = -1
         response = self.client.get('/eventreward/get/')
-        self.assertTrue(response.data['highest_unlocked'] < 1)
+        self.assertListEqual(response.data['rewards'], [])
 
-    @freeze_time("2021-10-15")  # Day two
-    def test_ok_mid_event_get(self):
-        self.u.eventrewards.last_claimed_reward = -1
-        response = self.client.get('/eventreward/get/')
-        self.assertTrue(response.data['highest_unlocked'] == 1)
+    @freeze_time("2021-12-21")
+    def test_event_claim(self):
+        response = self.client.post('/eventreward/claim/', {})
+        self.assertTrue(response.data['status'])
 
-    @freeze_time("2021-10-16")  # Day three
-    def test_bad_mid_event_get(self):
-        self.u.eventrewards.last_claimed_reward = -1
-        response = self.client.get('/eventreward/get/')
-        self.assertFalse(response.data['highest_unlocked'] == 3)
+        self.assertEqual(self.u.eventrewards.last_claimed_reward, 0)
 
-    # We don't test an OK claim because the characters aren't in the lightweight db yet.
-    @freeze_time("2022-01-01")
-    def test_bad_event_claim(self):
-        self.u.eventrewards.last_claimed_reward = -1
-        response = self.client.post('/eventreward/claim/', {
-            'value': 1
-        })
-        self.assertFalse(response.data['status'])  # Fails because claim is out of order.
+        response = self.client.post('/eventreward/claim/', {})
+        self.assertFalse(response.data['status'])  # Double claim on same day
+
+    @freeze_time("2021-12-21")
+    def test_event_claim_jackpot(self):
+        self.u.eventrewards.last_claimed_reward = 5
+        self.u.eventrewards.save()
+
+        response = self.client.post('/eventreward/claim/', {})
+        self.assertTrue(response.data['status'])
+
+        self.u.eventrewards.refresh_from_db()
+        self.assertEqual(self.u.eventrewards.last_claimed_reward, 6)
+
+        response = self.client.post('/eventreward/claim/', {})
+        self.assertTrue(response.data['status'])
+
+        response = self.client.post('/eventreward/claim/', {})
+        self.assertFalse(response.data['status'])

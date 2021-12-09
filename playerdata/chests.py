@@ -228,10 +228,6 @@ def guarantee_resources(rewards, num_rewards, chest_rarity: int, user, chest_tie
 def get_guaranteed_summons(chest_rarity: int, guaranteed_char_rewards, user):
     num_guaranteed_summons = constants.GUARANTEED_SUMMONS[chest_rarity - 1] - len(guaranteed_char_rewards)
 
-    # TODO(0.5.0): remove and replace constant with 8 mythic summons
-    if server.is_server_version_higher('0.5.0') and chest_rarity == ChestType.MYTHICAL.value:
-        num_guaranteed_summons = 7
-
     # Increase num summons based on stage if DailyDungeon
     if chest_rarity == constants.ChestType.DAILY_DUNGEON.value:
         dd_status = DailyDungeonStatus.get_active_for_user(user)
