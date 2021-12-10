@@ -32,7 +32,9 @@ class GetEventTimesView(APIView):
 
 def is_event_expired(event_name: str):
     cur_time = datetime.now(timezone.utc)
-    event_time = EventTimeTracker.objects.get(name=event_name)
+    event_time = EventTimeTracker.objects.filter(name=event_name).first()
+    if event_time is None:
+        return True
     return cur_time > event_time.end_time
 
 
