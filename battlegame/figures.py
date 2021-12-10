@@ -100,7 +100,7 @@ def get_dungeon_progress_graph():
 
     # Hardcode number of stages to check
     DUNGEON_STAGE_COUNT = constants.MAX_DUNGEON_STAGE[constants.DungeonType.CAMPAIGN.value]
-    DAILY_DUNGEON_STAGE_COUNT = 100
+    DAILY_DUNGEON_STAGE_COUNT = 80
 
     # Collect 'total players who peaked here' data for dungeon and dailydungeon
     highest_dungeon_stage_is_index = [0] * DUNGEON_STAGE_COUNT
