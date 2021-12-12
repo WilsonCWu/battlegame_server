@@ -85,6 +85,7 @@ class FillSlotView(APIView):
         if char is None:
             return Response({'status': False, 'reason': 'invalid char_id'})
 
+        # TODO: Remove me after 1.0.8
         if server.is_server_version_higher('1.0.8'):
             PRESTIGE_CAP = constants.PRESTIGE_CAP_BY_RARITY_15[char.char_type.rarity]
         else:
