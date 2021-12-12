@@ -11,6 +11,7 @@ from rest_marshmallow import Schema, fields
 from playerdata import shards, dungeon
 from . import rolls, constants, chests, dungeon_gen
 from .models import DailyDungeonStatus, DailyDungeonStage
+from .questupdater import QuestUpdater
 from .serializers import DailyDungeonStartSerializer, CharStateResultSerializer
 
 
@@ -126,6 +127,8 @@ class DailyDungeonStartView(APIView):
                                               is_golden=serializer.validated_data['is_golden'],
                                               character_state="")
 
+        QuestUpdater.add_progress_by_type(request.user, constants.START_ET_RUN, 1)
+
         return Response({'status': True})
 
 
@@ -184,6 +187,7 @@ def dd_tiered_item_rewards(dd_status: DailyDungeonStatus, user):
         item_reward = chests.ChestReward(reward_type='item_id', value=item.item_type)
         rewards.append(item_reward)
 
+    QuestUpdater.add_progress_by_type(user, constants.COLLECT_ITEM, num_drops)
     chests.award_chest_rewards(user, rewards)
     reward_schema = chests.ChestRewardSchema(rewards, many=True)
     return reward_schema.data
