@@ -161,14 +161,30 @@ MATCHER_INCREASE_RANGE = 50
 # Inventory constants
 MAX_PLAYER_LEVEL = 120
 MAX_CHARACTER_LEVEL = 240
-MAX_PRESTIGE_LEVEL = 10
-PRESTIGE_COPIES_REQUIRED = [1, 2, 4, 10, 20, 50, 100, 200, 400, 800]
+MAX_PRESTIGE_LEVEL = 10   # TODO: deprecate after 1.0.9
+PRESTIGE_COPIES_REQUIRED = [1, 2, 4, 10, 20, 50, 100, 200, 400, 800]  # TODO: deprecate after 1.0.9
 PRESTIGE_CAP_BY_RARITY = {
     1: MAX_PRESTIGE_LEVEL,
     2: MAX_PRESTIGE_LEVEL - 1,
     3: MAX_PRESTIGE_LEVEL - 3,
     4: MAX_PRESTIGE_LEVEL - 5,
 }
+
+MAX_PRESTIGE_LEVEL_15 = 15
+PRESTIGE_COPIES_REQUIRED_BY_RARITY = {
+    1: [1, 2, 4, 10, 20, 50, 100, 200, 400, 800, 400, 400, 400, 400, 400],  # Commons aren't used
+    2: [1, 2, 4, 10, 20, 50, 100, 200, 400, 200, 200, 200, 200, 200],  # Rare
+    3: [1, 2, 4, 10, 20, 50, 100, 50, 50, 50, 50, 50],  # Epic
+    4: [1, 2, 4, 10, 20, 10, 10, 10, 10, 10],  # Legendary
+}
+
+PRESTIGE_CAP_BY_RARITY_15 = {
+    1: MAX_PRESTIGE_LEVEL_15,
+    2: MAX_PRESTIGE_LEVEL_15 - 1,
+    3: MAX_PRESTIGE_LEVEL_15 - 3,
+    4: MAX_PRESTIGE_LEVEL_15 - 5,
+}
+
 
 # coin shop constants
 # various experimental items for closed beta

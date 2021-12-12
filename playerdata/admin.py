@@ -3,14 +3,13 @@ from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.models import LogEntry
 from django.http import HttpResponse
+from django.shortcuts import render
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 from django_json_widget.widgets import JSONEditorWidget
-from django.shortcuts import render
-from battlegame.figures import get_table_context, get_base_character_usage_dataframe, get_dungeon_stats_dataframe
 
 from battlegame.cron import next_round, setup_tournament, end_tourney
-from . import purchases
-from .constants import MAX_PRESTIGE_LEVEL, PRESTIGE_CAP_BY_RARITY
+from battlegame.figures import get_table_context, get_base_character_usage_dataframe, get_dungeon_stats_dataframe
+from . import purchases, server
 from .daily_dungeon import daily_dungeon_team_gen_cron
 from .dungeon import generate_dungeon_stages
 from .dungeon_gen import convert_placement_to_json
@@ -646,12 +645,20 @@ class BaseCharacterAdmin(admin.ModelAdmin):
 
             # Create BasePrestige for characters that currently don't have
             # any.
+            # TODO: Remove me after 1.0.8
+            if server.is_server_version_higher('1.0.8'):
+                PRESTIGE_CAP = constants.PRESTIGE_CAP_BY_RARITY_15[base_char.rarity]
+                MAX_PRESTIGE = constants.MAX_PRESTIGE_LEVEL_15
+            else:
+                PRESTIGE_CAP = constants.PRESTIGE_CAP_BY_RARITY[base_char.rarity]
+                MAX_PRESTIGE = constants.MAX_PRESTIGE_LEVEL
+
             if not BasePrestige.objects.filter(char_type=base_char).exists():
-                for i in range(PRESTIGE_CAP_BY_RARITY[base_char.rarity] + 1):
+                for i in range(PRESTIGE_CAP + 1):
                     # Don't need to backfill for common characters.
                     if base_char.rarity == 1 and i == 0: continue
 
-                    levels_to_backfill = MAX_PRESTIGE_LEVEL - PRESTIGE_CAP_BY_RARITY[base_char.rarity]
+                    levels_to_backfill = MAX_PRESTIGE - PRESTIGE_CAP
                     star_level = i + levels_to_backfill
                     BasePrestige.objects.create(
                         char_type=base_char,
@@ -690,7 +697,7 @@ class BaseCharacterAdmin(admin.ModelAdmin):
 
             # Create an easy to fill BaseCharacterAbility2.
             if not BaseCharacterAbility2.objects.filter(char_type=base_char).exists():
-                sl = PRESTIGE_CAP_BY_RARITY[base_char.rarity] - 5
+                sl = PRESTIGE_CAP - 5
                 BaseCharacterAbility2.objects.create(
                     char_type=base_char,
                     version='0.0.0',

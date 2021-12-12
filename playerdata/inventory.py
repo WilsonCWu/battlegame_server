@@ -185,7 +185,7 @@ class TryPrestigeView(APIView):
         if target_character.prestige >= constants.PRESTIGE_CAP_BY_RARITY[target_character.char_type.rarity]:
             return Response({'status': False, 'reason': 'character has already hit max prestige!'})
 
-        copies_required = formulas.next_prestige_copies(target_character.prestige)
+        copies_required = formulas.next_prestige_copies(target_character.prestige, target_character.char_type.rarity)
 
         if target_character.copies < copies_required:
             return Response({'status': False, 'reason': 'not enough copies to prestige!'})
