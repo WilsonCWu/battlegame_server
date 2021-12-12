@@ -9,7 +9,7 @@ from rest_marshmallow import Schema, fields
 from django.utils import timezone
 from datetime import datetime, timedelta
 
-from playerdata import formulas, constants
+from playerdata import formulas, constants, server
 from playerdata.models import Character
 from playerdata.questupdater import QuestUpdater
 from playerdata.serializers import SlotSerializer, IntSerializer
@@ -32,8 +32,15 @@ class LevelBoosterSchema(Schema):
 def get_max_out_char_count(user):
     chars = Character.objects.filter(user=user, level=240)
     count = 0
+
+    # TODO: remove after 1.0.8
+    if server.is_server_version_higher('1.0.8'):
+        PRESTIGE_CAP = constants.PRESTIGE_CAP_BY_RARITY_15
+    else:
+        PRESTIGE_CAP = constants.PRESTIGE_CAP_BY_RARITY
+
     for char in chars:
-        if char.prestige == constants.PRESTIGE_CAP_BY_RARITY[char.char_type.rarity]:
+        if char.prestige == PRESTIGE_CAP[char.char_type.rarity]:
             count += 1
 
     return count
@@ -78,7 +85,12 @@ class FillSlotView(APIView):
         if char is None:
             return Response({'status': False, 'reason': 'invalid char_id'})
 
-        if char.level != constants.MAX_CHARACTER_LEVEL or char.prestige != constants.PRESTIGE_CAP_BY_RARITY[char.char_type.rarity]:
+        if server.is_server_version_higher('1.0.8'):
+            PRESTIGE_CAP = constants.PRESTIGE_CAP_BY_RARITY_15[char.char_type.rarity]
+        else:
+            PRESTIGE_CAP = constants.PRESTIGE_CAP_BY_RARITY[char.char_type.rarity]
+
+        if char.level != constants.MAX_CHARACTER_LEVEL or char.prestige != PRESTIGE_CAP:
             return Response({'status': False, 'reason': 'must max out char before you can add it to a slot'})
 
         curr_time = datetime.now(timezone.utc)
