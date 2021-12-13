@@ -27,6 +27,9 @@ class CumulativeQuestSchema2(Schema):
     gems = fields.Int(attribute='base_quest.gems')
     coins = fields.Int(attribute='base_quest.coins')
     dust = fields.Int(attribute='base_quest.dust')
+    dust_fast_reward_hours = fields.Int(attribute='base_quest.dust_fast_reward_hours')
+    coins_fast_reward_hours = fields.Int(attribute='base_quest.coins_fast_reward_hours')
+
     # TODO: something like fields.Function(lambda quest: quest.base_quest.item_type.id if quest.base_quest.item_type else '')
     # these fields won't be returned if item_type is None
     item_id = fields.Int(attribute='base_quest.item_type.id')
@@ -47,6 +50,8 @@ class QuestSchema(Schema):
     gems = fields.Int(attribute='base_quest.gems')
     coins = fields.Int(attribute='base_quest.coins')
     dust = fields.Int(attribute='base_quest.dust')
+    dust_fast_reward_hours = fields.Int(attribute='base_quest.dust_fast_reward_hours')
+    coins_fast_reward_hours = fields.Int(attribute='base_quest.coins_fast_reward_hours')
     points = fields.Int(attribute='base_quest.points')
     item_id = fields.Int(attribute='base_quest.item_type.id')
     item_description = fields.Str(attribute='base_quest.item_type.description')
@@ -63,6 +68,10 @@ def award_quest(user_inventory, quest_base):
     user_inventory.coins += quest_base.coins
     user_inventory.gems += quest_base.gems
     user_inventory.dust += quest_base.dust
+    user_inventory.dust_fast_reward_hours += quest_base.dust_fast_reward_hours
+    user_inventory.coins_fast_reward_hours += quest_base.coins_fast_reward_hours
+
+    # TODO: Add regal reward points
     # TODO: items and characters
     user_inventory.save()
 
@@ -197,11 +206,11 @@ class CompleteSocialLinkView(APIView):
         serializer.is_valid(raise_exception=True)
         quest_type = serializer.validated_data['value']
 
-        if quest_type == constants.TWITTER.value:
+        if quest_type == constants.TWITTER:
             QuestUpdater.add_progress_by_type(request.user, constants.TWITTER, 1)
-        elif quest_type == constants.INSTAGRAM.value:
+        elif quest_type == constants.INSTAGRAM:
             QuestUpdater.add_progress_by_type(request.user, constants.INSTAGRAM, 1)
-        elif quest_type == constants.DISCORD.value:
+        elif quest_type == constants.DISCORD:
             QuestUpdater.add_progress_by_type(request.user, constants.DISCORD, 1)
 
         return Response({'status': True})
