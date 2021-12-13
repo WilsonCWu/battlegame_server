@@ -6,9 +6,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from playerdata import server, shards, chests
+from playerdata import server, shards, chests, constants
 from playerdata.formulas import afk_coins_per_min, afk_exp_per_min, afk_dust_per_min, vip_exp_to_level
 from playerdata.models import DungeonProgress, AFKReward, default_afk_shard_list
+from playerdata.questupdater import QuestUpdater
 from playerdata.serializers import FastRewardsSerializer
 
 PVP_RUNE_REWARD = 3600  # 1 hr worth of afk
@@ -142,6 +143,8 @@ class CollectAFKRewardView(APIView):
         # request.user.userinfo.save()
 
         inventory.save()
+
+        QuestUpdater.add_progress_by_type(request.user, constants.COLLECT_AFK_REWARD, 1)
 
         return Response({'status': True})
 

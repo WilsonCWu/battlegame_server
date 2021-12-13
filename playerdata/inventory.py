@@ -543,5 +543,7 @@ class ScrapItemsView(APIView):
 
         target_item = scrap_items(scraps, target_item)
 
+        QuestUpdater.add_progress_by_type(request.user, constants.UPGRADE_ITEM, 1)
+
         target_item_schema = ItemSchema(target_item)
         return Response({'status': True, 'target_item': target_item_schema.data})

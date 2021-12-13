@@ -136,6 +136,7 @@ urlpatterns = [
     path('quest/claim/cumulative', quest.ClaimQuestCumulativeView.as_view()),
     path('quest/claim/weekly', quest.ClaimQuestWeeklyView.as_view()),
     path('quest/claim/daily', quest.ClaimQuestDailyView.as_view()),
+    path('quest/sociallink/', quest.CompleteSocialLinkView.as_view()),
     path('quest/discord', quest.CompleteDiscordView.as_view()),
     path('quest/linkaccount', quest.LinkAccountView.as_view()),
     path('friendrequest/accept/', social.AcceptFriendRequestView.as_view()),

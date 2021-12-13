@@ -16,7 +16,7 @@ from playerdata.models import User
 from . import constants
 from .activity_points import ActivityPointsUpdater, ActivityPointsSchema
 from .questupdater import QuestUpdater
-from .serializers import ClaimQuestSerializer
+from .serializers import ClaimQuestSerializer, IntSerializer
 
 
 class CumulativeQuestSchema2(Schema):
@@ -178,12 +178,32 @@ class ClaimQuestDailyView(APIView):
         return handle_claim_quest(request, PlayerQuestDaily)
 
 
+# TODO: remove me 1.0.9 in favor of CompleteSocialLinkView
 class CompleteDiscordView(APIView):
     permission_classes = (IsAuthenticated,)
 
     @transaction.atomic
     def post(self, request):
         QuestUpdater.add_progress_by_type(request.user, constants.DISCORD, 1)
+        return Response({'status': True})
+
+
+class CompleteSocialLinkView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic
+    def post(self, request):
+        serializer = IntSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        quest_type = serializer.validated_data['value']
+
+        if quest_type == constants.TWITTER.value:
+            QuestUpdater.add_progress_by_type(request.user, constants.TWITTER, 1)
+        elif quest_type == constants.INSTAGRAM.value:
+            QuestUpdater.add_progress_by_type(request.user, constants.INSTAGRAM, 1)
+        elif quest_type == constants.DISCORD.value:
+            QuestUpdater.add_progress_by_type(request.user, constants.DISCORD, 1)
+
         return Response({'status': True})
 
 
