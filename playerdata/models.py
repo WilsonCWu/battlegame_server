@@ -278,15 +278,15 @@ class BaseCharacterAbility2(models.Model):
                                       'unlock level.')
             seen_levels.update(levels_in_spec)
 
-            # Prestiges can only grant ability buffs from starlevel 5-10.
+            # Prestiges can only grant ability buffs from starlevel 5-15.
             prestige_levels_in_spec = {lvl for lvl in specs
                                        if BaseCharacterAbility2.is_prestige_key(lvl)}
             for prestige_level in prestige_levels_in_spec:
                 int_level = int(prestige_level.lstrip("prestige-"))
-                prestige_cap = constants.PRESTIGE_CAP_BY_RARITY[self.char_type.rarity]
+                prestige_cap = constants.PRESTIGE_CAP_BY_RARITY_15[self.char_type.rarity]
                 if int_level > prestige_cap:
                     raise ValidationError('prestige level %d exceeds cap.' % int_level)
-                if int_level <= prestige_cap - 5:
+                if int_level <= prestige_cap - 10:
                     raise ValidationError('prestige level %d should not have ability bonuses.' % int_level)
 
         for i in range(len(seen_levels)):
@@ -419,7 +419,7 @@ class BasePrestige(StatModifiers):
         # For common characters, they start off with 0 star level, which means
         # that they won't need prestige-0, which is used for padding star
         # levels given by base rarity.
-        bounds = (1 if rarity == 1 else 0, constants.PRESTIGE_CAP_BY_RARITY[rarity])
+        bounds = (1 if rarity == 1 else 0, constants.PRESTIGE_CAP_BY_RARITY_15[rarity])
         if self.level < bounds[0] or self.level > bounds[1]:
             raise ValidationError("Expected prestige for char rarity %d to be between %s" % (rarity, bounds))
 

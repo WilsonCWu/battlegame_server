@@ -3,14 +3,18 @@ import math
 import random
 from datetime import date
 
-from playerdata import constants, base
+from playerdata import constants, base, server
 from playerdata.matcher import PlacementSchema
 from playerdata.models import Placement, Character, DungeonBoss, DailyDungeonStage, Item
 
 
 # Adjust the prestige based on prestige rarity cap
 def prestige_for_rarity(rarity, prestige):
-    prestige -= constants.MAX_PRESTIGE_LEVEL - constants.PRESTIGE_CAP_BY_RARITY[rarity]
+    # TODO: Remove me after 1.0.8
+    if server.is_server_version_higher('1.0.8'):
+        prestige -= constants.MAX_PRESTIGE_LEVEL_15 - constants.PRESTIGE_CAP_BY_RARITY_15[rarity]
+    else:
+        prestige -= constants.MAX_PRESTIGE_LEVEL - constants.PRESTIGE_CAP_BY_RARITY[rarity]
     return max(prestige, 0)
 
 

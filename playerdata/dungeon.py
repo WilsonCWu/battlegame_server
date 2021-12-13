@@ -74,7 +74,11 @@ def make_char(user_id: int, char: Character, iteration: int, dungeon_type: int):
     level_multiplier = constants.CHAR_LEVEL_DIFF_BETWEEN_STAGES[dungeon_type]
 
     if dungeon_type == constants.DungeonType.TOWER.value:
-        prestige = constants.PRESTIGE_CAP_BY_RARITY[char.char_type.rarity]
+        # TODO: Remove me after 1.0.8
+        if server.is_server_version_higher('1.0.8'):
+            prestige = constants.PRESTIGE_CAP_BY_RARITY_15[char.char_type.rarity]
+        else:
+            prestige = constants.PRESTIGE_CAP_BY_RARITY[char.char_type.rarity]
     else:
         prestige = 0
 
