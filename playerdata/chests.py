@@ -192,6 +192,10 @@ def award_chest_rewards(user, rewards):
             user.inventory.epic_shards += reward.value
         elif reward.reward_type == 'legendary_shards':
             user.inventory.legendary_shards += reward.value
+        elif reward.reward_type == 'dust_fast_reward_hours':
+            user.inventory.dust_fast_reward_hours += reward.value
+        elif reward.reward_type == 'coins_fast_reward_hours':
+            user.inventory.coins_fast_reward_hours += reward.value
         elif reward.reward_type == 'champ_badge':
             user.inventory.champ_badges += reward.value
             tier_system.complete_any_champ_rewards(user.inventory.champ_badges, user.champbadgetracker)
