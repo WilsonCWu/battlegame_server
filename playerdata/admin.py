@@ -794,11 +794,15 @@ class HackerAlertAdmin(admin.ModelAdmin):
 
     def generate_hacker_report(self, request, queryset):
         start = datetime.utcnow()
-        df = get_hacker_alert_dataframe(queryset)
-        df['simulation flag rate'] = 100 * (df['flagged_sims'] / df['reports_processed'])
+
+        if queryset:
+            df = get_hacker_alert_dataframe(queryset)
+            df['simulation flag rate'] = 100 * (df['flagged_sims'] / df['reports_processed'])
+            context = get_table_context(df)
+        else:
+            context = {}
         end = datetime.utcnow()
         elapsed = end - start
-        context = get_table_context(df)
         context['page_title'] = "Hacker Stats Report"
         context['other_data'] = [f'Time: {datetime.now()}']
         context['other_data'].append(f'Function runtime: {elapsed}')
