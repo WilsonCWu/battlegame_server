@@ -8,7 +8,7 @@ from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 from django_json_widget.widgets import JSONEditorWidget
 
 from battlegame.cron import next_round, setup_tournament, end_tourney
-from battlegame.figures import get_table_context, get_base_character_usage_dataframe, get_dungeon_stats_dataframe
+from battlegame.figures import get_hacker_alert_dataframe, get_table_context, get_base_character_usage_dataframe, get_dungeon_stats_dataframe
 from . import purchases, server
 from .daily_dungeon import daily_dungeon_team_gen_cron
 from .dungeon import generate_dungeon_stages
@@ -75,10 +75,14 @@ class DungeonStatsAdmin(admin.ModelAdmin):
     actions = ('generate_dungeon_stats_report',)
 
     def generate_dungeon_stats_report(self, request, queryset):
+        start = datetime.utcnow()
         df = get_dungeon_stats_dataframe(queryset)
         context = get_table_context(df)
+        end = datetime.utcnow()
+        elapsed = end - start
         context['page_title'] = "Dungeon Stats Report"
         context['other_data'] = [f'Time: {datetime.now()}']
+        context['other_data'].append(f'Function runtime: {elapsed}')
         return render(request, 'table.html', context)
 
 
@@ -786,6 +790,19 @@ class HackerAlertAdmin(admin.ModelAdmin):
     list_filter = ('timestamp',)
     raw_id_fields = ('user', 'reporter')
     search_fields = ('=user__id',)
+    actions = ('generate_hacker_report',)
+
+    def generate_hacker_report(self, request, queryset):
+        start = datetime.utcnow()
+        df = get_hacker_alert_dataframe(queryset)
+        df['simulation flag rate'] = 100 * (df['flagged_sims'] / df['reports_processed'])
+        end = datetime.utcnow()
+        elapsed = end - start
+        context = get_table_context(df)
+        context['page_title'] = "Hacker Stats Report"
+        context['other_data'] = [f'Time: {datetime.now()}']
+        context['other_data'].append(f'Function runtime: {elapsed}')
+        return render(request, 'table.html', context)
 
 
 class GrassEventAdmin(admin.ModelAdmin, DynamicArrayMixin):

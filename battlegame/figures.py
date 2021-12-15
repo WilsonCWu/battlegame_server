@@ -1,3 +1,4 @@
+from datetime import datetime
 import pandas as pd
 from plotly import graph_objects
 from dataclasses import dataclass
@@ -159,16 +160,24 @@ def get_combined_dungeon_graphs():
 GRAPHS = {'sample': get_sample_graph,  # Single graph example
           'samples': get_sample_graphs,  # Multiple graphs example
           'usage': get_usage_stats_graph,
-          'dungeon': get_combined_dungeon_graphs}
+          'dungeon': get_combined_dungeon_graphs,
+          }
 
 
 # Gives context for rendering a graph or list of graphs with the graphs.html template
 def get_graph_context(name):
+    start = datetime.utcnow()
     context = {}
     if name in GRAPHS:
         context = GRAPHS[name]()
+    end = datetime.utcnow()
+    elapsed = end - start
     if 'graph_title' not in context:
         context['graph_title'] = 'Graph'
+    if 'other_data' not in context:
+        context['other_data'] = [f'Function runtime: {elapsed}']
+    else:
+        context['other_data'].append(f'Function runtime: {elapsed}')
     context['other_graph_links'] = GRAPHS.keys()
     return context
 
@@ -240,3 +249,44 @@ def get_dungeon_stats_dataframe(queryset):
             wins=stage_stats.wins,
             games=stage_stats.games))
     return pd.DataFrame([stats_row.to_dict() for stats_row in stage_stats_rows])
+
+
+# Queryset should be HackerAlert objects
+def get_hacker_alert_dataframe(queryset):
+
+    @dataclass
+    class HackerStatsRow:
+        user_id: int
+        user_name: str
+        reports: int
+        reports_processed: int
+        flagged_sims: int
+
+        def to_dict(self):
+            return dict(user_id=self.user_id,
+                        user_name=self.user_name,
+                        reports=self.reports,
+                        reports_processed=self.reports_processed,
+                        flagged_sims=self.flagged_sims)
+
+    hacker_stats_dict = {}
+
+    # We want the table to be stats per user, so compile each hacker alert into a dict instead of list
+    for report in queryset:
+        id = report.user.id
+        if id not in hacker_stats_dict:
+            hacker_stats_dict[id] = HackerStatsRow(
+                user_id=id,
+                user_name=report.user.userinfo.name,
+                reports=0,
+                reports_processed=0,
+                flagged_sims=0)
+
+        # Increment the stats based on the hacker alert.
+        hacker_stats_dict[id].reports += 1
+        if report.match_simulated:
+            hacker_stats_dict[id].reports_processed += 1
+            if report.match_simulated_alert:
+                hacker_stats_dict[id].flagged_sims += 1
+
+    return pd.DataFrame([hacker_stats_dict[key].to_dict() for key in hacker_stats_dict])
