@@ -217,8 +217,11 @@ CRONJOBS = [
     ('30 0 * * *', 'battlegame.cron.expire_creator_codes', '>> /tmp/expire_creator_codes.log'),
 
     # At 12:15AM UTC daily
-    ('15 * * * *', 'battlegame.cron.push_quickplay_usage_to_db', '>> /tmp/push_quickplay_usage_to_db.log'),
-    ('16 * * * *', 'battlegame.cron.push_dungeon_games_to_db', '>> /tmp/push_dungeon_games_to_db.log'),
+    ('15 0 * * *', 'battlegame.cron.push_quickplay_usage_to_db', '>> /tmp/push_quickplay_usage_to_db.log'),
+    ('16 0 * * *', 'battlegame.cron.push_dungeon_games_to_db', '>> /tmp/push_dungeon_games_to_db.log'),
+
+    # Hourly at HH:02
+    ('2 * * * *', 'battlegame.cron.process_hacker_alerts', '>> /tmp/process_hacker_alerts.log'),
 
     # TODO (1.0.4): remove me after event ends
     # Will only run on odd days (Thanksgiving starts on 25th this year)
