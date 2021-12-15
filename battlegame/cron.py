@@ -443,7 +443,7 @@ def process_hacker_alerts():
     now = datetime.utcnow()
 
     MAX_REPORTS_TO_SIM_IN_ONE_JOB = 10
-    SIM_SERVER_HOSTNAME = "DESKTOP-SHAUN.local"
+    SIM_SERVER_HOSTNAME = "127.0.0.1"
     SIM_PORT = "8007"
 
     reports_processed = 0
