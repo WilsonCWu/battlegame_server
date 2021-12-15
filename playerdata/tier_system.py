@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema
 
-from playerdata import constants, chests, formulas
+from playerdata import constants, chests, formulas, server
 from playerdata.models import EloRewardTracker, SeasonReward, UserInfo, ChampBadgeTracker
 from playerdata.serializers import IntSerializer
 
@@ -68,7 +68,10 @@ def get_elo_rewards_list() -> List[EloReward]:
         elif counter_offset % 5 == 0:
             rewards.append(EloReward(reward_id, elo, 'gems', 500))
         elif counter_offset % 5 == 4:
-            rewards.append(EloReward(reward_id, elo, 'essence', 100 * elo_to_tier(elo).value))
+            if server.is_server_version_higher('1.0.8'):
+                rewards.append(EloReward(reward_id, elo, 'dust_fast_reward_hours', 8))
+            else:
+                rewards.append(EloReward(reward_id, elo, 'essence', 100 * elo_to_tier(elo).value))
         elif counter_offset % 5 == 3:
             rewards.append(EloReward(reward_id, elo, 'chest', constants.ChestType.GOLD.value))
         elif counter_offset % 5 == 2:
@@ -87,7 +90,10 @@ def get_elo_rewards_list() -> List[EloReward]:
             # rewards.append(EloReward(reward_id, elo, 'champ_badge', 30))
             rewards.append(EloReward(reward_id, elo, 'chest', constants.ChestType.GOLD.value))
         elif counter_offset % 5 == 4:
-            rewards.append(EloReward(reward_id, elo, 'gems', 600))
+            if server.is_server_version_higher('1.0.8'):
+                rewards.append(EloReward(reward_id, elo, 'dust_fast_reward_hours', 12))
+            else:
+                rewards.append(EloReward(reward_id, elo, 'gems', 600))
         elif counter_offset % 5 == 3:
             rewards.append(EloReward(reward_id, elo, 'chest', constants.ChestType.MYTHICAL.value))
         elif counter_offset % 5 == 2:

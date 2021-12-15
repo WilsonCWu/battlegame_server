@@ -1334,6 +1334,8 @@ class BaseDeal(models.Model):
     rare_shards = models.IntegerField(default=0)
     epic_shards = models.IntegerField(default=0)
     legendary_shards = models.IntegerField(default=0)
+    dust_fast_reward_hours = models.IntegerField(default=0)
+    coins_fast_reward_hours = models.IntegerField(default=0)
     item = models.ForeignKey(BaseItem, on_delete=models.CASCADE, blank=True, null=True)
     item_quantity = models.IntegerField(default=0)
     char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE, blank=True, null=True)
