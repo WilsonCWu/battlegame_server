@@ -782,7 +782,7 @@ class ChatMessageAdmin(admin.ModelAdmin):
 
 
 class HackerAlertAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'verified_hacker', 'timestamp')
+    list_display = ('id', '__str__', 'user', 'match_simulated', 'match_simulated_alert', 'verified_hacker', 'skip_simulation', 'timestamp',)
     list_filter = ('timestamp',)
     raw_id_fields = ('user', 'reporter')
     search_fields = ('=user__id',)

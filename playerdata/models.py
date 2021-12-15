@@ -1257,12 +1257,18 @@ class HackerAlert(models.Model):
     suspicious_match_id = models.IntegerField(default=0)
     notes = models.TextField(default='')
 
+    # Automatically verify hacked games:
+    match_simulated = models.BooleanField(default=False)
+    skip_simulation = models.BooleanField(default=False)
+    match_simulated_alert = models.BooleanField(default=False)  # We'll set this to true if we simulate and the winner doesn't match.
+    match_simulated_time = models.DateTimeField(null=True, blank=True, default=None)
+
     # Metadata for management.
     verified_hacker = models.BooleanField(null=True, blank=True)
 
     def __str__(self):
         if self.reporter:
-            return str(self.user) + ' reporter by ' + str(self.reporter)
+            return str(self.user) + ' reported by ' + str(self.reporter)
         else:
             return str(self.user)
 
