@@ -649,29 +649,26 @@ class BaseCharacterAdmin(admin.ModelAdmin):
 
             # Create BasePrestige for characters that currently don't have
             # any.
-            # TODO: Remove me after 1.0.8
-            if server.is_server_version_higher('1.0.8'):
-                PRESTIGE_CAP = constants.PRESTIGE_CAP_BY_RARITY_15[base_char.rarity]
-                MAX_PRESTIGE = constants.MAX_PRESTIGE_LEVEL_15
-            else:
-                PRESTIGE_CAP = constants.PRESTIGE_CAP_BY_RARITY[base_char.rarity]
-                MAX_PRESTIGE = constants.MAX_PRESTIGE_LEVEL
+            PRESTIGE_CAP = constants.PRESTIGE_CAP_BY_RARITY_15[base_char.rarity]
+            MAX_PRESTIGE = constants.MAX_PRESTIGE_LEVEL_15
 
-            if not BasePrestige.objects.filter(char_type=base_char).exists():
-                for i in range(PRESTIGE_CAP + 1):
-                    # Don't need to backfill for common characters.
-                    if base_char.rarity == 1 and i == 0: continue
+            for i in range(PRESTIGE_CAP + 1):
+                # Don't need to backfill for common characters.
+                if base_char.rarity == 1 and i == 0: continue
 
-                    levels_to_backfill = MAX_PRESTIGE - PRESTIGE_CAP
-                    star_level = i + levels_to_backfill
+                levels_to_backfill = MAX_PRESTIGE - PRESTIGE_CAP
+                star_level = i + levels_to_backfill
+                prestige_mult = (1.07 ** min(star_level, 10)) * (1.035 ** max(0, star_level - 10))
+
+                if not BasePrestige.objects.filter(char_type=base_char, level=i).exists():
                     BasePrestige.objects.create(
                         char_type=base_char,
                         level=i,
-                        attack_mult=(1.07 ** star_level),
-                        ability_mult=(1.07 ** star_level),
-                        ar_mult=(1.07 ** star_level),
-                        mr_mult=(1.07 ** star_level),
-                        max_health_mult=(1.07 ** star_level),
+                        attack_mult=prestige_mult,
+                        ability_mult=prestige_mult,
+                        ar_mult=prestige_mult,
+                        mr_mult=prestige_mult,
+                        max_health_mult=prestige_mult,
                     )
 
             # Create BaseCharacterStats if need. Defaults to base stats of
