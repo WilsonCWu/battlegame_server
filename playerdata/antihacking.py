@@ -35,7 +35,7 @@ class UserReportView(APIView):
         HackerAlert.objects.get_or_create(
             user=hacker,
             reporter=request.user,
-            suspicious_match_id=match_id,
+            suspicious_match=match,
         )
         return Response({'status': True})
 
@@ -53,10 +53,10 @@ class MatchValidator:
         if match.id % self.sample_rate != 0:
             return
 
-        MatchValidator._validate_user(match.id, match.attacker, replay.attacking_team)
-        MatchValidator._validate_user(match.id, match.defender, replay.defending_team)
+        MatchValidator._validate_user(match, match.attacker, replay.attacking_team)
+        MatchValidator._validate_user(match, match.defender, replay.defending_team)
 
-    def _validate_user(match_id, user, payload):
+    def _validate_user(match, user, payload):
         battle_chars = MatchValidator._chars_from_payload(payload)
         inv_chars = {c.char_id: c for c in Character.objects.filter(user=user)}
         boosted_level = user.levelbooster.booster_level
@@ -83,7 +83,7 @@ class MatchValidator:
         if reason:
             HackerAlert.objects.create(
                 user=user,
-                suspicious_match_id=match_id,
+                suspicious_match=match,
                 notes=reason + '\n\n' + str(payload)
             )
 

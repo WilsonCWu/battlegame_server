@@ -3,7 +3,7 @@ import math
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from battlegame.figures import get_graph_context
-from playerdata.admin import UserInfoAdmin, BaseCharacterUsageAdmin, DungeonStatsAdmin
+from playerdata.admin import HackerAlertAdmin, UserInfoAdmin, BaseCharacterUsageAdmin, DungeonStatsAdmin
 from playerdata.models import *
 
 
@@ -59,3 +59,8 @@ def get_graph_view(request, name=None):
 @login_required(login_url='/admin/')
 def get_dungeon_table_view(request, name=None):
     return DungeonStatsAdmin.generate_dungeon_stats_report(DungeonStatsAdmin, request, DungeonStats.objects.all())
+
+
+@login_required(login_url='/admin/')
+def get_hacker_report_view(request):
+    return HackerAlertAdmin.generate_hacker_report(HackerAlertAdmin, request, HackerAlert.objects.all())

@@ -1254,15 +1254,22 @@ class HackerAlert(models.Model):
 
     # Detailed info of hacker's activity.
     reporter = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='report')
-    suspicious_match_id = models.IntegerField(default=0)
+    # Let the match be null so we don't lose old reports even if we delete old matches.
+    suspicious_match = models.ForeignKey(Match, on_delete=models.SET_NULL, blank=True, null=True)
     notes = models.TextField(default='')
+
+    # Automatically verify hacked games:
+    match_simulated = models.BooleanField(default=False)
+    skip_simulation = models.BooleanField(default=False)
+    match_simulated_alert = models.BooleanField(default=False)  # We'll set this to true if we simulate and the winner doesn't match.
+    match_simulated_time = models.DateTimeField(null=True, blank=True, default=None)
 
     # Metadata for management.
     verified_hacker = models.BooleanField(null=True, blank=True)
 
     def __str__(self):
         if self.reporter:
-            return str(self.user) + ' reporter by ' + str(self.reporter)
+            return str(self.user) + ' reported by ' + str(self.reporter)
         else:
             return str(self.user)
 
