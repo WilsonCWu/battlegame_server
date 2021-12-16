@@ -439,31 +439,30 @@ def push_dungeon_games_to_db():
 
 # We will automatically simulate reported matches.
 def process_hacker_alerts():
-    reports = HackerAlert.objects.filter(match_simulated=False, skip_simulation=False)
+    reports = HackerAlert.objects.filter(match_simulated=False, skip_simulation=False).select_related('suspicious_match')
+    updated_reports = []
+    reports_simulated = 0
     now = datetime.utcnow()
 
     MAX_REPORTS_TO_SIM_IN_ONE_JOB = 10
     SIM_SERVER_HOSTNAME = "127.0.0.1"
     SIM_PORT = "8007"
 
-    reports_processed = 0
     for report in reports:
-        # Since this is a regular cron job, we'll cap the amount of matches to process so we don't kill the server if there's some spam reports.
-        if reports_processed >= MAX_REPORTS_TO_SIM_IN_ONE_JOB:
-            break
-        reports_processed += 1
-
         # Try to get the replay, if not just flag as unreachable so we don't keep trying.
-        reported_match = Match.objects.filter(id=report.suspicious_match_id).first()
+        reported_match = report.suspicious_match
         if reported_match is None:
             report.skip_simulation = True
+            updated_reports.append(report)
             continue
         if ServerStatus.latest_version() != reported_match.version:
             report.skip_simulation = True
+            updated_reports.append(report)
             continue
         replay = MatchReplay.objects.filter(match=reported_match).first()
         if replay is None:
             report.skip_simulation = True
+            updated_reports.append(report)
             continue
 
         # Get placement from replay
@@ -473,16 +472,24 @@ def process_hacker_alerts():
         defending_team = replay.defending_team
         jsonStr = json.dumps([attacking_team, defending_team])  # Local sim server accepts array of two placementjson strings.
         # Simulate the game
+        reports_simulated += 1
         try:
             response = requests.get(f'http://{SIM_SERVER_HOSTNAME}:{SIM_PORT}/simulate/{seed}', data=jsonStr, timeout=1)
         except requests.Timeout:
             break  # Stop until next cron job if we timeout, or it might hurt server performance for a noticeable time
         except:
             continue
+
         win = (response.content == b"True")
         # Set flags to show that we've simulated the report, and flag if it doesn't match.
         report.match_simulated = True
         report.match_simulated_time = now
         report.match_simulated_alert = not (win == reported_match.is_win)
-    HackerAlert.objects.bulk_update(reports, ['skip_simulation',
+        updated_reports.append(report)
+
+        # Since this is a regular cron job, we'll cap the amount of matches to process so we don't kill the server if there's some spam reports.
+        if reports_simulated >= MAX_REPORTS_TO_SIM_IN_ONE_JOB:
+            break
+
+    HackerAlert.objects.bulk_update(updated_reports, ['skip_simulation',
                                     'match_simulated', 'match_simulated_time', 'match_simulated_alert'])
