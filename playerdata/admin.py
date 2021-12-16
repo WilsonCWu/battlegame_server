@@ -648,15 +648,15 @@ class BaseCharacterAdmin(admin.ModelAdmin):
             PRESTIGE_CAP = constants.PRESTIGE_CAP_BY_RARITY_15[base_char.rarity]
             MAX_PRESTIGE = constants.MAX_PRESTIGE_LEVEL_15
 
-            if not BasePrestige.objects.filter(char_type=base_char).exists():
-                for i in range(PRESTIGE_CAP + 1):
-                    # Don't need to backfill for common characters.
-                    if base_char.rarity == 1 and i == 0: continue
+            for i in range(PRESTIGE_CAP + 1):
+                # Don't need to backfill for common characters.
+                if base_char.rarity == 1 and i == 0: continue
 
-                    levels_to_backfill = MAX_PRESTIGE - PRESTIGE_CAP
-                    star_level = i + levels_to_backfill
-                    prestige_mult = (1.07 ** min(star_level, 10)) * (1.035 ** max(0, star_level - 10))
+                levels_to_backfill = MAX_PRESTIGE - PRESTIGE_CAP
+                star_level = i + levels_to_backfill
+                prestige_mult = (1.07 ** min(star_level, 10)) * (1.035 ** max(0, star_level - 10))
 
+                if not BasePrestige.objects.filter(char_type=base_char, level=i).exists():
                     BasePrestige.objects.create(
                         char_type=base_char,
                         level=i,
@@ -694,7 +694,7 @@ class BaseCharacterAdmin(admin.ModelAdmin):
 
             # Create an easy to fill BaseCharacterAbility2.
             if not BaseCharacterAbility2.objects.filter(char_type=base_char).exists():
-                sl = PRESTIGE_CAP - 10
+                sl = PRESTIGE_CAP - 5
                 BaseCharacterAbility2.objects.create(
                     char_type=base_char,
                     version='0.0.0',
