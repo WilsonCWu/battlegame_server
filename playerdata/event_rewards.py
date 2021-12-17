@@ -49,7 +49,7 @@ def get_active_login_event():
     return EventTimeTracker.objects.filter(start_time__lte=cur_time, end_time__gt=cur_time, is_login_event=True).first()
 
 
-def decrement_active_event_notifs(user_id, count):
+def decrement_active_login_event_notifs(user_id, count):
     event_time = get_active_login_event()
     if event_time is None:
         return
@@ -103,7 +103,7 @@ class ClaimEventRewardView(APIView):
         request.user.eventrewards.last_claimed_time = cur_time
         request.user.eventrewards.save()
 
-        decrement_active_event_notifs(request.user.id, -1)
+        decrement_active_login_event_notifs(request.user.id, -1)
 
         chests.award_chest_rewards(request.user, rewards)
         return Response({'status': True, 'rewards': chests.ChestRewardSchema(rewards, many=True).data})
