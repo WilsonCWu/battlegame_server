@@ -29,7 +29,7 @@ class MainSocketConsumer(WebsocketConsumer):
                                                 questupdater.DailyBadgeNotifCount().get_badge_notif(self.user),
                                                 questupdater.WeeklyBadgeNotifCount().get_badge_notif(self.user),
                                                 questupdater.CumulativeBadgeNotifCount().get_badge_notif(self.user),
-                                                event_times.GrassEventBadgeNotifCount().get_badge_notif(self.user),
+                                                event_times.Christmas2021EventBadgeNotifCount().get_badge_notif(self.user),
                                                 )
 
     def disconnect(self, close_code):

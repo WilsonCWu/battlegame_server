@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from mainsocket import notifications
-from playerdata import constants
+from playerdata import constants, event_rewards
 from playerdata.models import EventTimeTracker, GrassEvent
 
 
@@ -46,3 +46,18 @@ class GrassEventBadgeNotifCount(notifications.BadgeNotifCount):
         grass_event, _ = GrassEvent.objects.get_or_create(user=user)
         count = grass_event.unclaimed_tokens
         return notifications.BadgeNotif(constants.NotificationType.GRASS_EVENT.value, count)
+
+
+class Christmas2021EventBadgeNotifCount(notifications.BadgeNotifCount):
+    def get_badge_notif(self, user):
+        if is_event_expired('christmas_2021'):
+            return notifications.BadgeNotif(constants.NotificationType.CHRISTMAS_2021.value, 0)
+
+        last_claimed_reward = user.eventrewards.last_claimed_reward
+        rewards = event_rewards.get_active_login_event_rewards()
+        cur_time = datetime.now(timezone.utc)
+        is_next_claimable = cur_time.day > user.eventrewards.last_claimed_time.day and last_claimed_reward < len(rewards)
+
+        count = 1 if is_next_claimable else 0
+        return notifications.BadgeNotif(constants.NotificationType.CHRISTMAS_2021.value, count)
+
