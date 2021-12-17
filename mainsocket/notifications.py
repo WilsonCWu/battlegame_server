@@ -44,10 +44,10 @@ def send_badge_notifs_replace(user_id, *badge_notifs):
     )
 
 
-# Increments the badge count
+# Increments/decrements the badge count
 def send_badge_notifs_increment(user_id, *badge_notifs):
     # Filter out the 0 counts
-    badge_notifs = [b for b in badge_notifs if b.amount > 0]
+    badge_notifs = [b for b in badge_notifs if b.amount != 0]
     if len(badge_notifs) == 0:
         return
 

@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from mainsocket import notifications
 from playerdata import chests, constants
 from playerdata.models import EventTimeTracker
 
@@ -36,12 +37,25 @@ def get_event_rewards_list(event_name: str) -> List[chests.ChestReward]:
 
 
 def get_active_login_event_rewards() -> List[chests.ChestReward]:
-    cur_time = datetime.now(timezone.utc)
-    event_time = EventTimeTracker.objects.filter(start_time__lte=cur_time, end_time__gt=cur_time, is_login_event=True).first()
+    event_time = get_active_login_event()
     if event_time is None:
         return []
     else:
         return get_event_rewards_list(event_time.name)
+
+
+def get_active_login_event():
+    cur_time = datetime.now(timezone.utc)
+    return EventTimeTracker.objects.filter(start_time__lte=cur_time, end_time__gt=cur_time, is_login_event=True).first()
+
+
+def decrement_active_login_event_notifs(user_id, count):
+    event_time = get_active_login_event()
+    if event_time is None:
+        return
+
+    if event_time.name == constants.EventType.CHRISTMAS_2021.value:
+        notifications.send_badge_notifs_increment(user_id, notifications.BadgeNotif(constants.NotificationType.CHRISTMAS_2021.value, count))
 
 
 class GetEventRewardListView(APIView):
@@ -88,6 +102,8 @@ class ClaimEventRewardView(APIView):
         request.user.eventrewards.last_claimed_reward = next_reward_id
         request.user.eventrewards.last_claimed_time = cur_time
         request.user.eventrewards.save()
+
+        decrement_active_login_event_notifs(request.user.id, -1)
 
         chests.award_chest_rewards(request.user, rewards)
         return Response({'status': True, 'rewards': chests.ChestRewardSchema(rewards, many=True).data})

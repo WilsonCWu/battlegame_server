@@ -1462,11 +1462,16 @@ class EventTimeTracker(models.Model):
         return "Event: " + str(self.name)
 
 
+# One day behind so they can claim the current day's login rewards if any
+def default_event_last_claimed_time():
+    return timezone.now() - timedelta(days=1)
+
+
 # Generic Login event rewards
 class EventRewards(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     last_claimed_reward = models.IntegerField(default=-1)
-    last_claimed_time = models.DateTimeField(default=timezone.now)
+    last_claimed_time = models.DateTimeField(default=default_event_last_claimed_time)
 
 
 class StoryMode(models.Model):
