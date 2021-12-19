@@ -269,6 +269,11 @@ def stage_generator(stage_num, dungeon_type):
         placement = convert_teamp_comp_to_stage(dungeon_boss.team_comp, stage_num, levels, prestiges, seed_int)
         placement = swap_in_peasants(stage_num, placement, prestiges, seed_int)
 
+        # hardcode dragon boss
+        if stage_num == 20 or stage_num == 40:
+            dragon = Character(user_id=1, char_type_id=36, level=stage_num+10)
+            placement = Placement(char_1=dragon, pos_1=13)
+
         # start to overlevel the carry after world 3
         if stage_num > 120:
             placement = overlevel_carry(placement, dungeon_boss.carry_id)
