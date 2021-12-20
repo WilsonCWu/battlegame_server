@@ -56,6 +56,8 @@ def get_usage_stats_graph():
     for index in range(len(names)):
         offense_data = df_offense.loc[index, :]
         defense_data = df_defense.loc[index, :]
+        if offense_data.sum() == 0 and defense_data.sum() == 0:  # Don't display empty graphs (like for PVE enemies)
+            continue
         graph_df = pd.DataFrame(dict(offense=offense_data, defense=defense_data))
         fig = graph_df.plot.bar(facet_row="variable", title=names[index], width=800,
                                 color_discrete_sequence=['#EF553B', '#636EFA'],  # plotly default color orange, blue
