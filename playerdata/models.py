@@ -232,14 +232,12 @@ class BaseCharacterAbility2(models.Model):
 
         if seen_ability_level_keys and seen_prestige_level_keys:
             if seen_ability_level_keys.intersection(seen_prestige_level_keys):
-                raise ValidationError('ability level keys and prestige keys ',
-                                      'should not intersect.')
+                raise ValidationError('ability level keys and prestige keys should not intersect.')
             for prestige_key in seen_prestige_level_keys:
                 if not prestige_key.endswith('_bonus'):
                     raise ValidationError('prestige key must end with _bonus.')
                 if not prestige_key[:-len('_bonus')] in seen_ability_level_keys:
-                    raise ValidationError('prestige key must be bonuses of ',
-                                          'level keys.')
+                    raise ValidationError('prestige key must be bonuses of level keys.')
 
 
     ability1_specs = JSONField(blank=True, null=True,
@@ -1589,7 +1587,7 @@ def create_user_info(sender, instance, created, **kwargs):
         # Add welcome messages, if developer account IDs are defined in env
         if DEV_ACCOUNT_IDS:
             Mail.objects.create(title="Welcome Adventurer",
-                                message="Thanks for trying out our brand new game, we're super thrilled you're here!\n\nTo get you a sweet head start, here's 3 Mythical Chests worth of gems. Also be sure to check out our Discord, the heart of our community <3\n\nFight tiny, win big.",
+                                message="Thanks for trying out our brand new game, we're super thrilled you're here!\n\nTo get you a sweet head start, here's a Mythical Chest worth of gems. Also be sure to check out our Discord, the heart of our community <3\n\nFight tiny, win big.",
                                 sender_id=10506, receiver=instance,
                                 code_id=96, sender_profile_picture_id=1,
                                 has_unclaimed_reward=True)
