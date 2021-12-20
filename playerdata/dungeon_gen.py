@@ -272,7 +272,7 @@ def stage_generator(stage_num, dungeon_type):
         # hardcode dragon boss
         if server.is_server_version_higher('1.0.8'):
             if stage_num == 20 or stage_num == 40:
-                dragon = Character(user_id=1, char_type_id=36, level=stage_num+10)
+                dragon = Character(user_id=1, char_type_id=36, level=stage_num + 22, prestige=(stage_num//20))
                 placement = Placement(char_1=dragon, pos_1=13)
 
         # start to overlevel the carry after world 3
