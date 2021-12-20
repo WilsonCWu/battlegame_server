@@ -30,17 +30,17 @@ class GetEventTimesView(APIView):
         return Response({'status': True, 'events': tracker_schema.data})
 
 
-def is_event_expired(event_name: str):
+def is_event_inactive(event_name: str):
     cur_time = datetime.now(timezone.utc)
     event_time = EventTimeTracker.objects.filter(name=event_name).first()
     if event_time is None:
         return True
-    return cur_time > event_time.end_time
+    return cur_time < event_time.start_time or cur_time > event_time.end_time
 
 
 class GrassEventBadgeNotifCount(notifications.BadgeNotifCount):
     def get_badge_notif(self, user):
-        if is_event_expired('grass_event'):
+        if is_event_inactive('grass_event'):
             return notifications.BadgeNotif(constants.NotificationType.GRASS_EVENT.value, 0)
 
         grass_event, _ = GrassEvent.objects.get_or_create(user=user)
@@ -50,7 +50,7 @@ class GrassEventBadgeNotifCount(notifications.BadgeNotifCount):
 
 class Christmas2021EventBadgeNotifCount(notifications.BadgeNotifCount):
     def get_badge_notif(self, user):
-        if is_event_expired('christmas_2021'):
+        if is_event_inactive('christmas_2021'):
             return notifications.BadgeNotif(constants.NotificationType.CHRISTMAS_2021.value, 0)
 
         last_claimed_reward = user.eventrewards.last_claimed_reward
