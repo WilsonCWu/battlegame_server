@@ -77,6 +77,7 @@ class DungeonStatsAdmin(admin.ModelAdmin):
     def generate_dungeon_stats_report(self, request, queryset):
         start = datetime.utcnow()
         df = get_dungeon_stats_dataframe(queryset)
+        df['winrate'] = 100 * df['wins'] / df['games']
         context = get_table_context(df)
         end = datetime.utcnow()
         elapsed = end - start
