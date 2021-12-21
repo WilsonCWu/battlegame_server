@@ -764,6 +764,7 @@ def default_afk_shard_list():
     return [0]*3
 
 
+# default afk hours, player will claim this many hours in the tutorial
 def get_default_afk_datetime():
     return timezone.now() - timedelta(hours=6)
 
