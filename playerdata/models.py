@@ -765,7 +765,7 @@ def default_afk_shard_list():
 
 
 def get_default_afk_datetime():
-    return timezone.now() - timedelta(hours=3)
+    return timezone.now() - timedelta(hours=6)
 
 
 class AFKReward(models.Model):

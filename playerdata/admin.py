@@ -896,6 +896,7 @@ admin.site.register(AFKReward, AFKRewardAdmin)
 admin.site.register(EventTimeTracker)
 admin.site.register(GrassEvent, GrassEventAdmin)
 admin.site.register(EventRewards)
+admin.site.register(EloRewardTracker)
 
 admin.site.index_template = 'admin/custom_index.html'
 admin.autodiscover()
