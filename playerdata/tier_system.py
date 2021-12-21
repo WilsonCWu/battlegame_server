@@ -68,7 +68,7 @@ def get_elo_rewards_list() -> List[EloReward]:
         elif counter_offset % 5 == 0:
             rewards.append(EloReward(reward_id, elo, 'gems', 500))
         elif counter_offset % 5 == 4:
-            if server.is_server_version_higher('1.0.8'):
+            if server.is_server_version_higher('1.0.9'):
                 rewards.append(EloReward(reward_id, elo, 'dust_fast_reward_hours', 8))
             else:
                 rewards.append(EloReward(reward_id, elo, 'essence', 100 * elo_to_tier(elo).value))
@@ -90,7 +90,7 @@ def get_elo_rewards_list() -> List[EloReward]:
             # rewards.append(EloReward(reward_id, elo, 'champ_badge', 30))
             rewards.append(EloReward(reward_id, elo, 'chest', constants.ChestType.GOLD.value))
         elif counter_offset % 5 == 4:
-            if server.is_server_version_higher('1.0.8'):
+            if server.is_server_version_higher('1.0.9'):
                 rewards.append(EloReward(reward_id, elo, 'dust_fast_reward_hours', 12))
             else:
                 rewards.append(EloReward(reward_id, elo, 'gems', 600))

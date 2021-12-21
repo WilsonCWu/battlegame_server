@@ -170,7 +170,7 @@ def get_tunnels_levels_for_stage(starting_level, stage_num):
 # Every 3rd world is a "wall" and that's when the full mob is prestiged fully
 def get_campaign_prestige(boss_stage):
     world = math.ceil(boss_stage / 40)
-    prestige = math.ceil(world / 3)
+    prestige = min(math.ceil(world / 3), constants.MAX_PRESTIGE_LEVEL_15)
 
     if world <= 6:
         return [0] * 5
@@ -275,8 +275,8 @@ def stage_generator(stage_num, dungeon_type):
                 dragon = Character(user_id=1, char_type_id=36, level=stage_num + 22, prestige=(stage_num//20))
                 placement = Placement(char_1=dragon, pos_1=13)
 
-        # start to overlevel the carry after world 3
-        if stage_num > 120:
+        # start to overlevel the carry after world 2
+        if stage_num > 80:
             placement = overlevel_carry(placement, dungeon_boss.carry_id)
 
     elif dungeon_type == constants.DungeonType.TOWER.value:
