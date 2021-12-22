@@ -105,15 +105,15 @@ def product_to_dollar_cost(product_id: str):
         return 2
     elif product_id in [constants.DEAL_DAILY_2, constants.DEAL_WEEKLY_2, constants.DEAL_MONTHLY_2, constants.GEMS_499, constants.MONTHLY_PASS]:
         return 5
-    elif product_id in [constants.GEMS_999, constants.WORLD_PACK_999, constants.DEAL_MONTHLY_3]:
+    elif product_id in [constants.GEMS_999, constants.WORLD_PACK_999, constants.DEAL_MONTHLY_3, constants.DEAL_DAILY_3]:
         return 10
-    elif product_id in [constants.GEMS_1999, constants.WORLD_PACK_1999, constants.CHAPTER_REWARDS_PACK0, constants.DEAL_MONTHLY_4]:
+    elif product_id in [constants.GEMS_1999, constants.WORLD_PACK_1999, constants.CHAPTER_REWARDS_PACK0, constants.DEAL_MONTHLY_4, constants.DEAL_DAILY_4, constants.DEAL_WEEKLY_3]:
         return 20
     elif product_id in [constants.GEMS_2999]:
         return 30
-    elif product_id in [constants.GEMS_4999]:
+    elif product_id in [constants.GEMS_4999, constants.DEAL_WEEKLY_4, constants.DEAL_MONTHLY_5, constants.DEAL_MONTHLY_6]:
         return 50
-    elif product_id in [constants.GEMS_9999]:
+    elif product_id in [constants.GEMS_9999, constants.DEAL_MONTHLY_7]:
         return 100
     else:
         raise Exception("Invalid product_id: " + product_id)
@@ -272,6 +272,11 @@ def char_level_to_dust(level):
 def afk_dust_per_min(dungeon_level):
     # Dust is capped at world 30, similar to https://afk-arena.fandom.com/wiki/Hero%27s_Essence_AFK_Rewards
     dust_per_min = min(dungeon_level * 0.0016 + 0.01, 1.93)
+
+    if server.is_server_version_higher('1.0.8'):
+        # Dust is capped at world 35
+        dust_per_min = min(dungeon_level * 0.0016 + 0.01, 2.25)
+
     return dust_per_min / 2  # Halved for afk rewards
 
 

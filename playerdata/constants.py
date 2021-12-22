@@ -20,7 +20,7 @@ class DungeonType(Enum):
     TOWER = 1
     TUNNELS = 2
 
-MAX_DUNGEON_STAGE = [1440, 80]
+MAX_DUNGEON_STAGE = [1600, 80]
 NUM_DUNGEON_SUBSTAGES = [20, 5]
 CHAR_LEVEL_DIFF_BETWEEN_STAGES = [1, 5]
 
@@ -100,16 +100,23 @@ CHAPTER_REWARDS_PACK3 = 'com.salutationstudio.tinytitans.chapterrewards.pack3'
 DEAL_DAILY_0 = 'com.salutationstudio.tinytitans.deal.daily0'
 DEAL_DAILY_1 = 'com.salutationstudio.tinytitans.deal.daily1'
 DEAL_DAILY_2 = 'com.salutationstudio.tinytitans.deal.daily2'
+DEAL_DAILY_3 = 'com.salutationstudio.tinytitans.deal.daily3'
+DEAL_DAILY_4 = 'com.salutationstudio.tinytitans.deal.daily4'
 
 DEAL_WEEKLY_0 = 'com.salutationstudio.tinytitans.deal.weekly0'
 DEAL_WEEKLY_1 = 'com.salutationstudio.tinytitans.deal.weekly1'
 DEAL_WEEKLY_2 = 'com.salutationstudio.tinytitans.deal.weekly2'
+DEAL_WEEKLY_3 = 'com.salutationstudio.tinytitans.deal.weekly3'
+DEAL_WEEKLY_4 = 'com.salutationstudio.tinytitans.deal.weekly4'
 
 DEAL_MONTHLY_0 = 'com.salutationstudio.tinytitans.deal.monthly0'
 DEAL_MONTHLY_1 = 'com.salutationstudio.tinytitans.deal.monthly1'
 DEAL_MONTHLY_2 = 'com.salutationstudio.tinytitans.deal.monthly2'
 DEAL_MONTHLY_3 = 'com.salutationstudio.tinytitans.deal.monthly3'
 DEAL_MONTHLY_4 = 'com.salutationstudio.tinytitans.deal.monthly4'
+DEAL_MONTHLY_5 = 'com.salutationstudio.tinytitans.deal.monthly5'
+DEAL_MONTHLY_6 = 'com.salutationstudio.tinytitans.deal.monthly6'
+DEAL_MONTHLY_7 = 'com.salutationstudio.tinytitans.deal.monthly7'
 
 GEMS_499 = 'com.salutationstudio.tinytitans.gems.499'
 GEMS_999 = 'com.salutationstudio.tinytitans.gems.999'
@@ -146,8 +153,8 @@ POSATTRS = ["pos_1", "pos_2", "pos_3", "pos_4", "pos_5"]
 CHAR_RARITY_INDEX = [1, 2, 3, 4]
 ITEM_RARITY_INDEX = [0, 1, 2, 3]
 
-FRONTLINE_CHARS = [0, 4, 5, 6, 8, 11, 13, 19, 24, 30, 37]
-BACKLINE_CHARS = [7, 9, 10, 12, 16, 17, 18, 21, 22, 23, 26, 31, 32, 33, 34, 35, 38]
+FRONTLINE_CHARS = [0, 5, 6, 8, 11, 13, 19, 24, 30, 37]
+BACKLINE_CHARS = [4, 7, 9, 10, 12, 16, 17, 18, 21, 22, 23, 26, 31, 32, 33, 34, 35, 38]
 
 FRONTLINE_POS = range(1, 16)
 BACKLINE_POS = range(16, 26)
@@ -336,7 +343,6 @@ REGULAR_ITEM_ODDS_PER_CHEST = [
 AFK_SHARD_DROP_RATE = [0, 0, 890, 100, 10]
 AFK_BASE_SHARD_REWARD = [0, 0, 8, 10, 4]
 
-DD_SHARD_DROP_RATE = [0, 0, 745, 240, 15]
 DD_BASE_SHARD_REWARD = [0, 0, 328, 106, 7]
 
 DD_SILVER_ITEM_DROP_RATE_PER_TIER = [
