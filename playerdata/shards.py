@@ -1,4 +1,5 @@
 import math
+import random
 
 from django.db.transaction import atomic
 from rest_framework.permissions import IsAuthenticated
@@ -47,11 +48,15 @@ def get_afk_shards(num_rolls: int):
 
 # Reward shards if a golden run
 def dd_rewards(depth: int):
-    rarity = rolls.weighted_pick_from_buckets(constants.DD_SHARD_DROP_RATE)
+    # always guarantee epic shard drop
+    rarity = 3
 
     # Reaching the end gives full base_reward amount
     base_shards = constants.DD_BASE_SHARD_REWARD[rarity] / 2
-    num_shards = math.floor(base_shards + (depth / 20) * base_shards)
+    pivot_amount = math.floor(base_shards + (depth / 20) * base_shards)
+
+    # +/-5% of the pivot amount for some variety
+    num_shards = random.randint(math.floor(0.95 * pivot_amount), math.floor(pivot_amount * 1.05))
 
     shard_type = get_shard_attr_from_rarity(rarity)
     return [chests.ChestReward(reward_type=shard_type, value=num_shards)]
