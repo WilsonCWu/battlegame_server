@@ -55,8 +55,8 @@ def dd_rewards(depth: int):
     base_shards = constants.DD_BASE_SHARD_REWARD[rarity] / 2
     pivot_amount = math.floor(base_shards + (depth / 20) * base_shards)
 
-    # +/-5% of the pivot amount for some variety
-    num_shards = random.randint(math.floor(0.95 * pivot_amount), math.floor(pivot_amount * 1.05))
+    # +/-10% of the pivot amount for some variety
+    num_shards = random.randint(math.floor(0.9 * pivot_amount), math.floor(pivot_amount * 1.1))
 
     shard_type = get_shard_attr_from_rarity(rarity)
     return [chests.ChestReward(reward_type=shard_type, value=num_shards)]
