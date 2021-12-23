@@ -199,6 +199,10 @@ PRESTIGE_CAP_BY_RARITY_15 = {
 }
 
 
+def PRESTIGE_TO_STAR_LEVEL(prestige, rarity):
+    return prestige + (MAX_PRESTIGE_LEVEL_15 - PRESTIGE_CAP_BY_RARITY_15[rarity])
+
+
 # coin shop constants
 # various experimental items for closed beta
 COIN_SHOP_ITEMS = [
