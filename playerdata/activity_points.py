@@ -35,7 +35,7 @@ def get_daily_activitypoints_rewards():
     ]
 
     reward1 = [
-        chests.ChestReward("dust", 150),
+        chests.ChestReward("essence", 150),
         chests.ChestReward("regal_points", 30)
     ]
 
@@ -73,7 +73,7 @@ def get_weekly_activitypoints_rewards():
     ]
 
     reward1 = [
-        chests.ChestReward("dust", 400),
+        chests.ChestReward("essence", 400),
         chests.ChestReward("regal_points", 150)
     ]
 
