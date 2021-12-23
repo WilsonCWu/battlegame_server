@@ -196,7 +196,8 @@ def get_all_character_changes(v=None):
         if len(ability_changes[char_name]) == 1:  # Only 1 length strings are the "new character" ones, we don't need dupes of this
             continue
         if char_name in master_changes:
-            master_changes[char_name].append(ability_changes[char_name])
+            for change in ability_changes[char_name]:
+                master_changes[char_name].append(change)
         else:
             master_changes[char_name] = ability_changes[char_name]
 
