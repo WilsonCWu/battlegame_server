@@ -9,7 +9,7 @@ from rest_marshmallow import Schema, fields
 from django.utils import timezone
 from datetime import datetime, timedelta
 
-from playerdata import formulas, constants, server
+from playerdata import formulas, constants
 from playerdata.models import Character
 from playerdata.questupdater import QuestUpdater
 from playerdata.serializers import SlotSerializer, IntSerializer
@@ -28,19 +28,17 @@ class LevelBoosterSchema(Schema):
         return get_max_out_char_count(level_booster.user) >= MIN_NUM_OF_MAXED_CHARS
 
 
-# Get all 240 chars that are 10 star
+def LEVELBOOST_PRESTIGE_CAP(rarity):
+    return constants.PRESTIGE_CAP_BY_RARITY_15[rarity] - 5
+
+
+# Get all 240 chars that are +10 star
 def get_max_out_char_count(user):
     chars = Character.objects.filter(user=user, level=240)
     count = 0
 
-    # TODO: remove after 1.0.8
-    if server.is_server_version_higher('1.0.8'):
-        PRESTIGE_CAP = constants.PRESTIGE_CAP_BY_RARITY_15
-    else:
-        PRESTIGE_CAP = constants.PRESTIGE_CAP_BY_RARITY
-
     for char in chars:
-        if char.prestige == PRESTIGE_CAP[char.char_type.rarity]:
+        if char.prestige >= LEVELBOOST_PRESTIGE_CAP(char.char_type.rarity):
             count += 1
 
     return count
@@ -85,13 +83,7 @@ class FillSlotView(APIView):
         if char is None:
             return Response({'status': False, 'reason': 'invalid char_id'})
 
-        # TODO: Remove me after 1.0.8
-        if server.is_server_version_higher('1.0.8'):
-            PRESTIGE_CAP = constants.PRESTIGE_CAP_BY_RARITY_15[char.char_type.rarity]
-        else:
-            PRESTIGE_CAP = constants.PRESTIGE_CAP_BY_RARITY[char.char_type.rarity]
-
-        if char.level != constants.MAX_CHARACTER_LEVEL or char.prestige != PRESTIGE_CAP:
+        if char.level != constants.MAX_CHARACTER_LEVEL or char.prestige < LEVELBOOST_PRESTIGE_CAP(char.char_type.rarity):
             return Response({'status': False, 'reason': 'must max out char before you can add it to a slot'})
 
         curr_time = datetime.now(timezone.utc)
