@@ -28,18 +28,13 @@ class LevelBoosterSchema(Schema):
         return get_max_out_char_count(level_booster.user) >= MIN_NUM_OF_MAXED_CHARS
 
 
-# 10 stars is the threshold
-def LEVELBOOST_PRESTIGE_THRESHOLD(rarity):
-    return constants.PRESTIGE_CAP_BY_RARITY_15[rarity] - 5
-
-
 # Get all 240 chars that are +10 star
 def get_max_out_char_count(user):
     chars = Character.objects.filter(user=user, level=240)
     count = 0
 
     for char in chars:
-        if char.prestige >= LEVELBOOST_PRESTIGE_THRESHOLD(char.char_type.rarity):
+        if constants.PRESTIGE_TO_STAR_LEVEL(char.prestige, char.char_type.rarity) >= 10:
             count += 1
 
     return count
@@ -84,7 +79,7 @@ class FillSlotView(APIView):
         if char is None:
             return Response({'status': False, 'reason': 'invalid char_id'})
 
-        if char.level != constants.MAX_CHARACTER_LEVEL or char.prestige < LEVELBOOST_PRESTIGE_THRESHOLD(char.char_type.rarity):
+        if char.level != constants.MAX_CHARACTER_LEVEL or constants.PRESTIGE_TO_STAR_LEVEL(char.prestige, char.char_type.rarity) < 10:
             return Response({'status': False, 'reason': 'must max out char before you can add it to a slot'})
 
         curr_time = datetime.now(timezone.utc)
