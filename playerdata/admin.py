@@ -470,6 +470,7 @@ class BaseCharacterAbility2Admin(admin.ModelAdmin):
                 ultimate_desc = a.ultimate_desc,
             )
 
+    # Old code, see gameanalytics.get_character_changes_view
     def generate_patch_notes(self, request, queryset):
         v = queryset[0].version
         changed = BaseCharacterAbility2.objects.filter(version=v)
@@ -576,6 +577,7 @@ class BaseCharacterStatsAdmin(admin.ModelAdmin):
                 mr_scale = a.mr_scale,
             )
 
+    # Old code, see gameanalytics.get_character_changes_view
     def generate_patch_notes(self, request, queryset):
         v = queryset[0].version
         changed = BaseCharacterStats.objects.filter(version=v)
