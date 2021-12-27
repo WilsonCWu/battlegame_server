@@ -999,6 +999,16 @@ class ClanRequest(models.Model):
     clan2 = models.ForeignKey(Clan2, on_delete=models.CASCADE)
 
 
+def validate_char_dialog(text_json):
+    for text in text_json:
+        if "char_id" not in text:
+            raise ValidationError('No char_id field')
+        if "msg" not in text:
+            raise ValidationError('No msg field')
+        if "emotion" not in text:
+            raise ValidationError('No emotion field')
+
+
 class DungeonStage(models.Model):
     objects = BulkUpdateOrCreateQuerySet.as_manager()
 
@@ -1009,6 +1019,7 @@ class DungeonStage(models.Model):
     gems = models.IntegerField()
     dungeon_type = models.IntegerField(choices=[(dungeon.value, dungeon.name) for dungeon in DungeonType], default=DungeonType.CAMPAIGN.value)
     story_text = models.TextField(default="", blank=True)
+    char_dialog = JSONField(blank=True, null=True, validators=[validate_char_dialog])
 
     class Meta:
         constraints = [
