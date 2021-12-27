@@ -999,13 +999,13 @@ class ClanRequest(models.Model):
     clan2 = models.ForeignKey(Clan2, on_delete=models.CASCADE)
 
 
-def validate_char_dialog(text_json):
-    for text in text_json:
-        if "char_id" not in text:
+def validate_char_dialog(char_dialog_json):
+    for char_dialog in char_dialog_json:
+        if "char_id" not in char_dialog:
             raise ValidationError('No char_id field')
-        if "msg" not in text:
+        if "msg" not in char_dialog:
             raise ValidationError('No msg field')
-        if "emotion" not in text:
+        if "emotion" not in char_dialog:
             raise ValidationError('No emotion field')
 
 
