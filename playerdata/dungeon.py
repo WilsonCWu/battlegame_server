@@ -31,7 +31,6 @@ class DungeonStageSchema(Schema):
     coins = fields.Int()
     gems = fields.Int()
     mob = fields.Nested(PlacementSchema)
-    story_text = fields.Str()
     char_dialog = fields.Str()
 
 
@@ -175,7 +174,7 @@ def generate_dungeon_stages(dungeon_bosses_queryset):
                                   player_exp=formulas.player_exp_reward_dungeon(boss.stage))
         bulk_stages.append(boss_stage)
 
-    DungeonStage.objects.bulk_update_or_create(bulk_stages, ['mob', 'coins', 'gems', 'player_exp', 'story_text'], match_field=['stage', 'dungeon_type'])
+    DungeonStage.objects.bulk_update_or_create(bulk_stages, ['mob', 'coins', 'gems', 'player_exp'], match_field=['stage', 'dungeon_type'])
 
 
 def complete_referral_conversion(user):

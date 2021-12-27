@@ -1018,7 +1018,6 @@ class DungeonStage(models.Model):
     coins = models.IntegerField()
     gems = models.IntegerField()
     dungeon_type = models.IntegerField(choices=[(dungeon.value, dungeon.name) for dungeon in DungeonType], default=DungeonType.CAMPAIGN.value)
-    story_text = models.TextField(default="", blank=True)
     char_dialog = JSONField(blank=True, null=True, validators=[validate_char_dialog])
 
     class Meta:
