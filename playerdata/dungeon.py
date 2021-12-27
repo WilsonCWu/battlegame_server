@@ -31,7 +31,7 @@ class DungeonStageSchema(Schema):
     coins = fields.Int()
     gems = fields.Int()
     mob = fields.Nested(PlacementSchema)
-    story_text = fields.Str()
+    char_dialog = fields.Str()
 
 
 def update_char(char: Character, new_char: Character):
@@ -174,7 +174,7 @@ def generate_dungeon_stages(dungeon_bosses_queryset):
                                   player_exp=formulas.player_exp_reward_dungeon(boss.stage))
         bulk_stages.append(boss_stage)
 
-    DungeonStage.objects.bulk_update_or_create(bulk_stages, ['mob', 'coins', 'gems', 'player_exp', 'story_text'], match_field=['stage', 'dungeon_type'])
+    DungeonStage.objects.bulk_update_or_create(bulk_stages, ['mob', 'coins', 'gems', 'player_exp'], match_field=['stage', 'dungeon_type'])
 
 
 def complete_referral_conversion(user):
@@ -349,10 +349,7 @@ class DungeonStageView(APIView):
         if stage > constants.MAX_DUNGEON_STAGE[dungeon_type]:
             return Response({'status': True, 'stage_id': stage})
 
-        story_text = ""
         dungeon_stage = DungeonStage.objects.filter(stage=stage, dungeon_type=dungeon_type).first()
-        if dungeon_stage is not None:
-            story_text = dungeon_stage.story_text
 
         if dungeon_type == DungeonType.CAMPAIGN.value:
             rewards = campaign_tutorial_rewards(stage)
@@ -365,6 +362,6 @@ class DungeonStageView(APIView):
                          'coins': formulas.coins_reward_dungeon(stage, dungeon_type),
                          'gems': formulas.gems_reward_dungeon(stage, dungeon_type),
                          'mob': dungeon_gen.stage_generator(stage, dungeon_type),
-                         'story_text': story_text,
+                         'char_dialog': str(dungeon_stage.char_dialog) if dungeon_stage.char_dialog else '',
                          'rewards': chests.ChestRewardSchema(rewards, many=True).data
                          })
