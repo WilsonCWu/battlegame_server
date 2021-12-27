@@ -226,11 +226,11 @@ class ExpToLevel:
 
 
 def player_exp_reward_quickplay(dungeon_level):
-    return math.floor((dungeon_level / 15) + (1.18 ** (dungeon_level / 40)))
+    return min(math.floor((dungeon_level / 25) + (1.17 ** (dungeon_level / 40))), 12000)
 
 
 def player_exp_reward_dungeon(dungeon_level):
-    return math.floor((dungeon_level / 3) + (1.23 ** (dungeon_level / 40)) * 8)
+    return min(math.floor((dungeon_level / 3) + (1.23 ** (dungeon_level / 40)) * 8), 350)
 
 
 def afk_exp_per_min(dungeon_level):

@@ -53,6 +53,9 @@ class StoryModeAdmin(admin.ModelAdmin, DynamicArrayMixin):
 
 
 class DungeonStageAdmin(bulk_admin.BulkModelAdmin):
+    formfield_overrides = {
+        JSONField: {'widget': JSONEditorWidget}
+    }
     list_display = ('stage', 'dungeon_type', 'player_exp', 'coins', 'gems')
     raw_id_fields = ("mob",)
     list_filter = ('dungeon_type',)
