@@ -365,7 +365,7 @@ def remove_nonactive_cumulative_quests():
 
 @transaction.atomic
 def update_redis_player_elos():
-    userinfos = UserInfo.objects.all()
+    userinfos = UserInfo.objects.filter(elo__gt=0)
     users_dict = {}
     for userinfo in userinfos:
         users_dict[userinfo.user_id] = userinfo.elo
