@@ -95,18 +95,19 @@ def daily_clean_matches_cron():
         validator.validate(mr.match, mr)
     
     Match.objects.filter(uploaded_at__lte=timezone.now() - timedelta(days=14)).delete()
-    MatchReplay.objects.filter(uploaded_at__lte=timezone.now() - timedelta(days=3)).delete()
+    MatchReplay.objects.filter(uploaded_at__lte=timezone.now() - timedelta(days=14)).delete()
 
 
 @cron(uuid="cb651e8b-e227-4be1-a786-acd6fcac037c")
-@atomic
 def reset_daily_wins_cron():
-    userstats = UserStats.objects.all().select_related('user__userinfo')
-    for stat in userstats:
-        stat.daily_wins = 0
-        stat.daily_games = 0
-        stat.pvp_skips = skip_cap(stat.user.userinfo)
-    UserStats.objects.bulk_update(userstats, ['daily_wins', 'daily_games', 'pvp_skips'])
+    with atomic():
+        UserStats.objects.filter(daily_wins__gt=0, daily_games__gt=0).select_for_update().update(daily_wins=0, daily_games=0)
+
+    with atomic():
+        userstats = UserStats.objects.filter(num_games__gt=0).select_related('user__userinfo').select_for_update()
+        for stat in userstats:
+            stat.pvp_skips = skip_cap(stat.user.userinfo)
+        UserStats.objects.bulk_update(userstats, ['pvp_skips'])
     update_redis_player_elos()
 
 
