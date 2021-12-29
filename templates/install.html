@@ -1,155 +1,10 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Tiny Titans - AFK Auto Battles</title>
 
-
-    <script type="application/ld+json">
-      {
-      "@context": "http://schema.org",
-      "@type":"SoftwareApplication",
-      "publisher": "Salutation Studio",
-      "name":"Tiny Titans",
-      "description":"Assemble a team of powerful titans and fight for glory in this PvP strategy autobattler!",
-      "genre":[
-        "Role Playing",
-        "Auto Battler",
-        "Strategy",
-        "Card Game"
-      ],
-      "url":"http://salutationstudio.com/",
-      "image":"https://www.salutationstudio.com/static/images/logo.png",
-      "screenshot":"https://www.salutationstudio.com/static/images/battle-phone.png",
-      "sameAs": [
-        "https://tinytitans.fandom.com/wiki/Tiny_Titans_Wiki"
-      ],
-      "operatingSystem": [
-        "Android",
-        "iOS"
-      ],
-      "applicationCategory": [
-        "Game",
-        "Mobile application"
-      ],
-      "exampleOfWork":[
-        {
-          "@type":"VideoGame",
-          "name":"Tiny Titans",
-          "gamePlatform":[
-            "https://en.wikipedia.org/wiki/Android_(operating_system)",
-            "https://en.wikipedia.org/wiki/IOS"
-          ],
-          "contentRating":"Everyone 10+",
-          "applicationCategory":"Game, Mobile Application",
-          "offers": {
-            "@type": "AggregateOffer",
-            "lowPrice": "0.99",
-            "highPrice": "99.99",
-            "priceCurrency": "USD"
-          },
-          "operatingSystem": [
-            "Android",
-            "iOS"
-          ],
-          "releasedEvent":{
-            "@type":"PublicationEvent",
-            "startDate":"2021-02-15",
-            "location":{
-              "@type":"Place",
-              "name":"CAN"
-            }
-          }
-        }
-      ],
-      "offers": {
-            "@type": "AggregateOffer",
-            "lowPrice": "0.99",
-            "highPrice": "99.99",
-            "priceCurrency": "USD"
-       }
-      }
-    </script>
-    <link href="{% static "css/all.min.css" %}" rel="stylesheet">
-    <link rel="shortcut icon" href="{% static 'favicon.ico' %}"/>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css"
-    />
-    <style>
-      .store-btn {
-        display: inline-block;
-        overflow: hidden;
-        width: 250px;
-        height: auto;
-      }
-
-      @font-face {
-        font-family: "Cookie Run";
-        src: url("{% static "fonts/CookieRunBold.otf" %}");
-      }
-
-      h1,
-      h2,
-      .cookiefont {
-        font-family: "Cookie Run", sans-serif;
-      }
-
-      .large-image {
-        width: 15vw;
-        min-width: 200px;
-      }
-
-      {# Mobile #}
-      @media only screen and (max-width: 768px) {
-        .is-fullheight {
-            background: url("{% static "images/background.jpg" %}") center / cover;
-        }
-
-        .desktop-only {
-            display: none;
-        }
-
-        .logo {
-            width: 80vw;
-            min-width: 100px;
-            display:block;
-            margin: -10px auto 6rem;
-        }
-
-        .logo.desktop-only {
-            display: none;
-        }
-
-        .mobile-title {
-            color: #2e6da4;
-        }
-      }
-
-      {# Desktop #}
-      @media only screen and (min-width: 768px) {
-        .is-fullheight {
-            background: url("{% static "images/background.jpg" %}") center / cover;
-        }
-        .mobile-only {
-            display: none;
-        }
-
-          .logo {
-              width: 20vw;
-              min-width: 300px;
-          }
-      }
-
-    </style>
-  </head>
-
-  <body>
-    <section class="hero is-fullheight">
-      <div class="hero-body">
-          <div class="container">
+{% block content %}
+<section class="hero is-fullheight">
+    <div class="hero-body">
+        <div class="container">
             <div class="columns is-centered is-vcentered is-multiline">
                 <div class="desktop-only column has-text-right">
                 </div>
@@ -164,124 +19,106 @@
                     <img class="large-image" src="{% static "images/battle-phone.png" %}" />
                 </div>
             </div>
-          </div>
-      </div>
+        </div>
+    </div>
 
-      <div class="hero-foot center" style="padding: 2em; align-self: center">
+    <div class="hero-foot center" style="padding: 2em; align-self: center">
         <div class="container has-text-centered">
             <img class="logo desktop-only" src="{% static "images/logo.png" %}"/>
             <h2 class="title has-text-white-ter">
-            Join our beta! Soft launch is live.
-          </h2>
+                Join our beta! Soft launch is live.
+            </h2>
 
-          <figure class="image store-btn">
-            <a
-              href="https://play.google.com/store/apps/details?id=com.salutationstudio.tinytitans"
-              ><img
-                alt="Get it on Google Play"
-                src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
-            /></a>
-          </figure>
+            <figure class="image store-btn">
+                <a href="https://play.google.com/store/apps/details?id=com.salutationstudio.tinytitans"><img
+                        alt="Get it on Google Play"
+                        src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" /></a>
+            </figure>
 
-          <figure class="image store-btn">
-            <a href="https://apps.apple.com/us/app/tiny-titans-afk-auto-battles/id1537510400"
-              ><img
-                src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-US?size=250x83&amp;releaseDate=1554768000&h=612c9b64053a71ea9ef4da4c9640583d"
-                alt="Download on the App Store"
-                style="margin: 6%; width: 80%"
-            /></a>
-          </figure>
+            <figure class="image store-btn">
+                <a href="https://apps.apple.com/us/app/tiny-titans-afk-auto-battles/id1537510400"><img
+                        src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-US?size=250x83&amp;releaseDate=1554768000&h=612c9b64053a71ea9ef4da4c9640583d"
+                        alt="Download on the App Store" style="margin: 6%; width: 80%" /></a>
+            </figure>
         </div>
-      </div>
-    </section>
-
-     <section class="hero is-medium has-background-white">
-        <div class="hero-body">
-            <div class="container">
-                <div class="columns is-vcentered is-multiline">
-                    <div class="column has-text-centered">
-                        <img class="large-image desktop-only" src="{% static "images/battle-phone.png" %}" />
-                        <img class="large-image" src="{% static "images/battle-phone2.png" %}" />
-                    </div>
-                    <div class="column mobile-only">
-                        <h1 class="title is-2 has-text-black-bis">
-                            1v1 me bro
-                        </h1>
-                        <h2 class="subtitle is-4 has-text-grey">
-                            Play solo online or fight through the dungeons
-                        </h2>
-                    </div>
-                    <div class="column desktop-only">
-                        <h1 class="title is-2 has-text-black-bis">
-                            Equip and Conquer!
-                        </h1>
-                        <h2 class="subtitle is-4 has-text-grey">
-                            Join thousands of players who are fighting tiny but winning BIG.
-                        </h2>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="hero is-medium has-background-white">
-        <div class="hero-body">
-            <div class="container">
-                <div class="columns is-vcentered is-multiline">
-                    <div class="mobile-only column has-text-right">
-                        <img class="" src="{% static "images/everyone.png" %}" />
-                    </div>
-                    <div class="column">
-                        <h1 class="title is-2 has-text-black-bis">
-                            +500 GEMS PER REFERRAL
-                        </h1>
-                        <h2 class="subtitle is-4 has-text-grey">
-                            Gather your friends and battle to be the best guild!
-                        </h2>
-
-                        <p class="has-text-black-bis cookiefont mt-6">
-                            JOIN OUR COMMUNITY ^-^
-                        </p>
-                        <span class="icon is-large mt-4 mr-3">
-                            <a href="https://discord.gg/PnaR3XmG73" class="has-text-link-dark">
-                                <i class="fab fa-3x fa-discord"></i>
-                            </a>
-                        </span>
-                        <span class="icon is-large mt-4 mr-3">
-                            <a href="https://www.twitter.com/tinytitansafk/">
-                                <i class="fab fa-3x fa-twitter"></i>
-                            </a>
-                        </span>
-                        <span class="icon is-large mt-4 mr-3">
-                            <a href="https://www.reddit.com/r/tinytitans/" class="has-text-danger">
-                                <i class="fab fa-3x fa-reddit"></i>
-                            </a>
-                        </span>
-                        <span class="icon is-large mt-4 mr-3">
-                            <a href="https://www.instagram.com/tinytitansafk/" class="has-text-danger">
-                                <i class="fab fa-3x fa-instagram"></i>
-                            </a>
-                        </span>
-                    </div>
-                    <div class="desktop-only column has-text-right">
-                        <img class="" src="{% static "images/everyone.png" %}" />
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-  </body>
-
-  <footer class="footer">
-    <div class="content has-text-centered">
-      <p>
-        <strong>Tiny Titans</strong> by Salutation Studio. Designed in
-        Waterloo.
-      </p>
-      <p class="cookiefont mt-6">
-        Here be Dragons.
-      </p>
-      <i class="fas fa-dragon"></i>
     </div>
-  </footer>
-</html>
+</section>
+
+ <section class="hero is-medium has-background-white">
+    <div class="hero-body">
+        <div class="container">
+            <div class="columns is-vcentered is-multiline">
+                <div class="column has-text-centered">
+                    <img class="large-image desktop-only" src="{% static "images/battle-phone.png" %}" />
+                    <img class="large-image" src="{% static "images/battle-phone2.png" %}" />
+                </div>
+                <div class="column mobile-only">
+                    <h1 class="title is-2 has-text-black-bis">
+                        1v1 me bro
+                    </h1>
+                    <h2 class="subtitle is-4 has-text-grey">
+                        Play solo online or fight through the dungeons
+                    </h2>
+                </div>
+                <div class="column desktop-only">
+                    <h1 class="title is-2 has-text-black-bis">
+                        Equip and Conquer!
+                    </h1>
+                    <h2 class="subtitle is-4 has-text-grey">
+                        Join thousands of players who are fighting tiny but winning BIG.
+                    </h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="hero is-medium has-background-white">
+    <div class="hero-body">
+        <div class="container">
+            <div class="columns is-vcentered is-multiline">
+                <div class="mobile-only column has-text-right">
+                    <img class="" src="{% static "images/everyone.png" %}" />
+                </div>
+                <div class="column">
+                    <h1 class="title is-2 has-text-black-bis">
+                        +500 GEMS PER REFERRAL
+                    </h1>
+                    <h2 class="subtitle is-4 has-text-grey">
+                        Gather your friends and battle to be the best guild!
+                    </h2>
+
+                    <p class="has-text-black-bis cookiefont mt-6">
+                        JOIN OUR COMMUNITY ^-^
+                    </p>
+                    <span class="icon is-large mt-4 mr-3">
+                        <a href="https://discord.gg/PnaR3XmG73" class="has-text-link-dark">
+                            <i class="fab fa-3x fa-discord"></i>
+                        </a>
+                    </span>
+                    <span class="icon is-large mt-4 mr-3">
+                        <a href="https://www.twitter.com/tinytitansafk/">
+                            <i class="fab fa-3x fa-twitter"></i>
+                        </a>
+                    </span>
+                    <span class="icon is-large mt-4 mr-3">
+                        <a href="https://www.reddit.com/r/tinytitans/" class="has-text-danger">
+                            <i class="fab fa-3x fa-reddit"></i>
+                        </a>
+                    </span>
+                    <span class="icon is-large mt-4 mr-3">
+                        <a href="https://www.instagram.com/tinytitansafk/" class="has-text-danger">
+                            <i class="fab fa-3x fa-instagram"></i>
+                        </a>
+                    </span>
+                </div>
+                <div class="desktop-only column has-text-right">
+                    <img class="" src="{% static "images/everyone.png" %}" />
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+
+{% endblock content %}
