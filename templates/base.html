@@ -1,16 +1,197 @@
 {% load static %}
 <!DOCTYPE html>
 <html>
+
 <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tiny Titans - AFK Auto Battles</title>
+
+    <script type="application/ld+json">
+      {
+      "@context": "http://schema.org",
+      "@type":"SoftwareApplication",
+      "publisher": "Salutation Studio",
+      "name":"Tiny Titans",
+      "description":"Assemble a team of powerful titans and fight for glory in this PvP strategy autobattler!",
+      "genre":[
+        "Role Playing",
+        "Auto Battler",
+        "Strategy",
+        "Card Game"
+      ],
+      "url":"http://salutationstudio.com/",
+      "image":"https://www.salutationstudio.com/static/images/logo.png",
+      "screenshot":"https://www.salutationstudio.com/static/images/battle-phone.png",
+      "sameAs": [
+        "https://tinytitans.fandom.com/wiki/Tiny_Titans_Wiki"
+      ],
+      "operatingSystem": [
+        "Android",
+        "iOS"
+      ],
+      "applicationCategory": [
+        "Game",
+        "Mobile application"
+      ],
+      "exampleOfWork":[
+        {
+          "@type":"VideoGame",
+          "name":"Tiny Titans",
+          "gamePlatform":[
+            "https://en.wikipedia.org/wiki/Android_(operating_system)",
+            "https://en.wikipedia.org/wiki/IOS"
+          ],
+          "contentRating":"Everyone 10+",
+          "applicationCategory":"Game, Mobile Application",
+          "offers": {
+            "@type": "AggregateOffer",
+            "lowPrice": "0.99",
+            "highPrice": "99.99",
+            "priceCurrency": "USD"
+          },
+          "operatingSystem": [
+            "Android",
+            "iOS"
+          ],
+          "releasedEvent":{
+            "@type":"PublicationEvent",
+            "startDate":"2021-02-15",
+            "location":{
+              "@type":"Place",
+              "name":"CAN"
+            }
+          }
+        }
+      ],
+      "offers": {
+            "@type": "AggregateOffer",
+            "lowPrice": "0.99",
+            "highPrice": "99.99",
+            "priceCurrency": "USD"
+       }
+      }
+    </script>
+    <link href="{% static "css/all.min.css" %}" rel="stylesheet">
     <link rel="shortcut icon" href="{% static 'favicon.ico' %}"/>
-    {% block header %}{% endblock header %}
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css"
+    />
+    <style>
+      .store-btn {
+        display: inline-block;
+        overflow: hidden;
+        width: 250px;
+        height: auto;
+      }
+
+      @font-face {
+        font-family: "Cookie Run";
+        src: url("{% static "fonts/CookieRunBold.otf" %}");
+      }
+
+      h1,
+      h2,
+      .cookiefont {
+        font-family: "Cookie Run", sans-serif;
+      }
+
+      .large-image {
+        width: 15vw;
+        min-width: 200px;
+      }
+
+      {# Mobile #}
+      @media only screen and (max-width: 768px) {
+        .is-fullheight {
+            background: url("{% static "images/background.jpg" %}") center / cover;
+        }
+
+        .desktop-only {
+            display: none;
+        }
+
+        .logo {
+            width: 80vw;
+            min-width: 100px;
+            display:block;
+            margin: -10px auto 6rem;
+        }
+
+        .logo.desktop-only {
+            display: none;
+        }
+
+        .mobile-title {
+            color: #2e6da4;
+        }
+      }
+
+      {# Desktop #}
+      @media only screen and (min-width: 768px) {
+        .is-fullheight {
+            background: url("{% static "images/background.jpg" %}") center / cover;
+        }
+        .mobile-only {
+            display: none;
+        }
+
+          .logo {
+              width: 20vw;
+              min-width: 300px;
+          }
+      }
+
+    </style>
+  <link rel="shortcut icon" href="{% static 'favicon.ico' %}" />
+  {% block header %}{% endblock header %}
 </head>
 
 <body>
-{% block content %}
+    <nav class="navbar is-transparent">
+      <div class="navbar-brand">
+        <a class="navbar-item" href="/">
+          <img src="{% static "images/studio-logo.png" %}" alt="Tiny Titans">
+        </a>
+        <div class="navbar-burger" data-target="navbarExampleTransparentExample">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
 
-{% endblock content %}
+      <div id="navbarExampleTransparentExample" class="navbar-menu">
+        <div class="navbar-start">
+          <a class="navbar-item" href="/about">
+            About Us
+          </a>
+          <a class="navbar-item" href="/info">
+            Game Info
+          </a>
+        </div>
+
+        <div class="navbar-end">
+
+        </div>
+      </div>
+    </nav>
+  {% block content %}
+
+  {% endblock content %}
 </body>
 
+<footer class="footer">
+    <div class="content has-text-centered">
+      <p>
+        <strong>Tiny Titans</strong> by Salutation Studio. Designed in
+        Waterloo.
+      </p>
+      <p class="cookiefont mt-6">
+        Here be Dragons.
+      </p>
+      <i class="fas fa-dragon"></i>
+    </div>
+</footer>
 
 </html>

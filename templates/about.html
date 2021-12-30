@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+    <section class="section is-small">
+        <div class="hero-body">
+            <div class="container">
+              <h1 class="title">Our Team</h1>
+              <h2 class="subtitle">
+                We are a tiny team but we pack a punch.
+              </h2>
+
+                <div class="tile is-ancestor">
+                  <div class="tile is-parent">
+                    <article class="tile is-child box">
+                      <figure class="image is-inline-block">
+                          <img style="width: 400px; margin-top: -40px" src="{% static "images/wilson-pic.jpeg" %}">
+                      </figure>
+
+                      <p class="title">Wilson</p>
+                      <div class="content">
+                        <p>At the age of 8, Wilson fell in love with the idea of creating games for others to enjoy. Although only his parents will ever play his prized implementation of Tic-Tac-Toe, Wilson is excited to continue pursuing his passion for making games at Salutation Studio with his friend Daniel. Wilson majored in Software Engineering at uWaterloo, and now oversees gameplay and artistic direction.</p>
+                        <p><b>Favourite games</b></p>
+                        <p>Slay The Spire, Everhood, Pokémon Emerald, Burnout 3, League of Legends</p>
+                      </div>
+                    </article>
+                  </div>
+                  <div class="tile is-parent">
+                    <article class="tile is-child box">
+                      <div class="has-text-centered">
+                          <figure class="image is-inline-block">
+                              <img style="width: 400px; margin-top: -40px" src="{% static "images/daniel-pic.jpeg" %}">
+                          </figure>
+                      </div>
+
+                      <p class="title">Daniel</p>
+                      <div class="content">
+                        <p>Ever since he got his first PSP in grade 4, games have never left his hands, even on the way to hockey practice. While majoring in Computer Science at Waterloo, Daniel got his first taste of game dev as an Intern at A Thinking Ape, working on massive online mobile games. At Salutation Studio, Daniel embellishes his love for gaming by building and designing Tiny Titans with Wilson, and overseeing many day-to-day operations.</p>
+                        <p><b>Favourite games</b></p>
+                        <p>StarCraft II, Naruto: Ultimate Ninja Heroes, Wipeout Pure, Twisted Metal: Head-On</p>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <h1 class="title">Contact Us</h1>
+            <p>In most cases, please reach us on our <a href="https://discord.gg/PnaR3XmG73">Discord</a> for support.</p>
+            <p>For other inquiries: info@salutationstudio.com</p>
+            <br>
+            <p>PO Box 91008</p>
+            <p>KANATA RPO SIGNATURE CTR, ON, K2T 0A3</p>
+        </div>
+    </section>
+{% endblock content %}

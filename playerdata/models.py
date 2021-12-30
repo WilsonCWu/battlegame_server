@@ -106,6 +106,16 @@ class BaseCharacter(models.Model):
             models.Index(fields=['rarity', 'rollable']),
         ]
 
+    @property
+    def to_rarity_name(self):
+        if self.rarity == 1:
+            return "Common"
+        elif self.rarity == 2:
+            return "Rare"
+        elif self.rarity == 3:
+            return "Epic"
+        elif self.rarity == 4:
+            return "Legendary"
 
     def __str__(self):
         return str(self.char_type) + ': ' + self.name

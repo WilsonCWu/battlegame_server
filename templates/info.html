@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+    <section class="section is-small">
+        <div class="hero-body">
+            <div class="container">
+              <h1 class="title">Chest Info</h1>
+              <p class="subtitle">The following details the probabilities and quantities for all loot boxes in Tiny Titans.</p>
+              <br>
+
+              <img style="width: 200px; margin: -40px" src="{% static "images/mythical_chest.png" %}" alt="Mythical Chest">
+              <h2>Mythical Chest</h2>
+              <p>Total Summons: 8 [Chances for Rare: 77%, Chances for Epic: 20%, Chances for Legendary: 3%]</p>
+              <br>
+              <table class="table is-bordered is-hoverable is-striped">
+                  <thead>
+                  <th>Titan</th>
+                  <th>Rarity</th>
+                  <th>Chance for Drop</th>
+                  </thead>
+                  <tbody>
+                    {% for char in mythical_droprates %}
+                        <tr>
+                            <td>{{ char.name }}</td>
+                            <td>{{ char.rarity }}</td>
+                            <td>{{ char.rate }}</td>
+                        </tr>
+                    {% endfor %}
+                  </tbody>
+              </table>
+              <br>
+
+              <h2>Golden Chest</h2>
+              <p>Total Summons: 3 [Chances for Rare: 89%, Chances for Epic: 10%, Chances for Legendary: 1%]</p>
+              <br>
+
+              <h2>Silver Chest</h2>
+              <p>Total Summons: 1 [Chances for Rare: 89%, Chances for Epic: 10%, Chances for Legendary: 1%]</p>
+              <br>
+
+            </div>
+        </div>
+    </section>
+{% endblock content %}
