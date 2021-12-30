@@ -280,7 +280,7 @@ def stage_generator(stage_num, dungeon_type):
         team_comp = DungeonBoss.objects.get(stage=boss_stage, dungeon_type=dungeon_type).team_comp
         seed_int = stage_num
         levels = get_tower_levels_for_stage(5, stage_num, boss_stage)
-        prestiges = [10] * 5 if stage_num < 60 else [15] * 5  # Increase max prestige to 15 after stage 60
+        prestiges = [10] * 5  #TODO: can increase this up to 15 as you progress
 
         placement = convert_teamp_comp_to_stage(team_comp, stage_num, levels, prestiges, seed_int)
 
