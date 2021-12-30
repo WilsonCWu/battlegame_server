@@ -34,149 +34,6 @@ class DungeonStageSchema(Schema):
     char_dialog = fields.Str()
 
 
-def update_char(char: Character, new_char: Character):
-    if new_char is None:
-        char = None
-        return char
-
-    char.char_type = new_char.char_type
-    char.level = new_char.level
-    char.prestige = new_char.prestige
-    char.save()
-    return char
-
-
-# Takes existing positions and picks two random positions to change
-# Then assigns new random positions that have not been used yet
-def shuffle_positions(len_chars, positions: []):
-    new_positions = positions
-    shuffle_pos = random.sample(range(0, len_chars), 2)
-    possible_pos = list(range(1, 26))
-
-    # remove from the set of possible_pos any positions that are taken by existing chars
-    for i in range(0, len(positions)):
-        if i not in shuffle_pos:
-            if positions[i] != -1:
-                possible_pos.remove(positions[i])
-
-    # Get new random positions from unused positions
-    random_positions = random.sample(possible_pos, 2)
-    new_positions[shuffle_pos[0]] = random_positions[0]
-    new_positions[shuffle_pos[1]] = random_positions[1]
-
-    return new_positions
-
-
-def make_char(user_id: int, char: Character, iteration: int, dungeon_type: int):
-    if char is None:
-        return None
-
-    level_multiplier = constants.CHAR_LEVEL_DIFF_BETWEEN_STAGES[dungeon_type]
-
-    if dungeon_type == constants.DungeonType.TOWER.value:
-        # TODO: Remove me after 1.0.8
-        if server.is_server_version_higher('1.0.8'):
-            prestige = constants.PRESTIGE_CAP_BY_RARITY_15[char.char_type.rarity]
-        else:
-            prestige = constants.PRESTIGE_CAP_BY_RARITY[char.char_type.rarity]
-    else:
-        prestige = 0
-
-    return Character(user_id=user_id,
-                     char_type=char.char_type,
-                     level=max(char.level - iteration * level_multiplier, 1),
-                     prestige=prestige)
-
-
-# creates or updates a placement for stage_num based on the boss_placement
-def make_mob_from_boss(boss_placement: Placement, i: int, stage_num: int, dungeon_type: int):
-
-    # `battlegame` user is the owner for all our dungeon mobs
-    dungeon_user_id = 1
-    char1 = make_char(dungeon_user_id, boss_placement.char_1, i, dungeon_type)
-    char2 = make_char(dungeon_user_id, boss_placement.char_2, i, dungeon_type)
-    char3 = make_char(dungeon_user_id, boss_placement.char_3, i, dungeon_type)
-    char4 = make_char(dungeon_user_id, boss_placement.char_4, i, dungeon_type)
-    char5 = make_char(dungeon_user_id, boss_placement.char_5, i, dungeon_type)
-
-    pos1 = boss_placement.pos_1
-    pos2 = boss_placement.pos_2
-    pos3 = boss_placement.pos_3
-    pos4 = boss_placement.pos_4
-    pos5 = boss_placement.pos_5
-
-    chars = [char1, char2, char3, char4, char5]
-    len_chars = len(list(filter(None, chars)))
-    positions = [pos1, pos2, pos3, pos4, pos5]
-
-    # 1 random peasant from level 1 - 24
-    if dungeon_type == constants.DungeonType.CAMPAIGN.value and stage_num <= 24:
-        char_to_replace = random.randint(0, len_chars - 1)
-        rand_peasant_type = random.randint(1, 3)
-        chars[char_to_replace] = Character(user_id=dungeon_user_id, char_type_id=rand_peasant_type, level=chars[char_to_replace].level)
-
-    positions = shuffle_positions(len_chars,  positions)
-
-    # if placement already exists for this stage, we update
-    dungeon_stage = DungeonStage.objects.filter(stage=stage_num, dungeon_type=dungeon_type).first()
-    if dungeon_stage is not None:
-        placement = dungeon_stage.mob
-
-        placement.char_1 = update_char(placement.char_1, chars[0])
-        placement.char_2 = update_char(placement.char_2, chars[1])
-        placement.char_3 = update_char(placement.char_3, chars[2])
-        placement.char_4 = update_char(placement.char_4, chars[3])
-        placement.char_5 = update_char(placement.char_5, chars[4])
-
-        placement.pos_1 = positions[0]
-        placement.pos_2 = positions[1]
-        placement.pos_3 = positions[2]
-        placement.pos_4 = positions[3]
-        placement.pos_5 = positions[4]
-
-        placement.save()
-        return placement
-
-    # if placement doesn't exist for this stage_num yet, we create it!
-    Character.objects.bulk_create(list(filter(None, chars)))
-    placement = Placement.objects.create(user_id=dungeon_user_id,
-                                         pos_1=positions[0], char_1=chars[0],
-                                         pos_2=positions[1], char_2=chars[1],
-                                         pos_3=positions[2], char_3=chars[2],
-                                         pos_4=positions[3], char_4=chars[3],
-                                         pos_5=positions[4], char_5=chars[4])
-    return placement
-
-
-# design doc: https://docs.google.com/document/d/1TMjO8-8GfMhp4aN8OEGQeBT-a6VRRgbCEe3S4aAWHSM/edit?usp=sharing
-# creates 19 weaker versions of each boss_placement in the queryset
-@transaction.atomic
-def generate_dungeon_stages(dungeon_bosses_queryset):
-
-    bulk_stages = []
-    for boss in dungeon_bosses_queryset:
-        num_substages = constants.NUM_DUNGEON_SUBSTAGES[boss.dungeon_type]
-        for i in range(1, num_substages):
-            stage_num = boss.stage - i
-            exp = formulas.player_exp_reward_dungeon(stage_num)
-            coins = formulas.coins_reward_dungeon(stage_num, boss.dungeon_type)
-            gems = formulas.gems_reward_dungeon(stage_num, boss.dungeon_type)
-            placement = make_mob_from_boss(boss.placement, i, stage_num, boss.dungeon_type)
-
-            stage = DungeonStage(stage=stage_num, mob=placement, dungeon_type=boss.dungeon_type,
-                                 coins=coins, gems=gems, player_exp=exp)
-            bulk_stages.append(stage)
-
-        # create the actual boss stage
-        boss_stage = DungeonStage(stage=boss.stage, mob=boss.placement, dungeon_type=boss.dungeon_type,
-                                  coins=formulas.coins_reward_dungeon(boss.stage, boss.dungeon_type),
-                                  gems=formulas.gems_reward_dungeon(boss.stage, boss.dungeon_type),
-                                  player_exp=formulas.player_exp_reward_dungeon(boss.stage))
-        bulk_stages.append(boss_stage)
-
-    DungeonStage.objects.bulk_update_or_create(bulk_stages, ['mob', 'coins', 'gems', 'player_exp'], match_field=['stage', 'dungeon_type'])
-
-
 def complete_referral_conversion(user):
     referral_tracker = ReferralTracker.objects.filter(user=user).first()
     if referral_tracker is None or referral_tracker.converted:
@@ -317,10 +174,6 @@ class DungeonSetProgressCommitView(APIView):
 
 
 def campaign_tutorial_rewards(stage):
-    # TODO: remove me after 1.0.4
-    if not server.is_server_version_higher('1.0.4'):
-        return []
-
     if stage == 1:
         return [chests.ChestReward('char_id', 5)]
     elif stage == 2:
@@ -362,6 +215,7 @@ class DungeonStageView(APIView):
                          'coins': formulas.coins_reward_dungeon(stage, dungeon_type),
                          'gems': formulas.gems_reward_dungeon(stage, dungeon_type),
                          'mob': dungeon_gen.stage_generator(stage, dungeon_type),
+                         'story_text': "",  # TODO: Remove me after 1.0.10
                          'char_dialog': str(dungeon_stage.char_dialog) if dungeon_stage.char_dialog else '',
                          'rewards': chests.ChestRewardSchema(rewards, many=True).data
                          })

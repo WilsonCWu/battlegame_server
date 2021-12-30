@@ -187,16 +187,6 @@ class ClaimQuestDailyView(APIView):
         return handle_claim_quest(request, PlayerQuestDaily)
 
 
-# TODO: remove me 1.0.9 in favor of CompleteSocialLinkView
-class CompleteDiscordView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    @transaction.atomic
-    def post(self, request):
-        QuestUpdater.add_progress_by_type(request.user, constants.DISCORD, 1)
-        return Response({'status': True})
-
-
 class CompleteSocialLinkView(APIView):
     permission_classes = (IsAuthenticated,)
 

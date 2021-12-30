@@ -319,8 +319,4 @@ def gems_chest_reward(rarity):
 ## Prestige
 
 def next_prestige_copies(curr_prestige_level, rarity):
-    # TODO: Remove me after 1.0.8
-    if server.is_server_version_higher('1.0.8'):
-        return constants.PRESTIGE_COPIES_REQUIRED_BY_RARITY[rarity][curr_prestige_level]
-    else:
-        return constants.PRESTIGE_COPIES_REQUIRED[curr_prestige_level]
+    return constants.PRESTIGE_COPIES_REQUIRED_BY_RARITY[rarity][curr_prestige_level]

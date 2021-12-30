@@ -133,23 +133,6 @@ def daily_dungeon_ticket_drop():
     Inventory.objects.bulk_update(to_inc, ['daily_dungeon_ticket'])
 
 
-# TODO (1.0.4): remove me after event ends
-@cron(uuid="408a0aeb-28ee-4adc-b064-24b70afbdd95")
-@atomic
-def grass_event_ticket_drop():
-    # get grass event times
-    event_time_tracker = EventTimeTracker.objects.filter(name=constants.EventType.GRASS.value).first()
-    cur_time = datetime.now(timezone.utc)
-
-    if cur_time < event_time_tracker.start_time or cur_time > event_time_tracker.end_time:
-        return
-
-    grass_events = GrassEvent.objects.all()
-    for event in grass_events:
-        event.unclaimed_tokens = 3
-    GrassEvent.objects.bulk_update(grass_events, ['unclaimed_tokens'])
-
-
 @cron(uuid="b843e92a-fb04-4332-831f-e086cc4ffe5e")
 def refresh_daily_dungeon():
     daily_dungeon_team_gen_cron()
