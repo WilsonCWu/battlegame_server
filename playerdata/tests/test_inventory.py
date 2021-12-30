@@ -210,7 +210,7 @@ class PrestigeAPITestCase(APITestCase):
             char_type=base_ninja,
             copies=500,
             level=30,
-            prestige=5
+            prestige=10
         )
 
         response = self.client.post('/prestige/', {

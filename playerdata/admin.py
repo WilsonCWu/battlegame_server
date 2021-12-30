@@ -9,9 +9,8 @@ from django_json_widget.widgets import JSONEditorWidget
 
 from battlegame.cron import next_round, setup_tournament, end_tourney
 from battlegame.figures import get_hacker_alert_dataframe, get_table_context, get_base_character_usage_dataframe, get_dungeon_stats_dataframe
-from . import purchases, server
+from . import purchases
 from .daily_dungeon import daily_dungeon_team_gen_cron
-from .dungeon import generate_dungeon_stages
 from .dungeon_gen import convert_placement_to_json
 from .login import UserRecoveryTokenGenerator
 from .matcher import generate_bots_from_users
@@ -66,9 +65,6 @@ class DungeonBossAdmin(bulk_admin.BulkModelAdmin):
     raw_id_fields = ("placement",)
     list_display = ('stage', 'dungeon_type')
     list_filter = ('dungeon_type',)
-
-    def generate_stages(self, request, queryset):
-        generate_dungeon_stages(queryset)
 
     def convert_json(self, request, queryset):
         convert_placement_to_json(queryset)

@@ -222,10 +222,6 @@ CRONJOBS = [
 
     # Hourly at HH:02
     ('2 * * * *', 'battlegame.cron.process_hacker_alerts', '>> /tmp/process_hacker_alerts.log'),
-
-    # TODO (1.0.4): remove me after event ends
-    # Will only run on odd days (Thanksgiving starts on 25th this year)
-    ('0 0 1-31/2 * *', 'battlegame.cron.grass_event_ticket_drop', '>> /tmp/grass_event_ticket_drop.log'),
 ]
 
 # Monitoring

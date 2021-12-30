@@ -10,11 +10,7 @@ from playerdata.models import Placement, Character, DungeonBoss, DailyDungeonSta
 
 # Adjust the prestige based on prestige rarity cap
 def prestige_for_rarity(rarity, prestige):
-    # TODO: Remove me after 1.0.8
-    if server.is_server_version_higher('1.0.8'):
-        prestige -= constants.MAX_PRESTIGE_LEVEL_15 - constants.PRESTIGE_CAP_BY_RARITY_15[rarity]
-    else:
-        prestige -= constants.MAX_PRESTIGE_LEVEL - constants.PRESTIGE_CAP_BY_RARITY[rarity]
+    prestige -= constants.MAX_PRESTIGE_LEVEL_15 - constants.PRESTIGE_CAP_BY_RARITY_15[rarity]
     return max(prestige, 0)
 
 
@@ -284,7 +280,7 @@ def stage_generator(stage_num, dungeon_type):
         team_comp = DungeonBoss.objects.get(stage=boss_stage, dungeon_type=dungeon_type).team_comp
         seed_int = stage_num
         levels = get_tower_levels_for_stage(5, stage_num, boss_stage)
-        prestiges = [10] * 5
+        prestiges = [10] * 5  #TODO: can increase this up to 15 as you progress
 
         placement = convert_teamp_comp_to_stage(team_comp, stage_num, levels, prestiges, seed_int)
 
