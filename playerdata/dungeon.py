@@ -203,8 +203,8 @@ class DungeonStageView(APIView):
             return Response({'status': True, 'stage_id': stage})
 
         # TODO: DungeonStage should be repurposed for just stage metadata, like dialog
-        dungeon_stage = DungeonStage.objects.filter(stage=stage, dungeon_type=dungeon_type).first()
-        char_dialog = str(dungeon_stage.char_dialog) if (dungeon_stage and dungeon_stage.char_dialog) else ''
+        dungeon_stage = DungeonStage.objects.filter(stage=stage, dungeon_type=dungeon_type).exclude(char_dialog__isnull=True).first()
+        char_dialog = str(dungeon_stage.char_dialog) if dungeon_stage else ''
 
         if dungeon_type == DungeonType.CAMPAIGN.value:
             rewards = campaign_tutorial_rewards(stage)
