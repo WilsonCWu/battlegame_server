@@ -104,7 +104,7 @@ def reset_daily_wins_cron():
         UserStats.objects.filter(daily_wins__gt=0, daily_games__gt=0).select_for_update().update(daily_wins=0, daily_games=0)
 
     with atomic():
-        userstats = UserStats.objects.filter(num_games__gt=0).select_related('user__userinfo').select_for_update()
+        userstats = UserStats.objects.filter(num_games__gt=0).select_related('user__userinfo').exclude(user__userinfo__isnull=True).select_for_update()
         for stat in userstats:
             stat.pvp_skips = skip_cap(stat.user.userinfo)
         UserStats.objects.bulk_update(userstats, ['pvp_skips'])
