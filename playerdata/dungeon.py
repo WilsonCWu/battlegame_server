@@ -202,7 +202,9 @@ class DungeonStageView(APIView):
         if stage > constants.MAX_DUNGEON_STAGE[dungeon_type]:
             return Response({'status': True, 'stage_id': stage})
 
-        dungeon_stage = DungeonStage.objects.filter(stage=stage, dungeon_type=dungeon_type).first()
+        # TODO: DungeonStage should be repurposed for just stage metadata, like dialog, rewards/mob already dynamically generated
+        dungeon_stage = DungeonStage.objects.filter(stage=stage, dungeon_type=dungeon_type).exclude(char_dialog__isnull=True).first()
+        char_dialog = str(dungeon_stage.char_dialog) if dungeon_stage else ''
 
         if dungeon_type == DungeonType.CAMPAIGN.value:
             rewards = campaign_tutorial_rewards(stage)
@@ -216,6 +218,6 @@ class DungeonStageView(APIView):
                          'gems': formulas.gems_reward_dungeon(stage, dungeon_type),
                          'mob': dungeon_gen.stage_generator(stage, dungeon_type),
                          'story_text': "",  # TODO: Remove me after 1.0.10
-                         'char_dialog': str(dungeon_stage.char_dialog) if dungeon_stage.char_dialog else '',
+                         'char_dialog': char_dialog,
                          'rewards': chests.ChestRewardSchema(rewards, many=True).data
                          })
