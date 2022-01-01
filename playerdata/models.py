@@ -128,6 +128,7 @@ class BaseCharacterStats(models.Model):
     health = models.IntegerField()
     starting_mana = models.IntegerField()
     mana = models.IntegerField()
+    starting_ability_ticks = models.IntegerField(default=0)
     ability_ticks = models.IntegerField()
     speed = models.IntegerField()
     attack_damage = models.IntegerField()
