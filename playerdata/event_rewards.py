@@ -65,7 +65,7 @@ class GetEventRewardListView(APIView):
         last_claimed_reward = request.user.eventrewards.last_claimed_reward
         rewards = get_active_login_event_rewards()
         cur_time = datetime.now(timezone.utc)
-        is_next_claimable = cur_time.day > request.user.eventrewards.last_claimed_time.day and last_claimed_reward < len(rewards)
+        is_next_claimable = cur_time.toordinal() > request.user.eventrewards.last_claimed_time.toordinal() and last_claimed_reward < len(rewards)
 
         return Response({'status': True,
                          'last_claimed': last_claimed_reward,
@@ -86,7 +86,7 @@ class ClaimEventRewardView(APIView):
 
         # Completing the 7th day also unlocks the jackpot, allow a double claim
         is_not_jackpot = next_reward_id != len(event_rewards) - 1
-        if cur_time.day == request.user.eventrewards.last_claimed_time.day and is_not_jackpot:
+        if cur_time.toordinal() == request.user.eventrewards.last_claimed_time.toordinal() and is_not_jackpot:
             return Response({'status': False, 'reason': 'reward for today has been claimed'})
 
         if next_reward_id >= len(event_rewards):
