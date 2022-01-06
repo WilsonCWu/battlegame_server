@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 from functools import lru_cache
+from enum import Enum
 
 from playerdata.models import BaseCharacter
 from playerdata.models import BaseCharacterAbility2
@@ -92,9 +93,19 @@ class BasePrestigeSchema(StatModifierSchema):
     level = fields.Int()
 
 
+class FlagName(Enum):
+    LEVEL_BOOST_240 = 'level_boost_240'
+
+
 @lru_cache()
 def get_char_rarity(char_type: int):
     return BaseCharacter.objects.get(char_type=char_type).rarity
+
+
+# returns false if flag doesn't exist or is false value
+def is_flag_active(flag_name: FlagName):
+    flag = Flag.objects.filter(name=flag_name.value).first()
+    return flag and flag.value
 
 
 class BaseInfoView(APIView):

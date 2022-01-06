@@ -56,7 +56,7 @@ class Christmas2021EventBadgeNotifCount(notifications.BadgeNotifCount):
         last_claimed_reward = user.eventrewards.last_claimed_reward
         rewards = event_rewards.get_active_login_event_rewards()
         cur_time = datetime.now(timezone.utc)
-        is_next_claimable = cur_time.day > user.eventrewards.last_claimed_time.day and last_claimed_reward < len(rewards)
+        is_next_claimable = cur_time.toordinal() > user.eventrewards.last_claimed_time.toordinal() and last_claimed_reward < len(rewards)
 
         count = 1 if is_next_claimable else 0
         return notifications.BadgeNotif(constants.NotificationType.CHRISTMAS_2021.value, count)

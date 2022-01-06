@@ -9,8 +9,8 @@ from rest_marshmallow import Schema, fields
 from django.utils import timezone
 from datetime import datetime, timedelta
 
-from playerdata import formulas, constants
-from playerdata.models import Character
+from playerdata import formulas, constants, base
+from playerdata.models import Character, Flag
 from playerdata.questupdater import QuestUpdater
 from playerdata.serializers import SlotSerializer, IntSerializer
 
@@ -25,19 +25,27 @@ class LevelBoosterSchema(Schema):
     is_available = fields.Method("get_is_available")
 
     def get_is_available(self, level_booster):
-        return get_max_out_char_count(level_booster.user) >= MIN_NUM_OF_MAXED_CHARS
+        return is_eligible_level_boost(level_booster.user)
 
 
-# Get all 240 chars that are +10 star
-def get_max_out_char_count(user):
+def is_eligible_level_boost(user):
     chars = Character.objects.filter(user=user, level=240)
     count = 0
 
     for char in chars:
-        if constants.PRESTIGE_TO_STAR_LEVEL(char.prestige, char.char_type.rarity) >= 10:
+        if is_char_eligible_level_boost(char):
             count += 1
 
-    return count
+    return count >= MIN_NUM_OF_MAXED_CHARS
+
+
+def is_char_eligible_level_boost(char):
+    if base.is_flag_active(base.FlagName.LEVEL_BOOST_240):
+        min_stars = 6
+    else:
+        min_stars = 10
+
+    return char.level == constants.MAX_CHARACTER_LEVEL and constants.PRESTIGE_TO_STAR_LEVEL(char.prestige, char.char_type.rarity) >= min_stars
 
 
 # Get num of chars that are currently boosted
@@ -45,8 +53,17 @@ def get_num_boosted_chars(user):
     return Character.objects.filter(user=user, is_boosted=True).count()
 
 
-# max cap is raised by 5 per maxed out hero
+# max cap is raised +1 for each prestige above 5*, capped at 10*
 def get_level_cap(user):
+    if base.is_flag_active(base.FlagName.LEVEL_BOOST_240):
+        total_stars_past5 = 0
+        chars = Character.objects.filter(user=user, level=240, is_boosted=True).select_related('char_type')
+
+        for char in chars:
+            stars_past5 = min(constants.PRESTIGE_TO_STAR_LEVEL(char.prestige, char.char_type.rarity) - 5, 5)  # capped at 5 extra levels
+            total_stars_past5 += max(stars_past5, 0)
+        return constants.MAX_CHARACTER_LEVEL + total_stars_past5
+
     return constants.MAX_CHARACTER_LEVEL + get_num_boosted_chars(user) * 5
 
 
@@ -69,7 +86,7 @@ class FillSlotView(APIView):
         slot_id = serializer.validated_data['slot_id']
         char_id = serializer.validated_data['char_id']
 
-        if get_max_out_char_count(request.user) < MIN_NUM_OF_MAXED_CHARS:
+        if not is_eligible_level_boost(request.user):
             return Response({'status': False, 'reason': 'not enough chars to level boost!'})
 
         if char_id in request.user.levelbooster.slots:
@@ -79,7 +96,7 @@ class FillSlotView(APIView):
         if char is None:
             return Response({'status': False, 'reason': 'invalid char_id'})
 
-        if char.level != constants.MAX_CHARACTER_LEVEL or constants.PRESTIGE_TO_STAR_LEVEL(char.prestige, char.char_type.rarity) < 10:
+        if not is_char_eligible_level_boost(char):
             return Response({'status': False, 'reason': 'must max out char before you can add it to a slot'})
 
         curr_time = datetime.now(timezone.utc)
@@ -199,7 +216,7 @@ class LevelUpBooster(APIView):
     def post(self, request):
         num_boosted_chars = get_num_boosted_chars(request.user)
 
-        if get_max_out_char_count(request.user) < MIN_NUM_OF_MAXED_CHARS:
+        if not is_eligible_level_boost(request.user):
             return Response({'status': False, 'reason': 'not enough chars to level boost!'})
 
         if request.user.levelbooster.booster_level + 1 > get_level_cap(request.user):
