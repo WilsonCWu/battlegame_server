@@ -29,17 +29,23 @@ class LevelBoosterSchema(Schema):
 
 
 def is_eligible_level_boost(user):
-    if base.is_flag_active(base.FlagName.LEVEL_BOOST_240):
-        return Character.objects.filter(user=user, level=240).count() >= MIN_NUM_OF_MAXED_CHARS
-
     chars = Character.objects.filter(user=user, level=240)
     count = 0
 
     for char in chars:
-        if constants.PRESTIGE_TO_STAR_LEVEL(char.prestige, char.char_type.rarity) >= 10:
+        if is_char_eligible_level_boost(char):
             count += 1
 
     return count >= MIN_NUM_OF_MAXED_CHARS
+
+
+def is_char_eligible_level_boost(char):
+    if base.is_flag_active(base.FlagName.LEVEL_BOOST_240):
+        min_stars = 6
+    else:
+        min_stars = 10
+
+    return char.level == constants.MAX_CHARACTER_LEVEL and constants.PRESTIGE_TO_STAR_LEVEL(char.prestige, char.char_type.rarity) >= min_stars
 
 
 # Get num of chars that are currently boosted
@@ -47,14 +53,14 @@ def get_num_boosted_chars(user):
     return Character.objects.filter(user=user, is_boosted=True).count()
 
 
-# max cap is raised +1 for each prestige above 5*
+# max cap is raised +1 for each prestige above 5*, capped at 10*
 def get_level_cap(user):
     if base.is_flag_active(base.FlagName.LEVEL_BOOST_240):
         total_stars_past5 = 0
         chars = Character.objects.filter(user=user, level=240, is_boosted=True).select_related('char_type')
 
         for char in chars:
-            stars_past5 = constants.PRESTIGE_TO_STAR_LEVEL(char.prestige, char.char_type.rarity) - 5
+            stars_past5 = min(constants.PRESTIGE_TO_STAR_LEVEL(char.prestige, char.char_type.rarity) - 5, 5)  # capped at 5 extra levels
             total_stars_past5 += max(stars_past5, 0)
         return constants.MAX_CHARACTER_LEVEL + total_stars_past5
 
@@ -90,7 +96,7 @@ class FillSlotView(APIView):
         if char is None:
             return Response({'status': False, 'reason': 'invalid char_id'})
 
-        if char.level != constants.MAX_CHARACTER_LEVEL or constants.PRESTIGE_TO_STAR_LEVEL(char.prestige, char.char_type.rarity) < 10:
+        if not is_char_eligible_level_boost(char):
             return Response({'status': False, 'reason': 'must max out char before you can add it to a slot'})
 
         curr_time = datetime.now(timezone.utc)
