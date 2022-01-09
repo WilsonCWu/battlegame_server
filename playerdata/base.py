@@ -162,6 +162,7 @@ def user_lock_ids(userids: List[int]):
     return list(User.objects.filter(id__in=userids).select_for_update())
 
 
+# locks all users associated with the queryset
 def user_lock_related_users(query_set: QuerySet):
     userids = query_set.values_list('user_id', flat=True)
     return user_lock_ids(userids)
