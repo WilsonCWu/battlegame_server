@@ -1,3 +1,6 @@
+from typing import List
+
+from django.db.models import QuerySet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -155,5 +158,10 @@ class BaseInfoView(APIView):
 
 
 # Will lock the entire Users specified until the end of the transaction it is in
-def user_lock(userids):
-    return User.objects.filter(id__in=userids).select_for_update()
+def user_lock_ids(userids: List[int]):
+    return list(User.objects.filter(id__in=userids).select_for_update())
+
+
+def user_lock_related_users(query_set: QuerySet):
+    userids = query_set.values_list('user_id', flat=True)
+    return user_lock_ids(userids)
