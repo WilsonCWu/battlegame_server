@@ -14,7 +14,7 @@ from playerdata.models import ServerStatus
 from playerdata.models import TournamentMatch
 from playerdata.models import TournamentMember
 from playerdata.models import UserStats
-from . import constants, formulas, rolls, tier_system, server, pvp_queue, matcher, afk_rewards, leaderboards
+from . import constants, formulas, rolls, tier_system, server, pvp_queue, matcher, afk_rewards, leaderboards, base
 from .formulas import vip_exp_to_level
 from .questupdater import QuestUpdater
 from .serializers import UploadResultSerializer, BotResultsSerializer
@@ -230,10 +230,11 @@ def save_usage_into_redis(team, win, elo, key_append):
 
 
 def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defending_team):
+    base.user_lock_ids([request.user.id])
+
     # Should be handled by client, so this will only be triggered by spoofed API calls or a glitch.
-    if server.is_server_version_higher('1.0.2'):
-        if request.user.userstats.daily_games > constants.MAX_DAILY_QUICKPLAY_GAMES:
-            return Response({'status': False, 'reason': 'Max daily quickplay games exceeded'})
+    if request.user.userstats.daily_games > constants.MAX_DAILY_QUICKPLAY_GAMES:
+        return Response({'status': False, 'reason': 'Max daily quickplay games exceeded'})
 
     update_stats(request.user, win, stats)
     save_usage_into_redis(attacking_team, win, request.user.userinfo.elo, "")
@@ -261,7 +262,6 @@ def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defend
         if afkrewards.runes_left == afk_rewards.get_accumulated_runes_limit(vip_level):
             runes = afk_rewards.RUNES_FULL
 
-        chest_rarity = award_chest(request.user)
         QuestUpdater.add_progress_by_type(request.user, constants.WIN_QUICKPLAY_GAMES, 1)
 
     # rewards

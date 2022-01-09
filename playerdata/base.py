@@ -11,6 +11,7 @@ from playerdata.models import BaseCharacterStats
 from playerdata.models import BaseItem
 from playerdata.models import BasePrestige
 from playerdata.models import Flag, UserFlag
+from playerdata.models import User
 
 
 class UserSchema(Schema):
@@ -151,3 +152,8 @@ class BaseInfoView(APIView):
             'prestige': prestigeSerializer.data,
             'flags': BaseInfoView.flags(request.user),
         })
+
+
+# Will lock the entire Users specified until the end of the transaction it is in
+def user_lock(userids):
+    return User.objects.filter(id__in=userids).select_for_update()
