@@ -5,7 +5,7 @@ from django.db.transaction import atomic
 from sentry_sdk import capture_exception
 from django_redis import get_redis_connection
 from datetime import timedelta
-from playerdata import tier_system, relic_shop, refunds
+from playerdata import tier_system, relic_shop, refunds, base
 from playerdata.antihacking import MatchValidator
 from playerdata.constants import TOURNEY_SIZE
 from playerdata.daily_dungeon import daily_dungeon_team_gen_cron
@@ -101,13 +101,16 @@ def daily_clean_matches_cron():
 @cron(uuid="cb651e8b-e227-4be1-a786-acd6fcac037c")
 def reset_daily_wins_cron():
     with atomic():
-        UserStats.objects.filter(daily_wins__gt=0, daily_games__gt=0).select_for_update().update(daily_wins=0, daily_games=0)
+        user_stats = UserStats.objects.filter(daily_wins__gt=0, daily_games__gt=0)
+        base.user_lock_related_users(user_stats)
+        user_stats.update(daily_wins=0, daily_games=0)
 
     with atomic():
-        userstats = UserStats.objects.filter(num_games__gt=0).select_related('user__userinfo').exclude(user__userinfo__isnull=True).select_for_update()
-        for stat in userstats:
+        user_stats = UserStats.objects.filter(num_games__gt=0).select_related('user__userinfo').exclude(user__userinfo__isnull=True)
+        base.user_lock_related_users(user_stats)
+        for stat in user_stats:
             stat.pvp_skips = skip_cap(stat.user.userinfo)
-        UserStats.objects.bulk_update(userstats, ['pvp_skips'])
+        UserStats.objects.bulk_update(user_stats, ['pvp_skips'])
     update_redis_player_elos()
 
 

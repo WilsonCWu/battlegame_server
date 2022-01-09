@@ -1,3 +1,6 @@
+from typing import List
+
+from django.db.models import QuerySet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -11,6 +14,7 @@ from playerdata.models import BaseCharacterStats
 from playerdata.models import BaseItem
 from playerdata.models import BasePrestige
 from playerdata.models import Flag, UserFlag
+from playerdata.models import User
 
 
 class UserSchema(Schema):
@@ -151,3 +155,14 @@ class BaseInfoView(APIView):
             'prestige': prestigeSerializer.data,
             'flags': BaseInfoView.flags(request.user),
         })
+
+
+# Will lock the entire Users specified until the end of the transaction it is in
+def user_lock_ids(userids: List[int]):
+    return list(User.objects.filter(id__in=userids).select_for_update())
+
+
+# locks all users associated with the queryset
+def user_lock_related_users(query_set: QuerySet):
+    userids = query_set.values_list('user_id', flat=True)
+    return user_lock_ids(userids)
