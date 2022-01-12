@@ -442,6 +442,10 @@ class ClanMemberAdmin(admin.ModelAdmin, DynamicArrayMixin):
     raw_id_fields = ('userinfo', 'clan2')
 
 
+class BaseResourceShopItemAdmin(admin.ModelAdmin):
+    list_display = ('id', 'cost_type', 'cost_value', 'reward_type', 'reward_value')
+
+
 @admin.register(BaseCharacterAbility2)
 class BaseCharacterAbility2Admin(admin.ModelAdmin):
     formfield_overrides = {
@@ -899,6 +903,7 @@ admin.site.register(EventTimeTracker)
 admin.site.register(GrassEvent, GrassEventAdmin)
 admin.site.register(EventRewards)
 admin.site.register(EloRewardTracker)
+admin.site.register(BaseResourceShopItem, BaseResourceShopItemAdmin)
 
 admin.site.index_template = 'admin/custom_index.html'
 admin.autodiscover()
