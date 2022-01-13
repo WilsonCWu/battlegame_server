@@ -211,31 +211,43 @@ TABLE_TEMPLATE_NAME = "table.html"
 
 @login_required(login_url='/admin/')
 def get_defense_placement_report_view(request):
+    if not request.user.is_superuser:
+        return HttpResponse()
     return UserInfoAdmin.generate_defense_placement_report(UserInfoAdmin, request, UserInfo.objects.all())
 
 
 @login_required(login_url='/admin/')
 def get_base_character_usage_view(request):
+    if not request.user.is_superuser:
+        return HttpResponse()
     return BaseCharacterUsageAdmin.generate_base_character_usage_report(BaseCharacterUsageAdmin, request, BaseCharacterUsage.objects.all())
 
 
 @login_required(login_url='/admin/')
 def get_graph_view(request, name=None):
+    if not request.user.is_superuser:
+        return HttpResponse()
     return render(request, GRAPH_TEMPLATE_NAME, get_graph_context(name))
 
 
 @login_required(login_url='/admin/')
 def get_dungeon_table_view(request, name=None):
+    if not request.user.is_superuser:
+        return HttpResponse()
     return DungeonStatsAdmin.generate_dungeon_stats_report(DungeonStatsAdmin, request, DungeonStats.objects.all())
 
 
 @login_required(login_url='/admin/')
 def get_hacker_report_view(request):
+    if not request.user.is_superuser:
+        return HttpResponse()
     return HackerAlertAdmin.generate_hacker_report(HackerAlertAdmin, request, HackerAlert.objects.all())
 
 
 @login_required(login_url='/admin/')
 def get_character_changes_view(request, v=None):
+    if not request.user.is_superuser:
+        return HttpResponse()
     changes = get_all_character_changes(v)
     response = HttpResponse()
     for k, v in changes.items():
