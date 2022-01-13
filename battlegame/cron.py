@@ -5,7 +5,7 @@ from django.db.transaction import atomic
 from sentry_sdk import capture_exception
 from django_redis import get_redis_connection
 from datetime import timedelta
-from playerdata import tier_system, relic_shop, refunds, base
+from playerdata import tier_system, relic_shop, refunds, base, resource_shop
 from playerdata.antihacking import MatchValidator
 from playerdata.constants import TOURNEY_SIZE
 from playerdata.daily_dungeon import daily_dungeon_team_gen_cron
@@ -112,6 +112,11 @@ def reset_daily_wins_cron():
             stat.pvp_skips = skip_cap(stat.user.userinfo)
         UserStats.objects.bulk_update(user_stats, ['pvp_skips'])
     update_redis_player_elos()
+
+
+@cron(uuid="84a58d71-49a3-4744-b5f8-f9ed9f557459")
+def reset_resource_shop_cron():
+    resource_shop.reset_resource_shop()
 
 
 MAX_DAILY_DUNGEON_TICKET = 5
