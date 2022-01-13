@@ -285,6 +285,29 @@ class ChestType(Enum):
     LOGIN_GEMS = 7
 
 
+class ResourceShopCostType(Enum):
+    GOLD = 0
+    GEMS = 1
+
+
+class RewardType(Enum):
+    COINS = "coins"
+    GEMS = "gems"
+    DUST = "essence"
+    RELIC_STONES = "relic_stone"
+    RARE_SHARDS = "rare_shards"
+    EPIC_SHARDS = "epic_shards"
+    LEGENDARY_SHARDS = "legendary_shards"
+    DUST_FAST_REWARDS = "dust_fast_reward_hours"
+    COINS_FAST_REWARDS = "coins_fast_reward_hours"
+    CHAMP_BADGE = "champ_badge"
+    REGAL_POINTS = "regal_points"
+    CHAR_ID = "char_id"
+    ITEM_ID = "item_id"
+    PROFILE_PIC = "profile_pic"
+    PET_ID = "pet_id"
+
+
 CHEST_ODDS = [750, 250, 0, 0, 0, 0]
 MIN_REWARDS_PER_CHEST = [3, 5, 10, 6, 1, 3]
 MAX_REWARDS_PER_CHEST = [3, 5, 10, 7, 1, 3]

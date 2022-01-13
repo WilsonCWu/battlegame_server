@@ -19,7 +19,7 @@ from django.urls import path
 from battlegame import gameanalytics
 from playerdata import creatorcode, event_times, login, tier_system, level_booster, relic_shop, wishlist, \
     chapter_rewards_pack, inbox, \
-    rotating_mode, conquest_event, regal_rewards, activity_points, shards, grass_event, leaderboards
+    rotating_mode, conquest_event, regal_rewards, activity_points, shards, grass_event, leaderboards, resource_shop
 from playerdata import base
 from playerdata import daily_dungeon
 from playerdata import moevasion
@@ -48,6 +48,8 @@ from playerdata import event_rewards
 from playerdata import pets
 
 urlpatterns = [
+    path('resourceshop/get/', resource_shop.GetResourceShopView.as_view()),
+    path('resourceshop/buy/', resource_shop.BuyResourceShopItemView.as_view()),
     path('shards/summons/', shards.SummonShardsView.as_view()),
     path('activitypoints/claim/', activity_points.ClaimActivityPointsView.as_view()),
     path('event/grass/get/', grass_event.GetGrassEventView.as_view()),
