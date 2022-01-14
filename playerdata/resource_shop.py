@@ -1,12 +1,15 @@
+import random
+from datetime import date, datetime, timezone, time, timedelta
+
 from django.db import transaction
+from django.db.transaction import atomic
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from playerdata import chests
-from playerdata.constants import ResourceShopCostType
-from playerdata.models import BaseResourceShopItem, ResourceShop
+from playerdata import chests, constants
+from playerdata.models import BaseResourceShopItem, ResourceShop, BaseItem
 from playerdata.serializers import IntSerializer
 
 
@@ -18,13 +21,46 @@ class ResourceShopItemSchema(Schema):
     reward_value = fields.Int()
 
 
+def reset_resource_shop():
+    with atomic():
+        ResourceShop.objects.update(purchased_items=[])
+
+    # Update new items
+    BaseResourceShopItem.objects.filter(reward_type=constants.RewardType.ITEM_ID.value).delete()
+    rare_items = BaseItem.objects.filter(rarity=1, rollable=True)
+    epic_items = BaseItem.objects.filter(rarity=2, rollable=True)
+
+    # Pick 3 rare and 4 epic items
+    sample_rare_items = random.sample(rare_items, 3)
+    sample_epic_items = random.sample(epic_items, 4)
+
+    shop_items = sample_rare_items + sample_epic_items
+
+    rare_cost = 250000
+    epic_cost = 2100000
+    for item in shop_items:
+        item_cost = rare_cost if item.rarity == 1 else epic_cost
+        BaseResourceShopItem.objects.create(reward_type=constants.RewardType.ITEM_ID.value,
+                                            reward_value=item.item_id,
+                                            cost_type=constants.ResourceShopCostType.GOLD.value,
+                                            cost_value=item_cost)
+
+
+# daily reset
+def resource_shop_reset():
+    return datetime.combine(date.today(), time(tzinfo=timezone.utc)) + timedelta(days=1)
+
+
 class GetResourceShopView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
         resource_shop, _ = ResourceShop.objects.get_or_create(user=request.user)
         shop_items = BaseResourceShopItem.objects.exclude(id__in=resource_shop.purchased_items)
-        return Response({'status': True, 'shop_items': ResourceShopItemSchema(shop_items, many=True).data})
+        return Response({'status': True,
+                         'shop_items': ResourceShopItemSchema(shop_items, many=True).data,
+                         'reset_time': resource_shop_reset()
+                         })
 
 
 class BuyResourceShopItemView(APIView):
@@ -45,7 +81,7 @@ class BuyResourceShopItemView(APIView):
         if base_shop_item is None:
             return Response({'status': False, 'reason': f'shop_item_id does not exist: ${shop_item_id}'})
 
-        if base_shop_item.cost_type == ResourceShopCostType.GOLD.value:
+        if base_shop_item.cost_type == constants.ResourceShopCostType.GOLD.value:
             attr_name = "coins"
         else:
             attr_name = "gems"

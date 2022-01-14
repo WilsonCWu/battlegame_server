@@ -3,7 +3,6 @@ from rest_framework import status
 
 from playerdata import constants
 from playerdata.models import User, BaseResourceShopItem
-from playerdata.resource_shop import ResourceShopCostType
 
 
 class ResourceShopAPITestCase(APITestCase):
@@ -14,7 +13,7 @@ class ResourceShopAPITestCase(APITestCase):
         self.client.force_authenticate(user=self.u)
 
         BaseResourceShopItem.objects.create(id=1, reward_type=constants.RewardType.DUST.value, reward_value=250,
-                                            cost_type=ResourceShopCostType.GOLD.value, cost_value=100000)
+                                            cost_type=constants.ResourceShopCostType.GOLD.value, cost_value=100000)
 
     def test_get_shop(self):
         resp = self.client.get('/resourceshop/get/')
