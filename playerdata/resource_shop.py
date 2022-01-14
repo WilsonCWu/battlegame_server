@@ -27,16 +27,23 @@ def reset_resource_shop():
 
     # Update new items
     BaseResourceShopItem.objects.filter(reward_type=constants.RewardType.ITEM_ID.value).delete()
+    rare_items = BaseItem.objects.filter(rarity=1, rollable=True)
     epic_items = BaseItem.objects.filter(rarity=2, rollable=True)
-    sample_items = random.sample(epic_items, 4)
 
-    item_cost = 2150000
-    for item in sample_items:
+    # Pick 3 rare and 4 epic items
+    sample_rare_items = random.sample(rare_items, 3)
+    sample_epic_items = random.sample(epic_items, 4)
+
+    shop_items = sample_rare_items + sample_epic_items
+
+    rare_cost = 250000
+    epic_cost = 2100000
+    for item in shop_items:
+        item_cost = rare_cost if item.rarity == 1 else epic_cost
         BaseResourceShopItem.objects.create(reward_type=constants.RewardType.ITEM_ID.value,
                                             reward_value=item.item_id,
                                             cost_type=constants.ResourceShopCostType.GOLD.value,
                                             cost_value=item_cost)
-        item_cost += 50000  # slight variation in price so they aren't totally equally comparable
 
 
 # daily reset
