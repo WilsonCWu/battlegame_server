@@ -285,11 +285,6 @@ class ChestType(Enum):
     LOGIN_GEMS = 7
 
 
-class ResourceShopCostType(Enum):
-    GOLD = 0
-    GEMS = 1
-
-
 class RewardType(Enum):
     COINS = "coins"
     GEMS = "gems"

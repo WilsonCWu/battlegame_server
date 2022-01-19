@@ -24,7 +24,7 @@ from bulk_update_or_create import BulkUpdateOrCreateQuerySet
 from playerdata import constants
 
 # Developer account IDs for in-game accounts
-from playerdata.constants import DealType, DungeonType, RewardType, ResourceShopCostType
+from playerdata.constants import DealType, DungeonType, RewardType
 
 DEV_ACCOUNT_IDS = json.loads(config("DEV_ACCOUNT_IDS",  default='{"data": []}'))["data"]
 
@@ -1553,7 +1553,7 @@ class ResourceShop(models.Model):
 
 
 class BaseResourceShopItem(models.Model):
-    cost_type = models.IntegerField(choices=[(cost.value, cost.name) for cost in ResourceShopCostType])
+    cost_type = models.TextField(choices=[(reward.value, reward.name) for reward in RewardType])
     cost_value = models.IntegerField(default=0)
     reward_type = models.TextField(choices=[(reward.value, reward.name) for reward in RewardType])
     reward_value = models.IntegerField(default=0)
