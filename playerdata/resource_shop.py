@@ -9,6 +9,7 @@ from rest_marshmallow import Schema, fields
 
 from playerdata import chests, constants
 from playerdata.models import BaseResourceShopItem, ResourceShop, BaseItem
+from playerdata.questupdater import QuestUpdater
 from playerdata.serializers import IntSerializer
 
 
@@ -93,5 +94,7 @@ class BuyResourceShopItemView(APIView):
 
         resource_shop.purchased_items.append(shop_item_id)
         resource_shop.save()
+
+        QuestUpdater.add_progress_by_type(request.user, constants.PURCHASE_ITEM, 1)
 
         return Response({'status': True})
