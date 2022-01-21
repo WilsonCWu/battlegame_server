@@ -27,14 +27,14 @@ def reset_resource_shop():
 
     # Update new items
     BaseResourceShopItem.objects.filter(reward_type=constants.RewardType.ITEM_ID.value).delete()
-    rare_items = BaseItem.objects.filter(rarity=1, rollable=True).order_by('?')
-    epic_items = BaseItem.objects.filter(rarity=2, rollable=True).order_by('?')
+    rare_items = BaseItem.objects.filter(rarity=1, rollable=True, is_unique=False).order_by('?')
+    epic_items = BaseItem.objects.filter(rarity=2, rollable=True, is_unique=False).order_by('?')
 
     # Pick 3 rare and 4 epic items
     sample_rare_items = rare_items[:3]
     sample_epic_items = epic_items[:4]
 
-    shop_items = sample_rare_items | sample_epic_items
+    shop_items = (sample_rare_items | sample_epic_items).order_by('rarity')  # union doesn't necessarily keep order
 
     rare_cost = 250000
     epic_cost = 2100000
@@ -56,7 +56,7 @@ class GetResourceShopView(APIView):
 
     def get(self, request):
         resource_shop, _ = ResourceShop.objects.get_or_create(user=request.user)
-        shop_items = BaseResourceShopItem.objects.all()
+        shop_items = BaseResourceShopItem.objects.all().order_by('reward_type', 'id')
         return Response({'status': True,
                          'shop_items': ResourceShopItemSchema(shop_items, many=True).data,
                          'reset_time': resource_shop_reset(),
