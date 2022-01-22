@@ -1,4 +1,3 @@
-import random
 from datetime import date, datetime, timezone, time, timedelta
 
 from django.db import transaction
@@ -10,6 +9,7 @@ from rest_marshmallow import Schema, fields
 
 from playerdata import chests, constants
 from playerdata.models import BaseResourceShopItem, ResourceShop, BaseItem
+from playerdata.questupdater import QuestUpdater
 from playerdata.serializers import IntSerializer
 
 
@@ -27,28 +27,28 @@ def reset_resource_shop():
 
     # Update new items
     BaseResourceShopItem.objects.filter(reward_type=constants.RewardType.ITEM_ID.value).delete()
-    rare_items = BaseItem.objects.filter(rarity=1, rollable=True)
-    epic_items = BaseItem.objects.filter(rarity=2, rollable=True)
+    rare_items = BaseItem.objects.filter(rarity=1, rollable=True, is_unique=False).order_by('?')
+    epic_items = BaseItem.objects.filter(rarity=2, rollable=True, is_unique=False).order_by('?')
 
     # Pick 3 rare and 4 epic items
-    sample_rare_items = random.sample(rare_items, 3)
-    sample_epic_items = random.sample(epic_items, 4)
+    sample_rare_items = rare_items[:3]
+    sample_epic_items = epic_items[:4]
 
-    shop_items = sample_rare_items + sample_epic_items
+    shop_items = (sample_rare_items | sample_epic_items).order_by('rarity')  # union doesn't necessarily keep order
 
     rare_cost = 250000
     epic_cost = 2100000
     for item in shop_items:
         item_cost = rare_cost if item.rarity == 1 else epic_cost
         BaseResourceShopItem.objects.create(reward_type=constants.RewardType.ITEM_ID.value,
-                                            reward_value=item.item_id,
-                                            cost_type=constants.ResourceShopCostType.GOLD.value,
+                                            reward_value=item.item_type,
+                                            cost_type=constants.RewardType.COINS.value,
                                             cost_value=item_cost)
 
 
 # daily reset
 def resource_shop_reset():
-    return datetime.combine(date.today(), time(tzinfo=timezone.utc)) + timedelta(days=1)
+    return datetime.combine(date.today(), time()) + timedelta(days=1)
 
 
 class GetResourceShopView(APIView):
@@ -56,10 +56,11 @@ class GetResourceShopView(APIView):
 
     def get(self, request):
         resource_shop, _ = ResourceShop.objects.get_or_create(user=request.user)
-        shop_items = BaseResourceShopItem.objects.exclude(id__in=resource_shop.purchased_items)
+        shop_items = BaseResourceShopItem.objects.all().order_by('reward_type', 'id')
         return Response({'status': True,
                          'shop_items': ResourceShopItemSchema(shop_items, many=True).data,
-                         'reset_time': resource_shop_reset()
+                         'reset_time': resource_shop_reset(),
+                         'purchased_items': resource_shop.purchased_items
                          })
 
 
@@ -81,22 +82,19 @@ class BuyResourceShopItemView(APIView):
         if base_shop_item is None:
             return Response({'status': False, 'reason': f'shop_item_id does not exist: ${shop_item_id}'})
 
-        if base_shop_item.cost_type == constants.ResourceShopCostType.GOLD.value:
-            attr_name = "coins"
-        else:
-            attr_name = "gems"
-
-        existing_amount = getattr(request.user.inventory, attr_name)
+        existing_amount = getattr(request.user.inventory, base_shop_item.cost_type)
         if existing_amount < base_shop_item.cost_value:
-            return Response({'status': False, 'reason': f'not enough ${attr_name} to purchase'})
+            return Response({'status': False, 'reason': f'not enough ${base_shop_item.cost_type} to purchase'})
 
         existing_amount -= base_shop_item.cost_value
-        setattr(request.user.inventory, attr_name, existing_amount)
+        setattr(request.user.inventory, base_shop_item.cost_type, existing_amount)
         request.user.inventory.save()
 
         chests.award_chest_rewards(request.user, [chests.ChestReward(reward_type=base_shop_item.reward_type, value=base_shop_item.reward_value)])
 
         resource_shop.purchased_items.append(shop_item_id)
         resource_shop.save()
+
+        QuestUpdater.add_progress_by_type(request.user, constants.PURCHASE_ITEM, 1)
 
         return Response({'status': True})
