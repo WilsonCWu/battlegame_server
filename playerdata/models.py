@@ -1467,7 +1467,7 @@ class RegalRewards(models.Model):
     is_premium = models.BooleanField(default=False)
     expiration_date = regal_rewards_refreshdate()
     points = models.IntegerField(default=0)
-    last_completed = models.IntegerField(default=-1)
+    last_completed = models.IntegerField(default=0)
     last_claimed = models.IntegerField(default=-1)
     last_claimed_premium = models.IntegerField(default=-1)
 
@@ -1550,6 +1550,7 @@ class GrassEvent(models.Model):
 class ResourceShop(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     purchased_items = ArrayField(models.IntegerField(), default=list)
+    is_refreshed = models.BooleanField(default=False)
 
 
 class BaseResourceShopItem(models.Model):
