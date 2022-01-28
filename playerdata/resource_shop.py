@@ -60,7 +60,8 @@ class GetResourceShopView(APIView):
         return Response({'status': True,
                          'shop_items': ResourceShopItemSchema(shop_items, many=True).data,
                          'reset_time': resource_shop_reset(),
-                         'purchased_items': resource_shop.purchased_items
+                         'purchased_items': resource_shop.purchased_items,
+                         'refreshes_left': resource_shop.refreshes_left
                          })
 
 
