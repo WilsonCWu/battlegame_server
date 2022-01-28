@@ -1550,7 +1550,7 @@ class GrassEvent(models.Model):
 class ResourceShop(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     purchased_items = ArrayField(models.IntegerField(), default=list)
-    is_refreshed = models.BooleanField(default=False)
+    refreshes_left = models.IntegerField(default=constants.RESOURCE_SHOP_DEFAULT_REFRESHES)
 
 
 class BaseResourceShopItem(models.Model):

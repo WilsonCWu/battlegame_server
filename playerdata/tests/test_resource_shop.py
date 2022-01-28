@@ -74,7 +74,7 @@ class ResourceShopAPITestCase(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
 
-    def test_double_reset(self):
+    def test_triple_reset(self):
         self.u.inventory.gems = resource_shop.refresh_resource_shop_cost() * 2
         self.u.inventory.save()
 
@@ -84,5 +84,8 @@ class ResourceShopAPITestCase(APITestCase):
 
         resp = self.client.post('/resourceshop/refresh/', {})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertFalse(resp.data['status'])
+        self.assertTrue(resp.data['status'])
 
+        resp = self.client.post('/resourceshop/refresh/', {})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertFalse(resp.data['status'])
