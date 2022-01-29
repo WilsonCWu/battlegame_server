@@ -245,6 +245,11 @@ def get_hacker_report_view(request):
 
 
 @login_required(login_url='/admin/')
+def get_latest_character_changes_view(request):
+    return get_character_changes_view(request, v=ServerStatus.latest_version())
+
+
+@login_required(login_url='/admin/')
 def get_character_changes_view(request, v=None):
     if not request.user.is_superuser:
         return HttpResponse()
