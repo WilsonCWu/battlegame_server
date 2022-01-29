@@ -101,6 +101,8 @@ def get_single_character_stat_changes(p, a):
         char_diff.append('STARTING MANA: %s -> %s' % (p.starting_mana, a.starting_mana))
     if p.mana != a.mana:
         char_diff.append('MANA: %s -> %s' % (p.mana, a.mana))
+    if p.starting_ability_ticks != a.starting_ability_ticks:
+        char_diff.append('STARTING ABILITY TICKS: %s -> %s' % (p.starting_ability_ticks, a.starting_ability_ticks))
     if p.ability_ticks != a.ability_ticks:
         char_diff.append('ABILITY TICKS: %s -> %s' % (p.ability_ticks, a.ability_ticks))
     if p.speed != a.speed:
