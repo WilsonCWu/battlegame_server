@@ -36,7 +36,7 @@ class PublicStatsView(APIView):
         )
 
         writer = csv.writer(response)
-        writer.writerow(['Level', 'AD', 'AP', 'HP', 'AR', 'MR', 'Crit Chance'])
+        writer.writerow(['Level', 'AD', 'AP', 'HP', 'AR', 'MR', 'Crit Chance', 'Starting Abilityticks'])
 
         def write_level(level, stat):
             writer.writerow([
@@ -46,7 +46,8 @@ class PublicStatsView(APIView):
                 scaled_stat(level, stat.health, stat.health_scale),
                 scaled_resistance_stat(level, stat.ar, stat.ar_scale),
                 scaled_resistance_stat(level, stat.mr, stat.mr_scale),
-                stat.crit_chance
+                stat.crit_chance,
+                stat.starting_ability_ticks
             ])
 
         for stat in BaseCharacterStats.get_active_under_version(version):
