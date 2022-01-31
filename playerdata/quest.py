@@ -13,7 +13,7 @@ from playerdata.models import ActiveDailyQuest, get_expiration_date, ActiveWeekl
 from playerdata.models import PlayerQuestDaily
 from playerdata.models import PlayerQuestWeekly
 from playerdata.models import User
-from . import constants
+from . import constants, regal_rewards
 from .activity_points import ActivityPointsUpdater, ActivityPointsSchema
 from .questupdater import QuestUpdater
 from .serializers import ClaimQuestSerializer, IntSerializer
@@ -64,16 +64,19 @@ class QuestSchema(Schema):
     expiration_date = fields.DateTime()
 
 
-def award_quest(user_inventory, quest_base):
-    user_inventory.coins += quest_base.coins
-    user_inventory.gems += quest_base.gems
-    user_inventory.dust += quest_base.dust
-    user_inventory.dust_fast_reward_hours += quest_base.dust_fast_reward_hours
-    user_inventory.coins_fast_reward_hours += quest_base.coins_fast_reward_hours
+def award_quest(user, base_quest: BaseQuest):
+    user_inventory = user.inventory
+    user_inventory.coins += base_quest.coins
+    user_inventory.gems += base_quest.gems
+    user_inventory.dust += base_quest.dust
+    user_inventory.dust_fast_reward_hours += base_quest.dust_fast_reward_hours
+    user_inventory.coins_fast_reward_hours += base_quest.coins_fast_reward_hours
 
-    # TODO: Add regal reward points
     # TODO: items and characters
     user_inventory.save()
+
+    if base_quest.points > 0:
+        regal_rewards.complete_regal_rewards(base_quest.points, user.regal_rewards)
 
 
 class QuestView(APIView):
@@ -135,7 +138,7 @@ def handle_claim_quest(request, quest_class):
     progress = quest.progress
 
     if quest.completed and not quest.claimed and progress >= quest.base_quest.total:
-        award_quest(user.inventory, quest.base_quest)
+        award_quest(user, quest.base_quest)
         quest.claimed = True
         quest.save()
 
@@ -163,7 +166,7 @@ class ClaimQuestCumulativeView(APIView):
         player_quest = PlayerQuestCumulative2.objects.filter(user=request.user).first()
         base_quest = BaseQuest.objects.get(id=quest_id)
         if (base_quest.id in player_quest.completed_quests) and not (base_quest.id in player_quest.claimed_quests):
-            award_quest(request.user.inventory, base_quest)
+            award_quest(request.user, base_quest)
             player_quest.claimed_quests.append(quest_id)
             player_quest.save()
             return Response({'status': True})

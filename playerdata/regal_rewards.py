@@ -66,8 +66,9 @@ def get_regal_rewards_list() -> List[RegalRewardRow]:
 
 
 def complete_regal_rewards(points: int, tracker: RegalRewards):
+    tracker.points += points
     for reward_row in get_regal_rewards_list():
-        if reward_row.unlock_amount > points:
+        if reward_row.unlock_amount > tracker.points:
             break
         tracker.last_completed = max(reward_row.id, tracker.last_completed)
 
