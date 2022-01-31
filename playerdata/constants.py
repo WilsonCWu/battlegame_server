@@ -303,6 +303,8 @@ class RewardType(Enum):
     PET_ID = "pet_id"
 
 
+RESOURCE_SHOP_DEFAULT_REFRESHES = 2
+
 CHEST_ODDS = [750, 250, 0, 0, 0, 0]
 MIN_REWARDS_PER_CHEST = [3, 5, 10, 6, 1, 3]
 MAX_REWARDS_PER_CHEST = [3, 5, 10, 7, 1, 3]
