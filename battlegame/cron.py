@@ -159,6 +159,24 @@ def refresh_relic_shop():
 @cron(uuid="5e327e1e-e954-45b7-815d-7feed9f7c6ca")
 def refund_google():
     refunds.google_refund_cron()
+
+
+@cron(uuid="ffe37586-9527-4b2c-9989-19d359c291a5")
+def update_clan_leaderboards_cron():
+    clans = Clan2.objects.all()
+    userinfos = UserInfo.objects.exclude(clanmember__clan2=None).values('clanmember__clan2__name', 'elo')
+    elo_sums = defaultdict(int)
+
+    # for all members in the clan, update the leaderboard
+    for userinfo in userinfos:
+        clan_name = userinfo['clanmember__clan2__name']
+        elo_sums[clan_name] += userinfo['elo']
+
+    for clan in clans:
+        clan.elo = elo_sums[clan.name]
+
+    with atomic():
+        Clan2.objects.bulk_update(clans, ['elo'])
  
 
 # Take all registered users
