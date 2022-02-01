@@ -48,6 +48,7 @@ from playerdata import event_rewards
 from playerdata import pets
 
 urlpatterns = [
+    path('resourceshop/refresh/', resource_shop.RefreshResourceShopView.as_view()),
     path('resourceshop/get/', resource_shop.GetResourceShopView.as_view()),
     path('resourceshop/buy/', resource_shop.BuyResourceShopItemView.as_view()),
     path('shards/summons/', shards.SummonShardsView.as_view()),

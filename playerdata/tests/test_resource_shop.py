@@ -1,7 +1,7 @@
 from rest_framework.test import APITestCase
 from rest_framework import status
 
-from playerdata import constants
+from playerdata import constants, resource_shop
 from playerdata.models import User, BaseResourceShopItem
 
 
@@ -48,5 +48,44 @@ class ResourceShopAPITestCase(APITestCase):
             'value': 1
         })
 
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertFalse(resp.data['status'])
+
+    def test_reset_shop(self):
+        self.u.inventory.coins = 200000
+        self.u.inventory.gems = resource_shop.refresh_resource_shop_cost()
+        self.u.inventory.save()
+
+        resp = self.client.post('/resourceshop/buy/', {
+            'value': 1
+        })
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue(resp.data['status'])
+
+        resp = self.client.post('/resourceshop/refresh/', {})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue(resp.data['status'])
+
+        resp = self.client.post('/resourceshop/buy/', {
+            'value': 1
+        })
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue(resp.data['status'])
+
+    def test_triple_reset(self):
+        self.u.inventory.gems = resource_shop.refresh_resource_shop_cost() * 2
+        self.u.inventory.save()
+
+        resp = self.client.post('/resourceshop/refresh/', {})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue(resp.data['status'])
+
+        resp = self.client.post('/resourceshop/refresh/', {})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue(resp.data['status'])
+
+        resp = self.client.post('/resourceshop/refresh/', {})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertFalse(resp.data['status'])

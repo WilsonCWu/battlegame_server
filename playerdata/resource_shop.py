@@ -23,7 +23,7 @@ class ResourceShopItemSchema(Schema):
 
 def reset_resource_shop():
     with atomic():
-        ResourceShop.objects.update(purchased_items=[])
+        ResourceShop.objects.update(purchased_items=[], refreshes_left=constants.RESOURCE_SHOP_DEFAULT_REFRESHES)
 
     # Update new items
     BaseResourceShopItem.objects.filter(reward_type=constants.RewardType.ITEM_ID.value).delete()
@@ -60,7 +60,8 @@ class GetResourceShopView(APIView):
         return Response({'status': True,
                          'shop_items': ResourceShopItemSchema(shop_items, many=True).data,
                          'reset_time': resource_shop_reset(),
-                         'purchased_items': resource_shop.purchased_items
+                         'purchased_items': resource_shop.purchased_items,
+                         'refreshes_left': resource_shop.refreshes_left
                          })
 
 
@@ -96,5 +97,31 @@ class BuyResourceShopItemView(APIView):
         resource_shop.save()
 
         QuestUpdater.add_progress_by_type(request.user, constants.PURCHASE_ITEM, 1)
+
+        return Response({'status': True})
+
+
+def refresh_resource_shop_cost():
+    return 100  # Gems
+
+
+class RefreshResourceShopView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic
+    def post(self, request):
+        resource_shop, _ = ResourceShop.objects.get_or_create(user=request.user)
+        if resource_shop.refreshes_left == 0:
+            return Response({'status': False, 'reason': 'no more shop refreshes for today'})
+
+        if request.user.inventory.gems < refresh_resource_shop_cost():
+            return Response({'status': False, 'reason': 'not enough gems to refresh shop'})
+
+        request.user.inventory.gems -= refresh_resource_shop_cost()
+        request.user.inventory.save()
+
+        resource_shop.purchased_items = []
+        resource_shop.refreshes_left -= 1
+        resource_shop.save()
 
         return Response({'status': True})
