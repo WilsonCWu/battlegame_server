@@ -5,7 +5,7 @@ from django.db.transaction import atomic
 from sentry_sdk import capture_exception
 from django_redis import get_redis_connection
 from datetime import timedelta
-from playerdata import tier_system, relic_shop, refunds, base, resource_shop
+from playerdata import tier_system, relic_shop, refunds, base, resource_shop, server
 from playerdata.antihacking import MatchValidator
 from playerdata.constants import TOURNEY_SIZE
 from playerdata.daily_dungeon import daily_dungeon_team_gen_cron
@@ -159,6 +159,26 @@ def refresh_relic_shop():
 @cron(uuid="5e327e1e-e954-45b7-815d-7feed9f7c6ca")
 def refund_google():
     refunds.google_refund_cron()
+
+
+@cron(uuid="ffe37586-9527-4b2c-9989-19d359c291a5")
+def update_clan_leaderboards_cron():
+    if not server.is_server_version_higher('1.1.0'):
+        return
+    clans = Clan2.objects.all()
+    userinfos = UserInfo.objects.exclude(clanmember__clan2=None).values('clanmember__clan2__name', 'elo')
+    elo_sums = defaultdict(int)
+
+    # for all members in the clan, update the leaderboard
+    for userinfo in userinfos:
+        clan_name = userinfo['clanmember__clan2__name']
+        elo_sums[clan_name] += userinfo['elo']
+
+    for clan in clans:
+        clan.elo = elo_sums[clan.name]
+
+    with atomic():
+        Clan2.objects.bulk_update(clans, ['elo'])
  
 
 # Take all registered users
