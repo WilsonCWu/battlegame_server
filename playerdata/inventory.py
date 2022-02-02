@@ -234,7 +234,7 @@ class RefundCharacter(APIView):
             return Response({'status': False, 'reason': 'can not refund a boosted level character!'})
 
         inventory = request.user.inventory
-        cost = target_character.level * constants.REFUND_GEMS_COST_PER_LVL
+        cost = constants.REFUND_CHAR_GEMS if server.is_server_version_higher('1.1.0') else target_character.level * constants.REFUND_GEMS_COST_PER_LVL
         if inventory.gems < cost:
             return Response({'status': False, 'reason': 'not enough gems!'})
 
