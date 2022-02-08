@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from playerdata import chests, constants
 from rest_framework.views import APIView
@@ -13,21 +13,22 @@ def get_world_expiration():
     return curr_time + timedelta(days=3)
 
 
-# TODO: Tuning & costs
 # these rewards are "wrapped", i.e. the rarity of the chest instead of the contents of the chest
 def get_world_pack_rewards(user):
     rewards = []
     world = user.worldpack.world
     if world < 10:
-        gems = (world * 200) + 1200
+        gems = (world * 300) + 1500
         coins = (world * 30000) + 25000
 
-        rewards.append(chests.ChestReward(reward_type="chest", value=constants.ChestType.MYTHICAL.value))
-        rewards.append(chests.ChestReward(reward_type="gems", value=gems))
-        rewards.append(chests.ChestReward(reward_type="coins", value=coins))
+        rewards.append(chests.ChestReward(reward_type=constants.RewardType.CHEST.value, value=constants.ChestType.MYTHICAL.value))
+        rewards.append(chests.ChestReward(reward_type=constants.RewardType.GEMS.value, value=gems))
+        rewards.append(chests.ChestReward(reward_type=constants.RewardType.COINS.value, value=coins))
     else:
-        rewards.append(chests.ChestReward(reward_type="chest", value=constants.ChestType.LEGENDARY.value))
-        rewards.append(chests.ChestReward(reward_type="chest", value=constants.ChestType.MYTHICAL.value))
+        dust_hours = 12 + (world // 2) * 2  # starts at 22, +2 every two worlds
+        rewards.append(chests.ChestReward(reward_type=constants.RewardType.CHEST.value, value=constants.ChestType.LEGENDARY.value))
+        rewards.append(chests.ChestReward(reward_type=constants.RewardType.CHEST.value, value=constants.ChestType.MYTHICAL.value))
+        rewards.append(chests.ChestReward(reward_type=constants.RewardType.DUST_FAST_REWARDS.value, value=dust_hours))
 
     return rewards
 
