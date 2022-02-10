@@ -1442,7 +1442,7 @@ class ChapterRewardPack(models.Model):
     is_active = models.BooleanField(default=False)
     last_completed = models.IntegerField(default=-1)
     last_claimed = models.IntegerField(default=-1)
-    expiration_date = chapter_rewards_pack_deadline()
+    expiration_date = models.DateTimeField(default=chapter_rewards_pack_deadline)
     type = models.IntegerField(choices=[(chapter.value, chapter.name) for chapter in constants.ChapterRewardPackType],
                                default=constants.ChapterRewardPackType.CHAPTER19.value)
 
@@ -1453,7 +1453,7 @@ def world_pack_default_expiration():
 
 class WorldPack(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    expiration_date = world_pack_default_expiration()
+    expiration_date = models.DateTimeField(default=world_pack_default_expiration)
     world = models.IntegerField(default=-1)
     is_claimed = models.BooleanField(default=True)
 
@@ -1465,7 +1465,7 @@ def regal_rewards_refreshdate():
 class RegalRewards(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     is_premium = models.BooleanField(default=False)
-    expiration_date = regal_rewards_refreshdate()
+    expiration_date = models.DateTimeField(default=regal_rewards_refreshdate)
     points = models.IntegerField(default=0)
     last_completed = models.IntegerField(default=0)
     last_claimed = models.IntegerField(default=-1)
