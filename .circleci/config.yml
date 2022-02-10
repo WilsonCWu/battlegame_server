@@ -74,6 +74,7 @@ jobs:
       - checkout
       - run:
           name: Backup DB from prod
+          no_output_timeout: 30m
           command: |
             ssh -oStrictHostKeyChecking=no -v circleci@salutationstudio.com 'bash -s' < ./bin/backup_db.sh
       - run:
