@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from playerdata import chests, constants
 from rest_framework.views import APIView
@@ -47,6 +47,11 @@ def get_purchase_id(world_pack: WorldPack):
         return constants.WORLD_PACK_2
     else:
         return constants.WORLD_PACK_3
+
+
+def has_active_world_pack(user):
+    cur_time = datetime.now(timezone.utc)
+    return cur_time < user.worldpack.expiration_date
 
 
 class GetWorldPack(APIView):

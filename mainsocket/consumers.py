@@ -4,7 +4,7 @@ import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from mainsocket import notifications
-from playerdata import questupdater, event_times
+from playerdata import questupdater, event_times, world_pack
 
 
 # Channel group is the user_id
@@ -32,6 +32,9 @@ class MainSocketConsumer(WebsocketConsumer):
                                                 event_times.Christmas2021EventBadgeNotifCount().get_badge_notif(self.user),
                                                 )
 
+        if world_pack.has_active_world_pack(self.user):
+            self.poll_server('show_worldpack', {})
+
     def disconnect(self, close_code):
         # Leave room group
         async_to_sync(self.channel_layer.group_discard)(
@@ -48,4 +51,12 @@ class MainSocketConsumer(WebsocketConsumer):
         self.send(text_data=json.dumps({
             'message_type': event['message_type'],
             'data': event['data']
+        }))
+
+    # Sends a message to client to perform/check something
+    def poll_server(self, poll_type, data):
+        self.send(text_data=json.dumps({
+            'message_type': 'poll_server',
+            'poll_type': poll_type,
+            'data': data,
         }))
