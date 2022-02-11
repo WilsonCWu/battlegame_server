@@ -273,6 +273,8 @@ def get_hacker_alert_dataframe(queryset):
 
     hacker_stats_dict = {}
 
+    queryset = queryset.select_related('user').select_related('user__userinfo')
+
     # We want the table to be stats per user, so compile each hacker alert into a dict instead of list
     for report in queryset:
         id = report.user.id
