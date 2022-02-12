@@ -27,10 +27,9 @@ class PackSchema(Schema):
     rewards = fields.Nested(chests.ChestRewardSchema, many=True)
 
 
-# TODO: Tune
+# TODO: tune rewards
 # these rewards are "wrapped", i.e. the rarity of the chest instead of the contents of the chest
 def active_world_packs(user):
-    rewards = []
     world = user.worldpack.world
 
     if world <= 1:
@@ -38,7 +37,7 @@ def active_world_packs(user):
                       [chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=6),
                        chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=4),
                        chests.ChestReward(reward_type=constants.RewardType.COINS.value, value=25000)],
-                      510)
+                      480)
         pack_2 = Pack(constants.WORLD_PACK_1,
                       [chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=6),
                        chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=4),
@@ -47,9 +46,8 @@ def active_world_packs(user):
         pack_3 = Pack(constants.WORLD_PACK_2,
                       [chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=6),
                        chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=4),
-                       chests.ChestReward(reward_type=constants.RewardType.COINS.value, value=25000)],
-                      510)
-        rewards.extend([pack_1, pack_2, pack_3])
+                       chests.ChestReward(reward_type=constants.RewardType.COINS_FAST_REWARDS.value, value=24)],
+                      400)
 
     elif world < 10:
         gems = (world * 300) + 1500
@@ -66,33 +64,30 @@ def active_world_packs(user):
                        chests.ChestReward(reward_type=constants.RewardType.GEMS.value, value=gems),
                        chests.ChestReward(reward_type=constants.RewardType.DUST_FAST_REWARDS.value, value=dust_hours)],
                       510)
-        # pack_3 = Pack(constants.WORLD_PACK_3,
-        #               [chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=6),
-        #                chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=4),
-        #                chests.ChestReward(reward_type=constants.RewardType.COINS.value, value=25000)])
-
-        rewards.extend([pack_1, pack_2])
+        pack_3 = Pack(constants.WORLD_PACK_3,
+                      [chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=6),
+                       chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=4),
+                       chests.ChestReward(reward_type=constants.RewardType.COINS.value, value=25000)])
 
     else:
         dust_hours = 12 + (world // 2) * 2  # starts at 22, +2 every two worlds
 
-        # pack_1 = Pack(constants.WORLD_PACK_1,
-        #               [chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=6),
-        #                chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=4),
-        #                chests.ChestReward(reward_type=constants.RewardType.COINS.value, value=25000)])
-        # pack_2 = Pack(constants.WORLD_PACK_2,
-        #               [chests.ChestReward(reward_type=constants.RewardType.CHEST.value, value=constants.ChestType.LEGENDARY.value),
-        #                chests.ChestReward(reward_type=constants.RewardType.CHEST.value, value=constants.ChestType.MYTHICAL.value),
-        #                chests.ChestReward(reward_type=constants.RewardType.DUST_FAST_REWARDS.value, value=dust_hours)],
-        #               510)
+        pack_1 = Pack(constants.WORLD_PACK_1,
+                      [chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=6),
+                       chests.ChestReward(reward_type=constants.RewardType.CHEST.value, value=constants.ChestType.MYTHICAL.value),
+                       chests.ChestReward(reward_type=constants.RewardType.DUST_FAST_REWARDS.value, value=dust_hours/2)])
+        pack_2 = Pack(constants.WORLD_PACK_2,
+                      [chests.ChestReward(reward_type=constants.RewardType.CHEST.value, value=constants.ChestType.LEGENDARY.value),
+                       chests.ChestReward(reward_type=constants.RewardType.CHEST.value, value=constants.ChestType.MYTHICAL.value),
+                       chests.ChestReward(reward_type=constants.RewardType.DUST_FAST_REWARDS.value, value=dust_hours)],
+                      510)
         pack_3 = Pack(constants.WORLD_PACK_3,
                       [chests.ChestReward(reward_type=constants.RewardType.CHEST.value, value=constants.ChestType.LEGENDARY.value),
                        chests.ChestReward(reward_type=constants.RewardType.CHEST.value, value=constants.ChestType.MYTHICAL.value),
                        chests.ChestReward(reward_type=constants.RewardType.DUST_FAST_REWARDS.value, value=dust_hours)],
                       470)
-        rewards.extend([pack_3])
 
-    return rewards
+    return [pack_1, pack_2, pack_3]
 
 
 def activate_new_pack(user, world: int):
