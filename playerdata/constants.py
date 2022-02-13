@@ -127,6 +127,7 @@ GEMS_2999 = 'com.salutationstudio.tinytitans.gems.2999'
 GEMS_4999 = 'com.salutationstudio.tinytitans.gems.4999'
 GEMS_9999 = 'com.salutationstudio.tinytitans.gems.9999'
 
+WORLD_PACK_0 = 'com.salutationstudio.tinytitans.worldpack0'
 WORLD_PACK_1 = 'com.salutationstudio.tinytitans.worldpack1'
 WORLD_PACK_2 = 'com.salutationstudio.tinytitans.worldpack2'
 WORLD_PACK_3 = 'com.salutationstudio.tinytitans.worldpack3'

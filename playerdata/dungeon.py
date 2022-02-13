@@ -141,7 +141,7 @@ class DungeonSetProgressCommitView(APIView):
                 chapter_rewards_pack.complete_chapter_rewards(world_completed, request.user.chapterrewardpack)
 
             if stage == 20 or stage % 40 == 0:
-                world_pack.active_new_pack(request.user, stage // 40)
+                world_pack.activate_new_pack(request.user, stage // 40)
 
             rewards = campaign_tutorial_rewards(stage)
             chests.award_chest_rewards(request.user, rewards)

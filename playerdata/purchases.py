@@ -178,7 +178,7 @@ def handle_purchase_world_pack(user, purchase_id, transaction_id):
         return Response({'status': False, 'reason': 'this can only be purchased once'})
 
     # these rewards are "wrapped", i.e. the rarity of the chest instead of the contents of the chest
-    wrapped_rewards = world_pack.get_world_pack_rewards(user)
+    wrapped_rewards = world_pack.active_world_packs(user)
     chest_rewards = []
     misc_rewards = []
 
@@ -397,7 +397,7 @@ class GetDeals(APIView):
         # for deal in gemscost_deals:
         #     deal["is_available"] = deal["purchase_id"] not in daily_purchased_deals_ids
 
-        world_pack_rewards = world_pack.get_world_pack_rewards(request.user)
+        world_pack_rewards = world_pack.active_world_packs(request.user)
 
         return Response({'status': True,
                          "daily_deals": daily_deals,

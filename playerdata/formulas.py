@@ -103,7 +103,7 @@ def product_to_dollar_cost(product_id: str):
         return 1
     elif product_id in [constants.DEAL_MONTHLY_1]:
         return 2
-    elif product_id in [constants.DEAL_DAILY_2, constants.DEAL_WEEKLY_2, constants.DEAL_MONTHLY_2, constants.GEMS_499, constants.MONTHLY_PASS]:
+    elif product_id in [constants.DEAL_DAILY_2, constants.DEAL_WEEKLY_2, constants.DEAL_MONTHLY_2, constants.GEMS_499, constants.MONTHLY_PASS, constants.WORLD_PACK_0]:
         return 5
     elif product_id in [constants.GEMS_999, constants.WORLD_PACK_1, constants.DEAL_MONTHLY_3, constants.DEAL_DAILY_3]:
         return 10

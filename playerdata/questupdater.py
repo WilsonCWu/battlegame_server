@@ -111,11 +111,14 @@ class QuestUpdater:
         daily_count = add_progress_to_quest_list(amount, daily_quests)
         weekly_count = add_progress_to_quest_list(amount, weekly_quests)
 
-        notifications.send_badge_notifs_increment(user.id,
-                                                  notifications.BadgeNotif(constants.NotificationType.DAILY_QUEST.value, daily_count),
-                                                  notifications.BadgeNotif(constants.NotificationType.WEEKLY_QUEST.value, weekly_count),
-                                                  notifications.BadgeNotif(constants.NotificationType.CUMULATIVE_QUEST.value, cumulative_count)
-                                                  )
+        try:
+            notifications.send_badge_notifs_increment(user.id,
+                                                      notifications.BadgeNotif(constants.NotificationType.DAILY_QUEST.value, daily_count),
+                                                      notifications.BadgeNotif(constants.NotificationType.WEEKLY_QUEST.value, weekly_count),
+                                                      notifications.BadgeNotif(constants.NotificationType.CUMULATIVE_QUEST.value, cumulative_count)
+                                                      )
+        except:
+            logging.error("notification redis error")
 
 
     @staticmethod
@@ -143,11 +146,14 @@ class QuestUpdater:
         daily_count = set_progress_to_quest_list(amount, daily_quests)
         weekly_count = set_progress_to_quest_list(amount, weekly_quests)
 
-        notifications.send_badge_notifs_increment(user.id,
-                                                  notifications.BadgeNotif(constants.NotificationType.DAILY_QUEST.value, daily_count),
-                                                  notifications.BadgeNotif(constants.NotificationType.WEEKLY_QUEST.value, weekly_count),
-                                                  notifications.BadgeNotif(constants.NotificationType.CUMULATIVE_QUEST.value, cumulative_count)
-                                                  )
+        try:
+            notifications.send_badge_notifs_increment(user.id,
+                                                      notifications.BadgeNotif(constants.NotificationType.DAILY_QUEST.value, daily_count),
+                                                      notifications.BadgeNotif(constants.NotificationType.WEEKLY_QUEST.value, weekly_count),
+                                                      notifications.BadgeNotif(constants.NotificationType.CUMULATIVE_QUEST.value, cumulative_count)
+                                                      )
+        except:
+            logging.error("notification redis error")
 
     @staticmethod
     def game_won_by_char_id(user, char_id):
