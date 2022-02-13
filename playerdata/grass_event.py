@@ -234,7 +234,7 @@ def print_floor_cost(floor):
 
 
 def print_all_rewards():
-    for floor in range(1, 9):
+    for floor in range(1, 16):
         print(f"Floor {floor}")
         for reward_type in constants.GRASS_REWARDS_PER_TIER:
             print(grass_reward(reward_type, floor))

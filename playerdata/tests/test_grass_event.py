@@ -50,9 +50,6 @@ class GrassEventAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data['status'])
 
-        self.u.inventory.refresh_from_db()
-        self.assertGreater(self.u.inventory.gems, 500)
-
     def test_cut_grass_gems(self):
         self.grass_event.grass_cuts_left = 0
         self.grass_event.save()
