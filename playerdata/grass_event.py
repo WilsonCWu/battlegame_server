@@ -37,25 +37,26 @@ JACKPOT	5,000	6,000	7,000	8,000	9,000	10,000	12,000	25,000
 
 def grass_reward(reward_type, floor):
     rewards = []
-    gems = 0
-    dust = 0
-    leg_shards = 0
+    coin_hours, dust_hours = 0, 0
+    rare_shards, epic_shards, leg_shards = 0, 0, 0
 
     if reward_type == constants.GrassRewardType.DECENT.value:
-        gems = 25 + (floor - 1) * 25
+        coin_hours = 2 + (floor - 1)
     elif reward_type == constants.GrassRewardType.GOOD.value:
-        gems = 300 + (floor - 1) * 50
+        coin_hours = 3 + (floor - 1)
+        rare_shards = 80 + (floor - 1) * 20
     elif reward_type == constants.GrassRewardType.GREAT.value:
-        gems = 1500 + (floor - 1) * 300
+        epic_shards = 45 + (floor - 1) * 10
+        dust_hours = 2 + (floor - 1)
     elif reward_type == constants.GrassRewardType.JACKPOT.value:
-        if floor == 8:
-            gems = 25000
-            dust = 10000
+        if floor == 15:
+            dust_hours = 80
+            epic_shards = 80 * 10
             leg_shards = 80 * 5
         else:
-            gems = 5000 + (floor - 1) * 1000
-            dust = 1000 + (floor - 1) * 500
-            leg_shards = 80
+            dust_hours = 10 + (floor - 1) * 5
+            epic_shards = 160 + (floor - 1) * 20
+            leg_shards = 25 + (floor - 1) * 10
     elif reward_type == constants.GrassRewardType.LADDER.value:
         # Award the Turkey on Floor 1
         if floor == 1:
@@ -63,12 +64,16 @@ def grass_reward(reward_type, floor):
     else:
         raise Exception("invalid grass_event reward_type")
 
-    if gems > 0:
-        rewards.append(chests.ChestReward('gems', gems))
-    if dust > 0:
-        rewards.append(chests.ChestReward('essence', dust))
+    if coin_hours > 0:
+        rewards.append(chests.ChestReward(constants.RewardType.COINS_FAST_REWARDS.value, coin_hours))
+    if dust_hours > 0:
+        rewards.append(chests.ChestReward(constants.RewardType.DUST_FAST_REWARDS.value, dust_hours))
+    if rare_shards > 0:
+        rewards.append(chests.ChestReward(constants.RewardType.RARE_SHARDS.value, rare_shards))
+    if epic_shards > 0:
+        rewards.append(chests.ChestReward(constants.RewardType.EPIC_SHARDS.value, epic_shards))
     if leg_shards > 0:
-        rewards.append(chests.ChestReward('legendary_shards', leg_shards))
+        rewards.append(chests.ChestReward(constants.RewardType.LEGENDARY_SHARDS.value, leg_shards))
 
     return rewards
 
@@ -205,18 +210,18 @@ class NextGrassFloorView(APIView):
 
 
 def grass_cut_cost(tokens_bought, cur_floor):
-    base_amount = 25 + (cur_floor - 1) * 25
+    base_amount = 10 + (cur_floor - 1) * 15
 
     if tokens_bought <= 1:
-        extra_amount = tokens_bought * 25
+        extra_amount = tokens_bought * 10
     elif tokens_bought <= 3:
-        extra_amount = tokens_bought * 50
+        extra_amount = tokens_bought * 20
     elif tokens_bought <= 7:
-        extra_amount = tokens_bought * 75
+        extra_amount = tokens_bought * 30
     elif tokens_bought <= 11:
-        extra_amount = tokens_bought * 85
+        extra_amount = tokens_bought * 40
     else:
-        extra_amount = tokens_bought * 90
+        extra_amount = tokens_bought * 45
 
     return base_amount + extra_amount
 
