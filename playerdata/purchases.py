@@ -174,9 +174,6 @@ def handle_purchase_world_pack(user, purchase_id, transaction_id):
     if user.worldpack.expiration_date == "" or curr_time > user.worldpack.expiration_date:
         return Response({'status': False, 'reason': 'this purchase offer has now expired'})
 
-    if user.worldpack.is_claimed:
-        return Response({'status': False, 'reason': 'this can only be purchased once'})
-
     # these rewards are "wrapped", i.e. the rarity of the chest instead of the contents of the chest
     wrapped_rewards = world_pack.active_world_packs(user)
     chest_rewards = []
@@ -185,16 +182,18 @@ def handle_purchase_world_pack(user, purchase_id, transaction_id):
     for reward in wrapped_rewards:
         # unwrap the chest rewards
         if reward.reward_type == "chest":
-            generated_rewards = chests.generate_chest_rewards(reward.value, user)
-            chest_rewards.append({'chest_type': reward.value, 'rewards': chests.ChestRewardSchema(generated_rewards, many=True).data})
-            chests.award_chest_rewards(user, generated_rewards)
+            chest_rewards.append(chests.generate_chest_rewards(reward.value, user))
+            chests.award_chest_rewards(user, chest_rewards)
         else:
             misc_rewards.append(reward)
 
+    # reward the misc rewards separately from chest rewards
     chests.award_chest_rewards(user, misc_rewards)
 
-    user.worldpack.is_claimed = True
-    user.worldpack.save()
+    # return json list of rewards lists for separate summons
+    rewards_list = [chests.ChestRewardSchema(misc_rewards, many=True).data,
+                    chests.ChestRewardSchema(chest_rewards, many=True).data,
+                    ]
 
     user.userinfo.vip_exp += formulas.cost_to_vip_exp(formulas.product_to_dollar_cost(purchase_id))
     user.userinfo.save()
@@ -202,8 +201,8 @@ def handle_purchase_world_pack(user, purchase_id, transaction_id):
     PurchasedTracker.objects.create(user=user, transaction_id=transaction_id, purchase_id=purchase_id)
 
     return Response({'status': True,
-                     'chest_rewards': chest_rewards,
-                     'rewards': chests.ChestRewardSchema(misc_rewards, many=True).data})
+                     'rewards_list': rewards_list
+                     })
 
 
 def handle_purchase_chapterpack(user, purchase_id, transaction_id):
