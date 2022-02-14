@@ -37,6 +37,16 @@ class ChestReward:
         return f"<reward_type {self.reward_type}: {self.value}>"
 
 
+# This corresponds to ChestRewardsList on client
+def chestRewardsList_to_json(rewards_list):
+    rewards_json = []
+
+    for rewards in rewards_list:
+        rewards_json.append({'rewards': ChestRewardSchema(rewards, many=True).data})
+
+    return rewards_json
+
+
 def chest_unlock_timedelta(rarity: int):
     if rarity == ChestType.SILVER.value:
         hours = 3

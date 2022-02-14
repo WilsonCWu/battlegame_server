@@ -175,14 +175,14 @@ def handle_purchase_world_pack(user, purchase_id, transaction_id):
         return Response({'status': False, 'reason': 'this purchase offer has now expired'})
 
     # these rewards are "wrapped", i.e. the rarity of the chest instead of the contents of the chest
-    wrapped_rewards = world_pack.active_world_packs(user)
+    wrapped_rewards = world_pack.get_world_pack_by_id(user, purchase_id).rewards
     chest_rewards = []
     misc_rewards = []
 
     for reward in wrapped_rewards:
         # unwrap the chest rewards
         if reward.reward_type == "chest":
-            chest_rewards.append(chests.generate_chest_rewards(reward.value, user))
+            chest_rewards.extend(chests.generate_chest_rewards(reward.value, user))
             chests.award_chest_rewards(user, chest_rewards)
         else:
             misc_rewards.append(reward)
@@ -191,9 +191,7 @@ def handle_purchase_world_pack(user, purchase_id, transaction_id):
     chests.award_chest_rewards(user, misc_rewards)
 
     # return json list of rewards lists for separate summons
-    rewards_list = [chests.ChestRewardSchema(misc_rewards, many=True).data,
-                    chests.ChestRewardSchema(chest_rewards, many=True).data,
-                    ]
+    rewards_list = chests.chestRewardsList_to_json([misc_rewards, chest_rewards])
 
     user.userinfo.vip_exp += formulas.cost_to_vip_exp(formulas.product_to_dollar_cost(purchase_id))
     user.userinfo.save()
@@ -370,9 +368,12 @@ class GetDeals(APIView):
         prev_weekly_expiration_date = get_last_deal_expiration_date(DealType.WEEKLY)
         prev_monthly_expiration_date = get_last_deal_expiration_date(DealType.MONTHLY)
 
-        daily_purchased_deals_ids = get_purchase_deal_ids(request.user, prev_daily_expiration_date, DealType.DAILY.value)
-        weekly_purchased_deals_ids = get_purchase_deal_ids(request.user, prev_weekly_expiration_date, DealType.WEEKLY.value)
-        monthly_purchased_deals_ids = get_purchase_deal_ids(request.user, prev_monthly_expiration_date, DealType.MONTHLY.value)
+        daily_purchased_deals_ids = get_purchase_deal_ids(request.user, prev_daily_expiration_date,
+                                                          DealType.DAILY.value)
+        weekly_purchased_deals_ids = get_purchase_deal_ids(request.user, prev_weekly_expiration_date,
+                                                           DealType.WEEKLY.value)
+        monthly_purchased_deals_ids = get_purchase_deal_ids(request.user, prev_monthly_expiration_date,
+                                                            DealType.MONTHLY.value)
 
         cur_time = datetime.now(timezone.utc)
         daily_deals = deal_schema.dump(get_active_deals(request.user, cur_time, DealType.DAILY.value))

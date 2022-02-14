@@ -27,6 +27,16 @@ class WorldPackIAPSchema(Schema):
     rewards = fields.Nested(chests.ChestRewardSchema, many=True)
 
 
+def get_world_pack_by_id(user, purchase_id):
+    packs = active_world_packs(user)
+
+    for pack in packs:
+        if pack.purchase_id == purchase_id:
+            return pack
+
+    return None
+
+
 # TODO: tune rewards
 # these rewards are "wrapped", i.e. the rarity of the chest instead of the contents of the chest
 def active_world_packs(user):
