@@ -41,7 +41,7 @@ def active_world_packs(user):
         pack_2 = WorldPackIAP(constants.WORLD_PACK_1,
                               [chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=6),
                        chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=4),
-                       chests.ChestReward(reward_type=constants.RewardType.COINS.value, value=50000)],
+                       chests.ChestReward(reward_type=constants.RewardType.COINS.value, value=60000)],
                               510)
         pack_3 = WorldPackIAP(constants.WORLD_PACK_2,
                               [chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=9),
@@ -93,6 +93,10 @@ def active_world_packs(user):
 
 
 def activate_new_pack(user, world: int):
+    # TODO: Support world packs (past world 1) after patch 1.1.1, packs are not tuned
+    if world > 1:
+        return
+
     user.worldpack.world = world
     user.worldpack.expiration_date = get_world_expiration()
     user.worldpack.save()
