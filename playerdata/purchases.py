@@ -53,8 +53,6 @@ class ValidateView(APIView):
 
     @transaction.atomic()
     def post(self, request):
-        return handle_purchase_world_pack(request.user, constants.WORLD_PACK_1, "1234")
-
         serializer = ValidateReceiptSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         store = serializer.validated_data['store']
