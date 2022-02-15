@@ -176,22 +176,18 @@ def handle_purchase_world_pack(user, purchase_id, transaction_id):
 
     # these rewards are "wrapped", i.e. the rarity of the chest instead of the contents of the chest
     wrapped_rewards = world_pack.get_world_pack_by_id(user, purchase_id).rewards
-    chest_rewards = []
-    misc_rewards = []
+    rewards_list = []
 
     for reward in wrapped_rewards:
         # unwrap the chest rewards
+        rewards = []
         if reward.reward_type == "chest":
-            chest_rewards.extend(chests.generate_chest_rewards(reward.value, user))
-            chests.award_chest_rewards(user, chest_rewards)
+            rewards.extend(chests.generate_chest_rewards(reward.value, user))
         else:
-            misc_rewards.append(reward)
+            rewards.append(reward)
 
-    # reward the misc rewards separately from chest rewards
-    chests.award_chest_rewards(user, misc_rewards)
-
-    # return json list of rewards lists for separate summons
-    rewards_list = chests.chestRewardsList_to_json([misc_rewards, chest_rewards])
+        rewards_list.append(rewards)
+        chests.award_chest_rewards(user, rewards)
 
     user.userinfo.vip_exp += formulas.cost_to_vip_exp(formulas.product_to_dollar_cost(purchase_id))
     user.userinfo.save()
@@ -199,7 +195,7 @@ def handle_purchase_world_pack(user, purchase_id, transaction_id):
     PurchasedTracker.objects.create(user=user, transaction_id=transaction_id, purchase_id=purchase_id)
 
     return Response({'status': True,
-                     'rewards_list': rewards_list
+                     'rewards_list': chests.chestRewardsList_to_json(rewards_list)
                      })
 
 
