@@ -34,7 +34,26 @@ class ChestReward:
         return f"<reward_type {self.reward_type}: {self.value}>"
 
     def __repr__(self):
-        return f"<reward_type {self.reward_type}: {self.value}>"
+        return f"<reward_type {self.reward_type}: {self.value} value: {int(self.gem_value())}>"
+
+    def gem_value(self):
+        # fast rewards are based off of cost for 2 hrs in afk arena
+        if self.reward_type == constants.RewardType.COINS_FAST_REWARDS.value:
+            return self.value * 38
+        elif self.reward_type == constants.RewardType.DUST_FAST_REWARDS.value:
+            return self.value * 50  # vague estimate, more valuable late game, not so much early
+        elif self.reward_type == constants.RewardType.GEMS.value:
+            return self.value
+
+        # shard values are based off of mythical chest
+        elif self.reward_type == constants.RewardType.RARE_SHARDS.value:
+            return (self.value / 80) * 438
+        elif self.reward_type == constants.RewardType.EPIC_SHARDS.value:
+            return (self.value / 80) * 1687
+        elif self.reward_type == constants.RewardType.LEGENDARY_SHARDS.value:
+            return (self.value / 80) * 11250
+        else:
+            return 0
 
 
 def chest_unlock_timedelta(rarity: int):

@@ -43,20 +43,20 @@ def grass_reward(reward_type, floor):
     if reward_type == constants.GrassRewardType.DECENT.value:
         coin_hours = 2 + (floor - 1)
     elif reward_type == constants.GrassRewardType.GOOD.value:
-        coin_hours = 3 + (floor - 1)
-        rare_shards = 80 + (floor - 1) * 20
+        coin_hours = 3 + (floor - 1) // 2
+        rare_shards = 40 + (floor - 1) * 10
     elif reward_type == constants.GrassRewardType.GREAT.value:
-        epic_shards = 45 + (floor - 1) * 10
-        dust_hours = 2 + (floor - 1)
+        epic_shards = 30 + (floor - 1) * 5
+        dust_hours = 2 + (floor - 1) // 2
     elif reward_type == constants.GrassRewardType.JACKPOT.value:
         if floor == 15:
-            dust_hours = 80
-            epic_shards = 80 * 10
-            leg_shards = 80 * 5
+            dust_hours = 60
+            epic_shards = 80 * 6
+            leg_shards = 80 * 2.5
         else:
-            dust_hours = 10 + (floor - 1) * 5
-            epic_shards = 160 + (floor - 1) * 20
-            leg_shards = 25 + (floor - 1) * 10
+            dust_hours = 10 + (floor - 1) * 2
+            epic_shards = 80 + (floor - 1) * 8
+            leg_shards = 10 + (floor - 1) * 5
     elif reward_type == constants.GrassRewardType.LADDER.value:
         # Award the Turkey on Floor 1
         if floor == 1:
@@ -210,18 +210,21 @@ class NextGrassFloorView(APIView):
 
 
 def grass_cut_cost(tokens_bought, cur_floor):
-    base_amount = 10 + (cur_floor - 1) * 15
+    if cur_floor < 5:
+        base_amount = 5 + (cur_floor - 1) * 5
+    elif cur_floor < 10:
+        base_amount = 10 + (cur_floor - 1) * 10
+    else:
+        base_amount = 20 + (cur_floor - 1) * 20
 
     if tokens_bought <= 1:
+        extra_amount = tokens_bought * 5
+    elif tokens_bought <= 10:
         extra_amount = tokens_bought * 10
-    elif tokens_bought <= 3:
-        extra_amount = tokens_bought * 20
-    elif tokens_bought <= 7:
-        extra_amount = tokens_bought * 30
-    elif tokens_bought <= 11:
-        extra_amount = tokens_bought * 40
+    elif tokens_bought <= 20:
+        extra_amount = tokens_bought * 15
     else:
-        extra_amount = tokens_bought * 45
+        extra_amount = tokens_bought * 20
 
     return base_amount + extra_amount
 
@@ -236,6 +239,23 @@ def print_floor_cost(floor):
 def print_all_rewards():
     for floor in range(1, 16):
         print(f"Floor {floor}")
+        print(f"Total cost: {total_cost_per_floor(floor)} Average: {total_cost_per_floor(floor)/25}")
+        print(f"Total value: {total_value_per_floor(floor)}")
         for reward_type in constants.GRASS_REWARDS_PER_TIER:
             print(grass_reward(reward_type, floor))
         print("")
+
+
+def total_value_per_floor(floor):
+    total = 0
+    for reward_type in constants.GRASS_REWARDS_PER_TIER:
+        rewards = grass_reward(reward_type, floor)
+        total += sum([reward.gem_value() for reward in rewards])
+    return total
+
+
+def total_cost_per_floor(floor):
+    total = 0
+    for n in range(0, 25):
+        total += grass_cut_cost(n, floor)
+    return total
