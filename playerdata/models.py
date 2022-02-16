@@ -1455,7 +1455,7 @@ class WorldPack(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     expiration_date = models.DateTimeField(default=world_pack_default_expiration)
     world = models.IntegerField(default=-1)
-    is_claimed = models.BooleanField(default=True)
+    purchased_packs = ArrayField(models.TextField(), default=list)
 
 
 def regal_rewards_refreshdate():

@@ -91,4 +91,4 @@ class DealsTestCase(APITestCase):
         response = self.client.get('/deals/')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIsNotNone(response.data['world_pack'])
+        self.assertIsNotNone(response.data['daily_deals'])

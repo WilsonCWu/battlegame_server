@@ -174,36 +174,35 @@ def handle_purchase_world_pack(user, purchase_id, transaction_id):
     if user.worldpack.expiration_date == "" or curr_time > user.worldpack.expiration_date:
         return Response({'status': False, 'reason': 'this purchase offer has now expired'})
 
-    if user.worldpack.is_claimed:
-        return Response({'status': False, 'reason': 'this can only be purchased once'})
+    world_pack_iap = world_pack.get_world_pack_by_id(user, purchase_id)
+    if world_pack_iap.unique_worldpack_id() in user.worldpack.purchased_packs:
+        return Response({'status': False, 'reason': 'already purchased this pack'})
 
     # these rewards are "wrapped", i.e. the rarity of the chest instead of the contents of the chest
-    wrapped_rewards = world_pack.active_world_packs(user)
-    chest_rewards = []
-    misc_rewards = []
+    rewards_list = []
 
-    for reward in wrapped_rewards:
+    for reward in world_pack_iap.rewards:
         # unwrap the chest rewards
+        rewards = []
         if reward.reward_type == "chest":
-            generated_rewards = chests.generate_chest_rewards(reward.value, user)
-            chest_rewards.append({'chest_type': reward.value, 'rewards': chests.ChestRewardSchema(generated_rewards, many=True).data})
-            chests.award_chest_rewards(user, generated_rewards)
+            rewards.extend(chests.generate_chest_rewards(reward.value, user))
         else:
-            misc_rewards.append(reward)
+            rewards.append(reward)
 
-    chests.award_chest_rewards(user, misc_rewards)
-
-    user.worldpack.is_claimed = True
-    user.worldpack.save()
+        rewards_list.append(rewards)
+        chests.award_chest_rewards(user, rewards)
 
     user.userinfo.vip_exp += formulas.cost_to_vip_exp(formulas.product_to_dollar_cost(purchase_id))
     user.userinfo.save()
 
+    user.worldpack.purchased_packs.append(world_pack_iap.unique_worldpack_id())
+    user.worldpack.save()
+
     PurchasedTracker.objects.create(user=user, transaction_id=transaction_id, purchase_id=purchase_id)
 
     return Response({'status': True,
-                     'chest_rewards': chest_rewards,
-                     'rewards': chests.ChestRewardSchema(misc_rewards, many=True).data})
+                     'rewards_list': chests.chestRewardsList_to_json(rewards_list)
+                     })
 
 
 def handle_purchase_chapterpack(user, purchase_id, transaction_id):
@@ -371,9 +370,12 @@ class GetDeals(APIView):
         prev_weekly_expiration_date = get_last_deal_expiration_date(DealType.WEEKLY)
         prev_monthly_expiration_date = get_last_deal_expiration_date(DealType.MONTHLY)
 
-        daily_purchased_deals_ids = get_purchase_deal_ids(request.user, prev_daily_expiration_date, DealType.DAILY.value)
-        weekly_purchased_deals_ids = get_purchase_deal_ids(request.user, prev_weekly_expiration_date, DealType.WEEKLY.value)
-        monthly_purchased_deals_ids = get_purchase_deal_ids(request.user, prev_monthly_expiration_date, DealType.MONTHLY.value)
+        daily_purchased_deals_ids = get_purchase_deal_ids(request.user, prev_daily_expiration_date,
+                                                          DealType.DAILY.value)
+        weekly_purchased_deals_ids = get_purchase_deal_ids(request.user, prev_weekly_expiration_date,
+                                                           DealType.WEEKLY.value)
+        monthly_purchased_deals_ids = get_purchase_deal_ids(request.user, prev_monthly_expiration_date,
+                                                            DealType.MONTHLY.value)
 
         cur_time = datetime.now(timezone.utc)
         daily_deals = deal_schema.dump(get_active_deals(request.user, cur_time, DealType.DAILY.value))
@@ -397,15 +399,11 @@ class GetDeals(APIView):
         # for deal in gemscost_deals:
         #     deal["is_available"] = deal["purchase_id"] not in daily_purchased_deals_ids
 
-        world_pack_rewards = world_pack.active_world_packs(request.user)
-
         return Response({'status': True,
                          "daily_deals": daily_deals,
                          'weekly_deals': weekly_deals,
                          'monthly_deals': monthly_deals,
                          'gemcost_deals': [],
-                         'world_deal_expiration': world_pack.get_world_expiration(),
-                         'world_pack': chests.ChestRewardSchema(world_pack_rewards, many=True).data
                          })
 
 
