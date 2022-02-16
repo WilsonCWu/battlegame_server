@@ -816,6 +816,10 @@ class GrassEventAdmin(admin.ModelAdmin, DynamicArrayMixin):
     raw_id_fields = ('user',)
 
 
+class WorldPackAdmin(admin.ModelAdmin, DynamicArrayMixin):
+    raw_id_fields = ('user',)
+
+
 admin.site.register(DungeonStage, DungeonStageAdmin)
 admin.site.register(DungeonProgress)
 admin.site.register(DungeonBoss, DungeonBossAdmin)
@@ -905,7 +909,7 @@ admin.site.register(EventRewards)
 admin.site.register(EloRewardTracker)
 admin.site.register(BaseResourceShopItem, BaseResourceShopItemAdmin)
 admin.site.register(ResourceShop)
-admin.site.register(WorldPack)
+admin.site.register(WorldPack, WorldPackAdmin)
 
 admin.site.index_template = 'admin/custom_index.html'
 admin.autodiscover()

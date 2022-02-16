@@ -150,7 +150,7 @@ def reward_purchase(user, transaction_id, purchase_id):
         return handle_purchase_deal(user, purchase_id, transaction_id)
     elif purchase_id.startswith('com.salutationstudio.tinytitans.chapterrewards.'):
         return handle_purchase_chapterpack(user, purchase_id, transaction_id)
-    elif purchase_id.startswith('com.salutationstudio.tinytitans.worldpack.'):
+    elif purchase_id.startswith('com.salutationstudio.tinytitans.worldpack'):
         return handle_purchase_world_pack(user, purchase_id, transaction_id)
     elif purchase_id.startswith('com.salutationstudio.tinytitans.monthlypass'):
         return handle_purchase_subscription(user, purchase_id, transaction_id)
