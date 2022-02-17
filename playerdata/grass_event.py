@@ -11,7 +11,7 @@ from rest_marshmallow import Schema, fields
 from . import chests, constants
 from playerdata import event_times
 from playerdata.models import GrassEvent, EventTimeTracker, default_grass_rewards_left
-from playerdata.serializers import BooleanSerializer, IntSerializer
+from playerdata.serializers import IntSerializer
 
 MAP_SIZE = 25
 
@@ -41,12 +41,12 @@ def grass_reward(reward_type, floor):
     rare_shards, epic_shards, leg_shards = 0, 0, 0
 
     if reward_type == constants.GrassRewardType.DECENT.value:
-        coin_hours = 1 + (floor - 1)
+        coin_hours = 1 + (floor - 1) // 2
     elif reward_type == constants.GrassRewardType.GOOD.value:
         coin_hours = 3 + (floor - 1) // 2
-        rare_shards = 20 + (floor - 1) * 5
+        rare_shards = 10 + (floor - 1) * 2.5
     elif reward_type == constants.GrassRewardType.GREAT.value:
-        epic_shards = int(15 + (floor - 1) * 2.5)
+        epic_shards = int(10 + (floor - 1) * 2.5)
         dust_hours = 2 + (floor - 1) // 2
     elif reward_type == constants.GrassRewardType.JACKPOT.value:
         if floor == 15:
@@ -55,12 +55,10 @@ def grass_reward(reward_type, floor):
             leg_shards = 80 * 2
         else:
             dust_hours = 5 + (floor - 1) * 1
-            epic_shards = 40 + (floor - 1) * 4
+            epic_shards = 45 + (floor - 1) * 4
             leg_shards = 5 + (floor - 1) * 3
-    elif reward_type == constants.GrassRewardType.LADDER.value:
-        # Award the Turkey on Floor 1
         if floor == 1:
-            rewards.append(chests.ChestReward('pet_id', 9))
+            rewards.append(chests.ChestReward('pet_id', 6))
     else:
         raise Exception("invalid grass_event reward_type")
 
@@ -76,6 +74,16 @@ def grass_reward(reward_type, floor):
         rewards.append(chests.ChestReward(constants.RewardType.LEGENDARY_SHARDS.value, leg_shards))
 
     return rewards
+
+
+def get_all_rewards_json():
+    all_rewards = []
+    for floor in range(1, 16):
+        floor_rewards = []
+        for reward_type in constants.GRASS_REWARDS_PER_TIER:
+            floor_rewards.append({'rewards': chests.ChestRewardSchema(grass_reward(reward_type, floor), many=True).data})
+        all_rewards.append({'floors': floor_rewards})
+    return all_rewards
 
 
 # picks a random reward_type out of the rewards left
@@ -108,7 +116,8 @@ class GetGrassEventView(APIView):
         return Response({'status': True,
                          'grass_event': GrassEventSchema(event).data,
                          'event_time_tracker': event_times.EventTimeTrackerSchema(event_time_tracker).data,
-                         'next_token_reset': next_token_reset_time()
+                         'next_token_reset': next_token_reset_time(),
+                         'rewards_list': get_all_rewards_json()
                          })
 
 
@@ -159,14 +168,14 @@ class CutGrassView(APIView):
             event.grass_cuts_left -= 1
 
         reward_type = pick_rand_reward_left(event.rewards_left)
-        # hardcode first pick on floor 1 to be a GOOD reward type
+        # hardcode first pick on floor 1 to be a Great reward type
         if event.cur_floor == 1 and len(event.claimed_tiles) == 0:
-            reward_type = constants.GrassRewardType.GOOD.value
+            reward_type = constants.GrassRewardType.GREAT.value
 
         rewards = grass_reward(reward_type, event.cur_floor)
         chests.award_chest_rewards(request.user, rewards)
 
-        if reward_type == constants.GrassRewardType.LADDER.value:
+        if reward_type == constants.GrassRewardType.JACKPOT.value:
             event.ladder_index = cut_index
 
         event.rewards_left[reward_type] -= 1
@@ -199,32 +208,22 @@ class NextGrassFloorView(APIView):
         event.claimed_tiles = []
         event.ladder_index = -1
         event.rewards_left = default_grass_rewards_left()
-        # a little hacky but specific floor 8 case without ladder
-        if event.cur_floor == 8:
-            event.rewards_left[constants.GrassRewardType.LADDER.value] = 0
-            event.rewards_left[constants.GrassRewardType.GREAT.value] += 1
-
         event.save()
 
         return Response({'status': True, 'grass_event': GrassEventSchema(event).data})
 
 
 def grass_cut_cost(tokens_bought, cur_floor):
-    if cur_floor < 5:
-        base_amount = 2.5 + (cur_floor - 1) * 2.5
-    elif cur_floor < 10:
-        base_amount = 5 + (cur_floor - 1) * 5
-    else:
-        base_amount = 10 + (cur_floor - 1) * 10
+    base_amount = 50
 
-    if tokens_bought <= 1:
-        extra_amount = tokens_bought * 2.5
-    elif tokens_bought <= 10:
-        extra_amount = tokens_bought * 5
-    elif tokens_bought <= 20:
-        extra_amount = tokens_bought * 7.5
+    if cur_floor == 1:
+        extra_amount = 0
+    elif cur_floor < 5:
+        extra_amount = 40 + (cur_floor - 1) * 10
+    elif cur_floor < 10:
+        extra_amount = 90 + (cur_floor - 1) * 15
     else:
-        extra_amount = tokens_bought * 10
+        extra_amount = 150 + (cur_floor - 1) * 20
 
     return int(base_amount + extra_amount)
 
@@ -238,6 +237,9 @@ def print_floor_cost(floor):
 
 def print_all_rewards():
     grand_total_value = 0
+    total_cost = 0
+    expected_cost_f2p = 0
+    expected_value_f2p = 0
     for floor in range(1, 16):
         print(f"Floor {floor}")
         print(f"Total cost: {total_cost_per_floor(floor)} Average: {total_cost_per_floor(floor)/25}")
@@ -246,8 +248,16 @@ def print_all_rewards():
             print(grass_reward(reward_type, floor))
         print("")
         grand_total_value += total_value_per_floor(floor)
+        total_cost += total_cost_per_floor(floor)
 
-    print(f"Grand total: {grand_total_value}")
+        if floor <= 7:
+            expected_cost_f2p += total_cost_per_floor(floor) / 2
+            expected_value_f2p += total_value_per_floor(floor)
+
+    print(f"Final value: {grand_total_value}")
+    print(f"Final cost: {total_cost}")
+    print(f"Expected cost f2p: {expected_cost_f2p}")
+    print(f"Expected value f2p: {expected_value_f2p}")
 
 
 def total_value_per_floor(floor):

@@ -70,7 +70,7 @@ class GrassEventAPITestCase(APITestCase):
 
     def test_go_to_next_grass_floor(self):
         ladder_tile = 24
-        self.grass_event.rewards_left = [0, 0, 0, 0, 1]  # hardcode only the ladder is left
+        self.grass_event.rewards_left = [0, 0, 0, 1]  # hardcode only the jackpot/ladder is left
         self.grass_event.claimed_tiles = list(range(0, 24))
         self.grass_event.grass_cuts_left = 1
         self.grass_event.save()
