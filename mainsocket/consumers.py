@@ -32,7 +32,7 @@ class MainSocketConsumer(WebsocketConsumer):
                                                 event_times.GrassEventBadgeNotifCount().get_badge_notif(self.user),
                                                 )
 
-        if world_pack.has_active_world_pack(self.user):
+        if world_pack.show_world_pack_popup(self.user):
             self.poll_server('show_worldpack', {})
 
     def disconnect(self, close_code):
