@@ -196,6 +196,7 @@ CRONJOBS = [
     ('0 5 * * *', 'battlegame.cron.daily_clean_matches_cron', '>> /tmp/daily_clean_matches.log'),
     ('0 0 * * *', 'battlegame.cron.reset_daily_wins_cron', '>> /tmp/reset_daily_wins_cron.log'),
     ('0 0 * * *', 'battlegame.cron.update_clan_leaderboards_cron', '>> /tmp/update_clan_leaderboards_cron.log'),
+    ('0 0 * * *', 'battlegame.cron.grass_event_token_drop_cron', '>> /tmp/grass_event_token_drop_cron.log'),
 
     ('0 0 * * 0,2,3,4,6', 'battlegame.cron.daily_dungeon_ticket_drop', '>> /tmp/daily_dungeon_ticket_drop.log'),
     ('0 0 * * 1,5', 'battlegame.cron.daily_dungeon_golden_ticket_drop', '>> /tmp/daily_dungeon_ticket_drop.log'),
