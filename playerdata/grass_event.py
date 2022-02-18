@@ -113,11 +113,16 @@ class GetGrassEventView(APIView):
         event, is_event_created = GrassEvent.objects.get_or_create(user=request.user)
         event_time_tracker = EventTimeTracker.objects.filter(name=constants.EventType.GRASS.value).first()
 
+        grass_cut_costs = []
+        for floor in range(1, 16):
+            grass_cut_costs.append(grass_cut_cost(floor))
+
         return Response({'status': True,
                          'grass_event': GrassEventSchema(event).data,
                          'event_time_tracker': event_times.EventTimeTrackerSchema(event_time_tracker).data,
                          'next_token_reset': next_token_reset_time(),
-                         'rewards_list': get_all_rewards_json()
+                         'rewards_list': get_all_rewards_json(),
+                         'grass_cut_costs': grass_cut_costs,
                          })
 
 
@@ -156,7 +161,7 @@ class CutGrassView(APIView):
 
         # use gems to cut grass if no more grass_cuts_left
         if event.grass_cuts_left < 1:
-            gem_cost = grass_cut_cost(event.tokens_bought, event.cur_floor)
+            gem_cost = grass_cut_cost(event.cur_floor)
             if request.user.inventory.gems < gem_cost:
                 return Response({'status': False, 'reason': 'not enough gems to buy token'})
 
@@ -213,7 +218,7 @@ class NextGrassFloorView(APIView):
         return Response({'status': True, 'grass_event': GrassEventSchema(event).data})
 
 
-def grass_cut_cost(tokens_bought, cur_floor):
+def grass_cut_cost(cur_floor):
     base_amount = 50
 
     if cur_floor == 1:
@@ -232,7 +237,7 @@ def grass_cut_cost(tokens_bought, cur_floor):
 
 def print_floor_cost(floor):
     for n in range(0, 25):
-        print(grass_cut_cost(n, floor))
+        print(grass_cut_cost(floor))
 
 
 def print_all_rewards():
@@ -271,5 +276,5 @@ def total_value_per_floor(floor):
 def total_cost_per_floor(floor):
     total = 0
     for n in range(0, 25):
-        total += grass_cut_cost(n, floor)
+        total += grass_cut_cost(floor)
     return total
