@@ -4,7 +4,7 @@ import secrets
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
-from playerdata import formulas, matcher, rolls, leaderboards
+from playerdata import formulas, matcher, rolls, leaderboards, grass_event
 from playerdata.models import *
 
 
@@ -371,3 +371,21 @@ def update_redis_player_elos():
         users_dict[userinfo.user_id] = userinfo.elo
 
     leaderboards.bulk_update_pvp_ranking(users_dict)
+
+
+@transaction.atomic()
+def reset_grass_event():
+    grass_events = GrassEvent.objects.all()
+
+    for event in grass_events:
+        event.cur_floor = 1
+        event.ladder_index = -1
+        event.unclaimed_tokens = 3
+        event.grass_cuts_left = 1
+        event.tokens_bought = 0
+        event.claimed_tiles = []
+        event.rewards_left = default_grass_rewards_left()
+
+    GrassEvent.objects.bulk_update(grass_events, ['cur_floor', 'ladder_index', 'unclaimed_tokens',
+                                                  'grass_cuts_left', 'tokens_bought', 'claimed_tiles',
+                                                  'rewards_left'])
