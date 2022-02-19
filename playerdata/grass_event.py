@@ -19,9 +19,8 @@ MAP_SIZE = 25
 class GrassEventSchema(Schema):
     cur_floor = fields.Int()
     ladder_index = fields.Int()
-    unclaimed_tokens = fields.Int()
+    unclaimed_dynamite = fields.Int()
     grass_cuts_left = fields.Int()
-    tokens_bought = fields.Int()
     claimed_tiles = fields.List(fields.Int())
     rewards_left = fields.List(fields.Int())
 
@@ -96,13 +95,10 @@ def pick_rand_reward_left(rewards_left: List[int]):
     return pick_list[0]  # random.choices returns a list
 
 
-# Returns the next odd day datetime
+# Returns the next day
 def next_token_reset_time():
     today = datetime.today()
-    if today.day % 2 == 1:
-        return datetime(today.year, today.month, today.day, 0) + timedelta(days=2)
-    else:
-        return datetime(today.year, today.month, today.day, 0) + timedelta(days=1)
+    return datetime(today.year, today.month, today.day, 0) + timedelta(days=1)
 
 
 class GetGrassEventView(APIView):
@@ -126,23 +122,40 @@ class GetGrassEventView(APIView):
                          })
 
 
-class FinishGrassRunView(APIView):
+class CollectDynamiteView(APIView):
     permission_classes = (IsAuthenticated,)
 
     @atomic
     def post(self, request):
         serializer = IntSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        won_tokens = serializer.validated_data['value']
+        collected_dynamite = serializer.validated_data['value']
 
         event = GrassEvent.objects.get(user=request.user)
 
-        claimed_tokens = min(won_tokens, event.unclaimed_tokens)
-        event.grass_cuts_left += claimed_tokens
-        event.unclaimed_tokens -= claimed_tokens
+        claimed_dynamite = min(collected_dynamite, event.unclaimed_dynamite)
+        event.dynamite_left += claimed_dynamite
+        event.unclaimed_dynamite -= claimed_dynamite
         event.save()
 
-        return Response({'status': True, 'tokens_left': event.grass_cuts_left})
+        return Response({'status': True, 'dynamite_left': event.dynamite_left})
+
+
+class NewGrassRunView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @atomic
+    def post(self, request):
+        event = GrassEvent.objects.get(user=request.user)
+
+        if event.tickets < 1:
+            return Response({'status': False, 'reason': 'not enough tickets to start a new run'})
+
+        event.tickets -= 1
+        event.unclaimed_dynamite = 3
+        event.save()
+
+        return Response({'status': True})
 
 
 class CutGrassView(APIView):
@@ -159,18 +172,16 @@ class CutGrassView(APIView):
         if cut_index in event.claimed_tiles:
             return Response({'status': False, 'reason': 'already revealed this tile'})
 
-        # use gems to cut grass if no more grass_cuts_left
-        if event.grass_cuts_left < 1:
+        # use gems to cut grass if no more dynamite_left
+        if event.dynamite_left < 1:
             gem_cost = grass_cut_cost(event.cur_floor)
             if request.user.inventory.gems < gem_cost:
-                return Response({'status': False, 'reason': 'not enough gems to buy token'})
-
-            event.tokens_bought += 1
+                return Response({'status': False, 'reason': 'not enough gems to buy dynamite'})
 
             request.user.inventory.gems -= gem_cost
             request.user.inventory.save()
         else:
-            event.grass_cuts_left -= 1
+            event.dynamite_left -= 1
 
         reward_type = pick_rand_reward_left(event.rewards_left)
         # hardcode first pick on floor 1 to be a Great reward type
@@ -209,7 +220,6 @@ class NextGrassFloorView(APIView):
 
         # reset any state from the previous floor
         event.cur_floor += 1
-        event.tokens_bought = 0  # for resetting token costs on the next floor
         event.claimed_tiles = []
         event.ladder_index = -1
         event.rewards_left = default_grass_rewards_left()

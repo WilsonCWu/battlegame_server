@@ -20,7 +20,7 @@ class GrassEventAPITestCase(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
         self.assertEqual(resp.data['grass_event']['cur_floor'], 1)
-        self.assertEqual(resp.data['grass_event']['grass_cuts_left'], 1)
+        self.assertEqual(resp.data['grass_event']['dynamite_left'], 1)
 
     def test_finish_run(self):
         response = self.client.post('/event/grass/finishrun/', {
@@ -30,7 +30,7 @@ class GrassEventAPITestCase(APITestCase):
         self.assertTrue(response.data['status'])
 
     def test_cut_grass(self):
-        self.grass_event.grass_cuts_left = 1
+        self.grass_event.dynamite_left = 1
         self.grass_event.save()
 
         self.u.inventory.gems = 500
@@ -51,7 +51,7 @@ class GrassEventAPITestCase(APITestCase):
         self.assertFalse(response.data['status'])
 
     def test_cut_grass_gems(self):
-        self.grass_event.grass_cuts_left = 0
+        self.grass_event.dynamite_left = 0
         self.grass_event.save()
 
         self.u.inventory.gems = 500
@@ -72,7 +72,7 @@ class GrassEventAPITestCase(APITestCase):
         ladder_tile = 24
         self.grass_event.rewards_left = [0, 0, 0, 1]  # hardcode only the jackpot/ladder is left
         self.grass_event.claimed_tiles = list(range(0, 24))
-        self.grass_event.grass_cuts_left = 1
+        self.grass_event.dynamite_left = 1
         self.grass_event.save()
 
         # cut/reveal the jackpot tile
@@ -92,3 +92,16 @@ class GrassEventAPITestCase(APITestCase):
         self.assertEqual(self.grass_event.cur_floor, 2)
         self.assertEqual(self.grass_event.claimed_tiles, [])
         self.assertEqual(self.grass_event.ladder_index, -1)
+
+    def test_new_run(self):
+        self.grass_event.tickets = 1
+        self.grass_event.unclaimed_dynamite = 1
+        self.grass_event.save()
+
+        response = self.client.post('/event/grass/newrun/', {})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+
+        response = self.client.post('/event/grass/newrun/', {})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['status'])

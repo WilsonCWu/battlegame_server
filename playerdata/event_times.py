@@ -44,7 +44,7 @@ class GrassEventBadgeNotifCount(notifications.BadgeNotifCount):
             return notifications.BadgeNotif(constants.NotificationType.GRASS_EVENT.value, 0)
 
         grass_event, _ = GrassEvent.objects.get_or_create(user=user)
-        count = grass_event.unclaimed_tokens
+        count = grass_event.unclaimed_dynamite
         return notifications.BadgeNotif(constants.NotificationType.GRASS_EVENT.value, count)
 
 

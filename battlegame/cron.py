@@ -185,9 +185,9 @@ def update_clan_leaderboards_cron():
 def grass_event_token_drop_cron():
     grass_events = GrassEvent.objects.all()
     for event in grass_events:
-        event.tokens_bought += 3
+        event.tickets += 1
 
-    GrassEvent.objects.bulk_update(grass_events, ['tokens_bought'])
+    GrassEvent.objects.bulk_update(grass_events, ['tickets'])
 
 
 # Take all registered users
