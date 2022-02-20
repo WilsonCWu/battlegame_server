@@ -23,7 +23,7 @@ class GrassEventAPITestCase(APITestCase):
         self.assertEqual(resp.data['grass_event']['dynamite_left'], 1)
 
     def test_finish_run(self):
-        response = self.client.post('/event/grass/finishrun/', {
+        response = self.client.post('/event/grass/collect/', {
             'value': 1
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)

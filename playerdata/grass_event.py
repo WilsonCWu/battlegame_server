@@ -20,7 +20,7 @@ class GrassEventSchema(Schema):
     cur_floor = fields.Int()
     ladder_index = fields.Int()
     unclaimed_dynamite = fields.Int()
-    grass_cuts_left = fields.Int()
+    dynamite_left = fields.Int()
     claimed_tiles = fields.List(fields.Int())
     rewards_left = fields.List(fields.Int())
 
