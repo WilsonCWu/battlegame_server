@@ -19,6 +19,7 @@ MAP_SIZE = 25
 class GrassEventSchema(Schema):
     cur_floor = fields.Int()
     ladder_index = fields.Int()
+    tickets = fields.Int()
     unclaimed_dynamite = fields.Int()
     dynamite_left = fields.Int()
     claimed_tiles = fields.List(fields.Int())
