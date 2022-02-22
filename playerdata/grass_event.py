@@ -38,24 +38,42 @@ def grass_reward(reward_type, floor):
     rewards = []
     coin_hours, dust_hours = 0, 0
     rare_shards, epic_shards, leg_shards = 0, 0, 0
+    relic_stones = 0
 
     if reward_type == constants.GrassRewardType.DECENT.value:
-        coin_hours = 1 + (floor - 1) // 2
+
+        if floor % 3 == 0:
+            rare_shards = 10 + (floor - 1) * 2
+        elif floor % 3 == 1:
+            coin_hours = 1 + (floor - 1) // 2
+        else:
+            relic_stones = 30 + (floor - 1) * 5
+
     elif reward_type == constants.GrassRewardType.GOOD.value:
         coin_hours = 3 + (floor - 1) // 2
-        rare_shards = 10 + (floor - 1) * 2.5
+        rare_shards = 20 + (floor - 1) * 5
     elif reward_type == constants.GrassRewardType.GREAT.value:
-        epic_shards = int(10 + (floor - 1) * 2.5)
         dust_hours = 2 + (floor - 1) // 2
+
+        if floor <= 7:
+            epic_shards = 5 + (floor - 1) * 2
+        else:
+            epic_shards = (floor - 1) * 5
+
     elif reward_type == constants.GrassRewardType.JACKPOT.value:
         if floor == 15:
             dust_hours = 40
             epic_shards = 80 * 4
             leg_shards = 80 * 2
+        elif floor <= 7:
+            dust_hours = 5 + (floor - 1) * 1
+            epic_shards = 30 + (floor - 1) * 5
+            leg_shards = 5 + (floor - 1) * 2
         else:
             dust_hours = 5 + (floor - 1) * 1
-            epic_shards = 45 + (floor - 1) * 4
+            epic_shards = 50 + (floor - 1) * 5
             leg_shards = 5 + (floor - 1) * 3
+
         if floor == 1:
             rewards.append(chests.ChestReward('pet_id', 6))
     else:
@@ -71,6 +89,8 @@ def grass_reward(reward_type, floor):
         rewards.append(chests.ChestReward(constants.RewardType.EPIC_SHARDS.value, epic_shards))
     if leg_shards > 0:
         rewards.append(chests.ChestReward(constants.RewardType.LEGENDARY_SHARDS.value, leg_shards))
+    if relic_stones > 0:
+        rewards.append(chests.ChestReward(constants.RewardType.RELIC_STONES.value, relic_stones))
 
     return rewards
 
@@ -229,16 +249,16 @@ class NextGrassFloorView(APIView):
 
 
 def grass_cut_cost(cur_floor):
-    base_amount = 50
+    base_amount = 100
 
     if cur_floor == 1:
         extra_amount = 0
-    elif cur_floor < 5:
-        extra_amount = 40 + (cur_floor - 1) * 10
+    elif cur_floor < 4:
+        extra_amount = 20 + (cur_floor - 1) * 50
     elif cur_floor < 10:
-        extra_amount = 90 + (cur_floor - 1) * 15
+        extra_amount = 100 + (cur_floor - 1) * 30
     else:
-        extra_amount = 150 + (cur_floor - 1) * 20
+        extra_amount = 160 + (cur_floor - 1) * 25
 
     return int(base_amount + extra_amount)
 
@@ -253,8 +273,8 @@ def print_floor_cost(floor):
 def print_all_rewards():
     grand_total_value = 0
     total_cost = 0
-    expected_cost_f2p = 0
-    expected_value_f2p = 0
+    expected_cost_free_tickets = 0
+    expected_value_free_tickets = 0
     for floor in range(1, 16):
         print(f"Floor {floor}")
         print(f"Total cost: {total_cost_per_floor(floor)} Average: {total_cost_per_floor(floor)/25}")
@@ -266,13 +286,13 @@ def print_all_rewards():
         total_cost += total_cost_per_floor(floor)
 
         if floor <= 7:
-            expected_cost_f2p += total_cost_per_floor(floor) / 2
-            expected_value_f2p += total_value_per_floor(floor)
+            expected_cost_free_tickets += total_cost_per_floor(floor) / 2
+            expected_value_free_tickets += total_value_per_floor(floor) / 2
 
     print(f"Final value: {grand_total_value}")
     print(f"Final cost: {total_cost}")
-    print(f"Expected cost f2p: {expected_cost_f2p}")
-    print(f"Expected value f2p: {expected_value_f2p}")
+    print(f"Expected cost with free tickets to get to floor 15: {expected_cost_free_tickets}")
+    print(f"Expected value with free tickets only: {expected_value_free_tickets}")
 
 
 def total_value_per_floor(floor):

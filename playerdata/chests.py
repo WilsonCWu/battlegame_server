@@ -52,6 +52,8 @@ class ChestReward:
             return (self.value / 80) * 1687
         elif self.reward_type == constants.RewardType.LEGENDARY_SHARDS.value:
             return (self.value / 80) * 11250
+        elif self.reward_type == constants.RewardType.RELIC_STONES.value:
+            return (self.value / 600) * 1687  # valued off of relic stones cost for an epic
         else:
             return 0
 
