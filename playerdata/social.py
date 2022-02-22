@@ -73,7 +73,7 @@ class FriendSchema(Schema):
 
 class FriendRequestSchema(Schema):
     request_id = fields.Int(attribute='id')
-    userinfo = fields.Nested(UserInfoSchema, attribute='user.userinfo')
+    userinfo = fields.Nested(LightUserInfoSchema, attribute='user.userinfo')
     user_id = fields.Int(attribute='user_id')
     target_id = fields.Int(attribute='target_id')
 
