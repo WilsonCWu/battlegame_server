@@ -403,15 +403,13 @@ class GrassRewardType(Enum):
     GOOD = 1
     GREAT = 2
     JACKPOT = 3
-    LADDER = 4
 
 
 GRASS_REWARDS_PER_TIER = {
-    GrassRewardType.DECENT.value: 15,
+    GrassRewardType.DECENT.value: 16,
     GrassRewardType.GOOD.value: 5,
     GrassRewardType.GREAT.value: 3,
     GrassRewardType.JACKPOT.value: 1,
-    GrassRewardType.LADDER.value: 1,
 }
 
 

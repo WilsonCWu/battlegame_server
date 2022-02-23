@@ -254,7 +254,7 @@ class PlacementAdmin(admin.ModelAdmin):
 class BaseQuestAdmin(bulk_admin.BulkModelAdmin):
     list_display = ('id', 'title', 'type', 'total')
     list_filter = ('type',)
-
+    search_fields = ('title',)
 
 class UserStatsAdmin(admin.ModelAdmin):
     list_display = ('user', 'num_games', 'num_wins', 'time_started')

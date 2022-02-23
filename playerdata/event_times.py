@@ -40,11 +40,11 @@ def is_event_inactive(event_name: str):
 
 class GrassEventBadgeNotifCount(notifications.BadgeNotifCount):
     def get_badge_notif(self, user):
-        if is_event_inactive('grass_event'):
+        if is_event_inactive('valentines_2022'):
             return notifications.BadgeNotif(constants.NotificationType.GRASS_EVENT.value, 0)
 
         grass_event, _ = GrassEvent.objects.get_or_create(user=user)
-        count = grass_event.unclaimed_tokens
+        count = grass_event.unclaimed_dynamite
         return notifications.BadgeNotif(constants.NotificationType.GRASS_EVENT.value, count)
 
 

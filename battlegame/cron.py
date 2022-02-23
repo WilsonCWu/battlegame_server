@@ -179,7 +179,16 @@ def update_clan_leaderboards_cron():
 
     with atomic():
         Clan2.objects.bulk_update(clans, ['elo'])
- 
+
+
+@cron(uuid="fcdb9373-7a08-4bd6-a0ce-5070c0259f0d")
+def grass_event_token_drop_cron():
+    grass_events = GrassEvent.objects.all()
+    for event in grass_events:
+        event.tickets += 1
+
+    GrassEvent.objects.bulk_update(grass_events, ['tickets'])
+
 
 # Take all registered users
 # Sort by elo

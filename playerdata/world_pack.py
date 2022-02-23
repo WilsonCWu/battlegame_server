@@ -48,20 +48,20 @@ def get_world_packs(user):
 
     if world <= 1:
         pack_1 = WorldPackIAP(world, constants.WORLD_PACK_0,
-                              [chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=6),
-                       chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=4),
-                       chests.ChestReward(reward_type=constants.RewardType.COINS.value, value=25000)],
-                              480)
+                              [chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=24),
+                       chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=18),
+                       chests.ChestReward(reward_type=constants.RewardType.COINS.value, value=35000)],
+                              300)
         pack_2 = WorldPackIAP(world, constants.WORLD_PACK_1,
                               [chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=6),
                        chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=4),
-                       chests.ChestReward(reward_type=constants.RewardType.COINS.value, value=25000)],
+                       chests.ChestReward(reward_type=constants.RewardType.COINS.value, value=60000)],
                               510)
         pack_3 = WorldPackIAP(world, constants.WORLD_PACK_2,
-                              [chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=6),
-                       chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=4),
+                              [chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=9),
+                       chests.ChestReward(reward_type=constants.RewardType.CHEST.value, value=constants.ChestType.MYTHICAL.value),
                        chests.ChestReward(reward_type=constants.RewardType.COINS_FAST_REWARDS.value, value=24)],
-                              400)
+                              600)
 
     elif world < 10:
         gems = (world * 300) + 1500
@@ -119,6 +119,10 @@ def get_active_unpurchased_packs(user):
 
 
 def activate_new_pack(user, world: int):
+    # TODO: Support world packs (past world 1) after patch 1.1.1, packs are not tuned
+    if world > 1:
+        return
+
     user.worldpack.world = world
     user.worldpack.expiration_date = get_world_expiration()
     user.worldpack.save()
