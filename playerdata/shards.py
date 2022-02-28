@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from mainsocket import notifications
 from playerdata import chests, rolls, constants
 from playerdata.serializers import SummonShardSerializer
 
@@ -89,3 +90,12 @@ class SummonShardsView(APIView):
         chests.award_chest_rewards(request.user, rewards)
 
         return Response({'status': True, 'rewards': chests.ChestRewardSchema(rewards, many=True).data})
+
+
+class ShardsBadgeNotifCount(notifications.BadgeNotifCount):
+    def get_badge_notif(self, user):
+        rare_shards = 1 if user.inventory.rare_shards >= 80 else 0
+        epic_shards = 1 if user.inventory.epic_shards >= 80 else 0
+        leg_shards = 1 if user.inventory.legendary_shards >= 80 else 0
+        count = rare_shards + epic_shards + leg_shards
+        return notifications.BadgeNotif(constants.NotificationType.SHARDS.value, count)

@@ -68,6 +68,7 @@ class NotificationType(Enum):
     CUMULATIVE_QUEST = 2
     GRASS_EVENT = 3
     CHRISTMAS_2021 = 4
+    SHARDS = 5
 
 
 # Tournament constants
