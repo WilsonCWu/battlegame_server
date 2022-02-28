@@ -102,9 +102,9 @@ class SummonShardsView(APIView):
 
 
 def shard_notif_count(inventory):
-    rare_shards = 1 if inventory.rare_shards >= SHARD_SUMMON_COST else 0
-    epic_shards = 1 if inventory.epic_shards >= SHARD_SUMMON_COST else 0
-    leg_shards = 1 if inventory.legendary_shards >= SHARD_SUMMON_COST else 0
+    rare_shards = inventory.rare_shards // SHARD_SUMMON_COST
+    epic_shards = inventory.epic_shards // SHARD_SUMMON_COST
+    leg_shards = inventory.legendary_shards // SHARD_SUMMON_COST
     return rare_shards + epic_shards + leg_shards
 
 
