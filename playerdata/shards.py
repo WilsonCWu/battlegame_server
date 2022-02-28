@@ -1,3 +1,4 @@
+import logging
 import math
 import random
 
@@ -89,13 +90,25 @@ class SummonShardsView(APIView):
         rewards = roll_n_chars_of_rarity(request.user.wishlist, num_chars, rarity)
         chests.award_chest_rewards(request.user, rewards)
 
+        try:
+            notifications.send_badge_notifs_replace(request.user.id,
+                                                    notifications.BadgeNotif(constants.NotificationType.SHARDS.value,
+                                                                             shard_notif_count(request.user.inventory)),
+                                                    )
+        except:
+            logging.error("notification redis error")
+
         return Response({'status': True, 'rewards': chests.ChestRewardSchema(rewards, many=True).data})
+
+
+def shard_notif_count(inventory):
+    rare_shards = 1 if inventory.rare_shards >= 80 else 0
+    epic_shards = 1 if inventory.epic_shards >= 80 else 0
+    leg_shards = 1 if inventory.legendary_shards >= 80 else 0
+    return rare_shards + epic_shards + leg_shards
 
 
 class ShardsBadgeNotifCount(notifications.BadgeNotifCount):
     def get_badge_notif(self, user):
-        rare_shards = 1 if user.inventory.rare_shards >= 80 else 0
-        epic_shards = 1 if user.inventory.epic_shards >= 80 else 0
-        leg_shards = 1 if user.inventory.legendary_shards >= 80 else 0
-        count = rare_shards + epic_shards + leg_shards
+        count = shard_notif_count(user.inventory)
         return notifications.BadgeNotif(constants.NotificationType.SHARDS.value, count)
