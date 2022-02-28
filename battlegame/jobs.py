@@ -380,11 +380,12 @@ def reset_grass_event():
     for event in grass_events:
         event.cur_floor = 1
         event.ladder_index = -1
+        event.tickets = 0
         event.unclaimed_dynamite = 3
         event.dynamite_left = 1
         event.claimed_tiles = []
         event.rewards_left = default_grass_rewards_left()
 
-    GrassEvent.objects.bulk_update(grass_events, ['cur_floor', 'ladder_index', 'unclaimed_dynamite',
-                                                  'dynamite_left', 'claimed_tiles',
+    GrassEvent.objects.bulk_update(grass_events, ['cur_floor', 'ladder_index', 'tickets',
+                                                  'unclaimed_dynamite', 'dynamite_left', 'claimed_tiles',
                                                   'rewards_left'])
