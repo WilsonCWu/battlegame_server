@@ -1,4 +1,3 @@
-import logging
 import math
 import random
 
@@ -7,7 +6,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from mainsocket import notifications
 from playerdata import chests, rolls, constants
 from playerdata.serializers import SummonShardSerializer
 

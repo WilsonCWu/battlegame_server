@@ -4,7 +4,7 @@ import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from mainsocket import notifications
-from playerdata import questupdater, event_times, world_pack, shards
+from playerdata import questupdater, event_times, world_pack
 
 
 # Channel group is the user_id
