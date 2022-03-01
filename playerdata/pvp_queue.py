@@ -65,7 +65,7 @@ def get_redis_list(r, key, MAX_SIZE):
 
 
 def add_opponents_to_queue(r, user, opponent_queue_key, recently_seen_key):
-    # queue the first 4 opponents
+    # hardcode queue the first 5 opponents
     if user.userstats.num_games == 0:
         r.rpush(opponent_queue_key, 86, 87, 88, 100, 101)
         return
