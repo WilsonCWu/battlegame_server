@@ -67,34 +67,36 @@ def get_world_packs(user):
                               600)
 
     elif world < 10:
-        gems = (world * 300) + 1500
-        coin_hours = 42
-        dust_hours = 42
+        gems1 = (world * 40) + 500
+        gems2 = (world * 50) + 1000
+        coin_hours = 24
+        dust_hours = 24
 
         pack_1 = WorldPackIAP(world, constants.WORLD_PACK_1,
                               [chests.ChestReward(reward_type=constants.RewardType.CHEST.value, value=constants.ChestType.MYTHICAL.value),
-                       chests.ChestReward(reward_type=constants.RewardType.GEMS.value, value=gems),
+                       chests.ChestReward(reward_type=constants.RewardType.GEMS.value, value=gems1),
                        chests.ChestReward(reward_type=constants.RewardType.COINS_FAST_REWARDS.value, value=coin_hours)],
-                              510)
+                              230)
         pack_2 = WorldPackIAP(world, constants.WORLD_PACK_2,
                               [chests.ChestReward(reward_type=constants.RewardType.CHEST.value, value=constants.ChestType.MYTHICAL.value),
-                       chests.ChestReward(reward_type=constants.RewardType.GEMS.value, value=gems),
+                       chests.ChestReward(reward_type=constants.RewardType.GEMS.value, value=gems2),
                        chests.ChestReward(reward_type=constants.RewardType.DUST_FAST_REWARDS.value, value=dust_hours//2)],
                               510)
         pack_3 = WorldPackIAP(world, constants.WORLD_PACK_3,
                               [chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=leg_char_id),
                        chests.ChestReward(reward_type=constants.RewardType.DUST_FAST_REWARDS.value, value=dust_hours),
                        chests.ChestReward(reward_type=constants.RewardType.CHEST.value, value=constants.ChestType.MYTHICAL.value)],
-                              510)
+                              300)
 
     else:
         dust_hours = 12 + (world // 2) * 2  # starts at 22, +2 every two worlds
+        gems1 = (world * 40) + 500
 
         pack_1 = WorldPackIAP(world, constants.WORLD_PACK_1,
-                              [chests.ChestReward(reward_type=constants.RewardType.GEMS.value, value=1000),
+                              [chests.ChestReward(reward_type=constants.RewardType.GEMS.value, value=gems1),
                        chests.ChestReward(reward_type=constants.RewardType.CHEST.value, value=constants.ChestType.MYTHICAL.value),
                        chests.ChestReward(reward_type=constants.RewardType.DUST_FAST_REWARDS.value, value=dust_hours//2)],
-                              510)
+                              450)
         pack_2 = WorldPackIAP(world, constants.WORLD_PACK_2,
                               [chests.ChestReward(reward_type=constants.RewardType.CHEST.value, value=constants.ChestType.LEGENDARY.value),
                        chests.ChestReward(reward_type=constants.RewardType.CHEST.value, value=constants.ChestType.MYTHICAL.value),
