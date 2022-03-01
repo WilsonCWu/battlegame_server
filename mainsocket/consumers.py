@@ -30,7 +30,6 @@ class MainSocketConsumer(WebsocketConsumer):
                                                 questupdater.WeeklyBadgeNotifCount().get_badge_notif(self.user),
                                                 questupdater.CumulativeBadgeNotifCount().get_badge_notif(self.user),
                                                 event_times.GrassEventBadgeNotifCount().get_badge_notif(self.user),
-                                                shards.ShardsBadgeNotifCount().get_badge_notif(self.user),
                                                 )
 
         if world_pack.show_world_pack_popup(self.user):
