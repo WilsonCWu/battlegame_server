@@ -266,9 +266,9 @@ def grass_cut_cost(cur_floor):
 
 # Test functions to print out cost / reward values
 
-def print_floor_cost(floor):
-    for n in range(0, 25):
-        print(grass_cut_cost(floor))
+def print_floor_cost():
+    for n in range(1, 16):
+        print(f"Floor {n}: {grass_cut_cost(n)} gems")
 
 
 def print_all_rewards():

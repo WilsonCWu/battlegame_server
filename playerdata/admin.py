@@ -248,13 +248,14 @@ class UserInfoAdmin(admin.ModelAdmin):
 
 class PlacementAdmin(admin.ModelAdmin):
     list_display = ('placement_id', 'user', 'pos_1', 'char_1', 'pos_2', 'char_2', 'pos_3', 'char_3', 'pos_4', 'char_4', 'pos_5', 'char_5')
-    raw_id_fields = ("char_1", "char_2", "char_3", "char_4", "char_5",)
+    raw_id_fields = ("user", "char_1", "char_2", "char_3", "char_4", "char_5",)
 
 
 class BaseQuestAdmin(bulk_admin.BulkModelAdmin):
     list_display = ('id', 'title', 'type', 'total')
     list_filter = ('type',)
     search_fields = ('title',)
+
 
 class UserStatsAdmin(admin.ModelAdmin):
     list_display = ('user', 'num_games', 'num_wins', 'time_started')
