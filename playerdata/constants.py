@@ -131,6 +131,7 @@ WORLD_PACK_0 = 'com.salutationstudio.tinytitans.worldpack0'
 WORLD_PACK_1 = 'com.salutationstudio.tinytitans.worldpack1'
 WORLD_PACK_2 = 'com.salutationstudio.tinytitans.worldpack2'
 WORLD_PACK_3 = 'com.salutationstudio.tinytitans.worldpack3'
+WORLD_PACK_4 = 'com.salutationstudio.tinytitans.worldpack4'
 
 MONTHLY_PASS = 'com.salutationstudio.tinytitans.monthlypass1'
 
