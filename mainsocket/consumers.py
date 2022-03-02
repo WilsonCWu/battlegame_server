@@ -35,6 +35,9 @@ class MainSocketConsumer(WebsocketConsumer):
         if world_pack.show_world_pack_popup(self.user):
             self.poll_server('show_worldpack', {})
 
+        if self.user.wishlist.is_active:
+            self.poll_server('show_wishlist', {})
+
     def disconnect(self, close_code):
         # Leave room group
         async_to_sync(self.channel_layer.group_discard)(
