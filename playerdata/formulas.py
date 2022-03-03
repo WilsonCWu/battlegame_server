@@ -113,7 +113,7 @@ def product_to_dollar_cost(product_id: str):
         return 30
     elif product_id in [constants.GEMS_4999, constants.DEAL_WEEKLY_4, constants.DEAL_MONTHLY_5, constants.DEAL_MONTHLY_6, constants.WORLD_PACK_3]:
         return 50
-    elif product_id in [constants.GEMS_9999, constants.DEAL_MONTHLY_7]:
+    elif product_id in [constants.GEMS_9999, constants.DEAL_MONTHLY_7, constants.WORLD_PACK_4]:
         return 100
     else:
         raise Exception("Invalid product_id: " + product_id)
