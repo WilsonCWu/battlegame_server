@@ -54,18 +54,18 @@ def get_world_packs(user):
                               [chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=24),
                                chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=18),
                                chests.ChestReward(reward_type=constants.RewardType.COINS.value, value=35000)],
-                              422)
+                              460)
         pack_2 = WorldPackIAP(world, constants.WORLD_PACK_1,
                               [chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=6),
                                chests.ChestReward(reward_type=constants.RewardType.CHEST.value,
                                                   value=constants.ChestType.MYTHICAL.value),
                                chests.ChestReward(reward_type=constants.RewardType.COINS.value, value=60000)],
-                              809)
+                              870)
         pack_3 = WorldPackIAP(world, constants.WORLD_PACK_2,
                               [chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=9),
                                chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=4),
                                chests.ChestReward(reward_type=constants.RewardType.COINS_FAST_REWARDS.value, value=24)],
-                              436)
+                              410)
 
     elif world < 10:
         gems1 = (world * 40) + 500
@@ -78,21 +78,21 @@ def get_world_packs(user):
                                chests.ChestReward(reward_type=constants.RewardType.GEMS.value, value=gems1),
                                chests.ChestReward(reward_type=constants.RewardType.COINS_FAST_REWARDS.value,
                                                   value=coin_hours)],
-                              213)
+                              210)
         pack_2 = WorldPackIAP(world, constants.WORLD_PACK_2,
                               [chests.ChestReward(reward_type=constants.RewardType.CHEST.value,
                                                   value=constants.ChestType.MYTHICAL.value),
                                chests.ChestReward(reward_type=constants.RewardType.EPIC_SHARDS.value, value=320),
                                chests.ChestReward(reward_type=constants.RewardType.DUST_FAST_REWARDS.value,
                                                   value=dust_hours // 2)],
-                              300)
+                              310)
         pack_3 = WorldPackIAP(world, constants.WORLD_PACK_3,
                               [chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=leg_char_id),
                                chests.ChestReward(reward_type=constants.RewardType.DUST_FAST_REWARDS.value,
                                                   value=dust_hours),
                                chests.ChestReward(reward_type=constants.RewardType.CHEST.value,
                                                   value=constants.ChestType.MYTHICAL.value)],
-                              459)
+                              280)
 
     else:
         dust_hours = 12 + (world // 2) * 2  # starts at 22, +2 every two worlds
@@ -106,20 +106,20 @@ def get_world_packs(user):
                                                   value=constants.ChestType.MYTHICAL.value),
                                chests.ChestReward(reward_type=constants.RewardType.DUST_FAST_REWARDS.value,
                                                   value=dust_hours // 2)],
-                              175)
+                              180)
         pack_2 = WorldPackIAP(world, constants.WORLD_PACK_3,
                               [chests.ChestReward(reward_type=constants.RewardType.CHEST.value,
                                                   value=constants.ChestType.LEGENDARY.value),
                                chests.ChestReward(reward_type=constants.RewardType.GEMS.value, value=gems2),
                                chests.ChestReward(reward_type=constants.RewardType.DUST_FAST_REWARDS.value,
                                                   value=dust_hours)],
-                              246)
+                              250)
         pack_3 = WorldPackIAP(world, constants.WORLD_PACK_4,
                               [chests.ChestReward(reward_type=constants.RewardType.CHAR_ID.value, value=leg_char_id),
                                chests.ChestReward(reward_type=constants.RewardType.GEMS.value, value=gems3),
                                chests.ChestReward(reward_type=constants.RewardType.DUST_FAST_REWARDS.value,
-                                                  value=dust_hours)],
-                              315)
+                                                  value=dust_hours*2)],
+                              220)
 
     return [pack_1, pack_2, pack_3]
 
