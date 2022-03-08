@@ -5,9 +5,11 @@ from channels.generic.websocket import WebsocketConsumer
 from rest_marshmallow import Schema, fields
 from better_profanity import profanity
 
+from playerdata import constants
 from playerdata.models import ChatMessage
 from playerdata.models import Chat
 from playerdata.models import ChatLastReadMessage
+from playerdata.questupdater import QuestUpdater
 
 profanity.load_censor_words(whitelist_words=['omg', 'omfg', 'lmao', 'lmfao', 'god', 'goddamn', 'goddammit', 'goddamned',
                                              'pee', 'poop', 'suck', 'sucked', 'crap', 'turd', 'piss', 'ugly', 'vulgar',
@@ -103,6 +105,8 @@ class ChatConsumer(WebsocketConsumer):
                                                          user=self.user,
                                                          defaults={"time_send": chat_message.time_send}
                                                          )
+            if self.chat.id == 1:
+                QuestUpdater.add_progress_by_type(self.user, constants.SEND_CHAT_MSG_GLOBAL, 1)
 
         elif message_type == 'req':
             latest_timestamp = text_data_json['latest_timestamp']

@@ -264,7 +264,7 @@ class UserStatsAdmin(admin.ModelAdmin):
 
 
 class ActiveCumulativeQuestAdmin(bulk_admin.BulkModelAdmin):
-    pass
+    raw_id_fields = ('base_quest',)
 
 
 class ActiveDailyQuestAdmin(bulk_admin.BulkModelAdmin):
@@ -821,8 +821,12 @@ class WorldPackAdmin(admin.ModelAdmin, DynamicArrayMixin):
     raw_id_fields = ('user',)
 
 
+class DungeonProgressAdmin(admin.ModelAdmin, DynamicArrayMixin):
+    raw_id_fields = ('user',)
+
+
 admin.site.register(DungeonStage, DungeonStageAdmin)
-admin.site.register(DungeonProgress)
+admin.site.register(DungeonProgress, DungeonProgressAdmin)
 admin.site.register(DungeonBoss, DungeonBossAdmin)
 admin.site.register(DungeonStats, DungeonStatsAdmin)
 

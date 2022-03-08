@@ -263,6 +263,7 @@ def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defend
             runes = afk_rewards.RUNES_FULL
 
         QuestUpdater.add_progress_by_type(request.user, constants.WIN_QUICKPLAY_GAMES, 1)
+        QuestUpdater.add_progress_by_type(request.user, constants.WIN_X_TROPHIES, elo_updates.attacker_new - elo_updates.attacker_original)
 
     # rewards
     if request.user.userstats.daily_wins <= constants.MAX_DAILY_QUICKPLAY_WINS_FOR_GOLD and win:
