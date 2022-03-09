@@ -12,7 +12,7 @@ from playerdata.models import DungeonProgress, AFKReward, default_afk_shard_list
 from playerdata.questupdater import QuestUpdater
 from playerdata.serializers import FastRewardsSerializer
 
-PVP_RUNE_REWARD = 3600  # 1 hr worth of afk
+PVP_RUNE_REWARD = 3600 * 3  # 3 hr worth of afk
 RUNES_FULL = -1
 
 
@@ -24,7 +24,7 @@ def afk_secs_since_last_datetime(last_datetime, vip_level: int):
 
     max_hours = 12 + vip_afk_extra_hours(vip_level)
     return min(max_hours * 60.0 * 60.0, elapsed_secs)
-
+g
 
 def get_accumulated_runes_limit(vip_level: int):
     return (24 + vip_afk_extra_hours(vip_level)) * 60 * 60
