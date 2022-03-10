@@ -197,6 +197,8 @@ class TryPrestigeView(APIView):
         target_character.prestige += 1
         target_character.save()
 
+        QuestUpdater.add_progress_by_type(request.user, constants.ASCEND_X_HEROES, 1)
+
         return Response({'status': True})
 
 

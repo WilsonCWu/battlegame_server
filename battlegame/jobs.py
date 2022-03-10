@@ -6,6 +6,7 @@ from django.db import transaction
 
 from playerdata import formulas, matcher, rolls, leaderboards, grass_event
 from playerdata.models import *
+from playerdata.questupdater import QuestUpdater
 
 
 def clean_placements():
@@ -389,3 +390,12 @@ def reset_grass_event():
     GrassEvent.objects.bulk_update(grass_events, ['cur_floor', 'ladder_index', 'tickets',
                                                   'unclaimed_dynamite', 'dynamite_left', 'claimed_tiles',
                                                   'rewards_left'])
+
+
+def backfill_ascend_quests():
+    users = User.objects.filter(userinfo__elo__gt=0).select_related('playerquestcumulative2', 'userstats').prefetch_related('character_set__char_type')
+
+    for user in users:
+        total_ascensions = sum([char.prestige for char in user.character_set.all()])
+        QuestUpdater.set_progress_by_type(user, constants.ASCEND_X_HEROES, total_ascensions)
+

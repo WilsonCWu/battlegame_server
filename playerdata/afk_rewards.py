@@ -12,7 +12,7 @@ from playerdata.models import DungeonProgress, AFKReward, default_afk_shard_list
 from playerdata.questupdater import QuestUpdater
 from playerdata.serializers import FastRewardsSerializer
 
-PVP_RUNE_REWARD = 3600  # 1 hr worth of afk
+PVP_RUNE_REWARD = 3600 * 3  # 3 hr worth of afk
 RUNES_FULL = -1
 
 
