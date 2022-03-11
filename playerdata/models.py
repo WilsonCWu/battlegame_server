@@ -1410,7 +1410,7 @@ def default_cooldown_slot_list():
 
 class LevelBooster(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    booster_level = models.IntegerField(default=240)
+    booster_level = models.IntegerField(default=0)
     unlocked_slots = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(constants.LEVEL_BOOSTER_SLOTS)])
 
     # slots contain the char_id of the heroes
@@ -1418,6 +1418,10 @@ class LevelBooster(models.Model):
 
     # list of either the cooldown datetime or None
     cooldown_slots = ArrayField(models.DateTimeField(blank=True, null=True), default=default_cooldown_slot_list)
+    is_active = models.BooleanField(default=False)
+    is_enhanced = models.BooleanField(default=False)  # boosting > level cap
+
+    top_five = ArrayField(models.IntegerField(), default=list)
 
 
 class RelicShop(models.Model):
