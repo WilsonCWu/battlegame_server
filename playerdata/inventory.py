@@ -155,6 +155,8 @@ class TryLevelView(APIView):
         if target_character.level >= constants.MAX_CHARACTER_LEVEL:
             return Response({'status': False, 'reason': 'character has already hit max level ' + str(
                 constants.MAX_CHARACTER_LEVEL) + '!'})
+        if base.is_flag_active(base.FlagName.LEVEL_MATCH) and target_character.is_boosted:
+            return Response({'status': False, 'reason': 'character is being boosted on the Power Bound!'})
 
         cur_coins = formulas.char_level_to_coins(target_character.level)
         next_coins = formulas.char_level_to_coins(target_character.level + 1)
