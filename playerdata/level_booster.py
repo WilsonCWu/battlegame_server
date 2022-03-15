@@ -189,7 +189,7 @@ class SkipCooldownView(APIView):
         request.user.inventory.gems -= constants.SKIP_COOLDOWN_GEMS
         request.user.inventory.save()
 
-        request.user.levelbooster.cooldown_slots[slot_id] = None
+        request.user.levelbooster.cooldown_slots[slot_id] = request.user.levelbooster.cooldown_slots[slot_id] - timedelta(hours=24, minutes=1)
         request.user.levelbooster.save()
 
         return Response({'status': True})
