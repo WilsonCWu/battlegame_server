@@ -119,7 +119,7 @@ class InventoryView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        level_booster.try_eval_top_five(request.user)  # evaling here guarantees correctness and is lazier than evaling at each levelup/refunds
+        level_booster.try_eval_save_top_five(request.user)  # evaling here guarantees correctness and is lazier than evaling at each levelup/refunds
 
         char_serializer = CharacterSchema(Character.objects.filter(user=request.user), many=True)
         item_serializer = ItemSchema(Item.objects.filter(user=request.user), many=True)

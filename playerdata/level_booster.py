@@ -78,7 +78,8 @@ def __eval_top_five(user):
     return top_five_ids, level
 
 
-def try_eval_top_five(user):
+# recalculates the top five and saves it
+def try_eval_save_top_five(user):
     if not base.is_flag_active(base.FlagName.LEVEL_MATCH):
         return
 
