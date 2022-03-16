@@ -52,14 +52,12 @@ class CharacterSchema(Schema):
     def get_char_level(self, char):
         if base.is_flag_active(base.FlagName.LEVEL_MATCH):
             if char.is_boosted:
-                if char.user.levelbooster.is_enhanced:
-                    return char.user.levelbooster.booster_level
-                elif char.char_id in char.user.levelbooster.top_five:
+                if char.char_id in char.user.levelbooster.top_five:
                     return char.level
-                else:
-                    return char.user.levelbooster.booster_level
-            else:
-                return char.level
+
+                return char.user.levelbooster.booster_level
+
+            return char.level
 
         # TODO: remove after 1.1.3
         if char.level == constants.MAX_CHARACTER_LEVEL:
@@ -121,7 +119,7 @@ class InventoryView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        level_booster.try_eval_top_five(request.user)
+        level_booster.try_eval_top_five(request.user)  # evaling here guarantees correctness and is lazier than evaling at each levelup/refunds
 
         char_serializer = CharacterSchema(Character.objects.filter(user=request.user), many=True)
         item_serializer = ItemSchema(Item.objects.filter(user=request.user), many=True)

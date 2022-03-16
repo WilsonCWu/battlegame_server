@@ -73,9 +73,9 @@ def get_level_cap(user):
 # returns a list of ids of top 5, lowest level of the top 5
 def __eval_top_five(user):
     chars = list(Character.objects.filter(user=user, is_boosted=False).order_by('-level').values('char_id', 'level')[:5])
-    ids = [char["char_id"] for char in chars]
+    top_five_ids = [char["char_id"] for char in chars]
     level = chars[4]["level"]
-    return ids, level
+    return top_five_ids, level
 
 
 def try_eval_top_five(user):
@@ -189,7 +189,7 @@ class SkipCooldownView(APIView):
         request.user.inventory.gems -= constants.SKIP_COOLDOWN_GEMS
         request.user.inventory.save()
 
-        request.user.levelbooster.cooldown_slots[slot_id] = request.user.levelbooster.cooldown_slots[slot_id] - timedelta(hours=24, minutes=1)
+        request.user.levelbooster.cooldown_slots[slot_id] = None
         request.user.levelbooster.save()
 
         return Response({'status': True})
