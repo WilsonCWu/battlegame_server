@@ -72,7 +72,7 @@ def get_level_cap(user):
 
 # returns a list of ids of top 5, lowest level of the top 5
 def __eval_top_five(user):
-    chars = list(Character.objects.filter(user=user, is_boosted=False).order_by('-level').values('char_id', 'level')[:5])
+    chars = list(Character.objects.filter(user=user, is_boosted=False).order_by('-level', 'char_type').values('char_id', 'level')[:5])
     top_five_ids = [char["char_id"] for char in chars]
     level = chars[4]["level"]
     return top_five_ids, level
