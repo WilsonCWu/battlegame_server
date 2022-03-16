@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from re import I
 import pandas as pd
 from plotly import graph_objects
 from dataclasses import dataclass
