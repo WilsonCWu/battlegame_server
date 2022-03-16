@@ -825,6 +825,12 @@ class DungeonProgressAdmin(admin.ModelAdmin, DynamicArrayMixin):
     raw_id_fields = ('user',)
 
 
+@admin.register(LevelBooster)
+class LevelBoosterAdmin(admin.ModelAdmin, DynamicArrayMixin):
+    raw_id_fields = ('user',)
+    exclude = ('cooldown_slots',)
+
+
 admin.site.register(DungeonStage, DungeonStageAdmin)
 admin.site.register(DungeonProgress, DungeonProgressAdmin)
 admin.site.register(DungeonBoss, DungeonBossAdmin)
@@ -898,7 +904,6 @@ admin.site.register(ClanPVEStatus)
 admin.site.register(ClanFarming)
 
 admin.site.register(RelicShop, RelicShopAdmin)
-admin.site.register(LevelBooster)
 admin.site.register(Wishlist, WishlistAdmin)
 admin.site.register(StoryMode, StoryModeAdmin)
 admin.site.register(Mail, MailAdmin)

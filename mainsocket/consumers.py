@@ -38,6 +38,9 @@ class MainSocketConsumer(WebsocketConsumer):
         if self.user.wishlist.is_active:
             self.poll_server('show_wishlist', {})
 
+        if self.user.levelbooster.is_active:
+            self.poll_server('show_lvlbooster', {})
+
     def disconnect(self, close_code):
         # Leave room group
         async_to_sync(self.channel_layer.group_discard)(
