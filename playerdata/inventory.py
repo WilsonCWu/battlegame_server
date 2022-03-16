@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from playerdata import constants, server
+from playerdata import constants, server, base, level_booster
 from playerdata.models import Character, UserInfo, ServerStatus
 from playerdata.models import Item
 from . import formulas
@@ -50,6 +50,16 @@ class CharacterSchema(Schema):
     trinket_2 = fields.Nested(ItemSchema)
 
     def get_char_level(self, char):
+        if base.is_flag_active(base.FlagName.LEVEL_MATCH):
+            if char.is_boosted:
+                if char.char_id in char.user.levelbooster.top_five:
+                    return char.level
+
+                return char.user.levelbooster.booster_level
+
+            return char.level
+
+        # TODO: remove after 1.1.3
         if char.level == constants.MAX_CHARACTER_LEVEL:
             return char.user.levelbooster.booster_level
         else:
@@ -109,6 +119,8 @@ class InventoryView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
+        level_booster.try_eval_save_top_five(request.user)  # evaling here guarantees correctness and is lazier than evaling at each levelup/refunds
+
         char_serializer = CharacterSchema(Character.objects.filter(user=request.user), many=True)
         item_serializer = ItemSchema(Item.objects.filter(user=request.user), many=True)
         inventory_serializer = InventorySchema(request.user.inventory)
@@ -141,6 +153,8 @@ class TryLevelView(APIView):
         if target_character.level >= constants.MAX_CHARACTER_LEVEL:
             return Response({'status': False, 'reason': 'character has already hit max level ' + str(
                 constants.MAX_CHARACTER_LEVEL) + '!'})
+        if base.is_flag_active(base.FlagName.LEVEL_MATCH) and target_character.is_boosted:
+            return Response({'status': False, 'reason': 'character is being boosted on the Power Bound!'})
 
         cur_coins = formulas.char_level_to_coins(target_character.level)
         next_coins = formulas.char_level_to_coins(target_character.level + 1)

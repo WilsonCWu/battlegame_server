@@ -399,3 +399,11 @@ def backfill_ascend_quests():
         total_ascensions = sum([char.prestige for char in user.character_set.all()])
         QuestUpdater.set_progress_by_type(user, constants.ASCEND_X_HEROES, total_ascensions)
 
+
+def backfill_Levelbooster():
+    lvl_boosters = LevelBooster.objects.all()
+    for lvl_booster in lvl_boosters:
+        if lvl_booster.slots[0] != -1:
+            lvl_booster.is_active = True
+            lvl_booster.is_enhanced = True
+    LevelBooster.objects.bulk_update(lvl_boosters, ['is_active', 'is_enhanced'])
