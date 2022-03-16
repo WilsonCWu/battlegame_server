@@ -1,10 +1,12 @@
-from datetime import datetime
+from datetime import datetime, timezone
+from re import I
 import pandas as pd
 from plotly import graph_objects
 from dataclasses import dataclass
+from bisect import bisect_left
 
-from playerdata import constants
-from playerdata.models import BaseCharacterUsage, DungeonStats, UserStats
+from playerdata import constants, formulas
+from playerdata.models import BaseCharacterUsage, DungeonProgress, DungeonStats, UserStats
 
 pd.options.plotting.backend = "plotly"
 
@@ -156,6 +158,23 @@ def get_combined_dungeon_graphs():
     return context
 
 
+def get_level_graphs():
+    context = {}
+    context['graph_contents'] = []
+    context['other_data'] = []
+
+    df = get_level_and_progress_dataframe(DungeonProgress.objects.all())
+
+    fig_lvl = df.plot.line(y='level', x='days played', title='Average level grouped by account age:')
+    fig_campaign = df.plot.line(y='campaign progress', x='days played', title='Average campaign progress grouped by account age:')
+    fig_tower = df.plot.line(y='tower progress', x='days played', title='Average tower progress grouped by account age:')
+
+    context['graph_contents'].append(fig_lvl.to_html())
+    context['graph_contents'].append(fig_campaign.to_html())
+    context['graph_contents'].append(fig_tower.to_html())
+    return context
+
+
 # Each entry should be a list of functions
 # Each function should return a dictionary with graph_contents being the graph or a list of graphs.
 # dictionary can also have an 'other_data' field.
@@ -163,6 +182,7 @@ GRAPHS = {'sample': get_sample_graph,  # Single graph example
           'samples': get_sample_graphs,  # Multiple graphs example
           'usage': get_usage_stats_graph,
           'dungeon': get_combined_dungeon_graphs,
+          'level': get_level_graphs,
           }
 
 
@@ -294,3 +314,52 @@ def get_hacker_alert_dataframe(queryset):
                 hacker_stats_dict[id].flagged_sims += 1
 
     return pd.DataFrame([hacker_stats_dict[key].to_dict() for key in hacker_stats_dict])
+
+
+# Queryset should be DungeonProgress objects
+def get_level_and_progress_dataframe(queryset):
+
+    # We don't have static intervals for the days_played, so we can get more granularity for new players
+    @dataclass
+    class ProgressByLevelGroupRow:
+        days_played_group: int  # This'll correspond to "minimum days played", and we can place a player's data into the highest group that applies.
+        level_total: int
+        campaign_total: int
+        tower_total: int
+        entries: int
+
+        def to_dict(self):
+            dict = {'days played': self.days_played_group,
+                    'level': self.level_total / self.entries if self.entries > 0 else 0,
+                    'campaign progress': self.campaign_total / self.entries if self.entries > 0 else 0,
+                    'tower progress': self.tower_total / self.entries if self.entries > 0 else 0, }
+            return dict
+
+    # Establish brackets
+    DAYS_PLAYED_BRACKETS = [0, 1, 2, 7, 14, 30, 60, 90, 120, 180, 240, 300, 365, 455, 545, 635, 730, 820, 910, 1000, 1095] # Up to 3 years
+    row_list = []
+    for bracket_start in DAYS_PLAYED_BRACKETS:
+        row_list.append(ProgressByLevelGroupRow(
+            days_played_group=bracket_start,
+            level_total=0,
+            campaign_total=0,
+            tower_total=0,
+            entries=0
+            ))
+
+    now = datetime.now(timezone.utc)
+
+    queryset = queryset.select_related('user__userstats').select_related('user__userinfo')
+
+    # Go through each of the dungeon progresses.
+    for dungeon_prog in queryset:
+        if dungeon_prog.user.userstats.num_games == 0:
+            continue
+        days_played = (now - dungeon_prog.user.userstats.time_started).days
+        index = bisect_left(DAYS_PLAYED_BRACKETS, days_played) - 1
+        row_list[index].level_total += formulas.exp_to_level(dungeon_prog.user.userinfo.player_exp)
+        row_list[index].campaign_total += dungeon_prog.campaign_stage
+        row_list[index].tower_total += dungeon_prog.tower_stage
+        row_list[index].entries += 1
+
+    return pd.DataFrame([prog_row.to_dict() for prog_row in row_list])
