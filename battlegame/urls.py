@@ -225,6 +225,7 @@ urlpatterns = [
     path('stats/baseusagereport/', gameanalytics.get_base_character_usage_view),
     path('stats/dungeonreport/', gameanalytics.get_dungeon_table_view),
     path('stats/hackerreport/', gameanalytics.get_hacker_report_view),
+    path('stats/progressreport/', gameanalytics.get_player_progress_by_level_report),
     path('stats/charchanges/', gameanalytics.get_latest_character_changes_view),
     path('stats/charchanges/<str:v>', gameanalytics.get_character_changes_view),
     path('admin/', admin.site.urls),

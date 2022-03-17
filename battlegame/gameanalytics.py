@@ -4,7 +4,7 @@ from django.http.response import HttpResponse
 
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from battlegame.figures import get_graph_context
+from battlegame.figures import *
 from playerdata.admin import HackerAlertAdmin, UserInfoAdmin, BaseCharacterUsageAdmin, DungeonStatsAdmin
 from playerdata.models import *
 
@@ -264,3 +264,12 @@ def get_character_changes_view(request, v=None):
             response.write(f'{change}<br>')
         response.write('</p>')
     return response
+
+
+@login_required(login_url='/admin/')
+def get_player_progress_by_level_report(request):
+    if not request.user.is_superuser:
+        return HttpResponse()
+    context = get_table_context(get_level_and_progress_dataframe(DungeonProgress.objects.all()))
+    context['other_data'] = ["Raw data.  See /stats/graph/list for visualization"]
+    return render(request, TABLE_TEMPLATE_NAME, context)

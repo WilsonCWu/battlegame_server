@@ -1,8 +1,8 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+from math import ceil
 import pandas as pd
 from plotly import graph_objects
 from dataclasses import dataclass
-from bisect import bisect_left
 
 from playerdata import constants, formulas
 from playerdata.models import BaseCharacterUsage, DungeonProgress, DungeonStats, UserStats
@@ -331,34 +331,55 @@ def get_level_and_progress_dataframe(queryset):
             dict = {'days played': self.days_played_group,
                     'level': self.level_total / self.entries if self.entries > 0 else 0,
                     'campaign progress': self.campaign_total / self.entries if self.entries > 0 else 0,
-                    'tower progress': self.tower_total / self.entries if self.entries > 0 else 0, }
+                    'tower progress': self.tower_total / self.entries if self.entries > 0 else 0,
+                    'entries': self.entries, }
             return dict
 
-    # Establish brackets
-    DAYS_PLAYED_BRACKETS = [0, 1, 2, 7, 14, 30, 60, 90, 120, 180, 240, 300, 365, 455, 545, 635, 730, 820, 910, 1000, 1095] # Up to 3 years
+    now = datetime.now(timezone.utc)
+    queryset = queryset.select_related('user__userstats').select_related('user__userinfo') \
+        .order_by('-user__userstats__time_started')
+
+    # Establish brackets:
+    date_brackets = []  # List of list [][0] = int:days played, [][1] = datetime:corresponding date
+    date_brackets.append([0, now])
+    days_played_tracker = 0
+
+    # For the first 90 days, we have buckets of 1 day
+    for i in range(90):
+        days_played_tracker += 1
+        date_brackets.append([days_played_tracker, now - timedelta(days=days_played_tracker)])
+
+    # Next, we take enough 5 day buckets to get back to March 1, 2021
+    number_of_5_day_buckets = ((now-timedelta(days=days_played_tracker)) - datetime(2021, 3, 1, tzinfo=timezone.utc)).days / 5
+    for i in range(ceil(number_of_5_day_buckets)):
+        days_played_tracker += 5
+        date_brackets.append([days_played_tracker, now - timedelta(days=days_played_tracker)])
+
+    # Declare empty rows corresponding to each bracket
     row_list = []
-    for bracket_start in DAYS_PLAYED_BRACKETS:
+    for bracket_start in date_brackets:
         row_list.append(ProgressByLevelGroupRow(
-            days_played_group=bracket_start,
+            days_played_group=bracket_start[0],
             level_total=0,
             campaign_total=0,
             tower_total=0,
             entries=0
             ))
+    index = 0
 
-    now = datetime.now(timezone.utc)
-
-    queryset = queryset.select_related('user__userstats').select_related('user__userinfo')
-
-    # Go through each of the dungeon progresses.
+    # Fill in the rows by iterating over every DungeonProgress
     for dungeon_prog in queryset:
         if dungeon_prog.user.userstats.num_games == 0:
             continue
-        days_played = (now - dungeon_prog.user.userstats.time_started).days
-        index = bisect_left(DAYS_PLAYED_BRACKETS, days_played) - 1
+
+        # Queryset and date brackets are sorted, so we can increment the index instead of searching every time
+        time_started = dungeon_prog.user.userstats.time_started
+        while len(date_brackets) > index+1 and time_started < date_brackets[index+1][1]:
+            index += 1
+
         row_list[index].level_total += formulas.exp_to_level(dungeon_prog.user.userinfo.player_exp)
         row_list[index].campaign_total += dungeon_prog.campaign_stage
         row_list[index].tower_total += dungeon_prog.tower_stage
         row_list[index].entries += 1
-
     return pd.DataFrame([prog_row.to_dict() for prog_row in row_list])
+
