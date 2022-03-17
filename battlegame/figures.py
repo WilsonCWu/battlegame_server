@@ -374,7 +374,7 @@ def get_level_and_progress_dataframe(queryset):
 
         # Queryset and date brackets are sorted, so we can increment the index instead of searching every time
         time_started = dungeon_prog.user.userstats.time_started
-        while len(date_brackets) > index+1 and time_started < date_brackets[index+1][1]:
+        while index+1 < len(date_brackets) and time_started < date_brackets[index+1][1]:
             index += 1
 
         row_list[index].level_total += formulas.exp_to_level(dungeon_prog.user.userinfo.player_exp)
