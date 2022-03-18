@@ -25,10 +25,6 @@ class LevelBoosterSchema(Schema):
     is_active = fields.Bool()
     is_enhanced = fields.Bool()
     top_five = fields.List(fields.Int())
-    is_available = fields.Method("get_is_available")
-
-    def get_is_available(self, level_booster):
-        return is_eligible_level_boost(level_booster.user)
 
 
 def is_eligible_level_boost(user):
@@ -271,5 +267,29 @@ class LevelUpBooster(APIView):
         request.user.levelbooster.save()
 
         QuestUpdater.add_progress_by_type(request.user, constants.LEVEL_UP_A_HERO, num_boosted_chars)
+
+        return Response({'status': True})
+
+
+class EnhanceLevelUpBooster(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @atomic
+    def post(self, request):
+        if request.user.levelbooster.is_enhanced:
+            return Response({'status': False, 'reason': 'already enhanced'})
+
+        top_five_queryset = Character.objects.filter(char_id__in=request.user.levelbooster.top_five)
+        if top_five_queryset[4].level < constants.MAX_CHARACTER_LEVEL:
+            return Response({'status': False, 'reason': 'not ready to enhance the Level Booster'})
+
+        # move top 5 to slots, increase level cap
+        top_five_queryset.update(is_boosted=True)
+
+        request.user.levelbooster.unlocked_slots += 5
+        request.user.levelbooster.slots = request.user.levelbooster.top_five + request.user.levelbooster.slots
+        request.user.levelbooster.cooldown_slots = ([None] * 5) + request.user.levelbooster.cooldown_slots
+        request.user.levelbooster.is_enhanced = True
+        request.user.levelbooster.save()
 
         return Response({'status': True})
