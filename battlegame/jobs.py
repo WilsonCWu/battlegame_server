@@ -401,9 +401,21 @@ def backfill_ascend_quests():
 
 
 def backfill_Levelbooster():
-    lvl_boosters = LevelBooster.objects.all()
+    lvl_boosters = LevelBooster.objects.all().select_related('user__dungeonprogress')
     for lvl_booster in lvl_boosters:
         if lvl_booster.slots[0] != -1:
             lvl_booster.is_active = True
             lvl_booster.is_enhanced = True
+        if lvl_booster.user.dungeonprogress.campaign_stage >= constants.LEVEL_BOOSTER_UNLOCK_STAGE:
+            lvl_booster.is_active = True
     LevelBooster.objects.bulk_update(lvl_boosters, ['is_active', 'is_enhanced'])
+
+
+@transaction.atomic()
+def reformat_lvlboost_slots():
+    lvl_boosters = LevelBooster.objects.all()
+    for lvl_booster in lvl_boosters:
+        lvl_booster.slots = lvl_booster.slots[:lvl_booster.unlocked_slots]
+        lvl_booster.cooldown_slots = lvl_booster.cooldown_slots[:lvl_booster.unlocked_slots]
+
+    LevelBooster.objects.bulk_update(lvl_boosters, ['slots', 'cooldown_slots'])

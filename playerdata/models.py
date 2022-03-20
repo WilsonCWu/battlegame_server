@@ -1401,11 +1401,11 @@ class PurchasedTracker(models.Model):
 
 
 def default_slot_list():
-    return [-1] * constants.LEVEL_BOOSTER_SLOTS
+    return []
 
 
 def default_cooldown_slot_list():
-    return [None] * constants.LEVEL_BOOSTER_SLOTS
+    return []
 
 
 class LevelBooster(models.Model):

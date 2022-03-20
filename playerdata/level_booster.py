@@ -25,6 +25,12 @@ class LevelBoosterSchema(Schema):
     is_active = fields.Bool()
     is_enhanced = fields.Bool()
     top_five = fields.List(fields.Int())
+    max_slots = fields.Method('get_max_slots')
+
+    def get_max_slots(self, lvlbooster):
+        if lvlbooster.is_enhanced:
+            return constants.MAX_ENHANCED_SLOTS
+        return constants.MAX_LEVEL_BOOSTER_SLOTS
 
 
 def is_eligible_level_boost(user):
@@ -129,6 +135,7 @@ class FillSlotView(APIView):
         if request.user.levelbooster.cooldown_slots[slot_id] is not None and request.user.levelbooster.cooldown_slots[slot_id] > curr_time:
             return Response({'status': False, 'reason': 'slot is still in cooldown'})
 
+        # TODO: can delete after 1.1.3
         replaced_char_id = request.user.levelbooster.slots[slot_id]
         if replaced_char_id != -1:
             replaced_char = Character.objects.get(user=request.user, char_id=replaced_char_id)
@@ -208,6 +215,10 @@ class UnlockSlotView(APIView):
         # serializer.is_valid(raise_exception=True)
         # resource = serializer.validated_data['value']
 
+        if request.user.levelbooster.unlocked_slots >= constants.MAX_LEVEL_BOOSTER_SLOTS or \
+                (request.user.levelbooster.is_enhanced and request.user.levelbooster.unlocked_slots >= constants.MAX_ENHANCED_SLOTS):
+            return Response({'status': False, 'reason': 'slot max limit reached'})
+
         gem_cost = unlock_level_booster_slot_cost(request.user.levelbooster.unlocked_slots + 1)
 
         if request.user.inventory.gems < gem_cost:
@@ -216,6 +227,8 @@ class UnlockSlotView(APIView):
         request.user.inventory.gems -= gem_cost
         request.user.inventory.save()
 
+        request.user.levelbooster.slots.append(-1)
+        request.user.levelbooster.cooldown_slots.append(None)
         request.user.levelbooster.unlocked_slots += 1
         request.user.levelbooster.save()
 
