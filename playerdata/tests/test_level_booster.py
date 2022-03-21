@@ -44,7 +44,7 @@ class LevelBoosterAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
-        self.assertEqual(len(response.data['level_booster']['slots']), constants.MAX_LEVEL_BOOSTER_SLOTS)
+        self.assertEqual(response.data['level_booster']['max_slots'], constants.MAX_LEVEL_BOOSTER_SLOTS)
 
     def test_unlock_slot(self):
         response = self.unlock_slot()
