@@ -411,6 +411,9 @@ def backfill_Levelbooster():
     LevelBooster.objects.bulk_update(lvl_boosters, ['is_active', 'is_enhanced'])
 
 
+# One time job: slots are all the same fixed length right now
+# this trims slots to be exactly the number of available slots makes it possible to add more slots easily
+# (including if we bump the max slot size with more new chars)
 @transaction.atomic()
 def reformat_lvlboost_slots():
     lvl_boosters = LevelBooster.objects.all()
