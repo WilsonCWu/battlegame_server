@@ -74,7 +74,7 @@ def get_level_cap(user):
 
 # returns a list of ids of top 5, lowest level of the top 5
 def __eval_top_five(user):
-    chars = list(Character.objects.filter(user=user, is_boosted=False).order_by('-level', 'char_type').values('char_id', 'level')[:5])
+    chars = list(Character.objects.filter(user=user, is_boosted=False).order_by('-level', '-char_type__rarity', 'char_type').values('char_id', 'level')[:5])
     top_five_ids = [char["char_id"] for char in chars]
     level = chars[4]["level"]
     return top_five_ids, level
@@ -215,8 +215,9 @@ class UnlockSlotView(APIView):
         # serializer.is_valid(raise_exception=True)
         # resource = serializer.validated_data['value']
 
-        if request.user.levelbooster.unlocked_slots >= constants.MAX_LEVEL_BOOSTER_SLOTS or \
-                (request.user.levelbooster.is_enhanced and request.user.levelbooster.unlocked_slots >= constants.MAX_ENHANCED_SLOTS):
+        if request.user.levelbooster.unlocked_slots >= constants.MAX_LEVEL_BOOSTER_SLOTS or (
+                request.user.levelbooster.is_enhanced and
+                request.user.levelbooster.unlocked_slots >= constants.MAX_ENHANCED_SLOTS):
             return Response({'status': False, 'reason': 'slot max limit reached'})
 
         gem_cost = unlock_level_booster_slot_cost(request.user.levelbooster.unlocked_slots + 1)
@@ -292,7 +293,7 @@ class EnhanceLevelUpBooster(APIView):
         if request.user.levelbooster.is_enhanced:
             return Response({'status': False, 'reason': 'already enhanced'})
 
-        top_five_queryset = Character.objects.filter(char_id__in=request.user.levelbooster.top_five)
+        top_five_queryset = Character.objects.filter(char_id__in=request.user.levelbooster.top_five).order_by('-level', '-char_type__rarity', 'char_type')
         if top_five_queryset[4].level < constants.MAX_CHARACTER_LEVEL:
             return Response({'status': False, 'reason': 'not ready to enhance the Level Booster'})
 
