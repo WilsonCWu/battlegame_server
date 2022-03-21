@@ -25,10 +25,12 @@ class LevelBoosterSchema(Schema):
     is_active = fields.Bool()
     is_enhanced = fields.Bool()
     top_five = fields.List(fields.Int())
-    is_available = fields.Method("get_is_available")
+    max_slots = fields.Method('get_max_slots')
 
-    def get_is_available(self, level_booster):
-        return is_eligible_level_boost(level_booster.user)
+    def get_max_slots(self, lvlbooster):
+        if lvlbooster.is_enhanced:
+            return constants.MAX_ENHANCED_SLOTS
+        return constants.MAX_LEVEL_BOOSTER_SLOTS
 
 
 def is_eligible_level_boost(user):
@@ -72,7 +74,7 @@ def get_level_cap(user):
 
 # returns a list of ids of top 5, lowest level of the top 5
 def __eval_top_five(user):
-    chars = list(Character.objects.filter(user=user, is_boosted=False).order_by('-level', 'char_type').values('char_id', 'level')[:5])
+    chars = list(Character.objects.filter(user=user, is_boosted=False).order_by('-level', '-char_type__rarity', 'char_type').values('char_id', 'level')[:5])
     top_five_ids = [char["char_id"] for char in chars]
     level = chars[4]["level"]
     return top_five_ids, level
@@ -133,6 +135,7 @@ class FillSlotView(APIView):
         if request.user.levelbooster.cooldown_slots[slot_id] is not None and request.user.levelbooster.cooldown_slots[slot_id] > curr_time:
             return Response({'status': False, 'reason': 'slot is still in cooldown'})
 
+        # TODO: can delete after 1.1.3
         replaced_char_id = request.user.levelbooster.slots[slot_id]
         if replaced_char_id != -1:
             replaced_char = Character.objects.get(user=request.user, char_id=replaced_char_id)
@@ -212,6 +215,11 @@ class UnlockSlotView(APIView):
         # serializer.is_valid(raise_exception=True)
         # resource = serializer.validated_data['value']
 
+        if request.user.levelbooster.unlocked_slots >= constants.MAX_LEVEL_BOOSTER_SLOTS or (
+                request.user.levelbooster.is_enhanced and
+                request.user.levelbooster.unlocked_slots >= constants.MAX_ENHANCED_SLOTS):
+            return Response({'status': False, 'reason': 'slot max limit reached'})
+
         gem_cost = unlock_level_booster_slot_cost(request.user.levelbooster.unlocked_slots + 1)
 
         if request.user.inventory.gems < gem_cost:
@@ -220,6 +228,8 @@ class UnlockSlotView(APIView):
         request.user.inventory.gems -= gem_cost
         request.user.inventory.save()
 
+        request.user.levelbooster.slots.append(-1)
+        request.user.levelbooster.cooldown_slots.append(None)
         request.user.levelbooster.unlocked_slots += 1
         request.user.levelbooster.save()
 
@@ -271,5 +281,29 @@ class LevelUpBooster(APIView):
         request.user.levelbooster.save()
 
         QuestUpdater.add_progress_by_type(request.user, constants.LEVEL_UP_A_HERO, num_boosted_chars)
+
+        return Response({'status': True})
+
+
+class EnhanceLevelUpBooster(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @atomic
+    def post(self, request):
+        if request.user.levelbooster.is_enhanced:
+            return Response({'status': False, 'reason': 'already enhanced'})
+
+        top_five_queryset = Character.objects.filter(char_id__in=request.user.levelbooster.top_five).order_by('-level', '-char_type__rarity', 'char_type')
+        if top_five_queryset[4].level < constants.MAX_CHARACTER_LEVEL:
+            return Response({'status': False, 'reason': 'not ready to enhance the Level Booster'})
+
+        # move top 5 to slots, increase level cap
+        top_five_queryset.update(is_boosted=True)
+
+        request.user.levelbooster.unlocked_slots += 5
+        request.user.levelbooster.slots = request.user.levelbooster.top_five + request.user.levelbooster.slots
+        request.user.levelbooster.cooldown_slots = ([None] * 5) + request.user.levelbooster.cooldown_slots
+        request.user.levelbooster.is_enhanced = True
+        request.user.levelbooster.save()
 
         return Response({'status': True})

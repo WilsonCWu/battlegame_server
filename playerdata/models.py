@@ -1401,17 +1401,17 @@ class PurchasedTracker(models.Model):
 
 
 def default_slot_list():
-    return [-1] * constants.LEVEL_BOOSTER_SLOTS
+    return []
 
 
 def default_cooldown_slot_list():
-    return [None] * constants.LEVEL_BOOSTER_SLOTS
+    return []
 
 
 class LevelBooster(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     booster_level = models.IntegerField(default=0)
-    unlocked_slots = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(constants.LEVEL_BOOSTER_SLOTS)])
+    unlocked_slots = models.IntegerField(default=0)
 
     # slots contain the char_id of the heroes
     slots = ArrayField(models.IntegerField(), default=default_slot_list)
