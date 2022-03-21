@@ -26,11 +26,15 @@ class LevelBoosterSchema(Schema):
     is_enhanced = fields.Bool()
     top_five = fields.List(fields.Int())
     max_slots = fields.Method('get_max_slots')
+    slot_cost = fields.Method('get_slot_cost')
 
     def get_max_slots(self, lvlbooster):
         if lvlbooster.is_enhanced:
             return constants.MAX_ENHANCED_SLOTS
         return constants.MAX_LEVEL_BOOSTER_SLOTS
+
+    def get_slot_cost(self, lvlbooster):
+        return level_booster_slot_cost(lvlbooster.unlocked_slots + 1)
 
 
 def is_eligible_level_boost(user):
@@ -199,7 +203,19 @@ class SkipCooldownView(APIView):
         return Response({'status': True})
 
 
-def unlock_level_booster_slot_cost(slot_num: int):
+def level_booster_slot_cost(slot_num: int):
+    if base.is_flag_active(base.FlagName.LEVEL_MATCH):
+        if slot_num < 11:
+            return 800 + (slot_num//4) * 400
+        elif slot_num < 16:
+            return 2400
+        elif slot_num < 21:
+            return 4000
+        elif slot_num < 26:
+            return 6400
+        else:
+            return 8000
+
     return 1500 * (slot_num - 1) + 3000
 
 
@@ -220,7 +236,7 @@ class UnlockSlotView(APIView):
                 request.user.levelbooster.unlocked_slots >= constants.MAX_ENHANCED_SLOTS):
             return Response({'status': False, 'reason': 'slot max limit reached'})
 
-        gem_cost = unlock_level_booster_slot_cost(request.user.levelbooster.unlocked_slots + 1)
+        gem_cost = level_booster_slot_cost(request.user.levelbooster.unlocked_slots + 1)
 
         if request.user.inventory.gems < gem_cost:
             return Response({'status': False, 'reason': 'not enough gems to unlock slot'})
