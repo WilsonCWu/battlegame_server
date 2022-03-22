@@ -226,7 +226,7 @@ def slot_gems_cost(slots_bought: int):
 
 def slot_ember_cost(slot_num: int):
     # TODO: Tune
-    return 1
+    return 500
 
 
 # Unlock the next booster slot
@@ -250,6 +250,7 @@ class UnlockSlotView(APIView):
         if resource == 0:
             resouce_cost = slot_gems_cost(request.user.levelbooster.slots_bought + 1)
             reward_type = constants.RewardType.GEMS.value
+            request.user.levelbooster.slots_bought += 1
         else:
             resouce_cost = slot_ember_cost(request.user.levelbooster.unlocked_slots + 1)
             reward_type = constants.RewardType.EMBER.value

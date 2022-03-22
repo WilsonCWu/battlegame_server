@@ -85,6 +85,7 @@ class InventorySchema(Schema):
     rare_shards = fields.Int()
     epic_shards = fields.Int()
     legendary_shards = fields.Int()
+    ember = fields.Int()
     active_pet_id = fields.Int()
     gems_bought = fields.Int()
     dust_fast_reward_hours = fields.Int()
