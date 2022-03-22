@@ -27,6 +27,7 @@ class LevelBoosterSchema(Schema):
     top_five = fields.List(fields.Int())
     max_slots = fields.Method('get_max_slots')
     slot_cost = fields.Method('get_slot_cost')
+    ember_cost = fields.Method('get_ember_cost')
 
     def get_max_slots(self, lvlbooster):
         if lvlbooster.is_enhanced:
@@ -34,7 +35,10 @@ class LevelBoosterSchema(Schema):
         return constants.MAX_LEVEL_BOOSTER_SLOTS
 
     def get_slot_cost(self, lvlbooster):
-        return level_booster_slot_cost(lvlbooster.unlocked_slots + 1)
+        return slot_gems_cost(lvlbooster.slots_bought + 1)
+
+    def get_ember_cost(self, lvlbooster):
+        return slot_ember_cost(lvlbooster.unlocked_slots + 1)
 
 
 def is_eligible_level_boost(user):
@@ -203,20 +207,26 @@ class SkipCooldownView(APIView):
         return Response({'status': True})
 
 
-def level_booster_slot_cost(slot_num: int):
+# Gem cost
+def slot_gems_cost(slots_bought: int):
     if base.is_flag_active(base.FlagName.LEVEL_MATCH):
-        if slot_num < 11:
-            return 800 + (slot_num//4) * 400
-        elif slot_num < 16:
+        if slots_bought < 11:
+            return 800 + (slots_bought // 4) * 400
+        elif slots_bought < 16:
             return 2400
-        elif slot_num < 21:
+        elif slots_bought < 21:
             return 4000
-        elif slot_num < 26:
+        elif slots_bought < 26:
             return 6400
         else:
             return 8000
 
-    return 1500 * (slot_num - 1) + 3000
+    return 1500 * (slots_bought - 1) + 3000
+
+
+def slot_ember_cost(slot_num: int):
+    # TODO: Tune
+    return 1
 
 
 # Unlock the next booster slot
@@ -225,23 +235,31 @@ class UnlockSlotView(APIView):
 
     @atomic
     def post(self, request):
-        # TODO: AFK uses just another currency (Invigorating Essence)
-        #  that's just dropped very infrequently as you progress
-        # serializer = IntSerializer(data=request.data)
-        # serializer.is_valid(raise_exception=True)
-        # resource = serializer.validated_data['value']
+        # TODO: remove extra logic after 1.1.3
+        resource = 0
+        if base.is_flag_active(base.FlagName.LEVEL_MATCH):
+            serializer = IntSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            resource = serializer.validated_data['value']
 
         if request.user.levelbooster.unlocked_slots >= constants.MAX_LEVEL_BOOSTER_SLOTS or (
                 request.user.levelbooster.is_enhanced and
                 request.user.levelbooster.unlocked_slots >= constants.MAX_ENHANCED_SLOTS):
             return Response({'status': False, 'reason': 'slot max limit reached'})
 
-        gem_cost = level_booster_slot_cost(request.user.levelbooster.unlocked_slots + 1)
+        if resource == 0:
+            resouce_cost = slot_gems_cost(request.user.levelbooster.slots_bought + 1)
+            reward_type = constants.RewardType.GEMS.value
+        else:
+            resouce_cost = slot_ember_cost(request.user.levelbooster.unlocked_slots + 1)
+            reward_type = constants.RewardType.EMBER.value
 
-        if request.user.inventory.gems < gem_cost:
-            return Response({'status': False, 'reason': 'not enough gems to unlock slot'})
+        existing_amount = getattr(request.user.inventory, reward_type)
+        if existing_amount < resouce_cost:
+            return Response({'status': False, 'reason': f'not enough ${reward_type} to unlock slot'})
 
-        request.user.inventory.gems -= gem_cost
+        existing_amount -= resouce_cost
+        setattr(request.user.inventory, reward_type, existing_amount)
         request.user.inventory.save()
 
         request.user.levelbooster.slots.append(-1)

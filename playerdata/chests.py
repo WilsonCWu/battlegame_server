@@ -227,6 +227,8 @@ def award_chest_rewards(user, rewards):
             user.inventory.dust_fast_reward_hours += reward.value
         elif reward.reward_type == 'coins_fast_reward_hours':
             user.inventory.coins_fast_reward_hours += reward.value
+        elif reward.reward_type == 'ember':
+            user.inventory.ember += reward.value
         elif reward.reward_type == 'champ_badge':
             user.inventory.champ_badges += reward.value
             tier_system.complete_any_champ_rewards(user.inventory.champ_badges, user.champbadgetracker)
