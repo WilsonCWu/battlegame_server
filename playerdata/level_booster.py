@@ -236,21 +236,22 @@ class UnlockSlotView(APIView):
     @atomic
     def post(self, request):
         # TODO: remove extra logic after 1.1.3
-        resource = 0
+        # TODO: unify client and server resource type enums
         if base.is_flag_active(base.FlagName.LEVEL_MATCH):
             serializer = IntSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             resource = serializer.validated_data['value']
+        else:
+            resource = 1  # Gems = 1 on client enum
 
         if request.user.levelbooster.unlocked_slots >= constants.MAX_LEVEL_BOOSTER_SLOTS or (
                 request.user.levelbooster.is_enhanced and
                 request.user.levelbooster.unlocked_slots >= constants.MAX_ENHANCED_SLOTS):
             return Response({'status': False, 'reason': 'slot max limit reached'})
 
-        if resource == 0:
+        if resource == 1:
             resouce_cost = slot_gems_cost(request.user.levelbooster.slots_bought + 1)
             reward_type = constants.RewardType.GEMS.value
-            request.user.levelbooster.slots_bought += 1
         else:
             resouce_cost = slot_ember_cost(request.user.levelbooster.unlocked_slots + 1)
             reward_type = constants.RewardType.EMBER.value
@@ -262,6 +263,9 @@ class UnlockSlotView(APIView):
         existing_amount -= resouce_cost
         setattr(request.user.inventory, reward_type, existing_amount)
         request.user.inventory.save()
+
+        if reward_type == constants.RewardType.GEMS.value:
+            request.user.levelbooster.slots_bought += 1
 
         request.user.levelbooster.slots.append(-1)
         request.user.levelbooster.cooldown_slots.append(None)
