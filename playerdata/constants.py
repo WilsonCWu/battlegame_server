@@ -313,6 +313,7 @@ class RewardType(Enum):
     PROFILE_PIC = "profile_pic"
     PET_ID = "pet_id"
     CHEST = "chest"
+    EMBER = "ember"
 
 
 RESOURCE_SHOP_DEFAULT_REFRESHES = 2

@@ -408,7 +408,9 @@ def backfill_Levelbooster():
             lvl_booster.is_enhanced = True
         if lvl_booster.user.dungeonprogress.campaign_stage >= constants.LEVEL_BOOSTER_UNLOCK_STAGE:
             lvl_booster.is_active = True
-    LevelBooster.objects.bulk_update(lvl_boosters, ['is_active', 'is_enhanced'])
+        lvl_booster.slots_bought = lvl_booster.unlocked_slots
+
+    LevelBooster.objects.bulk_update(lvl_boosters, ['is_active', 'is_enhanced', 'slots_bought'])
 
 
 # One time job: slots are all the same fixed length right now

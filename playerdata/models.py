@@ -812,6 +812,7 @@ class Inventory(models.Model):
     rare_shards = models.IntegerField(default=0)
     epic_shards = models.IntegerField(default=0)
     legendary_shards = models.IntegerField(default=0)
+    ember = models.IntegerField(default=0)
     active_pet_id = models.IntegerField(default=0)
     dust_fast_reward_hours = models.IntegerField(default=0)
     coins_fast_reward_hours = models.IntegerField(default=0)
@@ -1412,6 +1413,7 @@ class LevelBooster(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     booster_level = models.IntegerField(default=0)
     unlocked_slots = models.IntegerField(default=0)
+    slots_bought = models.IntegerField(default=0)  # Bought with gems only
 
     # slots contain the char_id of the heroes
     slots = ArrayField(models.IntegerField(), default=default_slot_list)
