@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+ <section class="section is-small">
+{% if error %}
+    <article class="message is-danger">
+      <div class="message-header">
+        <p>Error</p>
+      </div>
+      <div class="message-body">
+        {{ error }}
+      </div>
+    </article>
+{% elif success %}
+    <article class="message is-success">
+      <div class="message-header">
+        <p>Code successfully redeemed</p>
+      </div>
+      <div class="message-body">
+        {{ success }}
+      </div>
+    </article>
+ {% endif %}
+
+ <form method="post">
+    {% csrf_token %}
+    <div class="field">
+      <label class="label">Token</label>
+      <div class="control">
+        <input class="input" type="text" name="otp" placeholder="407-23c-e5a0510sffc1292d7847">
+      </div>
+      <p class="help">Generate this token in-game from Settings > Transfer.</p>
+    </div>
+    <div class="field">
+      <label class="label">Code</label>
+      <div class="control">
+        <input class="input" type="text" name="code" placeholder="earlyaccess22">
+      </div>
+      <p class="help">Gimme the goodies!</p>
+    </div>
+
+    <div class="field is-grouped">
+      <div class="control">
+        <button type="submit" class="button is-link">Submit</button>
+      </div>
+    </div>
+ </form>
+</section>
+{% endblock content %}

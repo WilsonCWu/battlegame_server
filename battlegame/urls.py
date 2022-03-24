@@ -215,6 +215,7 @@ urlpatterns = [
     path('chest/unlock/', chests.UnlockChest.as_view()),
     path('chest/collect/', chests.CollectChest.as_view()),
     path('status/', server.ServerStatusView.as_view()),
+    path('redeem/', web_pages.redeem),
     path('about/', web_pages.about),
     path('info/', web_pages.info),
     path('privacy/', web_pages.privacy),
