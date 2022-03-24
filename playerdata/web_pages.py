@@ -29,48 +29,50 @@ def about(request):
 
 
 def redeem(request):
-    if request.method == 'POST':
-        form = RedeemInboxForm(request.POST)
-        if form.is_valid():
-            otp = form.cleaned_data['otp']
-            code = form.cleaned_data['code']
+    if request.method != 'POST':
+        return render(request, 'redeem.html', {})
 
-            user_id_index = otp.find("-")
-            if user_id_index == -1:
-                return render(request, 'redeem.html', {'error': 'Invalid token, try copying it again from Settings > Transfer'})
+    form = RedeemInboxForm(request.POST)
+    if not form.is_valid():
+        return render(request, 'redeem.html', {'error': 'Invalid form contains errors'})
 
-            user_id = otp[:user_id_index]  # Grab the userid from the otp token
-            token = otp[user_id_index + 1:]  # Grab the rest from the otp token
+    otp = form.cleaned_data['otp']
+    code = form.cleaned_data['code']
 
-            try:
-                user = User.objects.get(id=user_id)
-            except:
-                return render(request, 'redeem.html', {'error': 'Invalid token, try copying it again from Settings > Transfer'})
+    user_id_index = otp.find("-")
+    if user_id_index == -1:
+        return render(request, 'redeem.html', {'error': 'Invalid token, try copying it again from Settings > Transfer'})
 
-            generator = UserRecoveryTokenGenerator()
-            if not generator.check_token(user, token):
-                return render(request, 'redeem.html', {'error': 'Invalid token, try copying it again from Settings > Transfer'})
+    user_id = otp[:user_id_index]  # Grab the userid from the otp token
+    token = otp[user_id_index + 1:]  # Grab the rest from the otp token
 
-            basecode = BaseCode.objects.filter(code=code).first()
-            if basecode is None:
-                return render(request, 'redeem.html', {'error': 'Invalid code'})
+    try:
+        user = User.objects.get(id=user_id)
+    except:
+        return render(request, 'redeem.html', {'error': 'Invalid token, try copying it again from Settings > Transfer'})
 
-            # if not already claimed token
-            if ClaimedCode.objects.filter(user=user, code=basecode).exists():
-                return render(request, 'redeem.html', {'error': 'Invalid code, already claimed'})
+    generator = UserRecoveryTokenGenerator()
+    if not generator.check_token(user, token):
+        return render(request, 'redeem.html', {'error': 'Invalid token, try copying it again from Settings > Transfer'})
 
-            # send inbox
-            sender_id = 1
-            sender = User.objects.get(id=sender_id)
-            pfp_id = sender.userinfo.profile_picture
+    basecode = BaseCode.objects.filter(code=code).first()
+    if basecode is None:
+        return render(request, 'redeem.html', {'error': 'Invalid code'})
 
-            Mail.objects.create(title="Redeem Your Code", message="Claim your rewards!\n\nBattle on adventurer!",
-                                sender_id=sender_id, receiver_id=user_id,
-                                code=basecode, sender_profile_picture_id=pfp_id,
-                                has_unclaimed_reward=True)
-            return render(request, 'redeem.html', {'success': 'Check your in-game Inbox to claim your rewards!'})
+    # if not already claimed token
+    if ClaimedCode.objects.filter(user=user, code=basecode).exists():
+        return render(request, 'redeem.html', {'error': 'Invalid code, already claimed'})
 
-    return render(request, 'redeem.html', {})
+    # send inbox
+    sender_id = 1
+    sender = User.objects.get(id=sender_id)
+    pfp_id = sender.userinfo.profile_picture
+
+    Mail.objects.create(title="Redeem Your Code", message="Claim your rewards!\n\nBattle on adventurer!",
+                        sender_id=sender_id, receiver_id=user_id,
+                        code=basecode, sender_profile_picture_id=pfp_id,
+                        has_unclaimed_reward=True)
+    return render(request, 'redeem.html', {'success': 'Check your in-game Inbox to claim your rewards!'})
 
 
 def chest_droprate(chest_type, rarity, num_rarity):
