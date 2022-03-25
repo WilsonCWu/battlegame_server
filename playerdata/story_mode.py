@@ -7,7 +7,7 @@ from rest_marshmallow import Schema, fields
 from playerdata.serializers import IntSerializer, CharStateResultSerializer
 
 CHARACTER_POOLS = [[1, 2, 3]]  # TODO: more on the way as etilon works on dialogue
-NUM_QUESTS = 5
+MAX_NUM_QUESTS = 5
 
 # Pregame Buff ID Constants
 STARTING_LEVEL = 1
@@ -76,15 +76,15 @@ class StoryResultView(APIView):
         if is_loss:
             return Response({'status': True})
 
-        if request.user.storymode.current_quest == NUM_QUESTS:
+        request.user.storymode.cur_character_state = characters
+        request.user.storymode.current_quest += 1
+
+        if request.user.storymode.current_quest == MAX_NUM_QUESTS:
             request.user.storymode.available_stories.remove(request.user.storymode.story_id)
             request.user.storymode.completed_stories.append(request.user.storymode.story_id)
             request.user.storymode.current_quest = 0
             request.user.storymode.story_id = -1
             request.user.storymode.cur_character_state = ""
-        else:
-            request.user.storymode.cur_character_state = characters
-            request.user.storymode.current_quest += 1
 
         request.user.storymode.save()
 

@@ -60,7 +60,7 @@ class StoryModeAPITestCase(APITestCase):
             'value': char_id,
         })
 
-        self.u.storymode.current_quest = 5
+        self.u.storymode.current_quest = story_mode.MAX_NUM_QUESTS - 1
         self.u.storymode.save()
 
         resp = self.client.post('/storymode/result/', {
