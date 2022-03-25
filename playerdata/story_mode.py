@@ -4,12 +4,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from playerdata import server
-from playerdata.models import Character
 from playerdata.serializers import IntSerializer, CharStateResultSerializer
 
-CHARACTER_POOLS = [[11, 4, 24, 13]]  # TODO: more on the way as etilon works on dialogue
-NUM_STORY_LVLS = 25
+CHARACTER_POOLS = [[1, 2, 3]]  # TODO: more on the way as etilon works on dialogue
+NUM_QUESTS = 5
 
 # Pregame Buff ID Constants
 STARTING_LEVEL = 1
@@ -22,8 +20,7 @@ class StoryModeSchema(Schema):
     current_tier = fields.Int()
 
     # Current Story progress fields
-    current_lvl = fields.Int()
-    num_runs = fields.Int()
+    current_quest = fields.Int()
     story_id = fields.Int()
 
     character_state = fields.Str()
@@ -42,9 +39,7 @@ class GetStoryModeView(APIView):
 
     def get(self, request):
         schema = StoryModeSchema(request.user.storymode)
-        if server.is_server_version_higher('0.5.0'):
-            return Response({'status': True, 'story_mode': schema.data})
-        return Response(schema.data)
+        return Response({'status': True, 'story_mode': schema.data, 'char_pool': CHARACTER_POOLS})
 
 
 class StartNewStoryView(APIView):
@@ -61,31 +56,10 @@ class StartNewStoryView(APIView):
         if story_id not in story_mode.available_stories:
             return Response({'status': False, 'reason': 'titan is not available yet'})
 
-        reset_story(request.user, story_id)
-
         story_mode.story_id = story_id
         story_mode.save()
 
         return Response({'status': True})
-
-
-def reset_story(user, story_id=None):
-    Character.objects.filter(user=user, is_story=True).delete()
-
-    # reset to a no story state
-    if story_id is None:
-        user.storymode.story_id = -1
-        user.storymode.num_runs = 0
-    else:
-        # TODO: get this from where we start with pre-game buffs
-        starting_level = 21 + get_start_level_buff(user.storymode.pregame_buffs)
-        starting_prestige = 0
-
-        Character.objects.create(user=user, char_type_id=story_id, level=starting_level, prestige=starting_prestige)
-
-    user.storymode.cur_character_state = ""
-    user.storymode.current_lvl = 0
-    user.storymode.save()
 
 
 class StoryResultView(APIView):
@@ -98,19 +72,19 @@ class StoryResultView(APIView):
         is_loss = serializer.validated_data['is_loss']
         characters = serializer.validated_data['characters']
 
+        # TODO: Currently no impact on losing a quest, potentially make more interesting by changing difficulty or buffs
         if is_loss:
-            reset_story(request.user, request.user.storymode.story_id)
-            request.user.storymode.num_runs += 1
             return Response({'status': True})
 
-        request.user.storymode.cur_character_state = characters
-        request.user.storymode.current_lvl += 1
-
-        if request.user.storymode.current_lvl == NUM_STORY_LVLS:
-            # TODO: rewards: boons and buff points
+        if request.user.storymode.current_quest == NUM_QUESTS:
             request.user.storymode.available_stories.remove(request.user.storymode.story_id)
             request.user.storymode.completed_stories.append(request.user.storymode.story_id)
-            reset_story(request.user)
+            request.user.storymode.current_quest = 0
+            request.user.storymode.story_id = -1
+            request.user.storymode.cur_character_state = ""
+        else:
+            request.user.storymode.cur_character_state = characters
+            request.user.storymode.current_quest += 1
 
         request.user.storymode.save()
 
