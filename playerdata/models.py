@@ -1508,7 +1508,8 @@ class StoryMode(models.Model):
     current_tier = models.IntegerField(default=-1)
 
     # Current Story progress fields
-    current_quest = models.IntegerField(default=0)
+    last_complete_quest = models.IntegerField(default=-1)
+    last_quest_reward_claimed = models.IntegerField(default=-1)
     story_id = models.IntegerField(default=-1)
 
     # We expect character state to be in the format of

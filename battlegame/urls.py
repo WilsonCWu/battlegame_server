@@ -76,6 +76,7 @@ urlpatterns = [
     path('storymode/get/', story_mode.GetStoryModeView.as_view()),
     path('storymode/start/', story_mode.StartNewStoryView.as_view()),
     path('storymode/result/', story_mode.StoryResultView.as_view()),
+    path('storymode/claim/', story_mode.ClaimStoryQuestReward.as_view()),
     path('regalrewards/claim/', regal_rewards.ClaimRegalRewardView.as_view()),
     path('regalrewards/get/', regal_rewards.GetRegalRewardListView.as_view()),
     path('chapterrewardspack/claim/', chapter_rewards_pack.ClaimChapterRewardView.as_view()),

@@ -4,9 +4,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
+from playerdata import chests
 from playerdata.serializers import IntSerializer, CharStateResultSerializer
 
-CHARACTER_POOLS = [[1, 2, 3]]  # TODO: more on the way as etilon works on dialogue
+CHARACTER_POOLS = [[1, 2, 3, 4, 12]]  # TODO: more on the way as etilon works on dialogue
 MAX_NUM_QUESTS = 5
 
 # Pregame Buff ID Constants
@@ -20,7 +21,8 @@ class StoryModeSchema(Schema):
     current_tier = fields.Int()
 
     # Current Story progress fields
-    current_quest = fields.Int()
+    last_complete_quest = fields.Int()
+    last_quest_reward_claimed = fields.Int()
     story_id = fields.Int()
 
     character_state = fields.Str()
@@ -77,18 +79,40 @@ class StoryResultView(APIView):
             return Response({'status': True})
 
         request.user.storymode.cur_character_state = characters
-        request.user.storymode.current_quest += 1
+        request.user.storymode.last_complete_quest += 1
 
-        if request.user.storymode.current_quest == MAX_NUM_QUESTS:
+        # reset story mode
+        if request.user.storymode.last_complete_quest == MAX_NUM_QUESTS:
             request.user.storymode.available_stories.remove(request.user.storymode.story_id)
             request.user.storymode.completed_stories.append(request.user.storymode.story_id)
-            request.user.storymode.current_quest = 0
+            request.user.storymode.last_complete_quest = -1
+            request.user.storymode.last_quest_reward_claimed = -1
             request.user.storymode.story_id = -1
             request.user.storymode.cur_character_state = ""
 
         request.user.storymode.save()
 
         return Response({'status': True})
+
+
+# TODO: Story rewards
+def story_rewards(story_tier: int, quest_num: int):
+    return []
+
+
+class ClaimStoryQuestReward(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic()
+    def post(self, request):
+        if request.user.storymode.last_quest_reward_claimed >= request.user.storymode.last_complete_quest:
+            return Response({'status': False, 'reason': 'cannot claim incomplete quest'})
+
+        rewards = story_rewards(request.user.storymode.current_tier, request.user.storymode.last_complete_quest)
+        request.user.storymode.last_quest_reward_claimed += 1
+        request.user.storymode.save()
+
+        return Response({'status': True, 'rewards': chests.ChestRewardSchema(rewards, many=True).data})
 
 
 class ChooseBoonView(APIView):
