@@ -169,7 +169,8 @@ BACKLINE_CHARS = [4, 7, 9, 10, 12, 16, 17, 18, 21, 22, 23, 26, 31, 32, 33, 34, 3
 FRONTLINE_POS = range(1, 16)
 BACKLINE_POS = range(16, 26)
 
-LEVEL_BOOSTER_SLOTS = 20
+MAX_LEVEL_BOOSTER_SLOTS = 25
+MAX_ENHANCED_SLOTS = MAX_LEVEL_BOOSTER_SLOTS + 5  # 5 free slots for pentagram chars when enhancing crystal
 SKIP_COOLDOWN_GEMS = 100
 
 # Summon rarity constants
@@ -312,6 +313,7 @@ class RewardType(Enum):
     PROFILE_PIC = "profile_pic"
     PET_ID = "pet_id"
     CHEST = "chest"
+    EMBER = "ember"
 
 
 RESOURCE_SHOP_DEFAULT_REFRESHES = 2

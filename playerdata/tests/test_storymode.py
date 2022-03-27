@@ -24,8 +24,9 @@ class StoryModeAPITestCase(APITestCase):
         resp = self.client.get('/storymode/get/')
 
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(resp.data['story_id'], char_id)
-        self.assertEqual(resp.data['current_lvl'], 0)
+        self.assertEqual(resp.data['story_mode']['story_id'], char_id)
+        self.assertEqual(resp.data['story_mode']['last_complete_quest'], -1)
+        self.assertEqual(resp.data['char_pool'], story_mode.CHARACTER_POOLS)
 
     def test_result_storymode(self):
         char_id = story_mode.CHARACTER_POOLS[0][1]
@@ -41,7 +42,12 @@ class StoryModeAPITestCase(APITestCase):
 
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
-        self.assertEqual(self.u.storymode.current_lvl, 1)
+        self.assertEqual(self.u.storymode.last_complete_quest, 0)
+
+        resp = self.client.post('/storymode/claim/', {})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue(resp.data['status'])
+        self.assertIsNotNone(resp.data['rewards'])
 
         resp = self.client.post('/storymode/result/', {
             'is_loss': True,
@@ -50,8 +56,7 @@ class StoryModeAPITestCase(APITestCase):
 
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
-        self.assertEqual(self.u.storymode.current_lvl, 0)
-        self.assertEqual(self.u.storymode.num_runs, 1)
+        self.assertEqual(self.u.storymode.last_complete_quest, 0)
 
     def test_result_finish_story(self):
         char_id = story_mode.CHARACTER_POOLS[0][1]
@@ -60,7 +65,7 @@ class StoryModeAPITestCase(APITestCase):
             'value': char_id,
         })
 
-        self.u.storymode.current_lvl = 24
+        self.u.storymode.last_complete_quest = story_mode.MAX_NUM_QUESTS - 1
         self.u.storymode.save()
 
         resp = self.client.post('/storymode/result/', {
@@ -70,9 +75,8 @@ class StoryModeAPITestCase(APITestCase):
 
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
-        self.assertEqual(self.u.storymode.current_lvl, 0)
+        self.assertEqual(self.u.storymode.last_complete_quest, -1)
         self.assertEqual(self.u.storymode.story_id, -1)
-        self.assertEqual(self.u.storymode.num_runs, 0)
 
 
 class BoonAPITestCase(APITestCase):

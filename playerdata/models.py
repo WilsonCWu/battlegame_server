@@ -812,6 +812,7 @@ class Inventory(models.Model):
     rare_shards = models.IntegerField(default=0)
     epic_shards = models.IntegerField(default=0)
     legendary_shards = models.IntegerField(default=0)
+    ember = models.IntegerField(default=0)
     active_pet_id = models.IntegerField(default=0)
     dust_fast_reward_hours = models.IntegerField(default=0)
     coins_fast_reward_hours = models.IntegerField(default=0)
@@ -1401,17 +1402,18 @@ class PurchasedTracker(models.Model):
 
 
 def default_slot_list():
-    return [-1] * constants.LEVEL_BOOSTER_SLOTS
+    return []
 
 
 def default_cooldown_slot_list():
-    return [None] * constants.LEVEL_BOOSTER_SLOTS
+    return []
 
 
 class LevelBooster(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     booster_level = models.IntegerField(default=0)
-    unlocked_slots = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(constants.LEVEL_BOOSTER_SLOTS)])
+    unlocked_slots = models.IntegerField(default=0)
+    slots_bought = models.IntegerField(default=0)  # Bought with gems only
 
     # slots contain the char_id of the heroes
     slots = ArrayField(models.IntegerField(), default=default_slot_list)
@@ -1506,8 +1508,8 @@ class StoryMode(models.Model):
     current_tier = models.IntegerField(default=-1)
 
     # Current Story progress fields
-    current_lvl = models.IntegerField(default=0)
-    num_runs = models.IntegerField(default=0)
+    last_complete_quest = models.IntegerField(default=-1)
+    last_quest_reward_claimed = models.IntegerField(default=-1)
     story_id = models.IntegerField(default=-1)
 
     # We expect character state to be in the format of
