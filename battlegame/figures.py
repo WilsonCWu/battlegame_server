@@ -1,7 +1,8 @@
 from datetime import datetime, timezone, timedelta
 from math import ceil
+import numpy as numpy
 import pandas as pd
-from plotly import graph_objects
+from plotly import graph_objects as go
 from dataclasses import dataclass
 
 from playerdata import constants, formulas
@@ -11,8 +12,8 @@ pd.options.plotting.backend = "plotly"
 
 
 def get_sample_graph():
-    data = graph_objects.Figure(
-        [graph_objects.Bar(y=[1, 2, 3])],
+    data = go.Figure(
+        [go.Bar(y=[1, 2, 3])],
         layout_title_text="Sample Graph using plotly"
     )
     context = {'graph_contents': [data.to_html()]}
@@ -162,15 +163,43 @@ def get_level_graphs():
     context['graph_contents'] = []
     context['other_data'] = []
 
-    df = get_level_and_progress_dataframe(DungeonProgress.objects.all())
+    # We take the column(list[list[int]]) and the corresponding days (list[int]), and turn it into the graph.
+    def prepare_figure(data_col, days_col, graph_title):
+        df = pd.DataFrame(data_col.tolist(), index=days_col)
+        df.reset_index()
+        boxes = []
+        # Form a list of go.Box
+        for index, row in df.iterrows():
+            flat_list = [sublist[0] for sublist in row.tolist()]  # Iterrows gives us a list[list[int]] where each sublist was length 1, flatten it to list[int]
+            boxes.append(go.Box(y=flat_list, boxpoints=False, orientation='v', name=f'{index} Days'))
+        fig = go.Figure(data=boxes, layout_title_text=graph_title)
+        return fig
 
-    fig_lvl = df.plot.line(y='level', x='days played', title='Average level grouped by account age:')
-    fig_campaign = df.plot.line(y='campaign progress', x='days played', title='Average campaign progress grouped by account age:')
-    fig_tower = df.plot.line(y='tower progress', x='days played', title='Average tower progress grouped by account age:')
+    df_days = get_level_and_progress_dataframe(DungeonProgress.objects.all(), 1, 14)
+    df_weeks = get_level_and_progress_dataframe(DungeonProgress.objects.all(), 7, 8)
+    df_months = get_level_and_progress_dataframe(DungeonProgress.objects.all(), 30)
 
-    context['graph_contents'].append(fig_lvl.to_html())
-    context['graph_contents'].append(fig_campaign.to_html())
-    context['graph_contents'].append(fig_tower.to_html())
+    fig_lvl_days = prepare_figure(df_days['level'], df_days['days played'], 'Average level grouped by account age: First 14 days')
+    fig_lvl_weeks = prepare_figure(df_weeks['level'], df_weeks['days played'], 'Average level grouped by account age: First 8 weeks')
+    fig_lvl_months = prepare_figure(df_months['level'], df_months['days played'], 'Average level grouped by account age: All data, grouped in months played')
+
+    fig_campaign_days = prepare_figure(df_days['campaign progress'], df_days['days played'], 'Average campaign progress grouped by account age: First 14 days')
+    fig_campaign_weeks = prepare_figure(df_weeks['campaign progress'], df_weeks['days played'], 'Average campaign progress grouped by account age: First 8 weeks')
+    fig_campaign_months = prepare_figure(df_months['campaign progress'], df_months['days played'], 'Average campaign progress grouped by account age: All data, grouped in months played')
+
+    fig_tower_days = prepare_figure(df_days['tower progress'], df_days['days played'], 'Average tower progress grouped by account age: First 14 days')
+    fig_tower_weeks = prepare_figure(df_weeks['tower progress'], df_weeks['days played'], 'Average tower progress grouped by account age: First 8 weeks')
+    fig_tower_months = prepare_figure(df_months['tower progress'], df_months['days played'], 'Average tower progress grouped by account age: All data, grouped in months played')
+
+    context['graph_contents'].append(fig_lvl_days.to_html())
+    context['graph_contents'].append(fig_lvl_weeks.to_html())
+    context['graph_contents'].append(fig_lvl_months.to_html())
+    context['graph_contents'].append(fig_campaign_days.to_html())
+    context['graph_contents'].append(fig_campaign_weeks.to_html())
+    context['graph_contents'].append(fig_campaign_months.to_html())
+    context['graph_contents'].append(fig_tower_days.to_html())
+    context['graph_contents'].append(fig_tower_weeks.to_html())
+    context['graph_contents'].append(fig_tower_months.to_html())
     return context
 
 
@@ -316,22 +345,24 @@ def get_hacker_alert_dataframe(queryset):
 
 
 # Queryset should be DungeonProgress objects
-def get_level_and_progress_dataframe(queryset):
+def get_level_and_progress_dataframe(queryset, group_size, bucket_count=-1):
+
+    PERCENTILES_COLLECTED = [1, 25, 50, 75, 99]
 
     # We don't have static intervals for the days_played, so we can get more granularity for new players
     @dataclass
     class ProgressByLevelGroupRow:
         days_played_group: int  # This'll correspond to "minimum days played", and we can place a player's data into the highest group that applies.
-        level_total: int
-        campaign_total: int
-        tower_total: int
+        level_percentiles: list  # Follows same order as PERCENTILES_COLLECTED
+        campaign_percentiles: list
+        tower_percentiles: list
         entries: int
 
         def to_dict(self):
-            dict = {'days played': self.days_played_group,
-                    'level': self.level_total / self.entries if self.entries > 0 else 0,
-                    'campaign progress': self.campaign_total / self.entries if self.entries > 0 else 0,
-                    'tower progress': self.tower_total / self.entries if self.entries > 0 else 0,
+            dict = {'days played': self.days_played_group,  # Same number repeated n times because plotly likes the data like that.
+                    'level': self.level_percentiles,
+                    'campaign progress': self.campaign_percentiles,
+                    'tower progress': self.tower_percentiles,
                     'entries': self.entries, }
             return dict
 
@@ -344,15 +375,16 @@ def get_level_and_progress_dataframe(queryset):
     date_brackets.append([0, now])
     days_played_tracker = 0
 
-    # For the first 90 days, we have buckets of 1 day
-    for i in range(90):
-        days_played_tracker += 1
-        date_brackets.append([days_played_tracker, now - timedelta(days=days_played_tracker)])
+    EARLIEST_DATE = datetime(2021, 3, 1, tzinfo=timezone.utc)
 
-    # Next, we take enough 5 day buckets to get back to March 1, 2021
-    number_of_5_day_buckets = ((now-timedelta(days=days_played_tracker)) - datetime(2021, 3, 1, tzinfo=timezone.utc)).days / 5
-    for i in range(ceil(number_of_5_day_buckets)):
-        days_played_tracker += 5
+    # By default, we take buckets of the specified size until march 2021.
+    number_of_buckets = ceil((now - EARLIEST_DATE).days / group_size)
+    if bucket_count != -1:
+        number_of_buckets = min(bucket_count, number_of_buckets) + 1  # Cap number of buckets if we specify it (+1 catches anything too old).
+
+    # Calculate all of the dates by bracket before iterating through all the DungeonProgress objects.
+    for i in range(number_of_buckets):
+        days_played_tracker += group_size
         date_brackets.append([days_played_tracker, now - timedelta(days=days_played_tracker)])
 
     # Declare empty rows corresponding to each bracket
@@ -360,12 +392,17 @@ def get_level_and_progress_dataframe(queryset):
     for bracket_start in date_brackets:
         row_list.append(ProgressByLevelGroupRow(
             days_played_group=bracket_start[0],
-            level_total=0,
-            campaign_total=0,
-            tower_total=0,
+            level_percentiles=[],
+            campaign_percentiles=[],
+            tower_percentiles=[],
             entries=0
             ))
     index = 0
+
+    # Used for calculating percentiles.
+    level_list = []
+    campaign_list = []
+    tower_list = []
 
     # Fill in the rows by iterating over every DungeonProgress
     for dungeon_prog in queryset:
@@ -375,11 +412,32 @@ def get_level_and_progress_dataframe(queryset):
         # Queryset and date brackets are sorted, so we can increment the index instead of searching every time
         time_started = dungeon_prog.user.userstats.time_started
         while index+1 < len(date_brackets) and time_started < date_brackets[index+1][1]:
+            # Calculate the percentiles
+            for p in PERCENTILES_COLLECTED:
+                row_list[index].level_percentiles.append([numpy.percentile(level_list, p) if len(level_list) > 0 else 0])
+                row_list[index].campaign_percentiles.append([numpy.percentile(campaign_list, p) if len(campaign_list) > 0 else 0])
+                row_list[index].tower_percentiles.append([numpy.percentile(tower_list, p) if len(tower_list) > 0 else 0])
+
+            # Clear the data
+            level_list = []
+            campaign_list = []
+            tower_list = []
             index += 1
 
-        row_list[index].level_total += formulas.exp_to_level(dungeon_prog.user.userinfo.player_exp)
-        row_list[index].campaign_total += dungeon_prog.campaign_stage
-        row_list[index].tower_total += dungeon_prog.tower_stage
-        row_list[index].entries += 1
-    return pd.DataFrame([prog_row.to_dict() for prog_row in row_list])
+        level_list.append(formulas.exp_to_level(dungeon_prog.user.userinfo.player_exp))
+        campaign_list.append(dungeon_prog.campaign_stage)
+        tower_list.append(dungeon_prog.tower_stage)
 
+        row_list[index].entries += 1
+
+    # Do it again for the last index.
+    for p in PERCENTILES_COLLECTED:
+        row_list[index].level_percentiles.append([numpy.percentile(level_list, p) if len(level_list) > 0 else 0])
+        row_list[index].campaign_percentiles.append([numpy.percentile(campaign_list, p) if len(campaign_list) > 0 else 0])
+        row_list[index].tower_percentiles.append([numpy.percentile(tower_list, p) if len(tower_list) > 0 else 0])
+
+    df = pd.DataFrame([prog_row.to_dict() for prog_row in row_list])
+    # If we specified the number of buckets, then that means anything "too old" will be grouped in an extra bucket at the end.
+    if bucket_count != -1:
+        df.drop(df.tail(1).index, inplace=True)
+    return df

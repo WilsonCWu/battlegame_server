@@ -270,6 +270,6 @@ def get_character_changes_view(request, v=None):
 def get_player_progress_by_level_report(request):
     if not request.user.is_superuser:
         return HttpResponse()
-    context = get_table_context(get_level_and_progress_dataframe(DungeonProgress.objects.all()))
+    context = get_table_context(get_level_and_progress_dataframe(DungeonProgress.objects.all(), 30))
     context['other_data'] = ["Raw data.  See /stats/graph/list for visualization"]
     return render(request, TABLE_TEMPLATE_NAME, context)
