@@ -1522,6 +1522,18 @@ class StoryMode(models.Model):
     pregame_buffs = JSONField(blank=True, null=True, default=dict)
 
 
+class StoryQuest(models.Model):
+    char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE)
+    order = models.IntegerField(default=-1)
+    title = models.TextField()
+    description = models.TextField()
+    dialog_1 = JSONField(blank=True, null=True, validators=[validate_char_dialog])
+    dialog_2 = JSONField(blank=True, null=True, validators=[validate_char_dialog])
+
+    class Meta:
+        unique_together = ('char_type', 'order')
+
+
 class RotatingModeStatus(models.Model):
     """RotatingModeStatus represents a user's progress (or lack of progress)
     in a single game mode run. A user can only have one run at a time.

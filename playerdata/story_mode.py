@@ -41,7 +41,8 @@ class GetStoryModeView(APIView):
 
     def get(self, request):
         schema = StoryModeSchema(request.user.storymode)
-        return Response({'status': True, 'story_mode': schema.data, 'char_pool': CHARACTER_POOLS})
+        char_pool = [{'chars': pool} for pool in CHARACTER_POOLS]  # format json nested list
+        return Response({'status': True, 'story_mode': schema.data, 'char_pool': char_pool})
 
 
 class StartNewStoryView(APIView):
