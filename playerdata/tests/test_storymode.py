@@ -12,7 +12,7 @@ class StoryModeAPITestCase(APITestCase):
         self.u = User.objects.get(username='battlegame')
         self.client.force_authenticate(user=self.u)
 
-        story_mode.unlock_next_character_pool(self.u)
+        story_mode.unlock_next_character_pool(self.u, story_mode.POOL_UNLOCK_STAGES[0])
 
     def test_get_storymode(self):
         char_id = story_mode.CHARACTER_POOLS[0][1]
@@ -26,7 +26,7 @@ class StoryModeAPITestCase(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data['story_mode']['story_id'], char_id)
         self.assertEqual(resp.data['story_mode']['last_complete_quest'], -1)
-        self.assertEqual(resp.data['char_pool'], story_mode.CHARACTER_POOLS)
+        self.assertEqual(resp.data['char_pool'][0]['chars'], story_mode.CHARACTER_POOLS[0])
 
     def test_result_storymode(self):
         char_id = story_mode.CHARACTER_POOLS[0][1]
@@ -86,7 +86,7 @@ class BoonAPITestCase(APITestCase):
         self.u = User.objects.get(username='battlegame')
         self.client.force_authenticate(user=self.u)
 
-        story_mode.unlock_next_character_pool(self.u)
+        story_mode.unlock_next_character_pool(self.u, story_mode.POOL_UNLOCK_STAGES[0])
 
     def test_choose_boon(self):
         boon_id = 1

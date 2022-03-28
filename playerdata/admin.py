@@ -906,6 +906,7 @@ admin.site.register(ClanFarming)
 admin.site.register(RelicShop, RelicShopAdmin)
 admin.site.register(Wishlist, WishlistAdmin)
 admin.site.register(StoryMode, StoryModeAdmin)
+admin.site.register(StoryQuest)
 admin.site.register(Mail, MailAdmin)
 
 admin.site.register(RegalRewards, RegalRewardsAdmin)

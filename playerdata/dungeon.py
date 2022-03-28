@@ -14,7 +14,7 @@ from playerdata.models import DungeonStage
 from playerdata.models import UserMatchState
 from playerdata.models import ReferralTracker
 from . import constants, formulas, dungeon_gen, wishlist, chapter_rewards_pack, world_pack, chests, server, \
-    level_booster
+    level_booster, story_mode
 from .constants import DungeonType
 from .matcher import PlacementSchema
 from .questupdater import QuestUpdater
@@ -146,6 +146,8 @@ class DungeonSetProgressCommitView(APIView):
 
             if stage == constants.LEVEL_BOOSTER_UNLOCK_STAGE:
                 level_booster.activate_levelbooster(request.user)
+
+            story_mode.unlock_next_character_pool(request.user, stage)
 
             rewards = campaign_tutorial_rewards(stage)
             chests.award_chest_rewards(request.user, rewards)

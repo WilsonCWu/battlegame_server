@@ -5,9 +5,11 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from playerdata import chests
+from playerdata.models import StoryQuest
 from playerdata.serializers import IntSerializer, CharStateResultSerializer
 
 CHARACTER_POOLS = [[1, 2, 3, 4, 12]]  # TODO: more on the way as etilon works on dialogue
+POOL_UNLOCK_STAGES = [60]
 MAX_NUM_QUESTS = 5
 
 # Pregame Buff ID Constants
@@ -29,9 +31,28 @@ class StoryModeSchema(Schema):
     boons = fields.Str()
 
 
-def unlock_next_character_pool(user):
-    user.storymode.current_tier += 1
-    user.storymode.available_stories.extend(CHARACTER_POOLS[user.storymode.current_tier])
+class StoryQuestSchema(Schema):
+    char_type = fields.Int()
+    order = fields.Int()
+    title = fields.Str()
+    description = fields.Str()
+    dialog_1 = fields.Str()
+    dialog_2 = fields.Str()
+
+
+# does automatic backfilling for us whenever we add new batches
+def unlock_next_character_pool(user, dungeon_stage):
+    # checks the expected tier, and if it's less than the current_tier then we backfill
+    target_tier = len(POOL_UNLOCK_STAGES) - 1
+    while target_tier >= 0 and dungeon_stage < POOL_UNLOCK_STAGES[target_tier]:
+        target_tier -= 1
+
+    if user.storymode.current_tier >= target_tier:
+        return
+
+    for tier in range(user.storymode.current_tier, target_tier):
+        user.storymode.current_tier += 1
+        user.storymode.available_stories.extend(CHARACTER_POOLS[tier])
 
     user.storymode.save()
 
@@ -40,9 +61,17 @@ class GetStoryModeView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        schema = StoryModeSchema(request.user.storymode)
+        story_schema = StoryModeSchema(request.user.storymode)
         char_pool = [{'chars': pool} for pool in CHARACTER_POOLS]  # format json nested list
-        return Response({'status': True, 'story_mode': schema.data, 'char_pool': char_pool})
+
+        story_quests = StoryQuest.objects.filter(char_type_id=request.user.storymode.story_id).order_by('order')
+        quests_schema = StoryQuestSchema(story_quests, many=True)
+
+        return Response({'status': True,
+                         'story_mode': story_schema.data,
+                         'char_pool': char_pool,
+                         'story_quests': quests_schema.data
+                         })
 
 
 class StartNewStoryView(APIView):
