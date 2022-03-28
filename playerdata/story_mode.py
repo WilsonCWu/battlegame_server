@@ -50,10 +50,11 @@ def unlock_next_character_pool(user, dungeon_stage):
     if user.storymode.current_tier >= target_tier:
         return
 
+    # add all char pools from [current_tier + 1, target_tier] inclusive
     for tier in range(user.storymode.current_tier, target_tier):
-        user.storymode.current_tier += 1
-        user.storymode.available_stories.extend(CHARACTER_POOLS[tier])
+        user.storymode.available_stories.extend(CHARACTER_POOLS[tier + 1])
 
+    user.storymode.current_tier = target_tier
     user.storymode.save()
 
 
