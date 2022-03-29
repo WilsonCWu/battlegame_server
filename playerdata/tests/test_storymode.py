@@ -12,7 +12,7 @@ class StoryModeAPITestCase(APITestCase):
         self.u = User.objects.get(username='battlegame')
         self.client.force_authenticate(user=self.u)
 
-        story_mode.unlock_next_character_pool(self.u, story_mode.POOL_UNLOCK_STAGES[0])
+        story_mode.unlock_next_character_pool(self.u, story_mode.CHAR_POOL_CAMPAIGN_STAGE_UNLOCK[0])
 
     def test_get_storymode(self):
         char_id = story_mode.CHARACTER_POOLS[0][1]
@@ -86,7 +86,7 @@ class BoonAPITestCase(APITestCase):
         self.u = User.objects.get(username='battlegame')
         self.client.force_authenticate(user=self.u)
 
-        story_mode.unlock_next_character_pool(self.u, story_mode.POOL_UNLOCK_STAGES[0])
+        story_mode.unlock_next_character_pool(self.u, story_mode.CHAR_POOL_CAMPAIGN_STAGE_UNLOCK[0])
 
     def test_choose_boon(self):
         boon_id = 1

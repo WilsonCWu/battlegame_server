@@ -8,8 +8,8 @@ from playerdata import chests
 from playerdata.models import StoryQuest
 from playerdata.serializers import IntSerializer, CharStateResultSerializer
 
-CHARACTER_POOLS = [[1, 2, 3, 4, 12]]  # TODO: more on the way as etilon works on dialogue
-POOL_UNLOCK_STAGES = [60]
+CHARACTER_POOLS = [[1, 4, 12]]  # TODO: more on the way as etilon works on dialogue
+CHAR_POOL_CAMPAIGN_STAGE_UNLOCK = [60]  # stage that unlocks the respective character pool tiers
 MAX_NUM_QUESTS = 5
 
 # Pregame Buff ID Constants
@@ -36,15 +36,14 @@ class StoryQuestSchema(Schema):
     order = fields.Int()
     title = fields.Str()
     description = fields.Str()
-    dialog_1 = fields.Str()
-    dialog_2 = fields.Str()
+    char_dialogs = fields.Str()
 
 
 # does automatic backfilling for us whenever we add new batches
 def unlock_next_character_pool(user, dungeon_stage):
     # checks the expected tier, and if it's less than the current_tier then we backfill
-    target_tier = len(POOL_UNLOCK_STAGES) - 1
-    while target_tier >= 0 and dungeon_stage < POOL_UNLOCK_STAGES[target_tier]:
+    target_tier = len(CHAR_POOL_CAMPAIGN_STAGE_UNLOCK) - 1
+    while target_tier >= 0 and dungeon_stage < CHAR_POOL_CAMPAIGN_STAGE_UNLOCK[target_tier]:
         target_tier -= 1
 
     if user.storymode.current_tier >= target_tier:
