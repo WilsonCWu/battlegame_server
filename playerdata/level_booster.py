@@ -225,8 +225,28 @@ def slot_gems_cost(slots_bought: int):
 
 
 def slot_ember_cost(slot_num: int):
-    # TODO: Tune
-    return 500
+    if slot_num < 7:
+        cost = min(300, slot_num * 100)
+    elif slot_num < 13:
+        cost = min(600, (slot_num-3)*100)
+    elif slot_num < 15:
+        cost = 700
+    elif slot_num < 17:
+        cost = 800
+    elif slot_num < 20:
+        cost = 900
+    elif slot_num < 25:
+        cost = 1000
+    elif slot_num < 30:
+        cost = 3000
+    else:
+        cost = 5000
+    return cost
+
+
+def print_ember_cost():
+    for n in range(1, 30):
+        print(f'{n}: {slot_ember_cost(n)}')
 
 
 # Unlock the next booster slot
@@ -258,7 +278,7 @@ class UnlockSlotView(APIView):
 
         existing_amount = getattr(request.user.inventory, reward_type)
         if existing_amount < resouce_cost:
-            return Response({'status': False, 'reason': f'not enough ${reward_type} to unlock slot'})
+            return Response({'status': False, 'reason': f'not enough {reward_type} to unlock slot'})
 
         existing_amount -= resouce_cost
         setattr(request.user.inventory, reward_type, existing_amount)

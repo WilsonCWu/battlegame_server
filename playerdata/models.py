@@ -784,6 +784,7 @@ class AFKReward(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     unclaimed_gold = models.FloatField(default=0)
     unclaimed_dust = models.FloatField(default=0)
+    unclaimed_ember = models.FloatField(default=0)
     unclaimed_shards = ArrayField(models.IntegerField(), default=default_afk_shard_list)
 
     # remainder of the 15 min shard cycles
