@@ -1011,6 +1011,7 @@ class ClanRequest(models.Model):
     clan2 = models.ForeignKey(Clan2, on_delete=models.CASCADE)
 
 
+# char_dialog_json expected: [{"msg": "", "char_id": 1, "emotion": 1}, ...]
 def validate_char_dialog(char_dialog_json):
     for char_dialog in char_dialog_json:
         if "char_id" not in char_dialog:
@@ -1019,6 +1020,12 @@ def validate_char_dialog(char_dialog_json):
             raise ValidationError('No msg field')
         if "emotion" not in char_dialog:
             raise ValidationError('No emotion field')
+
+
+# list_json expected: {"1": char_dialog_json, "2": char_dialog_json}
+def validate_dict_char_dialog(list_json):
+    for char_dialog_json in list_json.values():
+        validate_char_dialog(char_dialog_json)
 
 
 class DungeonStage(models.Model):
@@ -1520,6 +1527,17 @@ class StoryMode(models.Model):
     boons = JSONField(blank=True, null=True, default=dict)
     # {<buff_id>: <level>}
     pregame_buffs = JSONField(blank=True, null=True, default=dict)
+
+
+class StoryQuest(models.Model):
+    char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE)
+    order = models.IntegerField(default=-1)  # quest id order
+    title = models.TextField()
+    description = models.TextField()
+    char_dialogs = JSONField(blank=True, null=True, validators=[validate_dict_char_dialog])
+
+    class Meta:
+        unique_together = ('char_type', 'order')
 
 
 class RotatingModeStatus(models.Model):

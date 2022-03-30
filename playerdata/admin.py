@@ -51,6 +51,12 @@ class StoryModeAdmin(admin.ModelAdmin, DynamicArrayMixin):
     raw_id_fields = ("user",)
 
 
+class StoryQuestAdmin(admin.ModelAdmin):
+    formfield_overrides = {
+        JSONField: {'widget': JSONEditorWidget}
+    }
+
+
 class DungeonStageAdmin(bulk_admin.BulkModelAdmin):
     formfield_overrides = {
         JSONField: {'widget': JSONEditorWidget}
@@ -906,6 +912,7 @@ admin.site.register(ClanFarming)
 admin.site.register(RelicShop, RelicShopAdmin)
 admin.site.register(Wishlist, WishlistAdmin)
 admin.site.register(StoryMode, StoryModeAdmin)
+admin.site.register(StoryQuest, StoryQuestAdmin)
 admin.site.register(Mail, MailAdmin)
 
 admin.site.register(RegalRewards, RegalRewardsAdmin)
