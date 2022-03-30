@@ -1,9 +1,21 @@
 # Constants
 from enum import Enum, auto
 
-QUICKPLAY = 0
-DUNGEON = 1
-TOURNAMENT = 2
+
+class Game(Enum):
+    QuickPlay = 0
+    Dungeon = 1
+    Tournament = 2
+    DailyDungeon = 3
+    Moevasion = 4
+    Sandbox = 5
+    Replay = 6
+    ClanPVE = 7
+    MoveTester = 8
+    Roguelike = 9
+    AFKBattle = 10
+    TurkeyRoguelike = 11
+
 
 NUM_DAILY_QUESTS = 6
 NUM_WEEKLY_QUESTS = 6

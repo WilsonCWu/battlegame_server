@@ -4,12 +4,11 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
 from playerdata.models import ExpeditionMap
-from playerdata.serializers import IntSerializer
+from playerdata.serializers import ExpeditionMapSerializer
 
 
 class ExpeditionMapSchema(Schema):
-    char_type = fields.Int(attribute='char_type_id')
-    quest_id = fields.Int()
+    mapkey = fields.Str()
     version = fields.Str()
     map_json = fields.Str()
 
@@ -18,13 +17,12 @@ class GetExpeditionMapView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        serializer = IntSerializer(data=request.data)
+        serializer = ExpeditionMapSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        quest_id = serializer.validated_data['value']
+        game_mode = serializer.validated_data['game']
+        mapkey = serializer.validated_data['mapkey']
 
-        story_id = request.user.storymode.story_id
-
-        latest_map = ExpeditionMap.objects.filter(char_type_id=story_id, quest_id=quest_id).order_by('-version').first()
+        latest_map = ExpeditionMap.objects.filter(mapkey=mapkey, game_mode=game_mode).order_by('-version').first()
         if latest_map is None:
             return Response({'status': False, 'reason': 'no map found'})
 

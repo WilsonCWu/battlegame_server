@@ -1508,16 +1508,20 @@ class EventRewards(models.Model):
 
 
 class ExpeditionMap(models.Model):
-    char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE)
-    quest_id = models.IntegerField(default=-1)
+    mapkey = models.CharField(max_length=50)
+    game_mode = models.IntegerField(choices=[(game.value, game.name) for game in constants.Game], default=constants.Game.Roguelike)
     version = models.CharField(max_length=30, default='0.0.0')
     map_json = JSONField(blank=True, null=True)
 
     class Meta:
-        unique_together = ('char_type', 'version', 'quest_id')
+        unique_together = ('mapkey', 'game_mode', 'version')
+        indexes = [
+            models.Index(fields=['mapkey', 'game_mode'])
+        ]
+
 
     def __str__(self):
-        return self.char_type.name + ': ' + self.version
+        return self.mapkey + ': ' + self.version
 
 
 class StoryMode(models.Model):

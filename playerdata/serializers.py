@@ -227,3 +227,8 @@ class StarterPetSerializer(serializers.Serializer):
 class FastRewardsSerializer(serializers.Serializer):
     dust_hours = serializers.IntegerField(required=True)
     coin_hours = serializers.IntegerField(required=True)
+
+
+class ExpeditionMapSerializer(serializers.Serializer):
+    game = serializers.IntegerField(required=True)
+    mapkey = serializers.CharField(required=True)
