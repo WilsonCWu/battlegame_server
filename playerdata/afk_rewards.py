@@ -7,7 +7,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from playerdata import server, shards, chests, constants
-from playerdata.formulas import afk_coins_per_min, afk_exp_per_min, afk_dust_per_min, vip_exp_to_level
+from playerdata.formulas import afk_coins_per_min, afk_exp_per_min, afk_dust_per_min, vip_exp_to_level, \
+    afk_ember_per_min
 from playerdata.models import DungeonProgress, AFKReward, default_afk_shard_list
 from playerdata.questupdater import QuestUpdater
 from playerdata.serializers import FastRewardsSerializer
@@ -81,15 +82,18 @@ class GetAFKRewardView(APIView):
 
         coins_per_min = afk_coins_per_min(dungeon_progress.campaign_stage)
         dust_per_min = afk_dust_per_min(dungeon_progress.campaign_stage)
+        ember_per_min = afk_ember_per_min(dungeon_progress.campaign_stage)
         # exp_per_min = afk_exp_per_min(dungeon_progress.stage_id)
 
         coins_per_second = coins_per_min / 60
         dust_per_second = dust_per_min / 60
+        ember_per_second = ember_per_min / 60
 
         afk_rewards = evaluate_afk_reward_ticks(request.user.afkreward, vip_level)
 
         afk_rewards.unclaimed_gold += afk_rewards.reward_ticks * coins_per_second * afk_rewards_multiplier_vip(vip_level)
         afk_rewards.unclaimed_dust += afk_rewards.reward_ticks * dust_per_second * afk_rewards_multiplier_vip(vip_level)
+        afk_rewards.unclaimed_ember += afk_rewards.reward_ticks * ember_per_second * afk_rewards_multiplier_vip(vip_level)
 
         # roll shards every PER_SHARD_INTERVAL()
         shard_intervals = (afk_rewards.reward_ticks / PER_SHARD_INTERVAL()) + afk_rewards.leftover_shard_interval
@@ -108,12 +112,14 @@ class GetAFKRewardView(APIView):
         return Response({'status': True,
                          'coins_per_min': coins_per_min,
                          'dust_per_min': dust_per_min,
+                         'ember_per_min': ember_per_min,
                          # 'exp_per_min': exp_per_min,
                          'last_collected_time': afk_rewards.last_collected_time,
                          # 'exp': exp
                          'unclaimed_gold': afk_rewards.unclaimed_gold,
                          'unclaimed_dust': afk_rewards.unclaimed_dust,
                          'unclaimed_shards': afk_rewards.unclaimed_shards,
+                         'unclaimed_ember': afk_rewards.unclaimed_ember,
                          'runes_left': afk_rewards.runes_left
                          })
 

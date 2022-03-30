@@ -320,3 +320,17 @@ def gems_chest_reward(rarity):
 
 def next_prestige_copies(curr_prestige_level, rarity):
     return constants.PRESTIGE_COPIES_REQUIRED_BY_RARITY[rarity][curr_prestige_level]
+
+
+#########################
+## Ember
+
+# Same as AFK Arena: 4/hr until reaching world 18 which is 6/hr
+def afk_ember_per_min(dungeon_level):
+    if dungeon_level < constants.LEVEL_BOOSTER_UNLOCK_STAGE:
+        ember_per_min = 0
+    elif dungeon_level < (17 * 40):
+        ember_per_min = 4 / 60  # 4 ember an hour
+    else:
+        ember_per_min = 6 / 60  # 6 ember an hour
+    return ember_per_min / 2  # Halved for afk rewards
