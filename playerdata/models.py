@@ -1513,6 +1513,7 @@ class ExpeditionMap(models.Model):
     game_mode = models.IntegerField(choices=[(game.value, game.name) for game in constants.Game], default=constants.Game.Roguelike)
     version = models.CharField(max_length=30, default='0.0.0')
     map_json = JSONField(blank=True, null=True)
+    map_str = models.TextField(default="", blank=True)
 
     class Meta:
         unique_together = ('mapkey', 'game_mode', 'version')

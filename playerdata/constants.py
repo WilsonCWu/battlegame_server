@@ -15,6 +15,7 @@ class Game(Enum):
     Roguelike = 9
     AFKBattle = 10
     TurkeyRoguelike = 11
+    StoryRoguelike = 12
 
 
 NUM_DAILY_QUESTS = 6
