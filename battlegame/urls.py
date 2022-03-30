@@ -20,7 +20,7 @@ from battlegame import gameanalytics
 from playerdata import creatorcode, event_times, login, tier_system, level_booster, relic_shop, wishlist, \
     chapter_rewards_pack, inbox, \
     rotating_mode, conquest_event, regal_rewards, activity_points, shards, grass_event, leaderboards, resource_shop, \
-    world_pack
+    world_pack, expedition_maps
 from playerdata import base
 from playerdata import daily_dungeon
 from playerdata import moevasion
@@ -70,6 +70,7 @@ urlpatterns = [
     path('inbox/send/', inbox.SendInboxView.as_view()),
     path('inbox/read/', inbox.ReadInboxView.as_view()),
     path('inbox/get/', inbox.GetInboxView.as_view()),
+    path('expeditionmap/get/latest/', expedition_maps.GetExpeditionMapView.as_view()),
     path('storymode/buffs/set/', story_mode.LevelBuffView.as_view()),
     path('storymode/boons/set/', story_mode.ChooseBoonView.as_view()),
     path('storymode/boons/get/', story_mode.GetBoonsView.as_view()),

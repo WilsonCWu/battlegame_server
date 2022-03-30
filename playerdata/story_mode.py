@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from playerdata import chests
+from playerdata import chests, constants
 from playerdata.models import StoryQuest
 from playerdata.serializers import IntSerializer, CharStateResultSerializer
 
@@ -32,11 +32,24 @@ class StoryModeSchema(Schema):
 
 
 class StoryQuestSchema(Schema):
-    char_type = fields.Int()
+    char_type = fields.Int(attribute='char_type.char_type_id')
     order = fields.Int()
     title = fields.Str()
     description = fields.Str()
     char_dialogs = fields.Str()
+    is_completed = fields.Method('get_is_completed')
+    is_claimed = fields.Method('get_is_claimed')
+    rewards = fields.Method('get_quest_rewards')
+
+    def get_is_completed(self, story_quest):
+        return story_quest.order <= self.context['last_complete_quest']
+
+    def get_is_claimed(self, story_quest):
+        return story_quest.order <= self.context['last_quest_reward_claimed']
+
+    def get_quest_rewards(self, story_quest):
+        rewards = story_rewards(self.context['story_id'], self.context['current_tier'], story_quest.order)
+        return chests.ChestRewardSchema(rewards, many=True).data
 
 
 # does automatic backfilling for us whenever we add new batches
@@ -61,14 +74,15 @@ class GetStoryModeView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        story_schema = StoryModeSchema(request.user.storymode)
+        story_json = StoryModeSchema(request.user.storymode).data
         char_pool = [{'chars': pool} for pool in CHARACTER_POOLS]  # format json nested list
 
         story_quests = StoryQuest.objects.filter(char_type_id=request.user.storymode.story_id).order_by('order')
         quests_schema = StoryQuestSchema(story_quests, many=True)
+        quests_schema.context = story_json
 
         return Response({'status': True,
-                         'story_mode': story_schema.data,
+                         'story_mode': story_json,
                          'char_pool': char_pool,
                          'story_quests': quests_schema.data
                          })
@@ -125,9 +139,29 @@ class StoryResultView(APIView):
         return Response({'status': True})
 
 
-# TODO: Story rewards
-def story_rewards(story_tier: int, quest_num: int):
-    return []
+# TODO: scale based on story_tier once we add more batches
+def story_rewards(story_id, story_tier: int, quest_num: int):
+    rewards = []
+
+    if quest_num < 2:
+        gems = 300 + quest_num * 200
+        rewards.append(chests.ChestReward(constants.RewardType.GEMS.value, gems))
+    elif quest_num < 4:
+        epic_shards = 50 + quest_num * 80
+        relic_stones = 200 + quest_num * 200
+        rewards.append(chests.ChestReward(constants.RewardType.RELIC_STONES.value, relic_stones))
+        rewards.append(chests.ChestReward(constants.RewardType.EPIC_SHARDS.value, epic_shards))
+    else:
+        dust_fast_rewards = 24
+        ember = 250
+        rewards.append(chests.ChestReward(constants.RewardType.DUST_FAST_REWARDS.value, dust_fast_rewards))
+        rewards.append(chests.ChestReward(constants.RewardType.EMBER.value, ember))
+
+        # for april fools 2022, we drop them another Moe
+        if story_id == 1:
+            rewards.append(chests.ChestReward(constants.RewardType.CHAR_ID.value, 1))
+
+    return rewards
 
 
 class ClaimStoryQuestReward(APIView):
@@ -138,7 +172,7 @@ class ClaimStoryQuestReward(APIView):
         if request.user.storymode.last_quest_reward_claimed >= request.user.storymode.last_complete_quest:
             return Response({'status': False, 'reason': 'cannot claim incomplete quest'})
 
-        rewards = story_rewards(request.user.storymode.current_tier, request.user.storymode.last_complete_quest)
+        rewards = story_rewards(request.user.storymode.story_id, request.user.storymode.current_tier, request.user.storymode.last_quest_reward_claimed + 1)
         request.user.storymode.last_quest_reward_claimed += 1
         request.user.storymode.save()
 

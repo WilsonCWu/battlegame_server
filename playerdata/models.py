@@ -1507,6 +1507,23 @@ class EventRewards(models.Model):
     last_claimed_time = models.DateTimeField(default=default_event_last_claimed_time)
 
 
+class ExpeditionMap(models.Model):
+    mapkey = models.CharField(max_length=50)
+    game_mode = models.IntegerField(choices=[(game.value, game.name) for game in constants.Game], default=constants.Game.Roguelike)
+    version = models.CharField(max_length=30, default='0.0.0')
+    map_json = JSONField(blank=True, null=True)
+
+    class Meta:
+        unique_together = ('mapkey', 'game_mode', 'version')
+        indexes = [
+            models.Index(fields=['mapkey', 'game_mode'])
+        ]
+
+
+    def __str__(self):
+        return self.mapkey + ': ' + self.version
+
+
 class StoryMode(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     available_stories = ArrayField(models.IntegerField(), default=list)
