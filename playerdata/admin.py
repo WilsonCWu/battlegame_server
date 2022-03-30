@@ -49,12 +49,23 @@ class WishlistAdmin(admin.ModelAdmin, DynamicArrayMixin):
 
 class StoryModeAdmin(admin.ModelAdmin, DynamicArrayMixin):
     raw_id_fields = ("user",)
+    exclude = ('completed_stories',)
 
 
-class StoryQuestAdmin(admin.ModelAdmin):
+class StoryQuestAdmin(admin.ModelAdmin, DynamicArrayMixin):
     formfield_overrides = {
         JSONField: {'widget': JSONEditorWidget}
     }
+
+    list_display = ('char_type', 'title', 'order',)
+
+
+class ExpeditionMapAdmin(admin.ModelAdmin):
+    formfield_overrides = {
+        JSONField: {'widget': JSONEditorWidget}
+    }
+
+    list_display = ('char_type', 'version', 'quest_id',)
 
 
 class DungeonStageAdmin(bulk_admin.BulkModelAdmin):
@@ -913,6 +924,7 @@ admin.site.register(RelicShop, RelicShopAdmin)
 admin.site.register(Wishlist, WishlistAdmin)
 admin.site.register(StoryMode, StoryModeAdmin)
 admin.site.register(StoryQuest, StoryQuestAdmin)
+admin.site.register(ExpeditionMap, ExpeditionMapAdmin)
 admin.site.register(Mail, MailAdmin)
 
 admin.site.register(RegalRewards, RegalRewardsAdmin)

@@ -1507,6 +1507,19 @@ class EventRewards(models.Model):
     last_claimed_time = models.DateTimeField(default=default_event_last_claimed_time)
 
 
+class ExpeditionMap(models.Model):
+    char_type = models.ForeignKey(BaseCharacter, on_delete=models.CASCADE)
+    quest_id = models.IntegerField(default=-1)
+    version = models.CharField(max_length=30, default='0.0.0')
+    map_json = JSONField(blank=True, null=True)
+
+    class Meta:
+        unique_together = ('char_type', 'version', 'quest_id')
+
+    def __str__(self):
+        return self.char_type.name + ': ' + self.version
+
+
 class StoryMode(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     available_stories = ArrayField(models.IntegerField(), default=list)
