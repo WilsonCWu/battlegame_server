@@ -813,7 +813,7 @@ class Inventory(models.Model):
     rare_shards = models.IntegerField(default=0)
     epic_shards = models.IntegerField(default=0)
     legendary_shards = models.IntegerField(default=0)
-    ember = models.IntegerField(default=0)
+    ember = models.IntegerField(default=100)
     active_pet_id = models.IntegerField(default=0)
     dust_fast_reward_hours = models.IntegerField(default=0)
     coins_fast_reward_hours = models.IntegerField(default=0)
@@ -1510,7 +1510,7 @@ class EventRewards(models.Model):
 
 class ExpeditionMap(models.Model):
     mapkey = models.CharField(max_length=50)
-    game_mode = models.IntegerField(choices=[(game.value, game.name) for game in constants.Game], default=constants.Game.Roguelike.value)
+    game_mode = models.IntegerField(choices=[(game.value, game.name) for game in constants.Game], default=constants.Game.StoryRoguelike.value)
     version = models.CharField(max_length=30, default='0.0.0')
     map_json = JSONField(blank=True, null=True)
     map_str = models.TextField(default="", blank=True)

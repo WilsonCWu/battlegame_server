@@ -108,6 +108,7 @@ class StartNewStoryView(APIView):
         return Response({'status': True})
 
 
+# called after completing a quest
 class StoryResultView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -124,16 +125,29 @@ class StoryResultView(APIView):
 
         request.user.storymode.cur_character_state = characters
         request.user.storymode.last_complete_quest += 1
+        request.user.storymode.save()
 
-        # reset story mode
-        if request.user.storymode.last_complete_quest == MAX_NUM_QUESTS:
-            request.user.storymode.available_stories.remove(request.user.storymode.story_id)
-            request.user.storymode.completed_stories.append(request.user.storymode.story_id)
-            request.user.storymode.last_complete_quest = -1
-            request.user.storymode.last_quest_reward_claimed = -1
-            request.user.storymode.story_id = -1
-            request.user.storymode.cur_character_state = ""
+        return Response({'status': True})
 
+
+# called after completing all quests
+class StoryFinishView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic()
+    def post(self, request):
+        if request.user.storymode.last_complete_quest != MAX_NUM_QUESTS - 1:
+            return Response({'status': False, 'reason': 'not all quests are finished yet'})
+
+        if request.user.storymode.last_quest_reward_claimed != MAX_NUM_QUESTS - 1:
+            return Response({'status': False, 'reason': 'collect all rewards before completing story!'})
+
+        request.user.storymode.available_stories.remove(request.user.storymode.story_id)
+        request.user.storymode.completed_stories.append(request.user.storymode.story_id)
+        request.user.storymode.last_complete_quest = -1
+        request.user.storymode.last_quest_reward_claimed = -1
+        request.user.storymode.story_id = -1
+        request.user.storymode.cur_character_state = ""
         request.user.storymode.save()
 
         return Response({'status': True})
