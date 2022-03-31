@@ -32,7 +32,7 @@ class StoryModeSchema(Schema):
 
 
 class StoryQuestSchema(Schema):
-    char_type = fields.Int(attribute='char_type.char_type_id')
+    char_type = fields.Int(attribute='char_type_id')
     order = fields.Int()
     title = fields.Str()
     description = fields.Str()

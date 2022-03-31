@@ -65,7 +65,7 @@ class ExpeditionMapAdmin(admin.ModelAdmin):
         JSONField: {'widget': JSONEditorWidget}
     }
 
-    list_display = ('game_mode', 'mapkey', 'version')
+    list_display = ('mapkey', 'version')
 
 
 class DungeonStageAdmin(bulk_admin.BulkModelAdmin):

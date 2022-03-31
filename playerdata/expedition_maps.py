@@ -11,6 +11,7 @@ class ExpeditionMapSchema(Schema):
     mapkey = fields.Str()
     version = fields.Str()
     map_json = fields.Str()
+    map_str = fields.Str()
 
 
 class GetExpeditionMapView(APIView):

@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('mapkey', models.CharField(max_length=50)),
-                ('game_mode', models.IntegerField(choices=[(0, 'QuickPlay'), (1, 'Dungeon'), (2, 'Tournament'), (3, 'DailyDungeon'), (4, 'Moevasion'), (5, 'Sandbox'), (6, 'Replay'), (7, 'ClanPVE'), (8, 'MoveTester'), (9, 'Roguelike'), (10, 'AFKBattle'), (11, 'TurkeyRoguelike')], default=playerdata.constants.Game['Roguelike'])),
+                ('game_mode', models.IntegerField(choices=[(0, 'QuickPlay'), (1, 'Dungeon'), (2, 'Tournament'), (3, 'DailyDungeon'), (4, 'Moevasion'), (5, 'Sandbox'), (6, 'Replay'), (7, 'ClanPVE'), (8, 'MoveTester'), (9, 'Roguelike'), (10, 'AFKBattle'), (11, 'TurkeyRoguelike')], default=9)),
                 ('version', models.CharField(default='0.0.0', max_length=30)),
                 ('map_json', django.contrib.postgres.fields.jsonb.JSONField(blank=True, null=True)),
             ],
