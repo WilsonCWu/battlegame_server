@@ -66,13 +66,10 @@ class StoryModeAPITestCase(APITestCase):
         })
 
         self.u.storymode.last_complete_quest = story_mode.MAX_NUM_QUESTS - 1
+        self.u.storymode.last_quest_reward_claimed = story_mode.MAX_NUM_QUESTS - 1
         self.u.storymode.save()
 
-        resp = self.client.post('/storymode/result/', {
-            'is_loss': False,
-            'characters': '{"4": 10}'
-        })
-
+        resp = self.client.post('/storymode/finish/', {})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
         self.assertEqual(self.u.storymode.last_complete_quest, -1)
