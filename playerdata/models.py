@@ -1510,7 +1510,7 @@ class EventRewards(models.Model):
 
 class ExpeditionMap(models.Model):
     mapkey = models.CharField(max_length=50)
-    game_mode = models.IntegerField(choices=[(game.value, game.name) for game in constants.Game], default=constants.Game.Roguelike)
+    game_mode = models.IntegerField(choices=[(game.value, game.name) for game in constants.Game], default=constants.Game.Roguelike.value)
     version = models.CharField(max_length=30, default='0.0.0')
     map_json = JSONField(blank=True, null=True)
     map_str = models.TextField(default="", blank=True)
