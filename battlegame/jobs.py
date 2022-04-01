@@ -424,3 +424,12 @@ def reformat_lvlboost_slots():
         lvl_booster.cooldown_slots = lvl_booster.cooldown_slots[:lvl_booster.unlocked_slots]
 
     LevelBooster.objects.bulk_update(lvl_boosters, ['slots', 'cooldown_slots'])
+
+
+@transaction.atomic()
+def backfill_char_story_mode(char_type: int):
+    stories = StoryMode.objects.all()
+    for story in stories:
+        if char_type not in story.available_stories:
+            story.available_stories.append(char_type)
+    StoryMode.objects.bulk_update(stories, ['available_stories'])

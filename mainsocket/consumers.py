@@ -41,6 +41,9 @@ class MainSocketConsumer(WebsocketConsumer):
         if self.user.levelbooster.is_active:
             self.poll_server('show_lvlbooster', {})
 
+        if self.user.storymode.current_tier > -1:
+            self.poll_server('show_storymode', {})
+
     def disconnect(self, close_code):
         # Leave room group
         async_to_sync(self.channel_layer.group_discard)(

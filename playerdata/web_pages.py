@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.shortcuts import redirect
 from playerdata.models import User, ClaimedCode, BaseCode, Mail
 
-from playerdata import constants
+from playerdata import constants, redemptioncodes
 from playerdata.forms import RedeemInboxForm
 from playerdata.login import UserRecoveryTokenGenerator
 from playerdata.models import BaseCharacter
@@ -58,6 +58,9 @@ def redeem(request):
     basecode = BaseCode.objects.filter(code=code).first()
     if basecode is None:
         return render(request, 'redeem.html', {'error': 'Invalid code'})
+
+    if not redemptioncodes.is_valid_code(basecode):
+        return render(request, 'redeem.html', {'error': 'Code has expired'})
 
     # if not already claimed token
     if ClaimedCode.objects.filter(user=user, code=basecode).exists():

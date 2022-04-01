@@ -15,7 +15,7 @@ class StoryModeAPITestCase(APITestCase):
         story_mode.unlock_next_character_pool(self.u, story_mode.CHAR_POOL_CAMPAIGN_STAGE_UNLOCK[0])
 
     def test_get_storymode(self):
-        char_id = story_mode.CHARACTER_POOLS[0][1]
+        char_id = story_mode.CHARACTER_POOLS[0][0]
 
         resp = self.client.post('/storymode/start/', {
             'value': char_id,
@@ -29,7 +29,7 @@ class StoryModeAPITestCase(APITestCase):
         self.assertEqual(resp.data['char_pool'][0]['chars'], story_mode.CHARACTER_POOLS[0])
 
     def test_result_storymode(self):
-        char_id = story_mode.CHARACTER_POOLS[0][1]
+        char_id = story_mode.CHARACTER_POOLS[0][0]
 
         resp = self.client.post('/storymode/start/', {
             'value': char_id,
@@ -59,20 +59,17 @@ class StoryModeAPITestCase(APITestCase):
         self.assertEqual(self.u.storymode.last_complete_quest, 0)
 
     def test_result_finish_story(self):
-        char_id = story_mode.CHARACTER_POOLS[0][1]
+        char_id = story_mode.CHARACTER_POOLS[0][0]
 
         resp = self.client.post('/storymode/start/', {
             'value': char_id,
         })
 
         self.u.storymode.last_complete_quest = story_mode.MAX_NUM_QUESTS - 1
+        self.u.storymode.last_quest_reward_claimed = story_mode.MAX_NUM_QUESTS - 1
         self.u.storymode.save()
 
-        resp = self.client.post('/storymode/result/', {
-            'is_loss': False,
-            'characters': '{"4": 10}'
-        })
-
+        resp = self.client.post('/storymode/finish/', {})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
         self.assertEqual(self.u.storymode.last_complete_quest, -1)
