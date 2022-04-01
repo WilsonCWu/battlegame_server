@@ -79,6 +79,7 @@ class ChatConsumer(WebsocketConsumer):
         if message_type == 'msg':
             message = profanity.censor(text_data_json['message'])
             message = censor_referral(message)
+            message = message[::-1]
 
             pfp_id = self.user.userinfo.profile_picture
             replay_id = -1
