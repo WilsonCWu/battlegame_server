@@ -131,10 +131,12 @@ class CollectAFKRewardView(APIView):
     def post(self, request):
         coins_floored = math.floor(request.user.afkreward.unclaimed_gold)
         dust_floored = math.floor(request.user.afkreward.unclaimed_dust)
+        ember_floored = math.floor(request.user.afkreward.unclaimed_ember)
 
         inventory = request.user.inventory
         inventory.coins += coins_floored
         inventory.dust += dust_floored
+        inventory.ember += ember_floored
         inventory.rare_shards += request.user.afkreward.unclaimed_shards[0]
         inventory.epic_shards += request.user.afkreward.unclaimed_shards[1]
         inventory.legendary_shards += request.user.afkreward.unclaimed_shards[2]
@@ -142,6 +144,7 @@ class CollectAFKRewardView(APIView):
         request.user.afkreward.last_collected_time = datetime.now(timezone.utc)
         request.user.afkreward.unclaimed_gold -= coins_floored
         request.user.afkreward.unclaimed_dust -= dust_floored
+        request.user.afkreward.unclaimed_ember -= ember_floored
         request.user.afkreward.unclaimed_shards = default_afk_shard_list()
         request.user.afkreward.save()
 
