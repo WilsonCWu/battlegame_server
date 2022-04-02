@@ -203,6 +203,7 @@ class ClaimStoryQuestReward(APIView):
             return Response({'status': False, 'reason': 'cannot claim incomplete quest'})
 
         rewards = story_rewards(request.user.storymode.story_id, request.user.storymode.current_tier, request.user.storymode.last_quest_reward_claimed + 1)
+        chests.award_chest_rewards(request.user, rewards)
         request.user.storymode.last_quest_reward_claimed += 1
         request.user.storymode.save()
 
