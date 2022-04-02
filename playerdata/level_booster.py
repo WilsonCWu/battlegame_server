@@ -70,7 +70,7 @@ def get_num_boosted_chars(user):
 def get_level_cap(user):
     if base.is_flag_active(base.FlagName.LEVEL_BOOST_240):
         total_stars_past5 = 0
-        chars = Character.objects.filter(user=user, is_boosted=True).select_related('char_type')
+        chars = Character.objects.filter(user=user, level=240, is_boosted=True).select_related('char_type')
 
         for char in chars:
             stars_past5 = min(constants.PRESTIGE_TO_STAR_LEVEL(char.prestige, char.char_type.rarity) - 5, 5)  # capped at 5 extra levels
