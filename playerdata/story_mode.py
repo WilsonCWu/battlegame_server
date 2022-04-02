@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from playerdata import chests, constants
+from playerdata import chests, constants, base
 from playerdata.models import StoryQuest
 from playerdata.serializers import IntSerializer, CharStateResultSerializer
 
@@ -166,10 +166,26 @@ def story_rewards(story_id, story_tier: int, quest_num: int):
         rewards.append(chests.ChestReward(constants.RewardType.RELIC_STONES.value, relic_stones))
         rewards.append(chests.ChestReward(constants.RewardType.EPIC_SHARDS.value, epic_shards))
     else:
-        dust_fast_rewards = 24
-        ember = 250
-        rewards.append(chests.ChestReward(constants.RewardType.DUST_FAST_REWARDS.value, dust_fast_rewards))
-        rewards.append(chests.ChestReward(constants.RewardType.EMBER.value, ember))
+        rarity = base.get_char_rarity(story_id)
+        if rarity == 1:
+            rare_shards = 80 * 2
+            rewards.append(chests.ChestReward(constants.RewardType.RARE_SHARDS, rare_shards))
+        elif rarity == 2:
+            epic_shards = 80
+            rewards.append(chests.ChestReward(constants.RewardType.EPIC_SHARDS, epic_shards))
+        elif rarity == 3:
+            leg_shards = 10
+            rewards.append(chests.ChestReward(constants.RewardType.LEGENDARY_SHARDS, leg_shards))
+
+        if story_tier < 2:
+            # gold is still important
+            coin_fast_rewards = 24
+            rewards.append(chests.ChestReward(constants.RewardType.COINS_FAST_REWARDS.value, coin_fast_rewards))
+        else:
+            ember = 250
+            dust_fast_rewards = 24
+            rewards.append(chests.ChestReward(constants.RewardType.EMBER.value, ember))
+            rewards.append(chests.ChestReward(constants.RewardType.DUST_FAST_REWARDS.value, dust_fast_rewards))
 
         # for april fools 2022, we drop them another Moe
         if story_id == 1:
