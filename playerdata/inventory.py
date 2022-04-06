@@ -52,7 +52,7 @@ class CharacterSchema(Schema):
     def get_char_level(self, char):
         if base.is_flag_active(base.FlagName.LEVEL_MATCH):
             if char.is_boosted:
-                if char.char_id in char.user.levelbooster.top_five:
+                if char.char_id in char.user.levelbooster.top_five and not char.user.levelbooster.is_enhanced:
                     return char.level
 
                 return char.user.levelbooster.booster_level
