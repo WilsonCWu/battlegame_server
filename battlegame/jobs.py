@@ -433,3 +433,11 @@ def backfill_char_story_mode(char_type: int):
         if char_type not in story.available_stories:
             story.available_stories.append(char_type)
     StoryMode.objects.bulk_update(stories, ['available_stories'])
+
+
+@transaction.atomic()
+def clawback_levelbooster_levels():
+    lvl_boosters = LevelBooster.objects.filter(is_enhanced=True)
+    for lvl_booster in lvl_boosters:
+        lvl_booster.booster_level = min(240, lvl_booster.booster_level - 1)
+    LevelBooster.objects.bulk_update(lvl_boosters, ['booster_level'])

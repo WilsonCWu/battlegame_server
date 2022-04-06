@@ -66,18 +66,36 @@ def get_num_boosted_chars(user):
     return Character.objects.filter(user=user, is_boosted=True).count()
 
 
-# max cap is raised +1 for each prestige above 5*, capped at 10*
+# Tiers: 1, 1, 3
+# ex: [1, 1, 3] means +1 lvlcap at 6 stars, +1 at 7 stars, +3 at 10 stars, nothing in between
+def get_level_cap_stars_tiers(stars_past5: int):
+    if not base.is_flag_active(base.FlagName.STAR_TIERS_1_1_3):
+        return stars_past5
+
+    star_tiers = [1, 1, 3]
+    total_stars = sum(star_tiers)
+
+    for stars in reversed(star_tiers):
+        if total_stars <= stars_past5:
+            return total_stars
+        total_stars -= stars
+
+    return 0
+
+
+# max cap is based on get_level_cap_stars_tiers
 def get_level_cap(user):
-    if base.is_flag_active(base.FlagName.LEVEL_BOOST_240):
-        total_stars_past5 = 0
+    total_stars_past5 = 0
+    if base.is_flag_active(base.FlagName.STAR_TIERS_1_1_3):
+        chars = Character.objects.filter(user=user, is_boosted=True).select_related('char_type')
+    else:
         chars = Character.objects.filter(user=user, level=240, is_boosted=True).select_related('char_type')
 
-        for char in chars:
-            stars_past5 = min(constants.PRESTIGE_TO_STAR_LEVEL(char.prestige, char.char_type.rarity) - 5, 5)  # capped at 5 extra levels
-            total_stars_past5 += max(stars_past5, 0)
-        return constants.MAX_CHARACTER_LEVEL + total_stars_past5
-
-    return constants.MAX_CHARACTER_LEVEL + get_num_boosted_chars(user) * 5
+    for char in chars:
+        stars_past5 = min(constants.PRESTIGE_TO_STAR_LEVEL(char.prestige, char.char_type.rarity) - 5,
+                          5)  # capped at 5 extra levels
+        total_stars_past5 += get_level_cap_stars_tiers(max(stars_past5, 0))
+    return constants.MAX_CHARACTER_LEVEL + total_stars_past5
 
 
 # returns a list of ids of top 5, lowest level of the top 5
@@ -298,6 +316,8 @@ class UnlockSlotView(APIView):
 # Returns the cost to level up TO this level
 def level_up_coins_cost(level: int):
     adjusted_level = 440 + (level - 240) * 20
+    if base.is_flag_active(base.FlagName.STAR_TIERS_1_1_3):
+        adjusted_level = 440 + (level - 240) * 25
     return formulas.char_level_to_coins(adjusted_level) - formulas.char_level_to_coins(adjusted_level - 1)
 
 
