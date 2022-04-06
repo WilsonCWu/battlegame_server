@@ -325,7 +325,7 @@ def level_up_coins_cost(level: int):
 # https://www.desmos.com/calculator/sk1c8k11wz
 def level_up_dust_cost(level: int):
     x = level - 240
-    return 38000 * (1 - math.exp(-0.01 * x)) + 30*x + 20000
+    return 38000 * (1 - math.exp(-0.01 * x)) + 30*x + 15000
 
 
 class LevelUpBooster(APIView):
