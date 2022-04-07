@@ -58,7 +58,8 @@ def is_char_eligible_level_boost(char):
     else:
         min_stars = 10
 
-    return char.level == constants.MAX_CHARACTER_LEVEL and constants.PRESTIGE_TO_STAR_LEVEL(char.prestige, char.char_type.rarity) >= min_stars
+    return char.level == constants.MAX_CHARACTER_LEVEL and constants.PRESTIGE_TO_STAR_LEVEL(char.prestige,
+                                                                                            char.char_type.rarity) >= min_stars
 
 
 # Get num of chars that are currently boosted
@@ -67,25 +68,20 @@ def get_num_boosted_chars(user):
 
 
 # Tiers: 1, 1, 3
-# ex: [1, 1, 3] means +1 lvlcap at 6 stars, +1 at 7 stars, +3 at 10 stars, nothing in between
+# ex: {0: 0, 1: 1, 2: 2, 3: 2, 4: 2, 5: 5} means +1 lvlcap at 6 stars, +1 at 7 stars, +3 at 10 stars, nothing in between
+STARS_PAST_5_TO_LVL_CAP = {0: 0, 1: 1, 2: 2, 3: 2, 4: 2, 5: 5}
+
+
 def get_level_cap_stars_tiers(stars_past5: int):
     if not base.is_flag_active(base.FlagName.STAR_TIERS_1_1_3):
         return stars_past5
 
-    star_tiers = [1, 1, 3]
-    total_stars = sum(star_tiers)
-
-    for stars in reversed(star_tiers):
-        if total_stars <= stars_past5:
-            return total_stars
-        total_stars -= stars
-
-    return 0
+    return STARS_PAST_5_TO_LVL_CAP[stars_past5]
 
 
 # max cap is based on get_level_cap_stars_tiers
 def get_level_cap(user):
-    total_stars_past5 = 0
+    extra_levels_boosted = 0
     if base.is_flag_active(base.FlagName.STAR_TIERS_1_1_3):
         chars = Character.objects.filter(user=user, is_boosted=True).select_related('char_type')
     else:
@@ -94,13 +90,15 @@ def get_level_cap(user):
     for char in chars:
         stars_past5 = min(constants.PRESTIGE_TO_STAR_LEVEL(char.prestige, char.char_type.rarity) - 5,
                           5)  # capped at 5 extra levels
-        total_stars_past5 += get_level_cap_stars_tiers(max(stars_past5, 0))
-    return constants.MAX_CHARACTER_LEVEL + total_stars_past5
+        extra_levels_boosted += get_level_cap_stars_tiers(max(stars_past5, 0))
+    return constants.MAX_CHARACTER_LEVEL + extra_levels_boosted
 
 
 # returns a list of ids of top 5, lowest level of the top 5
 def __eval_top_five(user):
-    chars = list(Character.objects.filter(user=user, is_boosted=False).order_by('-level', '-char_type__rarity', 'char_type').values('char_id', 'level')[:5])
+    chars = list(Character.objects.filter(user=user, is_boosted=False).order_by('-level', '-char_type__rarity',
+                                                                                'char_type').values('char_id', 'level')[
+                 :5])
     top_five_ids = [char["char_id"] for char in chars]
     level = chars[4]["level"]
     return top_five_ids, level
@@ -158,7 +156,8 @@ class FillSlotView(APIView):
             return Response({'status': False, 'reason': 'hero is on the pentagram'})
 
         curr_time = datetime.now(timezone.utc)
-        if request.user.levelbooster.cooldown_slots[slot_id] is not None and request.user.levelbooster.cooldown_slots[slot_id] > curr_time:
+        if request.user.levelbooster.cooldown_slots[slot_id] is not None and request.user.levelbooster.cooldown_slots[
+            slot_id] > curr_time:
             return Response({'status': False, 'reason': 'slot is still in cooldown'})
 
         # TODO: can delete after 1.1.3
@@ -246,7 +245,7 @@ def slot_ember_cost(slot_num: int):
     if slot_num < 7:
         cost = min(300, slot_num * 100)
     elif slot_num < 13:
-        cost = min(600, (slot_num-3)*100)
+        cost = min(600, (slot_num - 3) * 100)
     elif slot_num < 15:
         cost = 700
     elif slot_num < 17:
@@ -325,7 +324,7 @@ def level_up_coins_cost(level: int):
 # https://www.desmos.com/calculator/sk1c8k11wz
 def level_up_dust_cost(level: int):
     x = level - 240
-    return 38000 * (1 - math.exp(-0.01 * x)) + 30*x + 15000
+    return 38000 * (1 - math.exp(-0.01 * x)) + 30 * x + 15000
 
 
 class LevelUpBooster(APIView):
@@ -339,7 +338,8 @@ class LevelUpBooster(APIView):
             return Response({'status': False, 'reason': 'not enough chars to level boost!'})
 
         if request.user.levelbooster.booster_level + 1 > get_level_cap(request.user):
-            return Response({'status': False, 'reason': 'level cap reached for ' + str(num_boosted_chars) + ' maxed out heroes'})
+            return Response(
+                {'status': False, 'reason': 'level cap reached for ' + str(num_boosted_chars) + ' maxed out heroes'})
 
         delta_coins = level_up_coins_cost(request.user.levelbooster.booster_level + 1)
 
@@ -372,7 +372,9 @@ class EnhanceLevelUpBooster(APIView):
         if request.user.levelbooster.is_enhanced:
             return Response({'status': False, 'reason': 'already enhanced'})
 
-        top_five_queryset = Character.objects.filter(char_id__in=request.user.levelbooster.top_five).order_by('-level', '-char_type__rarity', 'char_type')
+        top_five_queryset = Character.objects.filter(char_id__in=request.user.levelbooster.top_five).order_by('-level',
+                                                                                                              '-char_type__rarity',
+                                                                                                              'char_type')
         if top_five_queryset[4].level < constants.MAX_CHARACTER_LEVEL:
             return Response({'status': False, 'reason': 'not ready to enhance the Level Booster'})
 
