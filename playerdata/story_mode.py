@@ -168,7 +168,7 @@ def story_rewards(story_id, story_tier: int, quest_num: int):
     else:
         rarity = base.get_char_rarity(story_id)
         if rarity == 1:
-            rare_shards = 80 * 2
+            rare_shards = 80 * 4
             rewards.append(chests.ChestReward(constants.RewardType.RARE_SHARDS, rare_shards))
         elif rarity == 2:
             epic_shards = 80
