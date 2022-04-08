@@ -4,7 +4,7 @@ import secrets
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
-from playerdata import formulas, matcher, rolls, leaderboards, grass_event
+from playerdata import formulas, matcher, rolls, leaderboards, grass_event, level_booster
 from playerdata.models import *
 from playerdata.questupdater import QuestUpdater
 
@@ -437,10 +437,19 @@ def backfill_char_story_mode(char_type: int):
 
 @transaction.atomic()
 def clawback_levelbooster_levels():
-    lvl_boosters = LevelBooster.objects.filter(is_enhanced=True, booster_level__lte=243)
+    lvl_boosters = LevelBooster.objects.filter(is_enhanced=True).select_related('user__inventory')
+    updated_inventories = []
     for lvl_booster in lvl_boosters:
-        lvl_booster.booster_level = min(240, lvl_booster.booster_level - 1)
+        refunded_costs = level_booster.refund_costs(lvl_booster.booster_level)
+        lvl_booster.user.inventory.coins += refunded_costs['refunded_coins']
+        lvl_booster.user.inventory.dust += refunded_costs['refunded_dust']
+
+        lvl_booster.booster_level = 240
+        updated_inventories.append(lvl_booster.user.inventory)
+
     LevelBooster.objects.bulk_update(lvl_boosters, ['booster_level'])
+    Inventory.objects.bulk_update(updated_inventories, ['coins', 'dust'])
+
     ids = list(lvl_boosters.values_list('user_id', flat=True))
-    msg = "From the latest Star Seeker changes, we've shifted the cost of not needing more than 5 manually leveled characters into the Star Seeker. As part of this reorganization, your current Star Seeker level has been adjusted by 1 level. We apologize for any inconvenience and have given out a gem reward as compensation as well.\n\nThank you and battle on!"
+    msg = "From the latest Star Seeker changes, we've shifted the cost of not needing more than 5 manually leveled characters into the Star Seeker. As part of this reorganization, we've reset all Star Seeker levels to 240, and refunded all the resources spent. We apologize for any inconvenience and have given out a gem reward as compensation as well.\n\nThank you and battle on!"
     send_inbox("Star Seeker Compensation", msg, ids, 2000)

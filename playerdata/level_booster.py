@@ -324,7 +324,16 @@ def level_up_coins_cost(level: int):
 # https://www.desmos.com/calculator/sk1c8k11wz
 def level_up_dust_cost(level: int):
     x = level - 240
-    return 38000 * (1 - math.exp(-0.01 * x)) + 30 * x + 15000
+    if base.is_flag_active(base.FlagName.STAR_TIERS_1_1_3):
+        return 38000 * (1 - math.exp(-0.01 * x)) + 30 * x + 15000
+    return 38000 * (1 - math.exp(-0.01 * x)) + 30 * x + 20000
+
+
+def refund_costs(level: int):
+    total_coins = sum(map(level_up_coins_cost, range(241, level + 1)))
+    total_dust = sum(map(level_up_dust_cost, range(241, level + 1)))
+
+    return {'refunded_coins': total_coins, 'refunded_dust': total_dust}
 
 
 class LevelUpBooster(APIView):
