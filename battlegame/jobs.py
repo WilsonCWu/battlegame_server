@@ -452,5 +452,5 @@ def clawback_levelbooster_levels():
     Inventory.objects.bulk_update(updated_inventories, ['coins', 'dust'])
 
     ids = list(lvl_boosters.values_list('user_id', flat=True))
-    msg = "From the latest Star Seeker changes, we've shifted the cost of not needing more than 5 manually leveled characters into the Star Seeker. As part of this reorganization, we've reset all Star Seeker levels to 240, and refunded all the resources spent. We apologize for any inconvenience and have given out a gem reward as compensation as well.\n\nThank you and battle on!"
+    msg = "From the latest Star Seeker changes, we've shifted the cost of not needing more than 5 manually leveled characters into the Star Seeker. As part of this reorganization, we've adjusted your current Star Seeker levels to match the new costs (you shouldn't see more than a few levels adjustment). We apologize for any inconvenience and have given out a gem reward as compensation as well.\n\nThank you and battle on!"
     send_inbox("Star Seeker Compensation", msg, ids, 2000)
