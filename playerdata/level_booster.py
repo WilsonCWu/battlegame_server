@@ -313,18 +313,18 @@ class UnlockSlotView(APIView):
 
 
 # Returns the cost to level up TO this level
-def level_up_coins_cost(level: int):
+def level_up_coins_cost(level: int, use_new_cost=False):
     adjusted_level = 440 + (level - 240) * 20
-    if base.is_flag_active(base.FlagName.STAR_TIERS_1_1_3):
+    if base.is_flag_active(base.FlagName.STAR_TIERS_1_1_3) or use_new_cost:
         adjusted_level = 440 + (level - 240) * 25
     return formulas.char_level_to_coins(adjusted_level) - formulas.char_level_to_coins(adjusted_level - 1)
 
 
 # Returns the cost to level up TO this level
 # https://www.desmos.com/calculator/sk1c8k11wz
-def level_up_dust_cost(level: int):
+def level_up_dust_cost(level: int, use_new_cost=False):
     x = level - 240
-    if base.is_flag_active(base.FlagName.STAR_TIERS_1_1_3):
+    if base.is_flag_active(base.FlagName.STAR_TIERS_1_1_3) or use_new_cost:
         return 38000 * (1 - math.exp(-0.01 * x)) + 30 * x + 15000
     return 38000 * (1 - math.exp(-0.01 * x)) + 30 * x + 20000
 
@@ -342,15 +342,15 @@ def resources_to_levels_backfill(refunded_costs):
     remaining_dust = refunded_costs['refunded_dust']
 
     level = 241
-    coins_cost = level_up_coins_cost(level)
-    dust_cost = level_up_dust_cost(level)
+    coins_cost = level_up_coins_cost(level, True)
+    dust_cost = level_up_dust_cost(level, True)
 
     while remaining_coins >= coins_cost and remaining_dust >= dust_cost:
         remaining_coins -= coins_cost
         remaining_dust -= dust_cost
         level += 1
-        coins_cost = level_up_coins_cost(level)
-        dust_cost = level_up_dust_cost(level)
+        coins_cost = level_up_coins_cost(level, True)
+        dust_cost = level_up_dust_cost(level, True)
 
     return level - 1, remaining_coins, remaining_dust
 
