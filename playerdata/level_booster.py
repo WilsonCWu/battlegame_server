@@ -336,6 +336,25 @@ def refund_costs(level: int):
     return {'refunded_coins': total_coins, 'refunded_dust': total_dust}
 
 
+# backfill resources uptil the highest level with refunded coins/dust
+def resources_to_levels_backfill(refunded_costs):
+    remaining_coins = refunded_costs['refunded_coins']
+    remaining_dust = refunded_costs['refunded_dust']
+
+    level = 241
+    coins_cost = level_up_coins_cost(level)
+    dust_cost = level_up_dust_cost(level)
+
+    while remaining_coins >= coins_cost and remaining_dust >= dust_cost:
+        remaining_coins -= coins_cost
+        remaining_dust -= dust_cost
+        level += 1
+        coins_cost = level_up_coins_cost(level)
+        dust_cost = level_up_dust_cost(level)
+
+    return level - 1, remaining_coins, remaining_dust
+
+
 class LevelUpBooster(APIView):
     permission_classes = (IsAuthenticated,)
 

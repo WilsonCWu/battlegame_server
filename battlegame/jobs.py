@@ -441,10 +441,11 @@ def clawback_levelbooster_levels():
     updated_inventories = []
     for lvl_booster in lvl_boosters:
         refunded_costs = level_booster.refund_costs(lvl_booster.booster_level)
-        lvl_booster.user.inventory.coins += refunded_costs['refunded_coins']
-        lvl_booster.user.inventory.dust += refunded_costs['refunded_dust']
 
-        lvl_booster.booster_level = 240
+        lvl_booster.booster_level, remaining_coins, remaining_dust = level_booster.resources_to_levels_backfill(refunded_costs)
+        lvl_booster.user.inventory.coins += remaining_coins
+        lvl_booster.user.inventory.dust += remaining_dust
+
         updated_inventories.append(lvl_booster.user.inventory)
 
     LevelBooster.objects.bulk_update(lvl_boosters, ['booster_level'])
