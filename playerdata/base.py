@@ -100,7 +100,7 @@ class BasePrestigeSchema(StatModifierSchema):
 class FlagName(Enum):
     LEVEL_BOOST_240 = 'level_boost_240'
     LEVEL_MATCH = 'level_matcher'
-    STAR_TIERS_1_1_3 = 'STAR_TIERS_1_1_3'
+    STAR_TIERS_3_1_1 = 'STAR_TIERS_3_1_1'
 
 
 @lru_cache()

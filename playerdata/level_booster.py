@@ -67,13 +67,13 @@ def get_num_boosted_chars(user):
     return Character.objects.filter(user=user, is_boosted=True).count()
 
 
-# Tiers: 1, 1, 3
-# ex: {0: 0, 1: 1, 2: 2, 3: 2, 4: 2, 5: 5} means +1 lvlcap at 6 stars, +1 at 7 stars, +3 at 10 stars, nothing in between
-STARS_PAST_5_TO_LVL_CAP = {0: 0, 1: 1, 2: 2, 3: 2, 4: 2, 5: 5}
+# Red star lvl cap tiers
+# ex: {0: 0, 1: 0, 2: 0, 3: 3, 4: 4, 5: 5} means +3 lvlcap at 8 stars, +1 at 9 stars, +1 at 10 stars, nothing in between
+STARS_PAST_5_TO_LVL_CAP = {0: 0, 1: 0, 2: 0, 3: 3, 4: 4, 5: 5}
 
 
 def get_level_cap_stars_tiers(stars_past5: int):
-    if not base.is_flag_active(base.FlagName.STAR_TIERS_1_1_3):
+    if not base.is_flag_active(base.FlagName.STAR_TIERS_3_1_1):
         return stars_past5
 
     return STARS_PAST_5_TO_LVL_CAP[stars_past5]
@@ -82,7 +82,7 @@ def get_level_cap_stars_tiers(stars_past5: int):
 # max cap is based on get_level_cap_stars_tiers
 def get_level_cap(user):
     extra_levels_boosted = 0
-    if base.is_flag_active(base.FlagName.STAR_TIERS_1_1_3):
+    if base.is_flag_active(base.FlagName.STAR_TIERS_3_1_1):
         chars = Character.objects.filter(user=user, is_boosted=True).select_related('char_type')
     else:
         chars = Character.objects.filter(user=user, level=240, is_boosted=True).select_related('char_type')
@@ -315,7 +315,7 @@ class UnlockSlotView(APIView):
 # Returns the cost to level up TO this level
 def level_up_coins_cost(level: int, use_new_cost=False):
     adjusted_level = 440 + (level - 240) * 20
-    if base.is_flag_active(base.FlagName.STAR_TIERS_1_1_3) or use_new_cost:
+    if base.is_flag_active(base.FlagName.STAR_TIERS_3_1_1) or use_new_cost:
         adjusted_level = 440 + (level - 240) * 25
     return formulas.char_level_to_coins(adjusted_level) - formulas.char_level_to_coins(adjusted_level - 1)
 
@@ -324,7 +324,7 @@ def level_up_coins_cost(level: int, use_new_cost=False):
 # https://www.desmos.com/calculator/sk1c8k11wz
 def level_up_dust_cost(level: int, use_new_cost=False):
     x = level - 240
-    if base.is_flag_active(base.FlagName.STAR_TIERS_1_1_3) or use_new_cost:
+    if base.is_flag_active(base.FlagName.STAR_TIERS_3_1_1) or use_new_cost:
         return 38000 * (1 - math.exp(-0.01 * x)) + 30 * x + 15000
     return 38000 * (1 - math.exp(-0.01 * x)) + 30 * x + 20000
 
@@ -341,18 +341,18 @@ def resources_to_levels_backfill(refunded_costs):
     remaining_coins = refunded_costs['refunded_coins']
     remaining_dust = refunded_costs['refunded_dust']
 
-    level = 241
-    coins_cost = level_up_coins_cost(level, True)
-    dust_cost = level_up_dust_cost(level, True)
+    next_level = 241
+    coins_cost = level_up_coins_cost(next_level, True)
+    dust_cost = level_up_dust_cost(next_level, True)
 
     while remaining_coins >= coins_cost and remaining_dust >= dust_cost:
         remaining_coins -= coins_cost
         remaining_dust -= dust_cost
-        level += 1
-        coins_cost = level_up_coins_cost(level, True)
-        dust_cost = level_up_dust_cost(level, True)
+        next_level += 1
+        coins_cost = level_up_coins_cost(next_level, True)
+        dust_cost = level_up_dust_cost(next_level, True)
 
-    return level - 1, remaining_coins, remaining_dust
+    return next_level - 1, remaining_coins, remaining_dust
 
 
 class LevelUpBooster(APIView):
