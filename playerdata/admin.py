@@ -66,6 +66,20 @@ class ExpeditionMapAdmin(admin.ModelAdmin):
     }
 
     list_display = ('mapkey', 'version')
+    actions = ('generate_next_patch',)
+
+    def generate_next_patch(self, request, queryset):
+        for expedition_map in queryset:
+            next_patch = ServerStatus.latest_version().split('.')
+            next_patch[-1] = str(int(next_patch[-1]) + 1)
+            next_patch_str = '.'.join(next_patch)
+
+            ExpeditionMap.objects.create(version=next_patch_str,
+                                         mapkey=expedition_map.mapkey,
+                                         game_mode=expedition_map.game_mode,
+                                         map_json=expedition_map.map_json,
+                                         map_str=expedition_map.map_str
+                                         )
 
 
 class DungeonStageAdmin(bulk_admin.BulkModelAdmin):
