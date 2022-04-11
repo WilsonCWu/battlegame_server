@@ -9,7 +9,7 @@ from django_json_widget.widgets import JSONEditorWidget
 
 from battlegame.cron import next_round, setup_tournament, end_tourney
 from battlegame.figures import get_hacker_alert_dataframe, get_table_context, get_base_character_usage_dataframe, get_dungeon_stats_dataframe
-from . import purchases
+from . import purchases, server
 from .daily_dungeon import daily_dungeon_team_gen_cron
 from .dungeon_gen import convert_placement_to_json
 from .login import UserRecoveryTokenGenerator
@@ -70,9 +70,7 @@ class ExpeditionMapAdmin(admin.ModelAdmin):
 
     def generate_next_patch(self, request, queryset):
         for expedition_map in queryset:
-            next_patch = ServerStatus.latest_version().split('.')
-            next_patch[-1] = str(int(next_patch[-1]) + 1)
-            next_patch_str = '.'.join(next_patch)
+            next_patch_str = server.get_next_patch()
 
             ExpeditionMap.objects.create(version=next_patch_str,
                                          mapkey=expedition_map.mapkey,
@@ -488,9 +486,7 @@ class BaseCharacterAbility2Admin(admin.ModelAdmin):
 
     def generate_next_patch(self, request, queryset):
         for a in queryset:
-            next_patch = ServerStatus.latest_version().split('.')
-            next_patch[-1] = str(int(next_patch[-1]) + 1)
-            next_patch_str = '.'.join(next_patch)
+            next_patch_str = server.get_next_patch()
             
             BaseCharacterAbility2.objects.create(
                 char_type = a.char_type,
@@ -586,9 +582,7 @@ class BaseCharacterStatsAdmin(admin.ModelAdmin):
 
     def generate_next_patch(self, request, queryset):
         for a in queryset:
-            next_patch = ServerStatus.latest_version().split('.')
-            next_patch[-1] = str(int(next_patch[-1]) + 1)
-            next_patch_str = '.'.join(next_patch)
+            next_patch_str = server.get_next_patch()
             
             BaseCharacterStats.objects.create(
                 char_type = a.char_type,
