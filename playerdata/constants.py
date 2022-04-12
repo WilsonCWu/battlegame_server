@@ -100,7 +100,8 @@ class PurchaseID(Enum):
 SUMMON_GEM_COST = {
     "SUMMON1": 300,
     "SUMMON10": 2700,
-    "MYTHIC_CHEST": 2700
+    "MYTHIC_CHEST": 2700,
+    "FORTUNE_CHEST": 9000,
 }
 
 
