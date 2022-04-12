@@ -337,6 +337,8 @@ RESOURCE_SHOP_DEFAULT_REFRESHES = 2
 CHEST_ODDS = [750, 250, 0, 0, 0, 0]
 MIN_REWARDS_PER_CHEST = [3, 5, 10, 6, 1, 3]
 MAX_REWARDS_PER_CHEST = [3, 5, 10, 7, 1, 3]
+FORTUNE_CHEST_CHANCE = [700, 300]  # 70% chance to get fortune cards in fortune chest
+FORTUNE_CHEST_LEGENDARY_CHANCE = [100, 900]
 
 # Index for chest reward types corresponding to the values in the RESOURCE_TYPE_ODDS_PER_CHEST buckets
 REWARD_TYPE_INDEX = ['coins', 'gems', 'essence', 'char_id', 'item_id']
