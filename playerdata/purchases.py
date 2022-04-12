@@ -479,6 +479,8 @@ def handle_purchase_chest(user, purchase_id):
     rewards = []
     if purchase_id == constants.PurchaseID.MYTHIC_CHEST.value:
         rewards = chests.generate_chest_rewards(constants.ChestType.MYTHICAL.value, user)
+    elif purchase_id == constants.PurchaseID.FORTUNE_CHEST.value:
+        rewards = chests.generate_fortune_chest_rewards(user)
 
     chests.award_chest_rewards(user, rewards)
     return rewards
