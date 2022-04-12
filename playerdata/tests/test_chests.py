@@ -164,3 +164,18 @@ class ChestAPITestCase(APITestCase):
 
         self.assertTrue(self.chest1.locked_until < self.chest2.locked_until)
         self.assertTrue(self.chest2.locked_until > self.chest3.locked_until)
+
+
+class FortuneChestAPITestCase(APITestCase):
+    fixtures = ['playerdata/tests/fixtures.json']
+
+    def setUp(self):
+        self.u = User.objects.get(username='battlegame')
+        self.client.force_authenticate(user=self.u)
+
+    def test_get_chest(self):
+        response = self.client.get('/chest/fortune/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data['status'])
+        self.assertEqual(len(response.data['char_ids']), 3)

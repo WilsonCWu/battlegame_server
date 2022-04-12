@@ -1,7 +1,8 @@
 import math
 import random
-from datetime import timedelta, datetime, timezone
+from datetime import timedelta, datetime, timezone, date
 
+from cachetools.func import lru_cache
 from django.db import transaction
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -413,3 +414,30 @@ class QueueChestView(APIView):
 
         Chest.objects.bulk_update(chests, ['locked_until'])
         return Response({'status': True})
+
+
+@lru_cache()
+def get_daily_fortune_cards(ordinal_date: int):
+    rng = random.Random(ordinal_date)
+
+    rares = list(BaseCharacter.objects.filter(rarity=2, rollable=True).values_list('char_type', flat=True))
+    epics = list(BaseCharacter.objects.filter(rarity=3, rollable=True).values_list('char_type', flat=True))
+    legs = list(BaseCharacter.objects.filter(rarity=4, rollable=True).values_list('char_type', flat=True))
+
+    rare_char = rng.choice(rares)
+    epic_char = rng.choice(epics)
+    leg_char = rng.choice(legs)
+
+    return [rare_char, epic_char, leg_char]
+
+
+class GetFortuneChestView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        seed_int = date.today().toordinal()
+
+        return Response({
+            'status': True,
+            'char_ids': get_daily_fortune_cards(seed_int)
+        })

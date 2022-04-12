@@ -214,6 +214,7 @@ urlpatterns = [
     path('dungeon/stage', dungeon.DungeonStageView.as_view()),
     path('dungeon/setprogress/stage/', dungeon.DungeonSetProgressStageView.as_view()),
     path('dungeon/setprogress/commit/', dungeon.DungeonSetProgressCommitView.as_view()),
+    path('chest/fortune/', chests.GetFortuneChestView.as_view()),
     path('chest/queue/', chests.QueueChestView.as_view()),
     path('chest/unlock/', chests.UnlockChest.as_view()),
     path('chest/collect/', chests.CollectChest.as_view()),
