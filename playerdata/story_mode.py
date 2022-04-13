@@ -167,15 +167,15 @@ def story_rewards(story_id, story_tier: int, quest_num: int):
         rewards.append(chests.ChestReward(constants.RewardType.EPIC_SHARDS.value, epic_shards))
     else:
         rarity = base.get_char_rarity(story_id)
-        if rarity == 1:
+        if rarity == 2:
             rare_shards = 80 * 4
-            rewards.append(chests.ChestReward(constants.RewardType.RARE_SHARDS, rare_shards))
-        elif rarity == 2:
-            epic_shards = 80
-            rewards.append(chests.ChestReward(constants.RewardType.EPIC_SHARDS, epic_shards))
+            rewards.append(chests.ChestReward(constants.RewardType.RARE_SHARDS.value, rare_shards))
         elif rarity == 3:
+            epic_shards = 80
+            rewards.append(chests.ChestReward(constants.RewardType.EPIC_SHARDS.value, epic_shards))
+        elif rarity == 4:
             leg_shards = 10
-            rewards.append(chests.ChestReward(constants.RewardType.LEGENDARY_SHARDS, leg_shards))
+            rewards.append(chests.ChestReward(constants.RewardType.LEGENDARY_SHARDS.value, leg_shards))
 
         if story_tier < 2:
             # gold is still important
