@@ -420,9 +420,9 @@ class QueueChestView(APIView):
 def get_daily_fortune_cards(ordinal_date: int):
     rng = random.Random(ordinal_date)
 
-    rares = list(BaseCharacter.objects.filter(rarity=2, rollable=True).values_list('char_type', flat=True))
-    epics = list(BaseCharacter.objects.filter(rarity=3, rollable=True).values_list('char_type', flat=True))
-    legs = list(BaseCharacter.objects.filter(rarity=4, rollable=True).values_list('char_type', flat=True))
+    rares = list(BaseCharacter.objects.filter(rarity=2, rollable=True).order_by('char_type').values_list('char_type', flat=True))
+    epics = list(BaseCharacter.objects.filter(rarity=3, rollable=True).order_by('char_type').values_list('char_type', flat=True))
+    legs = list(BaseCharacter.objects.filter(rarity=4, rollable=True).order_by('char_type').values_list('char_type', flat=True))
 
     rare_char = rng.choice(rares)
     epic_char = rng.choice(epics)
@@ -444,7 +444,7 @@ class GetFortuneChestView(APIView):
 
 
 # Fortune chest drops 5 rares, 3 epics each time, with a 10% legendary
-# The chance of getting a fortune is 70%, and guaranteed at least 1 fortune of the 3
+# The chance of getting a fortune is 60% (higher factoring in pity), and guaranteed at least 1 fortune of the 3
 def generate_fortune_chest_rewards(user):
     rewards = []
     seed_int = date.today().toordinal()
@@ -452,17 +452,26 @@ def generate_fortune_chest_rewards(user):
 
     rewards.append(pick_resource_reward(user, 'coins', constants.ChestType.FORTUNE.value))
 
-    is_pity = False
+    is_fortune = {
+        2: rolls.weighted_pick_from_buckets(constants.FORTUNE_CHEST_CHANCE) == 0,  # Rare
+        3: rolls.weighted_pick_from_buckets(constants.FORTUNE_CHEST_CHANCE) == 0,  # Epic
+    }
+
+    # if no fortunes were rolled
+    if True not in is_fortune.values():
+        rand_fortune_rarity = random.randint(2, 3)
+        is_fortune[rand_fortune_rarity] = True
+
     for rarity, num_chars in enumerate(constants.GUARANTEED_CHARS_PER_RARITY_PER_CHEST[constants.ChestType.FORTUNE.value - 1]):
-        # 70% chance to draw the fortune card, or pity if the previous draw wasn't the fortune
-        if rolls.weighted_pick_from_buckets(constants.FORTUNE_CHEST_CHANCE) == 0 or is_pity:
-            rare_chars = [ChestReward(reward_type='char_id', value=fortune_cards[rarity-1])] * num_chars
-            rewards.extend(rare_chars)
+        # 60% chance to draw the fortune card, or pity if the previous draw wasn't the fortune
+        fortune_char_type = fortune_cards[rarity-1]
+        if is_fortune[rarity]:
+            reward_chars = [ChestReward(reward_type='char_id', value=fortune_char_type)] * num_chars
+            rewards.extend(reward_chars)
         else:
-            is_pity = True  # Guarantee at least 1 of the rare/epic cards as a pity
-            for _ in range(0, num_chars):
-                char_id = rolls.get_rand_base_char_from_rarity(rarity + 1).char_type
-                rewards.append(ChestReward(reward_type='char_id', value=char_id))
+            char_id = rolls.get_rand_base_char_from_rarity_exclude(rarity + 1, [fortune_char_type]).char_type
+            reward_chars = [ChestReward(reward_type='char_id', value=char_id)] * num_chars
+            rewards.extend(reward_chars)
 
     # add legendary pity one in every 10 chests guaranteed
     if rolls.weighted_pick_from_buckets(constants.FORTUNE_CHEST_LEGENDARY_CHANCE) == 0 or user.userstats.fortune_pity_counter == 9:

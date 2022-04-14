@@ -92,6 +92,15 @@ def get_rand_base_char_from_rarity(rarity, available_chars=None) -> BaseCharacte
     return chosen_char
 
 
+def get_rand_base_char_from_rarity_exclude(rarity, excluded_chars) -> BaseCharacter:
+    base_chars = BaseCharacter.objects.filter(rarity=rarity, rollable=True).exclude(char_type__in=excluded_chars)
+    num_chars = base_chars.count()
+    if num_chars == 0:
+        return None
+    chosen_char = base_chars[random.randrange(num_chars)]
+    return chosen_char
+
+
 def insert_character(user, chosen_char_id):
     old_char = Character.objects.filter(user=user, char_type_id=chosen_char_id).first()
 
