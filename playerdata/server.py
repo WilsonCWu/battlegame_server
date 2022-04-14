@@ -17,6 +17,12 @@ def is_server_version_higher(version_num):
     return version.parse(latest_version.version_number) > version.parse(version_num)
 
 
+def get_next_patch():
+    next_patch = ServerStatus.latest_version().split('.')
+    next_patch[-1] = str(int(next_patch[-1]) + 1)
+    return '.'.join(next_patch)
+
+
 class ServerStatusView(APIView):
     def get(self, request):
         latest_version = ServerStatus.objects.filter(event_type='V').latest('creation_time')
