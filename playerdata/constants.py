@@ -95,11 +95,13 @@ TOURNEY_SIZE = 8
 # Purchases constants
 class PurchaseID(Enum):
     MYTHIC_CHEST = "MYTHIC_CHEST"
+    FORTUNE_CHEST = "FORTUNE_CHEST"
 
 SUMMON_GEM_COST = {
     "SUMMON1": 300,
     "SUMMON10": 2700,
-    "MYTHIC_CHEST": 2700
+    "MYTHIC_CHEST": 2700,
+    "FORTUNE_CHEST": 9000,
 }
 
 
@@ -307,6 +309,7 @@ class ChestType(Enum):
     LEGENDARY = 5
     DAILY_DUNGEON = 6
     LOGIN_GEMS = 7
+    FORTUNE = 8
 
 
 class RewardType(Enum):
@@ -334,6 +337,8 @@ RESOURCE_SHOP_DEFAULT_REFRESHES = 2
 CHEST_ODDS = [750, 250, 0, 0, 0, 0]
 MIN_REWARDS_PER_CHEST = [3, 5, 10, 6, 1, 3]
 MAX_REWARDS_PER_CHEST = [3, 5, 10, 7, 1, 3]
+FORTUNE_CHEST_CHANCE = [600, 400]  # 60% chance to get fortune cards in fortune chest
+FORTUNE_CHEST_LEGENDARY_CHANCE = [100, 900]
 
 # Index for chest reward types corresponding to the values in the RESOURCE_TYPE_ODDS_PER_CHEST buckets
 REWARD_TYPE_INDEX = ['coins', 'gems', 'essence', 'char_id', 'item_id']
@@ -349,12 +354,14 @@ RESOURCE_TYPE_ODDS_PER_CHEST = [
     [200, 200, 100, 300, 200],  # EPIC
     [200, 200, 100, 300, 200],  # LEGENDARY
     [350, 0, 350, 150, 150],  # DAILY_DUNGEON
+    [200, 600, 200, 0, 0],  # LOGIN_GEMS
+    [200, 600, 200, 0, 0],  # FORTUNE
 ]
 
 CHEST_GEMS_PER_HOUR = 120
 
 # Number of guaranteed summons per chest rarity
-GUARANTEED_SUMMONS = [1, 3, 8, 0, 1, 1]
+GUARANTEED_SUMMONS = [1, 3, 8, 0, 1, 1, 0, 8]
 
 
 # The number of chars of each char_rarity guaranteed for a chest_rarity
@@ -366,6 +373,8 @@ GUARANTEED_CHARS_PER_RARITY_PER_CHEST = [
     [0, 0, 5, 0],  # EPIC
     [0, 0, 0, 1],  # LEGENDARY
     [0, 0, 0, 0],  # DAILY_DUNGEON
+    [0, 0, 0, 0],  # LOGIN_GEMS
+    [0, 5, 3, 0]  # FORTUNE
 ]
 
 # Odds of getting each rarity char on non-guaranteed roll
@@ -377,6 +386,8 @@ REGULAR_CHAR_ODDS_PER_CHEST = [
     [0, 0, 1000, 0],  # EPIC
     [0, 100, 550, 350],  # LEGENDARY
     [0, 890, 100, 10],  # DAILY_DUNGEON
+    [0, 890, 100, 10],  # LOGIN_GEMS
+    [0, 890, 100, 10],  # FORTUNE
 ]
 
 # Odds of getting each rarity item on non-guaranteed roll
@@ -388,6 +399,8 @@ REGULAR_ITEM_ODDS_PER_CHEST = [
     [0, 0, 0, 1000, 0],  # EPIC
     [0, 0, 0, 0, 1000],  # LEGENDARY
     [400, 400, 200, 0, 0],  # DAILY_DUNGEON
+    [400, 400, 200, 0, 0],  # LOGIN_GEMS
+    [300, 400, 300, 0, 0],  # FORTUNE
 ]
 
 AFK_SHARD_DROP_RATE = [0, 0, 890, 100, 10]

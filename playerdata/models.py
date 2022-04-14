@@ -604,6 +604,7 @@ class UserStats(models.Model):
     chest_counter = models.IntegerField(default=0)
     silver_chest_counter = models.IntegerField(default=0)
     pvp_skips = models.IntegerField(default=5)
+    fortune_pity_counter = models.IntegerField(default=0)
 
     cumulative_stats = JSONField(blank=True, null=True, default=dict)
 
