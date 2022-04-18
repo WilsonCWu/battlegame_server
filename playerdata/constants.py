@@ -74,6 +74,7 @@ SEND_CHAT_MSG_GLOBAL = 30
 SEND_CHAT_TO_CLAN = 31
 ASCEND_X_HEROES = 32
 WIN_X_TROPHIES = 33
+UPGRADE_ITEM_POINTS = 34
 
 
 # Namespace: everything in the 100s is a char_id + 100 for a quest 'Win X games' with that char
