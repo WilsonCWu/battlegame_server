@@ -465,7 +465,7 @@ def generate_fortune_chest_rewards(user):
     for rarity, num_chars in enumerate(constants.GUARANTEED_CHARS_PER_RARITY_PER_CHEST[constants.ChestType.FORTUNE.value - 1]):
         # 60% chance to draw the fortune card, or pity if the previous draw wasn't the fortune
         fortune_char_type = fortune_cards[rarity-1]
-        if is_fortune[rarity]:
+        if rarity in is_fortune and is_fortune[rarity]:
             reward_chars = [ChestReward(reward_type='char_id', value=fortune_char_type)] * num_chars
             rewards.extend(reward_chars)
         else:

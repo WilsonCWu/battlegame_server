@@ -478,10 +478,13 @@ def count_char_copies(chars):
 def handle_purchase_chest(user, purchase_id):
     rewards = []
     if purchase_id == constants.PurchaseID.MYTHIC_CHEST.value:
+        user.userstats.mythical_chests_purchased += 1
         rewards = chests.generate_chest_rewards(constants.ChestType.MYTHICAL.value, user)
     elif purchase_id == constants.PurchaseID.FORTUNE_CHEST.value:
+        user.userstats.fortune_chests_purchased += 1
         rewards = chests.generate_fortune_chest_rewards(user)
 
+    user.userstats.save()
     chests.award_chest_rewards(user, rewards)
     return rewards
 
