@@ -172,7 +172,7 @@ def pick_resource_reward(user, resource_type, chest_rarity, chest_tier=None):
 
 # randomly pick item from rarity buckets
 def pick_reward_item(user, chest_rarity):
-    rarity_odds = constants.REGULAR_ITEM_ODDS_PER_CHEST[chest_rarity - 1]
+    rarity_odds = constants.REGULAR_ITEM_ODDS_PER_CHEST[chest_rarity]
     item = rolls.get_weighted_odds_item(rarity_odds)
 
     # check for unique items
@@ -188,7 +188,7 @@ def pick_reward_item(user, chest_rarity):
 
 # randomly pick char from rarity buckets
 def pick_reward_char(user, chest_rarity):
-    rarity_odds = constants.REGULAR_CHAR_ODDS_PER_CHEST[chest_rarity - 1]
+    rarity_odds = constants.REGULAR_CHAR_ODDS_PER_CHEST[chest_rarity]
     char_id = rolls.get_weighted_odds_character(rarity_odds).char_type
     if user.wishlist.is_active:
         char_id = rolls.get_wishlist_odds_char_type(user.wishlist, rarity_odds)
@@ -283,17 +283,17 @@ def generate_chest_rewards(chest_rarity: int, user, chest_tier=None):
         chest_tier = user.userinfo.tier_rank
 
     rewards = []
-    num_rewards = random.randint(constants.MIN_REWARDS_PER_CHEST[chest_rarity - 1],
-                                 constants.MAX_REWARDS_PER_CHEST[chest_rarity - 1])
+    num_rewards = random.randint(constants.MIN_REWARDS_PER_CHEST[chest_rarity],
+                                 constants.MAX_REWARDS_PER_CHEST[chest_rarity])
 
     # Get the odds for getting each type of reward for respective chest rarity
-    resource_reward_odds = constants.RESOURCE_TYPE_ODDS_PER_CHEST[chest_rarity - 1]
+    resource_reward_odds = constants.RESOURCE_TYPE_ODDS_PER_CHEST[chest_rarity]
     rewards, num_rewards = guarantee_resources(rewards, num_rewards, chest_rarity, user, chest_tier)
 
     # TODO(daniel): this should go after we guarantee number of summons,
     #  and only if guaranteed rarity wasn't rolled do we roll one
     # pick guaranteed char rarities
-    char_guarantees = constants.GUARANTEED_CHARS_PER_RARITY_PER_CHEST[chest_rarity - 1]
+    char_guarantees = constants.GUARANTEED_CHARS_PER_RARITY_PER_CHEST[chest_rarity]
     guaranteed_char_rewards = roll_guaranteed_char_rewards(char_guarantees)
     rewards.extend(guaranteed_char_rewards)
     num_rewards -= len(guaranteed_char_rewards)
@@ -462,7 +462,7 @@ def generate_fortune_chest_rewards(user):
         rand_fortune_rarity = random.randint(2, 3)
         is_fortune[rand_fortune_rarity] = True
 
-    for rarity, num_chars in enumerate(constants.GUARANTEED_CHARS_PER_RARITY_PER_CHEST[constants.ChestType.FORTUNE.value - 1]):
+    for rarity, num_chars in enumerate(constants.GUARANTEED_CHARS_PER_RARITY_PER_CHEST[constants.ChestType.FORTUNE.value]):
         # 60% chance to draw the fortune card, or pity if the previous draw wasn't the fortune
         fortune_char_type = fortune_cards[rarity-1]
         if rarity in is_fortune and is_fortune[rarity]:

@@ -79,7 +79,7 @@ def redeem(request):
 
 
 def chest_droprate(chest_type, rarity, num_rarity):
-    rarity_odds = constants.REGULAR_CHAR_ODDS_PER_CHEST[chest_type - 1][rarity - 1] / 1000
+    rarity_odds = constants.REGULAR_CHAR_ODDS_PER_CHEST[chest_type][rarity - 1] / 1000
     return round(rarity_odds / num_rarity, 3)
 
 
