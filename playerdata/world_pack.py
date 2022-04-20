@@ -71,7 +71,7 @@ def get_world_packs(user):
 
     elif world < 10:
         gems1 = (world * 40) + 500
-        gems2 = (world * 40) + 24000
+        gems2 = (world * 40) + 19000
         coin_hours = 24
         dust_hours = 36
 
@@ -98,9 +98,9 @@ def get_world_packs(user):
 
     else:
         dust = 8000 + (world // 2) * 100
-        gems1 = (world * 50) + 2300
-        gems2 = (world * 100) + 23000
-        gems3 = (world * 100) + 49000
+        gems1 = (world * 50) + 9000
+        gems2 = (world * 100) + 20000
+        gems3 = (world * 100) + 42000
 
         pack_1 = WorldPackIAP(world, constants.WORLD_PACK_2,
                               [chests.ChestReward(reward_type=constants.RewardType.GEMS.value, value=gems1),
