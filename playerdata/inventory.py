@@ -527,7 +527,7 @@ def scrap_items(scraps, target_item):
     scraps.delete()
     target_item.exp += total_exp
     target_item.save()
-    return target_item
+    return target_item, total_exp
 
 
 class ScrapItemsView(APIView):
@@ -557,9 +557,10 @@ class ScrapItemsView(APIView):
         if exp_to_stars(target_item.exp, target_item.item_type.rarity) == MAX_ITEM_STAR:
             return Response({'status': False, 'reason': 'max star level reached'})
 
-        target_item = scrap_items(scraps, target_item)
+        target_item, exp_upgraded = scrap_items(scraps, target_item)
 
         QuestUpdater.add_progress_by_type(request.user, constants.UPGRADE_ITEM, 1)
+        QuestUpdater.add_progress_by_type(request.user, constants.UPGRADE_ITEM_POINTS, exp_upgraded)
 
         target_item_schema = ItemSchema(target_item)
         return Response({'status': True, 'target_item': target_item_schema.data})

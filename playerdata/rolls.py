@@ -21,7 +21,7 @@ def weighted_pick_from_buckets(buckets):
 # returns a random BaseItem with weighted odds
 def get_weighted_odds_item(rarity_odds=None, excluded_ids=None):
     if rarity_odds is None:
-        rarity_odds = constants.REGULAR_ITEM_ODDS_PER_CHEST[0]  # default SILVER chest rarity odds
+        rarity_odds = constants.REGULAR_ITEM_ODDS_PER_CHEST[constants.ChestType.SILVER.value]  # default SILVER chest rarity odds
 
     rarity = constants.ITEM_RARITY_INDEX[weighted_pick_from_buckets(rarity_odds)]
     return get_rand_base_item_from_rarity(rarity, excluded_ids)

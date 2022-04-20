@@ -559,6 +559,7 @@ class CreateClanRequestView(APIView):
         if ClanRequest.objects.filter(userinfo=userinfo, clan2=target_clan).exists():
             return Response({'status': False, 'reason': 'Clan request already exists.'})
 
+        QuestUpdater.add_progress_by_type(request.user, constants.JOIN_GUILD, 1)
         ClanRequest.objects.create(userinfo=userinfo, clan2=target_clan)
         return Response({'status': True})
 

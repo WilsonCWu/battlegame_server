@@ -4,7 +4,7 @@ import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from mainsocket import notifications
-from playerdata import questupdater, event_times, world_pack
+from playerdata import questupdater, event_times, world_pack, constants
 
 
 # Channel group is the user_id
@@ -43,6 +43,9 @@ class MainSocketConsumer(WebsocketConsumer):
 
         if self.user.storymode.current_tier > -1:
             self.poll_server('show_storymode', {})
+
+        if self.user.dungeonprogress.campaign_stage >= constants.FORTUNE_CHEST_UNLOCK_STAGE:
+            self.poll_server('show_fortune', {})
 
     def disconnect(self, close_code):
         # Leave room group

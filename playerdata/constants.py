@@ -25,6 +25,7 @@ WEEKLY_QUEST_POOL_IDS = [13, 34, 45, 46, 151, 328, 413, 419, 423]
 
 DUNGEON_REFERRAL_CONVERSION_STAGE = 200
 LEVEL_BOOSTER_UNLOCK_STAGE = 40*3  # TODO: tune based on player charts
+FORTUNE_CHEST_UNLOCK_STAGE = 40*4
 REFEREE_GEMS_REWARD = 2500
 REFERER_GEMS_REWARD = 500
 
@@ -74,6 +75,7 @@ SEND_CHAT_MSG_GLOBAL = 30
 SEND_CHAT_TO_CLAN = 31
 ASCEND_X_HEROES = 32
 WIN_X_TROPHIES = 33
+UPGRADE_ITEM_POINTS = 34
 
 
 # Namespace: everything in the 100s is a char_id + 100 for a quest 'Win X games' with that char
@@ -335,8 +337,23 @@ class RewardType(Enum):
 RESOURCE_SHOP_DEFAULT_REFRESHES = 2
 
 CHEST_ODDS = [750, 250, 0, 0, 0, 0]
-MIN_REWARDS_PER_CHEST = [3, 5, 10, 6, 1, 3]
-MAX_REWARDS_PER_CHEST = [3, 5, 10, 7, 1, 3]
+
+MIN_REWARDS_PER_CHEST = {
+    ChestType.SILVER.value: 3,
+    ChestType.GOLD.value: 5,
+    ChestType.MYTHICAL.value: 10,
+    ChestType.EPIC.value: 6,
+    ChestType.LEGENDARY.value: 1,
+    ChestType.DAILY_DUNGEON.value: 3,
+}
+MAX_REWARDS_PER_CHEST = {
+    ChestType.SILVER.value: 3,
+    ChestType.GOLD.value: 5,
+    ChestType.MYTHICAL.value: 10,
+    ChestType.EPIC.value: 7,
+    ChestType.LEGENDARY.value: 1,
+    ChestType.DAILY_DUNGEON.value: 3,
+}
 FORTUNE_CHEST_CHANCE = [600, 400]  # 60% chance to get fortune cards in fortune chest
 FORTUNE_CHEST_LEGENDARY_CHANCE = [100, 900]
 
@@ -347,16 +364,16 @@ REWARD_TYPE_INDEX = ['coins', 'gems', 'essence', 'char_id', 'item_id']
 # Each column represents: ['coins', 'gems', 'essence', 'char_id', 'item_id']
 # Ex: RESOURCE_TYPE_ODDS[0][0] are the odds to get a 'coins' reward for a SILVER chest
 # NOTE: each row should total to 1000
-RESOURCE_TYPE_ODDS_PER_CHEST = [
-    [200, 600, 200, 0, 0],  # SILVER
-    [200, 600, 200, 0, 0],  # GOLD
-    [100, 400, 100, 200, 200],  # MYTHICAL
-    [200, 200, 100, 300, 200],  # EPIC
-    [200, 200, 100, 300, 200],  # LEGENDARY
-    [350, 0, 350, 150, 150],  # DAILY_DUNGEON
-    [200, 600, 200, 0, 0],  # LOGIN_GEMS
-    [200, 600, 200, 0, 0],  # FORTUNE
-]
+RESOURCE_TYPE_ODDS_PER_CHEST = {
+    ChestType.SILVER.value: [200, 600, 200, 0, 0],  # SILVER
+    ChestType.GOLD.value: [200, 600, 200, 0, 0],  # GOLD
+    ChestType.MYTHICAL.value: [100, 400, 100, 200, 200],  # MYTHICAL
+    ChestType.EPIC.value: [200, 200, 100, 300, 200],  # EPIC
+    ChestType.LEGENDARY.value: [200, 200, 100, 300, 200],  # LEGENDARY
+    ChestType.DAILY_DUNGEON.value: [350, 0, 350, 150, 150],  # DAILY_DUNGEON
+    ChestType.LOGIN_GEMS.value: [200, 600, 200, 0, 0],  # LOGIN_GEMS
+    ChestType.FORTUNE.value: [200, 600, 200, 0, 0],  # FORTUNE
+}
 
 CHEST_GEMS_PER_HOUR = 120
 
@@ -366,42 +383,42 @@ GUARANTEED_SUMMONS = [1, 3, 8, 0, 1, 1, 0, 8]
 
 # The number of chars of each char_rarity guaranteed for a chest_rarity
 # Ex: CHAR_RARITY_GUARANTEE[0][0] is number of guaranteed rarity=1 chars for a SILVER chest
-GUARANTEED_CHARS_PER_RARITY_PER_CHEST = [
-    [0, 0, 0, 0],  # SILVER
-    [0, 0, 0, 0],  # GOLD
-    [0, 0, 1, 0],  # MYTHICAL
-    [0, 0, 5, 0],  # EPIC
-    [0, 0, 0, 1],  # LEGENDARY
-    [0, 0, 0, 0],  # DAILY_DUNGEON
-    [0, 0, 0, 0],  # LOGIN_GEMS
-    [0, 5, 3, 0]  # FORTUNE
-]
+GUARANTEED_CHARS_PER_RARITY_PER_CHEST = {
+    ChestType.SILVER.value: [0, 0, 0, 0],  # SILVER
+    ChestType.GOLD.value: [0, 0, 0, 0],  # GOLD
+    ChestType.MYTHICAL.value: [0, 0, 1, 0],  # MYTHICAL
+    ChestType.EPIC.value: [0, 0, 5, 0],  # EPIC
+    ChestType.LEGENDARY.value: [0, 0, 0, 1],  # LEGENDARY
+    ChestType.DAILY_DUNGEON.value: [0, 0, 0, 0],  # DAILY_DUNGEON
+    ChestType.LOGIN_GEMS.value: [0, 0, 0, 0],  # LOGIN_GEMS
+    ChestType.FORTUNE.value: [0, 5, 3, 0]  # FORTUNE
+}
 
 # Odds of getting each rarity char on non-guaranteed roll
 # NOTE: each row should total to 1000
-REGULAR_CHAR_ODDS_PER_CHEST = [
-    [0, 890, 100, 10],  # SILVER
-    [0, 890, 100, 10],  # GOLD
-    [0, 770, 200, 30],  # MYTHICAL
-    [0, 0, 1000, 0],  # EPIC
-    [0, 100, 550, 350],  # LEGENDARY
-    [0, 890, 100, 10],  # DAILY_DUNGEON
-    [0, 890, 100, 10],  # LOGIN_GEMS
-    [0, 890, 100, 10],  # FORTUNE
-]
+REGULAR_CHAR_ODDS_PER_CHEST = {
+    ChestType.SILVER.value: [0, 890, 100, 10],  # SILVER
+    ChestType.GOLD.value: [0, 890, 100, 10],  # GOLD
+    ChestType.MYTHICAL.value: [0, 770, 200, 30],  # MYTHICAL
+    ChestType.EPIC.value: [0, 0, 1000, 0],  # EPIC
+    ChestType.LEGENDARY.value: [0, 100, 550, 350],  # LEGENDARY
+    ChestType.DAILY_DUNGEON.value: [0, 890, 100, 10],  # DAILY_DUNGEON
+    ChestType.LOGIN_GEMS.value: [0, 890, 100, 10],  # LOGIN_GEMS
+    ChestType.FORTUNE.value: [0, 890, 100, 10],  # FORTUNE
+}
 
 # Odds of getting each rarity item on non-guaranteed roll
 # NOTE: each row should total to 1000
-REGULAR_ITEM_ODDS_PER_CHEST = [
-    [400, 400, 200, 0, 0],  # SILVER
-    [300, 400, 300, 0, 0],  # GOLD
-    [420, 350, 200, 30, 0],  # MYTHICAL
-    [0, 0, 0, 1000, 0],  # EPIC
-    [0, 0, 0, 0, 1000],  # LEGENDARY
-    [400, 400, 200, 0, 0],  # DAILY_DUNGEON
-    [400, 400, 200, 0, 0],  # LOGIN_GEMS
-    [300, 400, 300, 0, 0],  # FORTUNE
-]
+REGULAR_ITEM_ODDS_PER_CHEST = {
+    ChestType.SILVER.value: [400, 400, 200, 0, 0],  # SILVER
+    ChestType.GOLD.value: [300, 400, 300, 0, 0],  # GOLD
+    ChestType.MYTHICAL.value: [420, 350, 200, 30, 0],  # MYTHICAL
+    ChestType.EPIC.value: [0, 0, 0, 1000, 0],  # EPIC
+    ChestType.LEGENDARY.value: [0, 0, 0, 0, 1000],  # LEGENDARY
+    ChestType.DAILY_DUNGEON.value: [400, 400, 200, 0, 0],  # DAILY_DUNGEON
+    ChestType.LOGIN_GEMS.value: [400, 400, 200, 0, 0],  # LOGIN_GEMS
+    ChestType.FORTUNE.value: [300, 400, 300, 0, 0],  # FORTUNE
+}
 
 AFK_SHARD_DROP_RATE = [0, 0, 890, 100, 10]
 AFK_BASE_SHARD_REWARD = [0, 0, 8, 10, 4]
