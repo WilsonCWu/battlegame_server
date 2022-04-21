@@ -92,9 +92,9 @@ class RedeemTutorialCharView(APIView):
     def post(self, request):
         serializer = IntSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        char_id = serializer.validated_data['value']
+        char_type = serializer.validated_data['value']
 
-        if char_id not in TUTORIAL_CHARS:
+        if char_type not in TUTORIAL_CHARS:
             return Response({'status': False, 'reason': 'invalid char id'})
 
         if ClaimedCode.objects.filter(user=request.user, code__code=TUTORIAL_CHAR_BASE_CODE).exists():
@@ -104,6 +104,6 @@ class RedeemTutorialCharView(APIView):
         if base_code is None:
             return Response({'status': False, 'reason': 'invalid redemption code'})
 
-        rolls.insert_character(request.user, char_id)
+        rolls.insert_character(request.user, char_type)
         ClaimedCode.objects.create(user=request.user, code=base_code)
         return Response({'status': True})
