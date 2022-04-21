@@ -139,6 +139,7 @@ urlpatterns = [
     path('creatorcode/set/', creatorcode.CreatorCodeChangeView.as_view()),
     path('creatorcode/claim/', creatorcode.CreatorCodeClaimView.as_view()),
     path('redeemcode', redemptioncodes.RedeemCodeView.as_view()),
+    path('redeem/tutorialchar/', redemptioncodes.RedeemTutorialCharView.as_view()),
     path('fastrewards/collect/', afk_rewards.CollectFastRewardsView.as_view()),
     path('afkrewards/get', afk_rewards.GetAFKRewardView.as_view()),
     path('afkrewards/collect', afk_rewards.CollectAFKRewardView.as_view()),
