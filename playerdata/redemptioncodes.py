@@ -11,7 +11,10 @@ from playerdata.models import BaseCode
 from playerdata.models import ClaimedCode
 from . import rolls, server
 
-from .serializers import RedeemCodeSerializer
+from .serializers import RedeemCodeSerializer, IntSerializer
+
+TUTORIAL_CHARS = [4, 18, 24]
+TUTORIAL_CHAR_BASE_CODE = "tutorial_char_code"
 
 
 class RedeemCodeSchema(Schema):
@@ -80,3 +83,27 @@ class RedeemCodeView(APIView):
             return Response({'status': True, 'redeem_code': redeem_code_schema.data})
 
         return Response(redeem_code_schema.data)
+
+
+class RedeemTutorialCharView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    @transaction.atomic
+    def post(self, request):
+        serializer = IntSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        char_id = serializer.validated_data['value']
+
+        if char_id not in TUTORIAL_CHARS:
+            return Response({'status': False, 'reason': 'invalid char id'})
+
+        if ClaimedCode.objects.filter(user=request.user, code__code=TUTORIAL_CHAR_BASE_CODE).exists():
+            return Response({'status': False, 'reason': 'code has been redeemed already'})
+
+        base_code = BaseCode.objects.filter(code=TUTORIAL_CHAR_BASE_CODE).first()
+        if base_code is None:
+            return Response({'status': False, 'reason': 'invalid redemption code'})
+
+        rolls.insert_character(request.user, char_id)
+        ClaimedCode.objects.create(user=request.user, code=base_code)
+        return Response({'status': True})
