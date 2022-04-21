@@ -37,7 +37,7 @@ def redeem(request):
         return render(request, 'redeem.html', {'error': 'Invalid form contains errors'})
 
     otp = form.cleaned_data['otp']
-    code = form.cleaned_data['code']
+    code = form.cleaned_data['code'].lower()
 
     user_id_index = otp.find("-")
     if user_id_index == -1:
