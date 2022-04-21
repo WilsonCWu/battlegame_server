@@ -454,3 +454,13 @@ def clawback_levelbooster_levels():
     ids = list(lvl_boosters.values_list('user_id', flat=True))
     msg = "From the latest Star Seeker changes, we've shifted the cost of not needing more than 5 manually leveled characters into the Star Seeker. As part of this reorganization, we've adjusted your current Star Seeker levels to match the new costs (you shouldn't see more than a few levels adjustment). We apologize for any inconvenience and have given out a gem reward as compensation as well.\n\nThank you and battle on!"
     send_inbox("Star Seeker Compensation", msg, ids, 2000)
+
+
+@transaction.atomic()
+def backfill_wishlist():
+    Wishlist.objects.filter(user__dungeonprogress__campaign_stage__gte=constants.WISHLIST_UNLOCK_STAGE, is_active=False).update(is_active=True)
+
+
+@transaction.atomic()
+def backfill_lvl_booster():
+    LevelBooster.objects.filter(user__dungeonprogress__campaign_stage__gte=constants.LEVEL_BOOSTER_UNLOCK_STAGE, is_active=False).update(is_active=True)

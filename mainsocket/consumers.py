@@ -35,12 +35,15 @@ class MainSocketConsumer(WebsocketConsumer):
         if world_pack.show_world_pack_popup(self.user):
             self.poll_server('show_worldpack', {})
 
+        # TODO: remove after 1.1.5
         if self.user.wishlist.is_active:
             self.poll_server('show_wishlist', {})
 
+        # TODO: remove after 1.1.5
         if self.user.levelbooster.is_active:
             self.poll_server('show_lvlbooster', {})
 
+        # TODO: remove after 1.1.5
         if self.user.storymode.current_tier > -1:
             self.poll_server('show_storymode', {})
 

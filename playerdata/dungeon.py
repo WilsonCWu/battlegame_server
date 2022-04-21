@@ -133,8 +133,10 @@ class DungeonSetProgressCommitView(APIView):
 
         if dungeon_type == constants.DungeonType.CAMPAIGN.value:
             stage = progress.campaign_stage
-            if constants.DUNGEON_REFERRAL_CONVERSION_STAGE <= stage <= constants.DUNGEON_REFERRAL_CONVERSION_STAGE + 5:
+            if constants.DUNGEON_REFERRAL_CONVERSION_STAGE == stage:
                 complete_referral_conversion(request.user)
+
+            if stage == constants.WISHLIST_UNLOCK_STAGE:
                 wishlist.init_wishlist(request.user)
 
             if stage % 40 == 0 and request.user.chapterrewardpack.is_active:
