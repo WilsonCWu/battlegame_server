@@ -8,7 +8,7 @@ from playerdata import chests, constants, base
 from playerdata.models import StoryQuest
 from playerdata.serializers import IntSerializer, CharStateResultSerializer
 
-CHARACTER_POOLS = [[1, 4]]  # TODO: more on the way as etilon works on dialogue
+CHARACTER_POOLS = [[1, 4, 12]]  # TODO: more on the way as etilon works on dialogue
 CHAR_POOL_CAMPAIGN_STAGE_UNLOCK = [24]  # stage that unlocks the respective character pool tiers
 MAX_NUM_QUESTS = 5
 
