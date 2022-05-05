@@ -385,14 +385,14 @@ GUARANTEED_SUMMONS = [1, 3, 8, 0, 1, 1, 0, 8]
 # The number of chars of each char_rarity guaranteed for a chest_rarity
 # Ex: CHAR_RARITY_GUARANTEE[0][0] is number of guaranteed rarity=1 chars for a SILVER chest
 GUARANTEED_CHARS_PER_RARITY_PER_CHEST = {
-    ChestType.SILVER.value: [0, 0, 0, 0],  # SILVER
-    ChestType.GOLD.value: [0, 0, 0, 0],  # GOLD
-    ChestType.MYTHICAL.value: [0, 0, 1, 0],  # MYTHICAL
-    ChestType.EPIC.value: [0, 0, 5, 0],  # EPIC
-    ChestType.LEGENDARY.value: [0, 0, 0, 1],  # LEGENDARY
-    ChestType.DAILY_DUNGEON.value: [0, 0, 0, 0],  # DAILY_DUNGEON
-    ChestType.LOGIN_GEMS.value: [0, 0, 0, 0],  # LOGIN_GEMS
-    ChestType.FORTUNE.value: [0, 5, 3, 0]  # FORTUNE
+    ChestType.SILVER.value: [0, 0, 0, 0, 0],  # SILVER
+    ChestType.GOLD.value: [0, 0, 0, 0, 0],  # GOLD
+    ChestType.MYTHICAL.value: [0, 0, 0, 1, 0],  # MYTHICAL
+    ChestType.EPIC.value: [0, 0, 0, 5, 0],  # EPIC
+    ChestType.LEGENDARY.value: [0, 0, 0, 0, 1],  # LEGENDARY
+    ChestType.DAILY_DUNGEON.value: [0, 0, 0, 0, 0],  # DAILY_DUNGEON
+    ChestType.LOGIN_GEMS.value: [0, 0, 0, 0, 0],  # LOGIN_GEMS
+    ChestType.FORTUNE.value: [0, 0, 5, 3, 0]  # FORTUNE
 }
 
 # Odds of getting each rarity char on non-guaranteed roll
