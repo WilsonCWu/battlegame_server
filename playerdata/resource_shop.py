@@ -76,12 +76,15 @@ class GetResourceShopView(APIView):
 
 # increase by 50 dust every 60 stages, capped at 500
 def resource_shop_dust_reward(dungeon_stage: int):
-    return min((dungeon_stage // 60) * 50, 500)
+    MAX_SHOP_DUST = 500
+    dust_multiple = 50
+    return min((dungeon_stage // 60) * dust_multiple, MAX_SHOP_DUST)
 
 
 def resource_shop_coins_cost_for_dust(dungeon_stage: int):
     afk_gold = formulas.afk_coins_per_min(dungeon_stage) * 60 * 24
-    return min(afk_gold * 1.3, 2250000)  # cap at 2.25M
+    gold_multiple = 1.2
+    return min(afk_gold * gold_multiple, 2250000)  # cap at 2.25M
 
 
 class BuyResourceShopItemView(APIView):
