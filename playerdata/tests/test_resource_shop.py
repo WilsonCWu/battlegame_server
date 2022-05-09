@@ -13,17 +13,17 @@ class ResourceShopAPITestCase(APITestCase):
         self.client.force_authenticate(user=self.u)
 
         BaseResourceShopItem.objects.create(id=1, reward_type=constants.RewardType.DUST.value, reward_value=250,
-                                            cost_type=constants.RewardType.COINS.value, cost_value=100000)
+                                            cost_type=constants.RewardType.GEMS.value, cost_value=300)
 
     def test_get_shop(self):
         resp = self.client.get('/resourceshop/get/')
 
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(resp.data['status'])
-        self.assertEqual(resp.data['shop_items'][0]['reward_value'], 250)
+        self.assertEqual(resp.data['shop_items'][0]['cost_value'], 300)
 
     def test_purchase(self):
-        self.u.inventory.coins = 100000
+        self.u.inventory.gems = 100000
         self.u.inventory.save()
 
         resp = self.client.post('/resourceshop/buy/', {
@@ -34,7 +34,7 @@ class ResourceShopAPITestCase(APITestCase):
         self.assertTrue(resp.data['status'])
 
     def test_purchase_duplicate(self):
-        self.u.inventory.coins = 200000
+        self.u.inventory.gems = 200000
         self.u.inventory.save()
 
         resp = self.client.post('/resourceshop/buy/', {
@@ -52,8 +52,7 @@ class ResourceShopAPITestCase(APITestCase):
         self.assertFalse(resp.data['status'])
 
     def test_reset_shop(self):
-        self.u.inventory.coins = 200000
-        self.u.inventory.gems = resource_shop.refresh_resource_shop_cost()
+        self.u.inventory.gems = 200000
         self.u.inventory.save()
 
         resp = self.client.post('/resourceshop/buy/', {

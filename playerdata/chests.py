@@ -202,7 +202,7 @@ def roll_guaranteed_char_rewards(char_guarantees):
     for i in range(len(char_guarantees)):
         # roll that many guaranteed chars
         for j in range(char_guarantees[i]):
-            char_id = rolls.get_rand_base_char_from_rarity(i + 1).char_type
+            char_id = rolls.get_rand_base_char_from_rarity(i).char_type
             char_reward = ChestReward(reward_type='char_id', value=char_id)
             rewards.append(char_reward)
     return rewards
@@ -463,13 +463,16 @@ def generate_fortune_chest_rewards(user):
         is_fortune[rand_fortune_rarity] = True
 
     for rarity, num_chars in enumerate(constants.GUARANTEED_CHARS_PER_RARITY_PER_CHEST[constants.ChestType.FORTUNE.value]):
+        if num_chars == 0:
+            continue
+
         # 60% chance to draw the fortune card, or pity if the previous draw wasn't the fortune
-        fortune_char_type = fortune_cards[rarity-1]
+        fortune_char_type = fortune_cards[rarity-2]
         if rarity in is_fortune and is_fortune[rarity]:
             reward_chars = [ChestReward(reward_type='char_id', value=fortune_char_type)] * num_chars
             rewards.extend(reward_chars)
         else:
-            char_id = rolls.get_rand_base_char_from_rarity_exclude(rarity + 1, [fortune_char_type]).char_type
+            char_id = rolls.get_rand_base_char_from_rarity_exclude(rarity, [fortune_char_type]).char_type
             reward_chars = [ChestReward(reward_type='char_id', value=char_id)] * num_chars
             rewards.extend(reward_chars)
 

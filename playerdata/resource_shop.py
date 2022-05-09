@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_marshmallow import Schema, fields
 
-from playerdata import chests, constants
+from playerdata import chests, constants, formulas
 from playerdata.models import BaseResourceShopItem, ResourceShop, BaseItem
 from playerdata.questupdater import QuestUpdater
 from playerdata.serializers import IntSerializer
@@ -57,12 +57,34 @@ class GetResourceShopView(APIView):
     def get(self, request):
         resource_shop, _ = ResourceShop.objects.get_or_create(user=request.user)
         shop_items = BaseResourceShopItem.objects.all().order_by('reward_type', 'id')
+
+        # dynamically change the dust and gold costs based on dungeon progress
+        for item in shop_items:
+            if item.cost_type == constants.RewardType.COINS.value and item.reward_type == constants.RewardType.DUST.value:
+                item.cost_value = resource_shop_coins_cost_for_dust(request.user.dungeonprogress.campaign_stage)
+
+            if item.reward_type == constants.RewardType.DUST.value:
+                item.reward_value = resource_shop_dust_reward(request.user.dungeonprogress.campaign_stage)
+
         return Response({'status': True,
                          'shop_items': ResourceShopItemSchema(shop_items, many=True).data,
                          'reset_time': resource_shop_reset(),
                          'purchased_items': resource_shop.purchased_items,
                          'refreshes_left': resource_shop.refreshes_left
                          })
+
+
+# increase by 50 dust every 60 stages, capped at 500
+def resource_shop_dust_reward(dungeon_stage: int):
+    MAX_SHOP_DUST = 500
+    dust_multiple = 50
+    return min((dungeon_stage // 60) * dust_multiple, MAX_SHOP_DUST)
+
+
+def resource_shop_coins_cost_for_dust(dungeon_stage: int):
+    afk_gold = formulas.afk_coins_per_min(dungeon_stage) * 60 * 24
+    gold_multiple = 1.2
+    return min(afk_gold * gold_multiple, 2250000)  # cap at 2.25M
 
 
 class BuyResourceShopItemView(APIView):
@@ -82,6 +104,12 @@ class BuyResourceShopItemView(APIView):
         base_shop_item = BaseResourceShopItem.objects.filter(id=shop_item_id).first()
         if base_shop_item is None:
             return Response({'status': False, 'reason': f'shop_item_id does not exist: ${shop_item_id}'})
+
+        if base_shop_item.cost_type == constants.RewardType.COINS.value and base_shop_item.reward_type == constants.RewardType.DUST.value:
+            base_shop_item.cost_value = resource_shop_coins_cost_for_dust(request.user.dungeonprogress.campaign_stage)
+
+        if base_shop_item.reward_type == constants.RewardType.DUST.value:
+            base_shop_item.reward_value = resource_shop_dust_reward(request.user.dungeonprogress.campaign_stage)
 
         existing_amount = getattr(request.user.inventory, base_shop_item.cost_type)
         if existing_amount < base_shop_item.cost_value:
