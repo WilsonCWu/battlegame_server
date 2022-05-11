@@ -355,7 +355,7 @@ MAX_REWARDS_PER_CHEST = {
     ChestType.LEGENDARY.value: 1,
     ChestType.DAILY_DUNGEON.value: 3,
 }
-FORTUNE_CHEST_CHANCE = [600, 400]  # 60% chance to get fortune cards in fortune chest
+FORTUNE_CHEST_CHANCE = [700, 300]  # 70% chance to get fortune cards in fortune chest
 FORTUNE_CHEST_LEGENDARY_CHANCE = [100, 900]
 
 # Index for chest reward types corresponding to the values in the RESOURCE_TYPE_ODDS_PER_CHEST buckets
