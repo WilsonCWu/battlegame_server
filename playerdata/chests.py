@@ -439,7 +439,8 @@ class GetFortuneChestView(APIView):
 
         return Response({
             'status': True,
-            'char_ids': get_daily_fortune_cards(seed_int)
+            'char_ids': get_daily_fortune_cards(seed_int),
+            'cost': constants.SUMMON_GEM_COST["FORTUNE_CHEST"],
         })
 
 
