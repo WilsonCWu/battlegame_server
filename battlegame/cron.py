@@ -5,7 +5,7 @@ from django.db.transaction import atomic
 from sentry_sdk import capture_exception
 from django_redis import get_redis_connection
 from datetime import timedelta
-from playerdata import tier_system, relic_shop, refunds, base, resource_shop, server
+from playerdata import tier_system, relic_shop, refunds, base, resource_shop, server, regal_rewards
 from playerdata.antihacking import MatchValidator
 from playerdata.constants import TOURNEY_SIZE
 from playerdata.daily_dungeon import daily_dungeon_team_gen_cron
@@ -188,6 +188,11 @@ def grass_event_token_drop_cron():
         event.tickets += 1
 
     GrassEvent.objects.bulk_update(grass_events, ['tickets'])
+
+
+@cron(uuid="6732858b-80ab-4d3f-88c1-c0a45f7a629e")
+def regal_rewards_cron():
+    regal_rewards.reset_regal_rewards_cron()
 
 
 # Take all registered users

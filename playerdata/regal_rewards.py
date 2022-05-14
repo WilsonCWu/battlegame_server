@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from django.db.transaction import atomic
@@ -8,7 +9,7 @@ from rest_marshmallow import Schema
 from marshmallow import fields
 
 from playerdata import chests
-from playerdata.models import RegalRewards
+from playerdata.models import RegalRewards, regal_rewards_refreshdate
 
 
 class RegalRewardsSchema(Schema):
@@ -116,3 +117,17 @@ class ClaimRegalRewardView(APIView):
 
         chests.award_chest_rewards(request.user, rewards)
         return Response({'status': True, 'rewards': chests.ChestRewardSchema(rewards, many=True).data})
+
+
+@atomic()
+def reset_regal_rewards_cron():
+    # reset all passes that are expired
+    today = datetime.today()
+    refresh_time = datetime(today.year, today.month, today.day, 0)
+    new_expiration_date = regal_rewards_refreshdate()
+    RegalRewards.objects.filter(expiration_date__lt=refresh_time).update(is_premium=False,
+                                                                         expiration_date=new_expiration_date,
+                                                                         points=0,
+                                                                         last_completed=0,
+                                                                         last_claimed=-1,
+                                                                         last_claimed_premium=-1)
