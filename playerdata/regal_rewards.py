@@ -1,4 +1,5 @@
 from datetime import datetime
+from functools import lru_cache
 from typing import List
 
 from django.db.transaction import atomic
@@ -37,9 +38,8 @@ class RegalRewardRow:
         self.premium_rewards = []
 
 
-# TODO: Tune reward amounts
 # 25 reward intervals
-# TODO: @lru_cache() when finalized
+@lru_cache()
 def get_regal_rewards_list() -> List[RegalRewardRow]:
     rewards = []
     unlock_amount = 0
@@ -47,14 +47,14 @@ def get_regal_rewards_list() -> List[RegalRewardRow]:
     for reward_id in range(0, 25):
         reward_group = RegalRewardRow(reward_id, unlock_amount)
 
-        gems = 100
-        rare_shards = 90
-        epic_shards = 30
+        gems = 200
+        rare_shards = 40
+        epic_shards = 15
 
         if reward_id % 5 == 0:
-            gems = 600
-            rare_shards = 540
-            epic_shards = 180
+            gems = 800
+            rare_shards = 80 * 3
+            epic_shards = 80
 
         reward_group.reg_rewards.append(chests.ChestReward("rare_shards", rare_shards))
         reward_group.premium_rewards.append(chests.ChestReward("epic_shards", epic_shards))
