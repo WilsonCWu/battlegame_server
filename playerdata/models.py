@@ -1475,6 +1475,7 @@ class WorldPack(models.Model):
     purchased_packs = ArrayField(models.TextField(), default=list)
 
 
+# sets the refresh day at 0:00 + 42 days
 def regal_rewards_refreshdate():
     today = datetime.today()
     return datetime(today.year, today.month, today.day, 0) + timedelta(days=42)
