@@ -335,6 +335,8 @@ class RewardType(Enum):
     EMBER = "ember"
 
 
+REGAL_REWARD_INTERVAL = 800
+
 RESOURCE_SHOP_DEFAULT_REFRESHES = 2
 
 CHEST_ODDS = [750, 250, 0, 0, 0, 0]

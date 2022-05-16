@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema
 from marshmallow import fields
 
-from playerdata import chests
+from playerdata import chests, constants
 from playerdata.models import RegalRewards, regal_rewards_refreshdate
 
 
@@ -61,18 +61,9 @@ def get_regal_rewards_list() -> List[RegalRewardRow]:
         reward_group.premium_rewards.append(chests.ChestReward("gems", gems))
 
         rewards.append(reward_group)
-        unlock_amount += 800
+        unlock_amount += constants.REGAL_REWARD_INTERVAL
 
     return rewards
-
-
-def complete_regal_rewards(points: int, tracker: RegalRewards):
-    for reward_row in get_regal_rewards_list():
-        if reward_row.unlock_amount > points:
-            break
-        tracker.last_completed = max(reward_row.id, tracker.last_completed)
-
-    tracker.save()
 
 
 class GetRegalRewardListView(APIView):
