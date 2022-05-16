@@ -11,7 +11,7 @@ from rest_marshmallow import Schema, fields
 
 from playerdata import constants, formulas, rolls, tier_system, base, server
 from playerdata.constants import ChestType
-from playerdata.models import Chest, BaseItem, Item, DailyDungeonStatus, BaseCharacter
+from playerdata.models import Chest, BaseItem, Item, DailyDungeonStatus, BaseCharacter, RegalRewards
 from playerdata.questupdater import QuestUpdater
 from playerdata.serializers import ValueSerializer, CollectChestSerializer, IntSerializer
 
@@ -235,7 +235,7 @@ def award_chest_rewards(user, rewards):
             tier_system.complete_any_champ_rewards(user.inventory.champ_badges, user.champbadgetracker)
         elif reward.reward_type == 'regal_points':
             user.regalrewards.points += reward.value
-            user.regalrewards.save()
+            complete_regal_rewards(user.regalrewards)
         elif reward.reward_type == 'char_id':
             rolls.insert_character(user, reward.value)
         elif reward.reward_type == 'item_id':
@@ -252,6 +252,13 @@ def award_chest_rewards(user, rewards):
         else:
             raise Exception("invalid reward_type, sorry friendo")
     user.inventory.save()
+
+
+# marks the completed rewards on awarding regal points
+def complete_regal_rewards(tracker: RegalRewards):
+    last_completed_id = tracker.points // constants.REGAL_REWARD_INTERVAL
+    tracker.last_completed = max(last_completed_id, tracker.last_completed)
+    tracker.save()
 
 
 # guarantee a coin and dust drop in chests
