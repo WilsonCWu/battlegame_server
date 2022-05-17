@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from playerdata import regal_rewards
+from playerdata import regal_rewards, chests
 from playerdata.models import User
 
 
@@ -23,7 +23,10 @@ class RegalRewardsAPITestCase(APITestCase):
         self.assertEqual(len(response.data['rewards']), 25)
 
     def test_claim_reward(self):
-        regal_rewards.complete_regal_rewards(1, self.u.regalrewards)
+        self.u.regalrewards.points = 1
+        self.u.regalrewards.save()
+
+        chests.complete_regal_rewards(self.u.regalrewards)
 
         response = self.client.post('/regalrewards/claim/', {})
 
@@ -37,21 +40,24 @@ class RegalRewardsAPITestCase(APITestCase):
         self.assertFalse(response.data['status'])
 
     def test_claim_reward_premium(self):
-        regal_rewards.complete_regal_rewards(801, self.u.regalrewards)
+        self.u.regalrewards.points = 801
+        self.u.regalrewards.save()
+
+        chests.complete_regal_rewards(self.u.regalrewards)
 
         response = self.client.post('/regalrewards/claim/', {})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
 
-        self.assertEqual(self.u.inventory.rare_shards, 540)
-        self.assertEqual(self.u.inventory.epic_shards, 180)
+        self.assertEqual(self.u.inventory.rare_shards, 240)
+        self.assertEqual(self.u.inventory.epic_shards, 80)
 
         response = self.client.post('/regalrewards/claim/', {})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
 
-        self.assertEqual(self.u.inventory.rare_shards, 630)
-        self.assertEqual(self.u.inventory.epic_shards, 210)
+        self.assertEqual(self.u.inventory.rare_shards, 280)
+        self.assertEqual(self.u.inventory.epic_shards, 95)
 
         response = self.client.post('/regalrewards/claim/', {})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -59,22 +65,23 @@ class RegalRewardsAPITestCase(APITestCase):
 
     def test_claim_reward_not_premium(self):
         self.u.regalrewards.is_premium = False
+        self.u.regalrewards.points = 801
         self.u.regalrewards.save()
 
-        regal_rewards.complete_regal_rewards(801, self.u.regalrewards)
+        chests.complete_regal_rewards(self.u.regalrewards)
 
         response = self.client.post('/regalrewards/claim/', {})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
 
-        self.assertEqual(self.u.inventory.rare_shards, 540)
+        self.assertEqual(self.u.inventory.rare_shards, 240)
         self.assertEqual(self.u.inventory.epic_shards, 0)
 
         response = self.client.post('/regalrewards/claim/', {})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['status'])
 
-        self.assertEqual(self.u.inventory.rare_shards, 630)
+        self.assertEqual(self.u.inventory.rare_shards, 280)
         self.assertEqual(self.u.inventory.epic_shards, 0)
 
         response = self.client.post('/regalrewards/claim/', {})
@@ -83,9 +90,10 @@ class RegalRewardsAPITestCase(APITestCase):
 
     def test_claim_reward_not_premium_then_premium(self):
         self.u.regalrewards.is_premium = False
+        self.u.regalrewards.points = 801
         self.u.regalrewards.save()
 
-        regal_rewards.complete_regal_rewards(801, self.u.regalrewards)
+        chests.complete_regal_rewards(self.u.regalrewards)
 
         response = self.client.post('/regalrewards/claim/', {})
         self.assertEqual(response.status_code, status.HTTP_200_OK)

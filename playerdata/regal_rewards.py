@@ -1,3 +1,5 @@
+from datetime import datetime
+from functools import lru_cache
 from typing import List
 
 from django.db.transaction import atomic
@@ -7,8 +9,8 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema
 from marshmallow import fields
 
-from playerdata import chests
-from playerdata.models import RegalRewards
+from playerdata import chests, constants
+from playerdata.models import RegalRewards, regal_rewards_refreshdate
 
 
 class RegalRewardsSchema(Schema):
@@ -36,9 +38,8 @@ class RegalRewardRow:
         self.premium_rewards = []
 
 
-# TODO: Tune reward amounts
 # 25 reward intervals
-# TODO: @lru_cache() when finalized
+@lru_cache()
 def get_regal_rewards_list() -> List[RegalRewardRow]:
     rewards = []
     unlock_amount = 0
@@ -46,32 +47,23 @@ def get_regal_rewards_list() -> List[RegalRewardRow]:
     for reward_id in range(0, 25):
         reward_group = RegalRewardRow(reward_id, unlock_amount)
 
-        gems = 100
-        rare_shards = 90
-        epic_shards = 30
+        gems = 200
+        rare_shards = 40
+        epic_shards = 15
 
         if reward_id % 5 == 0:
-            gems = 600
-            rare_shards = 540
-            epic_shards = 180
+            gems = 800
+            rare_shards = 80 * 3
+            epic_shards = 80
 
         reward_group.reg_rewards.append(chests.ChestReward("rare_shards", rare_shards))
         reward_group.premium_rewards.append(chests.ChestReward("epic_shards", epic_shards))
         reward_group.premium_rewards.append(chests.ChestReward("gems", gems))
 
         rewards.append(reward_group)
-        unlock_amount += 800
+        unlock_amount += constants.REGAL_REWARD_INTERVAL
 
     return rewards
-
-
-def complete_regal_rewards(points: int, tracker: RegalRewards):
-    for reward_row in get_regal_rewards_list():
-        if reward_row.unlock_amount > points:
-            break
-        tracker.last_completed = max(reward_row.id, tracker.last_completed)
-
-    tracker.save()
 
 
 class GetRegalRewardListView(APIView):
@@ -116,3 +108,17 @@ class ClaimRegalRewardView(APIView):
 
         chests.award_chest_rewards(request.user, rewards)
         return Response({'status': True, 'rewards': chests.ChestRewardSchema(rewards, many=True).data})
+
+
+@atomic()
+def reset_regal_rewards_cron():
+    # reset all passes that are expired
+    today = datetime.today()
+    refresh_time = datetime(today.year, today.month, today.day, 0)
+    new_expiration_date = regal_rewards_refreshdate()
+    RegalRewards.objects.filter(expiration_date__lt=refresh_time).update(is_premium=False,
+                                                                         expiration_date=new_expiration_date,
+                                                                         points=0,
+                                                                         last_completed=0,
+                                                                         last_claimed=-1,
+                                                                         last_claimed_premium=-1)

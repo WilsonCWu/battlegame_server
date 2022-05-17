@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_marshmallow import Schema
 from marshmallow import fields
 
-from playerdata import chests
+from playerdata import chests, constants
 from playerdata.models import ActivityPoints
 from playerdata.serializers import IntSerializer
 
@@ -30,28 +30,28 @@ class ActivityPointsReward:
 # TODO: can cache too
 def get_daily_activitypoints_rewards():
     reward0 = [
-        chests.ChestReward("coins", 10000),
-        chests.ChestReward("regal_points", 20)
+        chests.ChestReward(constants.RewardType.GEMS.value, 20),
+        chests.ChestReward(constants.RewardType.REGAL_POINTS.value, 40)
     ]
 
     reward1 = [
-        chests.ChestReward("essence", 150),
-        chests.ChestReward("regal_points", 30)
+        chests.ChestReward(constants.RewardType.COINS_FAST_REWARDS.value, 2),
+        chests.ChestReward(constants.RewardType.REGAL_POINTS.value, 50)
     ]
 
     reward2 = [
-        chests.ChestReward("rare_shards", 5),
-        chests.ChestReward("regal_points", 60)
+        chests.ChestReward(constants.RewardType.RARE_SHARDS.value, 10),
+        chests.ChestReward(constants.RewardType.REGAL_POINTS.value, 60)
     ]
 
     reward3 = [
-        chests.ChestReward("gems", 50),
-        chests.ChestReward("regal_points", 80)
+        chests.ChestReward(constants.RewardType.GEMS.value, 60),
+        chests.ChestReward(constants.RewardType.REGAL_POINTS.value, 80)
     ]
 
     reward4 = [
-        chests.ChestReward("gems", 100),
-        chests.ChestReward("regal_points", 160)
+        chests.ChestReward(constants.RewardType.GEMS.value, 100),
+        chests.ChestReward(constants.RewardType.REGAL_POINTS.value, 130)
     ]
 
     rewards = [reward0, reward1, reward2, reward3, reward4]
@@ -68,28 +68,31 @@ def get_daily_activitypoints_rewards():
 # TODO: can cache too
 def get_weekly_activitypoints_rewards():
     reward0 = [
-        chests.ChestReward("coins", 200000),
-        chests.ChestReward("regal_points", 100)
+        chests.ChestReward(constants.RewardType.GEMS.value, 30),
+        chests.ChestReward(constants.RewardType.REGAL_POINTS.value, 180)
     ]
 
     reward1 = [
-        chests.ChestReward("essence", 400),
-        chests.ChestReward("regal_points", 150)
+        chests.ChestReward(constants.RewardType.GEMS.value, 70),
+        chests.ChestReward(constants.RewardType.REGAL_POINTS.value, 260)
     ]
 
     reward2 = [
-        chests.ChestReward("rare_shards", 60),
-        chests.ChestReward("regal_points", 250)
+        chests.ChestReward(constants.RewardType.COINS_FAST_REWARDS.value, 8),
+        chests.ChestReward(constants.RewardType.GEMS.value, 100),
+        chests.ChestReward(constants.RewardType.REGAL_POINTS.value, 380)
     ]
 
     reward3 = [
-        chests.ChestReward("epic_shards", 10),
-        chests.ChestReward("regal_points", 400)
+        chests.ChestReward(constants.RewardType.DUST_FAST_REWARDS.value, 2),
+        chests.ChestReward(constants.RewardType.GEMS.value, 300),
+        chests.ChestReward(constants.RewardType.REGAL_POINTS.value, 400)
     ]
 
     reward4 = [
-        chests.ChestReward("gems", 400),
-        chests.ChestReward("regal_points", 600)
+        chests.ChestReward(constants.RewardType.COINS_FAST_REWARDS.value, 8),
+        chests.ChestReward(constants.RewardType.GEMS.value, 400),
+        chests.ChestReward(constants.RewardType.REGAL_POINTS.value, 500)
     ]
 
     rewards = [reward0, reward1, reward2, reward3, reward4]
