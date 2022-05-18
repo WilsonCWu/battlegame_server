@@ -1,4 +1,5 @@
 import json
+import logging
 import random
 from collections import namedtuple
 from datetime import datetime, timezone, timedelta
@@ -161,9 +162,12 @@ def reward_purchase(user, transaction_id, purchase_id):
 
 
 def handle_purchase_subscription(user, purchase_id, transaction_id):
-    if not user.userinfo.is_monthly_sub:
-        user.userinfo.is_monthly_sub = True
-        user.userinfo.save()
+    if user.userinfo.is_monthly_sub:
+        logging.error(f"userid: {user.id}, purchase_id: {purchase_id}, transaction_id: {transaction_id}, repurchased while already on premium")
+        return Response({'status': False, 'reason': 'month card repurchased while already on premium'})
+
+    user.userinfo.is_monthly_sub = True
+    user.userinfo.save()
 
     PurchasedTracker.objects.create(user=user, transaction_id=transaction_id, purchase_id=purchase_id)
 
@@ -171,9 +175,12 @@ def handle_purchase_subscription(user, purchase_id, transaction_id):
 
 
 def handle_regal_rewards(user, purchase_id, transaction_id):
-    if not user.regalrewards.is_premium:
-        user.regalrewards.is_premium = True
-        user.regalrewards.save()
+    if user.regalrewards.is_premium:
+        logging.error(f"userid: {user.id}, purchase_id: {purchase_id}, transaction_id: {transaction_id}, repurchased while already on premium")
+        return Response({'status': False, 'reason': 'premium repurchased while already on premium'})
+
+    user.regalrewards.is_premium = True
+    user.regalrewards.save()
 
     PurchasedTracker.objects.create(user=user, transaction_id=transaction_id, purchase_id=purchase_id)
 
