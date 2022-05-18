@@ -458,8 +458,6 @@ def generate_fortune_chest_rewards(user):
     seed_int = date.today().toordinal()
     fortune_cards = get_daily_fortune_cards(seed_int)
 
-    rewards.append(pick_resource_reward(user, 'coins', constants.ChestType.FORTUNE.value))
-
     is_fortune = {
         2: rolls.weighted_pick_from_buckets(constants.FORTUNE_CHEST_CHANCE) == 0,  # Rare
         3: rolls.weighted_pick_from_buckets(constants.FORTUNE_CHEST_CHANCE) == 0,  # Epic
@@ -484,8 +482,8 @@ def generate_fortune_chest_rewards(user):
             reward_chars = [ChestReward(reward_type='char_id', value=char_id)] * num_chars
             rewards.extend(reward_chars)
 
-    # add legendary pity one in every 10 chests guaranteed
-    if rolls.weighted_pick_from_buckets(constants.FORTUNE_CHEST_LEGENDARY_CHANCE) == 0 or user.userstats.fortune_pity_counter == 9:
+    # add legendary pity one in every 5 chests guaranteed
+    if rolls.weighted_pick_from_buckets(constants.FORTUNE_CHEST_LEGENDARY_CHANCE) == 0 or user.userstats.fortune_pity_counter == 4:
         rewards.append(ChestReward(reward_type='char_id', value=fortune_cards[2]))
         user.userstats.fortune_pity_counter = 0
     else:

@@ -90,6 +90,7 @@ class NotificationType(Enum):
     CUMULATIVE_QUEST = 2
     GRASS_EVENT = 3
     CHRISTMAS_2021 = 4
+    REGAL_REWARDS = 5
 
 
 # Tournament constants
@@ -358,7 +359,7 @@ MAX_REWARDS_PER_CHEST = {
     ChestType.DAILY_DUNGEON.value: 3,
 }
 FORTUNE_CHEST_CHANCE = [700, 300]  # 70% chance to get fortune cards in fortune chest
-FORTUNE_CHEST_LEGENDARY_CHANCE = [100, 900]
+FORTUNE_CHEST_LEGENDARY_CHANCE = [200, 800]
 
 # Index for chest reward types corresponding to the values in the RESOURCE_TYPE_ODDS_PER_CHEST buckets
 REWARD_TYPE_INDEX = ['coins', 'gems', 'essence', 'char_id', 'item_id']
@@ -394,7 +395,7 @@ GUARANTEED_CHARS_PER_RARITY_PER_CHEST = {
     ChestType.LEGENDARY.value: [0, 0, 0, 0, 1],  # LEGENDARY
     ChestType.DAILY_DUNGEON.value: [0, 0, 0, 0, 0],  # DAILY_DUNGEON
     ChestType.LOGIN_GEMS.value: [0, 0, 0, 0, 0],  # LOGIN_GEMS
-    ChestType.FORTUNE.value: [0, 0, 5, 3, 0]  # FORTUNE
+    ChestType.FORTUNE.value: [0, 0, 6, 3, 0]  # FORTUNE
 }
 
 # Odds of getting each rarity char on non-guaranteed roll
