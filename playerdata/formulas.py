@@ -109,6 +109,8 @@ def product_to_dollar_cost(product_id: str):
         return 10
     elif product_id in [constants.GEMS_1999, constants.WORLD_PACK_2, constants.CHAPTER_REWARDS_PACK0, constants.DEAL_MONTHLY_4, constants.DEAL_DAILY_4, constants.DEAL_WEEKLY_3]:
         return 20
+    elif product_id in [constants.REGAL_REWARDS_PASS]:
+        return 25
     elif product_id in [constants.GEMS_2999]:
         return 30
     elif product_id in [constants.GEMS_4999, constants.DEAL_WEEKLY_4, constants.DEAL_MONTHLY_5, constants.DEAL_MONTHLY_6, constants.WORLD_PACK_3]:

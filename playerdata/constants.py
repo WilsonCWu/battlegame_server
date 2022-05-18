@@ -159,6 +159,8 @@ WORLD_PACK_4 = 'com.salutationstudio.tinytitans.worldpack4'
 
 MONTHLY_PASS = 'com.salutationstudio.tinytitans.monthlypass1'
 
+REGAL_REWARDS_PASS = 'com.salutationstudio.tinytitans.imperialpremium'
+
 IAP_GEMS_AMOUNT = {
     GEMS_499: 800,
     GEMS_999: 2060,
