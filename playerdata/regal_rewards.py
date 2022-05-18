@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 from rest_marshmallow import Schema
 from marshmallow import fields
 
+from mainsocket import notifications
 from playerdata import chests, constants
 from playerdata.models import RegalRewards, regal_rewards_refreshdate
 
@@ -122,3 +123,12 @@ def reset_regal_rewards_cron():
                                                                          last_completed=0,
                                                                          last_claimed=-1,
                                                                          last_claimed_premium=-1)
+
+
+class RegalRewardsBadgeNotifCount(notifications.BadgeNotifCount):
+    def get_badge_notif(self, user):
+        count = user.regalrewards.last_completed - user.regalrewards.last_claimed
+        if user.regalrewards.is_premium:
+            count += user.regalrewards.last_claimed - user.regalrewards.last_claimed_premium
+
+        return notifications.BadgeNotif(constants.NotificationType.REGAL_REWARDS.value, count)

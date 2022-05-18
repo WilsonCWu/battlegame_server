@@ -4,7 +4,7 @@ import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from mainsocket import notifications
-from playerdata import questupdater, event_times, world_pack, constants
+from playerdata import questupdater, event_times, world_pack, constants, regal_rewards
 
 
 # Channel group is the user_id
@@ -30,6 +30,7 @@ class MainSocketConsumer(WebsocketConsumer):
                                                 questupdater.WeeklyBadgeNotifCount().get_badge_notif(self.user),
                                                 questupdater.CumulativeBadgeNotifCount().get_badge_notif(self.user),
                                                 event_times.GrassEventBadgeNotifCount().get_badge_notif(self.user),
+                                                regal_rewards.RegalRewardsBadgeNotifCount().get_badge_notif(self.user),
                                                 )
 
         if world_pack.show_world_pack_popup(self.user):
