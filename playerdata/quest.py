@@ -246,24 +246,15 @@ def refresh_quests(PlayerQuestModel, ActiveQuestModel, num_quests, days_interval
     _delete_first_n_rows(ActiveQuestModel, num_quests)
 
 
-def reset_activity_points(attr_name: str):
-    ap_list = ActivityPoints.objects.all()
-    for ap in ap_list:
-        setattr(ap, attr_name, 0)
-    ActivityPoints.objects.bulk_update(ap_list, [attr_name])
-
-
 # refresh quests: deletes the previous ActiveQuests and uses new ones to propagate to users
 def refresh_daily_quests():
     refresh_quests(PlayerQuestDaily, ActiveDailyQuest, constants.NUM_DAILY_QUESTS, 1)
     queue_active_daily_quests()
-    reset_activity_points('daily_points')
 
 
 def refresh_weekly_quests():
     refresh_quests(PlayerQuestWeekly, ActiveWeeklyQuest, constants.NUM_WEEKLY_QUESTS, 7)
     queue_active_weekly_quests()
-    reset_activity_points('weekly_points')
 
 
 # randomly sample from pool of quest ids to populate ActiveQuest
