@@ -5,7 +5,7 @@ from django.db.transaction import atomic
 from sentry_sdk import capture_exception
 from django_redis import get_redis_connection
 from datetime import timedelta
-from playerdata import tier_system, relic_shop, refunds, base, resource_shop, server, regal_rewards
+from playerdata import tier_system, relic_shop, refunds, base, resource_shop, server, regal_rewards, activity_points
 from playerdata.antihacking import MatchValidator
 from playerdata.constants import TOURNEY_SIZE
 from playerdata.daily_dungeon import daily_dungeon_team_gen_cron
@@ -63,12 +63,14 @@ def cron(uuid=None, retries=0):
 def daily_quests_cron():
     # remove top 3 from daily
     refresh_daily_quests()
+    activity_points.reset_daily_activity_points()
 
 
 @cron(uuid="40561eec-8a6c-4485-b9ae-838f1b229c39")
 def weekly_quests_cron():
     # remove top 5 from weekly
     refresh_weekly_quests()
+    activity_points.reset_weekly_activity_points()
 
 
 @cron(uuid="3f6f9ed0-ef95-4a56-b27d-968e2bf3678d")

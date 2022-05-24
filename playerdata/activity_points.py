@@ -160,3 +160,13 @@ class ClaimActivityPointsView(APIView):
         request.user.activitypoints.save()
 
         return Response({'status': True, 'rewards': chests.ChestRewardSchema(rewards, many=True).data})
+
+
+@atomic
+def reset_daily_activity_points():
+    ActivityPoints.objects.update(daily_last_completed=-1, daily_last_claimed=-1, daily_points=0)
+
+
+@atomic
+def reset_weekly_activity_points():
+    ActivityPoints.objects.update(weekly_last_completed=-1, weekly_last_claimed=-1, weekly_points=0)
