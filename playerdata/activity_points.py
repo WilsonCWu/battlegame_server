@@ -164,9 +164,9 @@ class ClaimActivityPointsView(APIView):
 
 @atomic
 def reset_daily_activity_points():
-    ActivityPoints.objects.update(daily_last_completed=-1, daily_last_claimed=-1, daily_points=0)
+    ActivityPoints.objects.filter(daily_points__gt=0).update(daily_last_completed=-1, daily_last_claimed=-1, daily_points=0)
 
 
 @atomic
 def reset_weekly_activity_points():
-    ActivityPoints.objects.update(weekly_last_completed=-1, weekly_last_claimed=-1, weekly_points=0)
+    ActivityPoints.objects.filter(weekly_points__gt=0).update(weekly_last_completed=-1, weekly_last_claimed=-1, weekly_points=0)
