@@ -10,6 +10,7 @@ from playerdata.models import ClanSeasonReward
 # TODO: Tune rewards
 def get_clan_season_rewards(rank: int):
     rewards = []
+    # TODO: award a badge for ranking if top 10
 
     rewards.append(chests.ChestReward('relic_stone', rank * 55 + 200))
 
