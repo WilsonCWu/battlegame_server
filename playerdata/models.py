@@ -1653,6 +1653,7 @@ def create_user_info(sender, instance, created, **kwargs):
         EloRewardTracker.objects.create(user=instance)
         ChampBadgeTracker.objects.create(user=instance)
         SeasonReward.objects.create(user=instance)
+        ClanSeasonReward.objects.create(user=instance)
         LevelBooster.objects.create(user=instance)
         RelicShop.objects.create(user=instance)
         Wishlist.objects.create(user=instance)
