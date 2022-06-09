@@ -464,3 +464,12 @@ def backfill_wishlist():
 @transaction.atomic()
 def backfill_lvl_booster():
     LevelBooster.objects.filter(user__dungeonprogress__campaign_stage__gte=constants.LEVEL_BOOSTER_UNLOCK_STAGE, is_active=False).update(is_active=True)
+
+
+@transaction.atomic()
+def backfill_clan_rewards():
+    clan_seasons = []
+    for user in User.objects.filter(clan_seasons__isnull=True):
+        clan_seasons.append(ClanSeasonReward(user=user))
+
+    ClanSeasonReward.objects.bulk_create(clan_seasons)
