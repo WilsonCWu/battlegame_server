@@ -1,19 +1,10 @@
-import math
-from datetime import datetime, timedelta
-from typing import List
-from functools import lru_cache
-
-from django.contrib.auth.models import User
 from django.db.transaction import atomic
-from marshmallow import fields
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_marshmallow import Schema
 
-from playerdata import constants, chests, formulas, server, tier_system
-from playerdata.models import EloRewardTracker, SeasonReward, UserInfo, ChampBadgeTracker, ClanSeasonReward
-from playerdata.serializers import IntSerializer
+from playerdata import chests, tier_system
+from playerdata.models import ClanSeasonReward
 
 
 # TODO: Tune rewards
@@ -33,7 +24,7 @@ class GetClanSeasonRewardView(APIView):
 
         return Response({'status': True,
                          'is_claimed': clean_season_reward.is_claimed,
-                         'rank': clean_season_reward.tier_rank,
+                         'rank': clean_season_reward.rank,
                          'expiration_date': tier_system.get_season_expiration_date()})
 
 
