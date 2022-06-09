@@ -774,6 +774,12 @@ class SeasonReward(models.Model):
     is_claimed = models.BooleanField(default=True)
 
 
+class ClanSeasonReward(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    rank = models.IntegerField(default=-1)
+    is_claimed = models.BooleanField(default=True)
+
+
 def default_afk_shard_list():
     return [0]*3
 
