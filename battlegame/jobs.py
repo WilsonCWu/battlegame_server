@@ -469,7 +469,7 @@ def backfill_lvl_booster():
 @transaction.atomic()
 def backfill_clan_rewards():
     clan_seasons = []
-    for user in User.objects.filter(clan_seasons__isnull=True):
+    for user in User.objects.filter(clanseasonreward__isnull=True):
         clan_seasons.append(ClanSeasonReward(user=user))
 
     ClanSeasonReward.objects.bulk_create(clan_seasons)

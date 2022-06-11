@@ -21,11 +21,11 @@ class GetClanSeasonRewardView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        clean_season_reward = request.user.clanseasonreward
+        clan_season_reward = request.user.clanseasonreward
 
         return Response({'status': True,
-                         'is_claimed': clean_season_reward.is_claimed,
-                         'rank': clean_season_reward.rank,
+                         'is_claimed': clan_season_reward.is_claimed,
+                         'rank': clan_season_reward.rank,
                          'expiration_date': tier_system.get_season_expiration_date()})
 
 
