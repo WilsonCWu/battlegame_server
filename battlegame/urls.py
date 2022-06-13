@@ -20,7 +20,7 @@ from battlegame import gameanalytics
 from playerdata import creatorcode, event_times, login, tier_system, level_booster, relic_shop, wishlist, \
     chapter_rewards_pack, inbox, \
     rotating_mode, conquest_event, regal_rewards, activity_points, shards, grass_event, leaderboards, resource_shop, \
-    world_pack, expedition_maps
+    world_pack, expedition_maps, clan_season
 from playerdata import base
 from playerdata import daily_dungeon
 from playerdata import moevasion
@@ -104,6 +104,8 @@ urlpatterns = [
     path('levelbooster/skip/', level_booster.SkipCooldownView.as_view()),
     path('levelbooster/unlock/', level_booster.UnlockSlotView.as_view()),
     path('levelbooster/enhance/', level_booster.EnhanceLevelUpBooster.as_view()),
+    path('clanseasonreward/get/', clan_season.GetClanSeasonRewardView.as_view()),
+    path('clanseasonreward/claim/', clan_season.ClaimClanSeasonRewardView.as_view()),
     path('seasonreward/get/', tier_system.GetSeasonRewardView.as_view()),
     path('seasonreward/claim/', tier_system.ClaimSeasonRewardView.as_view()),
     path('champbadge/get/', tier_system.GetChampBadgeRewardListView.as_view()),

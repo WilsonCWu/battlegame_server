@@ -774,6 +774,12 @@ class SeasonReward(models.Model):
     is_claimed = models.BooleanField(default=True)
 
 
+class ClanSeasonReward(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    rank = models.IntegerField(default=-1)
+    is_claimed = models.BooleanField(default=True)
+
+
 def default_afk_shard_list():
     return [0]*3
 
@@ -1647,6 +1653,7 @@ def create_user_info(sender, instance, created, **kwargs):
         EloRewardTracker.objects.create(user=instance)
         ChampBadgeTracker.objects.create(user=instance)
         SeasonReward.objects.create(user=instance)
+        ClanSeasonReward.objects.create(user=instance)
         LevelBooster.objects.create(user=instance)
         RelicShop.objects.create(user=instance)
         Wishlist.objects.create(user=instance)
