@@ -5,7 +5,8 @@ from django.db.transaction import atomic
 from sentry_sdk import capture_exception
 from django_redis import get_redis_connection
 from datetime import timedelta
-from playerdata import tier_system, relic_shop, refunds, base, resource_shop, server, regal_rewards, activity_points
+from playerdata import tier_system, relic_shop, refunds, base, resource_shop, server, regal_rewards, activity_points, \
+    leaderboards
 from playerdata.antihacking import MatchValidator
 from playerdata.constants import TOURNEY_SIZE
 from playerdata.daily_dungeon import daily_dungeon_team_gen_cron
@@ -178,6 +179,8 @@ def update_clan_leaderboards_cron():
 
     for clan in clans:
         clan.elo = elo_sums[clan.name]
+
+    leaderboards.bulk_update_redis_ranking(elo_sums, leaderboards.clan_ranking_key())
 
     with atomic():
         Clan2.objects.bulk_update(clans, ['elo'])

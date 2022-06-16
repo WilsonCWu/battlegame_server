@@ -17,24 +17,24 @@ def pvp_ranking_key():
     return "pvp_ranking"
 
 
+def clan_ranking_key():
+    return "clan_ranking"
+
+
 # REDIS Sorted Sets
 # https://redis.io/topics/data-types-intro#redis-sorted-sets
 # Functions: ZADD, ZREVRANK (reverse rank)
 
-def update_pvp_ranking(user_id, elo):
+def update_redis_ranking(user_id, elo, key):
     r = get_redis_connection("default")
-    ranking_key = pvp_ranking_key()
-
-    r.zadd(ranking_key, {user_id: elo})  # user needs to be added in a dict
+    r.zadd(key, {user_id: elo})  # user needs to be added in a dict
 
 
 # Expected format
 # users_dict: {user_id: elo, ... }
-def bulk_update_pvp_ranking(users_dict):
+def bulk_update_redis_ranking(users_dict, key):
     r = get_redis_connection("default")
-    ranking_key = pvp_ranking_key()
-
-    r.zadd(ranking_key, users_dict)
+    r.zadd(key, users_dict)
 
 
 def get_self_rank(user_id):
@@ -47,6 +47,14 @@ def get_self_rank(user_id):
         rank = r.zrevrank(ranking_key, user_id)
 
     return rank + 1  # zero indexed, add 1
+
+
+def get_clan_rank(clan_name):
+    r = get_redis_connection("default")
+    ranking_key = clan_ranking_key()
+
+    rank = r.zrevrank(ranking_key, clan_name)
+    return rank + 1
 
 
 class GetLeaderboardView(APIView):
