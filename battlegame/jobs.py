@@ -371,7 +371,7 @@ def update_redis_player_elos():
     for userinfo in userinfos:
         users_dict[userinfo.user_id] = userinfo.elo
 
-    leaderboards.bulk_update_pvp_ranking(users_dict)
+    leaderboards.bulk_update_redis_ranking(users_dict, leaderboards.pvp_ranking_key())
 
 
 @transaction.atomic()
@@ -473,3 +473,13 @@ def backfill_clan_rewards():
         clan_seasons.append(ClanSeasonReward(user=user))
 
     ClanSeasonReward.objects.bulk_create(clan_seasons)
+
+
+@transaction.atomic
+def update_redis_clan_rankings():
+    clans = Clan2.objects.all()
+    clans_dict = {}
+    for clan in clans:
+        clans_dict[clan.name] = clan.elo
+
+    leaderboards.bulk_update_redis_ranking(clans_dict, leaderboards.clan_ranking_key())

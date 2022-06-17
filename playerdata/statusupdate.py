@@ -176,7 +176,7 @@ def update_rating(original_elo, opponent, win):
         updated_opponent_elo = calculate_elo(other_user.userinfo.elo, original_elo, not win)
         other_user.userinfo.elo = reduce_low_elo_loss(original_opponent_elo, updated_opponent_elo)
         other_user.userinfo.save()
-        leaderboards.update_pvp_ranking(opponent, other_user.userinfo.elo)
+        leaderboards.update_redis_ranking(opponent, other_user.userinfo.elo, leaderboards.pvp_ranking_key())
 
     EloUpdates = collections.namedtuple('EloUpdated',
                                         ['attacker_original', 'attacker_new',
@@ -286,7 +286,7 @@ def handle_quickplay(request, win, opponent, stats, seed, attacking_team, defend
     request.user.userinfo.save()
 
     pvp_queue.pop_pvp_queue(request.user)
-    leaderboards.update_pvp_ranking(request.user.id, request.user.userinfo.elo)
+    leaderboards.update_redis_ranking(request.user.id, request.user.userinfo.elo, leaderboards.pvp_ranking_key())
 
     return Response({'status': True,
                      'elo': elo_updates.attacker_new, 'prev_elo': original_elo,
