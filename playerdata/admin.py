@@ -947,6 +947,7 @@ admin.site.register(EloRewardTracker)
 admin.site.register(BaseResourceShopItem, BaseResourceShopItemAdmin)
 admin.site.register(ResourceShop)
 admin.site.register(WorldPack, WorldPackAdmin)
+admin.site.register(ClanSeasonReward)
 
 admin.site.index_template = 'admin/custom_index.html'
 admin.autodiscover()
