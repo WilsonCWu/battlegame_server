@@ -69,6 +69,7 @@ class ClaimClanSeasonRewardView(APIView):
         return Response({'status': True, 'rewards': chests.ChestRewardSchema(rewards, many=True).data})
 
 
+@atomic()
 def clan_season_cron():
     seasons = ClanSeasonReward.objects.select_related('user__userinfo', 'user__userinfo__clanmember').filter(user__userinfo__isnull=False)
 

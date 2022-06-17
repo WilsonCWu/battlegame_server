@@ -6,7 +6,7 @@ from sentry_sdk import capture_exception
 from django_redis import get_redis_connection
 from datetime import timedelta
 from playerdata import tier_system, relic_shop, refunds, base, resource_shop, server, regal_rewards, activity_points, \
-    leaderboards
+    leaderboards, clan_season
 from playerdata.antihacking import MatchValidator
 from playerdata.constants import TOURNEY_SIZE
 from playerdata.daily_dungeon import daily_dungeon_team_gen_cron
@@ -152,6 +152,7 @@ def refresh_daily_dungeon():
 @cron(uuid="3f972350-ea40-40cf-bb94-36a68b3f5d5b")
 def reset_season():
     tier_system.restart_season()
+    clan_season.clan_season_cron()
 
 
 @cron(uuid="fec82791-ace6-4e2c-aeb3-a987d538e7c9")
